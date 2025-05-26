@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Application de Gestion Client
 
 Une application web Flask moderne pour la gestion de la relation client avec un design élégant en rouge, blanc et noir. **Maintenant avec support multilingue et impression PDF !**
@@ -288,3 +289,7 @@ Pour toute question ou problème :
 ## Licence
 
 Ce projet est sous licence MIT.
+=======
+# FCC_001
+Gestion de atención al cliente
+>>>>>>> ae4940927f4d9702044476de9859941b0f206002
