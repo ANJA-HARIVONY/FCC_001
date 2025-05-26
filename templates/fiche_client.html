@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Fiche Client') }} - {{ client.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Messages Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-tie"></i> {{ _('Ficha del Cliente') }} - {{ client.nom }}
+        </h1>
+        <div>
+            <a href="{{ url_for('clients') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {{ _('Volver') }}
+            </a>
+            <a href="{{ url_for('imprimer_fiche_client', id=client.id) }}" class="btn btn-primary" target="_blank">
+                <i class="fas fa-print"></i> {{ _('Imprimir PDF') }}
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations du client -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> {{ _('Informacion del Cliente') }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('Nombre') }}:</strong></div>
+                        <div class="col-sm-8">{{ client.nom }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('Telefono') }}:</strong></div>
+                        <div class="col-sm-8">{{ client.telephone }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('Direccion') }}:</strong></div>
+                        <div class="col-sm-8">{{ client.adresse }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('Barrio') }}:</strong></div>
+                        <div class="col-sm-8">{{ client.ville }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('IP Router') }}:</strong></div>
+                        <div class="col-sm-8"><code>{{ client.ip_router }}</code></div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('IP Antena') }}:</strong></div>
+                        <div class="col-sm-8"><code>{{ client.ip_antea }}</code></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistiques des incidents -->
+        <div class="col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie"></i> {{ _('Estadisticas de los Incidentes') }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% set total_incidents = incidents|length %}
+                    {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Résolut')|list|length %}
+                    {% set incidents_attente = incidents|selectattr('status', 'equalto', 'En attente')|list|length %}
+                    {% set incidents_bitrix = incidents|selectattr('status', 'equalto', 'Bitrix')|list|length %}
+                    
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="card border-left-primary">
+                                <div class="card-body py-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ _('Total') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_incidents }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card border-left-success">
+                                <div class="card-body py-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ _('Solucionadas') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidents_resolus }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card border-left-warning">
+                                <div class="card-body py-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">{{ _('Pendientes') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidents_attente }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="card border-left-info">
+                                <div class="card-body py-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{{ _('Bitrix') }}</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidents_bitrix }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Liste des incidents -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-exclamation-triangle"></i> {{ _('Historial de los Incidentes') }}
+            </h6>
+        </div>
+        <div class="card-body">
+            {% if incidents %}
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('Fecha/Hora') }}</th>
+                                <th>{{ _('Asunto') }}</th>
+                                <th>{{ _('Status') }}</th>
+                                <th>{{ _('Operador') }}</th>
+                                <th>{{ _('Observaciones') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for incident in incidents %}
+                            <tr>
+                                <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td>{{ incident.intitule }}</td>
+                                <td>
+                                    {% if incident.status == 'Résolut' %}
+                                        <span class="badge bg-success">{{ _('Solucionadas') }}</span>
+                                    {% elif incident.status == 'En attente' %}
+                                        <span class="badge bg-warning">{{ _('Pendientes') }}</span>
+                                    {% elif incident.status == 'Bitrix' %}
+                                        <span class="badge bg-info">{{ _('Bitrix') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ incident.operateur.nom }}</td>
+                                <td>
+                                    {% if incident.observations %}
+                                        <div class="text-truncate" style="max-width: 200px;" title="{{ incident.observations }}">
+                                            {{ incident.observations }}
+                                        </div>
+                                    {% else %}
+                                        <em class="text-muted">{{ _('Ninguna observacion') }}</em>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">{{ _('No hay incidentes registrados para este cliente.') }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

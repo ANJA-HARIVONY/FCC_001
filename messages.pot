@@ -1,0 +1,178 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR anjaharivoni@gmail.com, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-05-25 21:36+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app.py:155
+msgid "Client ajouté avec succès!"
+msgstr ""
+
+#: app.py:170
+msgid "Client modifié avec succès!"
+msgstr ""
+
+#: app.py:179
+msgid "Client supprimé avec succès!"
+msgstr ""
+
+#: app.py:223
+msgid "Opérateur ajouté avec succès!"
+msgstr ""
+
+#: app.py:234
+msgid "Opérateur modifié avec succès!"
+msgstr ""
+
+#: app.py:243
+msgid "Opérateur supprimé avec succès!"
+msgstr ""
+
+#: app.py:264
+msgid "Incident ajouté avec succès!"
+msgstr ""
+
+#: app.py:281
+msgid "Incident modifié avec succès!"
+msgstr ""
+
+#: app.py:293
+msgid "Incident supprimé avec succès!"
+msgstr ""
+
+#: templates/base.html:78
+msgid "Rechercher..."
+msgstr ""
+
+#: templates/clients.html:64
+msgid "Voir la fiche"
+msgstr ""
+
+#: templates/clients.html:68
+msgid "Modifier"
+msgstr ""
+
+#: templates/clients.html:75
+msgid "Supprimer"
+msgstr ""
+
+#: templates/fiche_client.html:4 templates/fiche_client.html:12
+#: templates/fiche_client_pdf.html:6 templates/fiche_client_pdf.html:163
+msgid "Fiche Client"
+msgstr ""
+
+#: templates/fiche_client.html:16
+msgid "Retour"
+msgstr ""
+
+#: templates/fiche_client.html:19
+msgid "Imprimer PDF"
+msgstr ""
+
+#: templates/fiche_client.html:30 templates/fiche_client_pdf.html:169
+msgid "Informations du Client"
+msgstr ""
+
+#: templates/fiche_client.html:35 templates/fiche_client_pdf.html:172
+msgid "Nom"
+msgstr ""
+
+#: templates/fiche_client.html:40 templates/fiche_client_pdf.html:176
+msgid "Contact"
+msgstr ""
+
+#: templates/fiche_client.html:45 templates/fiche_client_pdf.html:180
+msgid "Adresse"
+msgstr ""
+
+#: templates/fiche_client.html:50 templates/fiche_client_pdf.html:184
+msgid "Ville"
+msgstr ""
+
+#: templates/fiche_client.html:55 templates/fiche_client_pdf.html:188
+msgid "IP Router"
+msgstr ""
+
+#: templates/fiche_client.html:60 templates/fiche_client_pdf.html:192
+msgid "IP Antea"
+msgstr ""
+
+#: templates/fiche_client.html:72 templates/fiche_client_pdf.html:200
+msgid "Statistiques des Incidents"
+msgstr ""
+
+#: templates/fiche_client.html:85 templates/fiche_client_pdf.html:209
+msgid "Total"
+msgstr ""
+
+#: templates/fiche_client.html:93 templates/fiche_client_pdf.html:213
+msgid "Résolus"
+msgstr ""
+
+#: templates/fiche_client.html:101 templates/fiche_client.html:149
+#: templates/fiche_client_pdf.html:217 templates/fiche_client_pdf.html:249
+msgid "En attente"
+msgstr ""
+
+#: templates/fiche_client.html:109 templates/fiche_client.html:151
+#: templates/fiche_client_pdf.html:221 templates/fiche_client_pdf.html:251
+msgid "Bitrix"
+msgstr ""
+
+#: templates/fiche_client.html:124 templates/fiche_client_pdf.html:228
+msgid "Historique des Incidents"
+msgstr ""
+
+#: templates/fiche_client.html:133 templates/fiche_client_pdf.html:233
+msgid "Date/Heure"
+msgstr ""
+
+#: templates/fiche_client.html:134 templates/fiche_client_pdf.html:234
+msgid "Intitulé"
+msgstr ""
+
+#: templates/fiche_client.html:135 templates/fiche_client_pdf.html:235
+msgid "Statut"
+msgstr ""
+
+#: templates/fiche_client.html:136 templates/fiche_client_pdf.html:236
+msgid "Opérateur"
+msgstr ""
+
+#: templates/fiche_client.html:137 templates/fiche_client_pdf.html:237
+msgid "Observations"
+msgstr ""
+
+#: templates/fiche_client.html:147 templates/fiche_client_pdf.html:247
+msgid "Résolut"
+msgstr ""
+
+#: templates/fiche_client.html:161 templates/fiche_client_pdf.html:259
+msgid "Aucune observation"
+msgstr ""
+
+#: templates/fiche_client.html:172 templates/fiche_client_pdf.html:268
+msgid "Aucun incident enregistré pour ce client."
+msgstr ""
+
+#: templates/fiche_client_pdf.html:164
+msgid "Générée le"
+msgstr ""
+
+#: templates/fiche_client_pdf.html:274
+msgid "Document généré automatiquement par le système de gestion des clients"
+msgstr ""
+

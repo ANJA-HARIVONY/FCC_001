@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Busqueda - Gestion Client{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 text-dark mb-0">
+                <i class="fas fa-search text-danger me-2"></i>
+                Resultados de busqueda
+            </h1>
+            <p class="text-muted">Busqueda para: <strong>"{{ query }}"</strong></p>
+        </div>
+    </div>
+
+    {% if clients or incidents %}
+    <!-- Résultats Clients -->
+    {% if clients %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-users me-2"></i>
+                        Clientes encontrados ({{ clients|length }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Contacto</th>
+                                    <th>Barrio</th>
+                                    <th>IP Router</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for client in clients %}
+                                <tr>
+                                    <td><strong>#{{ client.id }}</strong></td>
+                                    <td>{{ client.nom }}</td>
+                                    <td>{{ client.contact }}</td>
+                                    <td>{{ client.ville }}</td>
+                                    <td><code>{{ client.ip_router }}</code></td>
+                                    <td>
+                                        <a href="{{ url_for('modifier_client', id=client.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Modificar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Résultats Incidents -->
+    {% if incidents %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Incidencias encontradas ({{ incidents|length }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Asunto</th>
+                                    <th>Status</th>
+                                    <th>Operador</th>
+                                    <th>Fecha/Hora</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for incident in incidents %}
+                                <tr>
+                                    <td><strong>#{{ incident.id }}</strong></td>
+                                    <td>{{ incident.client.nom }}</td>
+                                    <td>{{ incident.intitule }}</td>
+                                    <td>
+                                        {% if incident.status == 'Résolut' %}
+                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                        {% elif incident.status == 'En attente' %}
+                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                        {% else %}
+                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ incident.operateur.nom }}</td>
+                                    <td>{{ incident.date_heure.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('modifier_incident', id=incident.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Modificar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- Aucun résultat -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron resultados</h5>
+                    <p class="text-muted">No se encontraron clientes o incidencias que coincidan con su busqueda "<strong>{{ query }}</strong>"</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-1"></i>Volver al Dashboard
+                        </a>
+                        <a href="{{ url_for('nouveau_client') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-1"></i>Nuevo Cliente
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Nouvelle recherche -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search me-2"></i>
+                        Nueva busqueda
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('recherche') }}">
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="q" 
+                                placeholder="Buscar un cliente o un incidente..." 
+                                   value="{{ query }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search me-1"></i>Buscar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

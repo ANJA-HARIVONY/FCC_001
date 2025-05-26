@@ -1,0 +1,44 @@
+Model:
+
+Client
+Nom
+Contact
+Adresse
+Ville
+IP Router
+IP Antea
+
+Operateur
+Nom
+Telefone
+
+Incident
+Id client
+Intitulé
+Observations
+Status: (“Résolut, En attente, Bitrix: int)
+Id Operateur
+DateHeure (Timestamp)
+
+
+Page: Dashboard: (le mois en cours)
+- Nombre total Incident
+Nombre total incident resolut
+Nombre total incident En attente
+Nombre total incident Bitrix
+Barre de recherche pour rechercher dans la base de données
+
+Courbe d’évolution d’incident par date (le mois en cours)
+Diagramme circulaire de la répartition des incidents par Opérateur 
+Tableau des 5 dernier liste des incidents ajouter 
+
+Page: Edition
+CRUD pour la table client 
+CRUD pour la table opérateur 
+CRUD pour le table incident 
+
+Page: Etat
+Pour imprimer en PDF les états possible:
+Historique du client
+
+Page: Aide

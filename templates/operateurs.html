@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Operadores - Gestion Client{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-dark mb-0">
+                        <i class="fas fa-headset text-danger me-2"></i>
+                        Gestion de los Operadores
+                    </h1>
+                    <p class="text-muted">Lista y gestion de los operadores</p>
+                </div>
+                <a href="{{ url_for('nouveau_operateur') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Nuevo Operador
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de los Operadores ({{ operateurs|length }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if operateurs %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Incidencias Asignadas</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for operateur in operateurs %}
+                                <tr>
+                                    <td><strong>#{{ operateur.id }}</strong></td>
+                                    <td>{{ operateur.nom }}</td>
+                                    <td>
+                                        <i class="fas fa-phone text-success me-1"></i>
+                                        {{ operateur.telephone }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ operateur.incidents|length }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('modifier_operateur', id=operateur.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    data-operateur-id="{{ operateur.id }}" 
+                                                    data-operateur-nom="{{ operateur.nom }}"
+                                                    onclick="confirmerSuppression(this)" 
+                                                    title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-tie fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay operadores registrados</h5>
+                        <p class="text-muted">Comience agregando su primer operador</p>
+                        <a href="{{ url_for('nouveau_operateur') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Agregar un operador
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar la eliminacion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de querer eliminar el operador <strong id="operateurNom"></strong> ?</p>
+                <p class="text-danger"><small>Esta acción es irreversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmerSuppression(button) {
+    const operateurId = button.getAttribute('data-operateur-id');
+    const operateurNom = button.getAttribute('data-operateur-nom');
+    document.getElementById('operateurNom').textContent = operateurNom;
+    document.getElementById('deleteForm').action = '/operateurs/' + operateurId + '/supprimer';
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+</script>
+{% endblock %} 

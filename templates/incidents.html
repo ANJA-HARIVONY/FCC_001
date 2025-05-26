@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Incidencias - Gestion Client{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-dark mb-0">
+                        <i class="fas fa-ticket text-danger me-2"></i>
+                        Incidencias
+                    </h1>
+                    <p class="text-muted">Lista y gestion de incidencias</p>
+                </div>
+                <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Nuevo Incidencia
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de las Incidencias ({{ incidents|length }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if incidents %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Client</th>
+                                    <th>Asunto</th>
+                                    <th>Status</th>
+                                    <th>Operador</th>
+                                    <th>Fecha/Hora</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for incident in incidents %}
+                                <tr>
+                                    <td><strong>#{{ incident.id }}</strong></td>
+                                    <td>{{ incident.client.nom }}</td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;" title="{{ incident.intitule }}">
+                                            {{ incident.intitule }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if incident.status == 'Solucionadas' %}
+                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                        {% elif incident.status == 'Pendiente' %}
+                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                        {% else %}
+                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ incident.operateur.nom }}</td>
+                                    <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('modifier_incident', id=incident.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="Modifier">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    data-incident-id="{{ incident.id }}" 
+                                                    data-incident-intitule="{{ incident.intitule }}"
+                                                    onclick="confirmerSuppression(this)" 
+                                                    title="Supprimer">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay incidentes registrados</h5>
+                        <p class="text-muted">Comience agregando su primer incidente</p>
+                        <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Agregar un incidente
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar la eliminacion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de querer eliminar el incidente <strong id="incidentIntitule"></strong> ?</p>
+                <p class="text-danger"><small>Esta acción es irreversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmerSuppression(button) {
+    const incidentId = button.getAttribute('data-incident-id');
+    const incidentIntitule = button.getAttribute('data-incident-intitule');
+    document.getElementById('incidentIntitule').textContent = incidentIntitule;
+    document.getElementById('deleteForm').action = '/incidents/' + incidentId + '/supprimer';
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+</script>
+{% endblock %} 

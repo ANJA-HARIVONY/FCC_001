@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Modificar Operador - Gestion Client{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('operateurs') }}">Operadores</a></li>
+                    <li class="breadcrumb-item active">Modificar Operador</li>
+                </ol>
+            </nav>
+            <h1 class="h2 text-dark mb-0">
+                <i class="fas fa-user-edit text-danger me-2"></i>
+                Modificar Operador
+            </h1>
+            <p class="text-muted">Modificar las informaciones del operador {{ operateur.nom }}</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informaciones del Operador
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="nom" class="form-label">Nombre del Operador <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="nom" name="nom" value="{{ operateur.nom }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="telephone" class="form-label">Telefono <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="telephone" name="telephone" 
+                                   value="{{ operateur.telephone }}" placeholder="+241 XXX XXX XXX" required>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('operateurs') }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Volver
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Guardar las modificaciones
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

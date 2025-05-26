@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Clients - Gestion Client{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-dark mb-0">
+                        <i class="fas fa-users text-danger me-2"></i>
+                        Gestión de Clientes 
+                    </h1>
+                    <p class="text-muted">Liste y gestión de clientes</p>
+                </div>
+                <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Nuevo Cliente
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de Clientes ({{ clients|length }})
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if clients %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Telefono</th>
+                                    <th>Direccion</th>
+                                    <th>IP Router</th>
+                                    <th>IP Antea</th>
+                                    <th>Incidentes</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for client in clients %}
+                                <tr>
+                                    <td><strong>#{{ client.id }}</strong></td>
+                                    <td>{{ client.nom }}</td>
+                                    <td>{{ client.telephone }}</td>
+                                    <td>{{ client.ville }}</td>
+                                    <td><code>{{ client.ip_router }}</code></td>
+                                    <td><code>{{ client.ip_antea }}</code></td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ client.incidents|length }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('fiche_client', id=client.id) }}" 
+                                               class="btn btn-sm btn-outline-info" title="{{ _('Ver la ficha') }}">
+                                                <i class="fas fa-file-alt"></i>
+                                            </a>
+                                            <a href="{{ url_for('modifier_client', id=client.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="{{ _('Editar') }}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    data-client-id="{{ client.id }}" 
+                                                    data-client-nom="{{ client.nom }}"
+                                                    onclick="confirmerSuppression(this)" 
+                                                    title="{{ _('Eliminar') }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay clientes registrados</h5>
+                        <p class="text-muted">Comience agregando su primer cliente</p>
+                        <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Agregar un cliente
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar la eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de querer eliminar el cliente <strong id="clientNom"></strong> ?</p>
+                <p class="text-danger"><small>Esta acción es irreversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmerSuppression(button) {
+    const clientId = button.getAttribute('data-client-id');
+    const clientNom = button.getAttribute('data-client-nom');
+    document.getElementById('clientNom').textContent = clientNom;
+    document.getElementById('deleteForm').action = '/clients/' + clientId + '/supprimer';
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+</script>
+{% endblock %} 

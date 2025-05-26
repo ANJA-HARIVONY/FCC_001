@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Ayuda - Gestion Client{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h2 text-dark mb-0">
+                <i class="fas fa-question-circle text-danger me-2"></i>
+                Centro de Ayuda
+            </h1>
+            <p class="text-muted">Guia de uso de la aplicacion de gestion de clientes</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-danger me-2"></i>
+                        Guia de uso
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-tachometer-alt text-danger me-2"></i>Dashboard</h6>
+                            <p>Vista general con estadisticas, graficos y ultimos incidentes.</p>
+                            
+                            <h6><i class="fas fa-users text-danger me-2"></i>Gestion de los Clientes</h6>
+                            <p>Agregar, modificar y eliminar clientes con sus informaciones de red.</p>
+                            
+                            <h6><i class="fas fa-headset text-danger me-2"></i>Gestion de los Operadores</h6>
+                            <p>Gestion de los operadores responsables de la resolucion de las incidencias.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-exclamation-triangle text-danger me-2"></i>Gestion de las Incidencias</h6>
+                            <p>Creacion y seguimiento de incidencias con status: Pendiente, Solucionadas, Bitrix.</p>
+                            
+                            <h6><i class="fas fa-search text-danger me-2"></i>Busqueda</h6>
+                            <p>Busqueda rapida en la base de datos de clientes y incidencias.</p>
+                            
+                            <h6><i class="fas fa-database text-danger me-2"></i>Migration MariaDB</h6>
+                            <p>Soporte SQLite por defecto con posibilidad de migracion a MariaDB.</p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Informaciones tecnicas</h6>
+                        <ul class="mb-0">
+                            <li><strong>Framework :</strong> Flask + SQLAlchemy</li>
+                            <li><strong>Base de datos :</strong> SQLite (por defecto) / MariaDB (opcional)</li>
+                            <li><strong>Interface :</strong> Bootstrap 5 con tema rojo/blanco/negro</li>
+                            <li><strong>Graficos :</strong> Chart.js para las visualizaciones</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Migracion a MariaDB</h6>
+                        <p class="mb-2">Para migrar a MariaDB, defina la variable de entorno :</p>
+                        <code>export DATABASE_URL="mysql+pymysql://username:password@localhost/gestion_client"</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

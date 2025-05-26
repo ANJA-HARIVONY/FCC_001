@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="{{ CURRENT_LANGUAGE }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ _('Fiche Client') }} - {{ client.nom }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .info-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .info-table .label {
+            font-weight: bold;
+            width: 30%;
+            background-color: #f8f9fa;
+        }
+        
+        .incidents-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+        
+        .incidents-table th,
+        .incidents-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .incidents-table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .incidents-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-resolut {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-attente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-bitrix {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        
+        .footer {
+            position: fixed;
+            bottom: 1cm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        
+        .no-incidents {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ _('Fiche Client') }}</h1>
+        <div class="subtitle">{{ _('Générée le') }} {{ current_time }}</div>
+    </div>
+
+    <!-- Informations du client -->
+    <div class="section">
+        <div class="section-title">{{ _('Informacion del Cliente') }}</div>
+        <table class="info-table">
+            <tr>
+                <td class="label">{{ _('Nombre') }}:</td>
+                <td>{{ client.nom }}</td>
+            </tr>
+            <tr>
+                <td class="label">{{ _('Telefono') }}:</td>
+                <td>{{ client.telephone }}</td>
+            </tr>
+            <tr>
+                <td class="label">{{ _('Direccion') }}:</td>
+                <td>{{ client.adresse }}</td>
+            </tr>
+            <tr>
+                <td class="label">{{ _('Barrio') }}:</td>
+                <td>{{ client.ville }}</td>
+            </tr>
+            <tr>
+                <td class="label">{{ _('IP Router') }}:</td>
+                <td>{{ client.ip_router }}</td>
+            </tr>
+            <tr>
+                <td class="label">{{ _('IP Antena') }}:</td>
+                <td>{{ client.ip_antea }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Statistiques des incidents -->
+    <div class="section">
+        <div class="section-title">{{ _('Statistiques des Incidents') }}</div>
+        {% set total_incidents = incidents|length %}
+        {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Résolut')|list|length %}
+        {% set incidents_attente = incidents|selectattr('status', 'equalto', 'En attente')|list|length %}
+        {% set incidents_bitrix = incidents|selectattr('status', 'equalto', 'Bitrix')|list|length %}
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_incidents }}</div>
+                <div class="stat-label">{{ _('Total') }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ incidents_resolus }}</div>
+                <div class="stat-label">{{ _('Solucionadas') }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ incidents_attente }}</div>
+                <div class="stat-label">{{ _('Pendientes') }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ incidents_bitrix }}</div>
+                <div class="stat-label">{{ _('Bitrix') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Historique des incidents -->
+    <div class="section">
+        <div class="section-title">{{ _('Historique des Incidents') }}</div>
+        {% if incidents %}
+            <table class="incidents-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">{{ _('Fecha/Hora') }}</th>
+                        <th style="width: 25%;">{{ _('Asunto') }}</th>
+                        <th style="width: 10%;">{{ _('Status') }}</th>
+                        <th style="width: 15%;">{{ _('Operador') }}</th>
+                        <th style="width: 35%;">{{ _('Observaciones') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for incident in incidents %}
+                    <tr>
+                        <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ incident.intitule }}</td>
+                        <td>
+                            {% if incident.status == 'Résolut' %}
+                                <span class="status-badge status-resolut">{{ _('Solucionadas') }}</span>
+                            {% elif incident.status == 'En attente' %}
+                                <span class="status-badge status-attente">{{ _('Pendientes') }}</span>
+                            {% elif incident.status == 'Bitrix' %}
+                                <span class="status-badge status-bitrix">{{ _('Bitrix') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ incident.operateur.nom }}</td>
+                        <td>
+                            {% if incident.observations %}
+                                {{ incident.observations }}
+                            {% else %}
+                                <em>{{ _('Ninguna observacion') }}</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <div class="no-incidents">
+                {{ _('No hay incidentes registrados para este cliente.') }}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="footer">
+        {{ _('Documento generado automaticamente por el sistema de gestion para atencion al cliente de CONNEXIA') }}
+    </div>
+</body>
+</html> 
