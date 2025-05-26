@@ -401,6 +401,26 @@ def supprimer_incident(id):
     flash(gettext('Incident supprimé avec succès!'), 'success')
     return redirect(url_for('incidents'))
 
+# API pour les données des clients (pour l'auto-complétion)
+@app.route('/api/clients-search')
+def api_clients_search():
+    """API pour la recherche de clients avec auto-complétion"""
+    clients = Client.query.all()
+    clients_data = []
+    
+    for client in clients:
+        clients_data.append({
+            'id': client.id,
+            'nom': client.nom,
+            'telephone': client.telephone,
+            'ville': client.ville,
+            'adresse': client.adresse,
+            'ip_router': client.ip_router,
+            'ip_antea': client.ip_antea
+        })
+    
+    return jsonify(clients_data)
+
 # API pour les données des graphiques
 @app.route('/api/incidents-par-date')
 def api_incidents_par_date():

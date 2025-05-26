@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Nuevo Incidente - Gestion Client{% endblock %}
+{% block title %}Nuevo Incidente - Atencion al cliente{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -34,13 +34,33 @@
                     <form method="POST">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="id_client" class="form-label">Cliente <span class="text-danger">*</span></label>
-                                <select class="form-select" id="id_client" name="id_client" required>
-                                    <option value="">Seleccionar un cliente</option>
-                                    {% for client in clients %}
-                                    <option value="{{ client.id }}">{{ client.nom }} - {{ client.ville }}</option>
-                                    {% endfor %}
-                                </select>
+                                <label for="client_search" class="form-label">Cliente <span class="text-danger">*</span></label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="client_search" 
+                                           placeholder="Buscar cliente por nombre, teléfono o ciudad..." 
+                                           autocomplete="off">
+                                    <input type="hidden" id="id_client" name="id_client" required>
+                                    <div id="client_dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto; display: none;">
+                                        <!-- Les résultats de recherche apparaîtront ici -->
+                                    </div>
+                                    <div class="form-text">
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Tapez para buscar entre {{ clients|length }} clientes
+                                        </small>
+                                    </div>
+                                </div>
+                                <!-- Affichage du client sélectionné -->
+                                <div id="selected_client" class="mt-2" style="display: none;">
+                                    <div class="alert alert-info py-2 mb-0">
+                                        <i class="fas fa-user me-2"></i>
+                                        <strong>Cliente seleccionado:</strong>
+                                        <span id="selected_client_info"></span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" onclick="clearClientSelection()">
+                                            <i class="fas fa-times"></i> Cambiar
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="id_operateur" class="form-label">Operador <span class="text-danger">*</span></label>
@@ -89,4 +109,160 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Variables globales
+let clientsData = [];
+let selectedClientId = null;
+
+// Charger les données des clients depuis l'API
+async function loadClientsData() {
+    try {
+        const response = await fetch('/api/clients-search');
+        if (response.ok) {
+            clientsData = await response.json();
+            console.log(`Données de ${clientsData.length} clients chargées`);
+        } else {
+            console.error('Erreur lors du chargement des clients');
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+    }
+}
+
+// Fonction de recherche de clients
+function searchClients(query) {
+    if (!query || query.length < 2) {
+        return [];
+    }
+    
+    const searchTerm = query.toLowerCase();
+    return clientsData.filter(client => 
+        client.nom.toLowerCase().includes(searchTerm) ||
+        client.telephone.toLowerCase().includes(searchTerm) ||
+        client.ville.toLowerCase().includes(searchTerm) ||
+        client.adresse.toLowerCase().includes(searchTerm)
+    ).slice(0, 10); // Limiter à 10 résultats
+}
+
+// Fonction pour afficher les résultats de recherche
+function displaySearchResults(results) {
+    const dropdown = document.getElementById('client_dropdown');
+    
+    if (results.length === 0) {
+        dropdown.innerHTML = '<div class="dropdown-item-text text-muted">No se encontraron clientes</div>';
+    } else {
+        dropdown.innerHTML = results.map(client => `
+            <a href="#" class="dropdown-item" onclick="selectClient(${client.id}, event)">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>${client.nom}</strong>
+                        <br>
+                        <small class="text-muted">
+                            <i class="fas fa-phone me-1"></i>${client.telephone}
+                            <i class="fas fa-map-marker-alt ms-2 me-1"></i>${client.ville}
+                        </small>
+                    </div>
+                    <small class="text-primary">#${client.id}</small>
+                </div>
+            </a>
+        `).join('');
+    }
+    
+    dropdown.style.display = 'block';
+}
+
+// Fonction pour sélectionner un client
+function selectClient(clientId, event) {
+    if (event) {
+        event.preventDefault();
+    }
+    
+    const client = clientsData.find(c => c.id === clientId);
+    if (!client) return;
+    
+    selectedClientId = clientId;
+    
+    // Mettre à jour les champs
+    document.getElementById('id_client').value = clientId;
+    document.getElementById('client_search').value = client.nom;
+    
+    // Afficher les informations du client sélectionné
+    document.getElementById('selected_client_info').innerHTML = `
+        <strong>${client.nom}</strong> - ${client.ville}
+        <br><small class="text-muted">${client.telephone} | ${client.adresse}</small>
+    `;
+    
+    // Afficher la zone de confirmation et masquer le dropdown
+    document.getElementById('selected_client').style.display = 'block';
+    document.getElementById('client_dropdown').style.display = 'none';
+    
+    // Désactiver le champ de recherche
+    document.getElementById('client_search').disabled = true;
+}
+
+// Fonction pour effacer la sélection
+function clearClientSelection() {
+    selectedClientId = null;
+    document.getElementById('id_client').value = '';
+    document.getElementById('client_search').value = '';
+    document.getElementById('client_search').disabled = false;
+    document.getElementById('selected_client').style.display = 'none';
+    document.getElementById('client_dropdown').style.display = 'none';
+    document.getElementById('client_search').focus();
+}
+
+// Gestionnaire d'événements pour la recherche
+document.getElementById('client_search').addEventListener('input', function(e) {
+    const query = e.target.value;
+    
+    if (query.length >= 2) {
+        const results = searchClients(query);
+        displaySearchResults(results);
+    } else {
+        document.getElementById('client_dropdown').style.display = 'none';
+    }
+});
+
+// Gestionnaire pour masquer le dropdown quand on clique ailleurs
+document.addEventListener('click', function(e) {
+    const searchInput = document.getElementById('client_search');
+    const dropdown = document.getElementById('client_dropdown');
+    
+    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none';
+    }
+});
+
+// Gestionnaire pour les touches du clavier
+document.getElementById('client_search').addEventListener('keydown', function(e) {
+    const dropdown = document.getElementById('client_dropdown');
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    
+    if (e.key === 'Escape') {
+        dropdown.style.display = 'none';
+    } else if (e.key === 'ArrowDown' && items.length > 0) {
+        e.preventDefault();
+        items[0].focus();
+    }
+});
+
+// Validation du formulaire
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!selectedClientId) {
+        e.preventDefault();
+        alert('Por favor, seleccione un cliente de la lista.');
+        document.getElementById('client_search').focus();
+        return false;
+    }
+});
+
+// Initialisation au chargement de la page
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadClientsData();
+    document.getElementById('client_search').focus();
+});
+</script>
 {% endblock %} 

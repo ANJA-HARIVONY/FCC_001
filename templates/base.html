@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Gestion Client{% endblock %}</title>
+    <title>{% block title %}Atencion al cliente{% endblock %}</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
@@ -20,9 +20,9 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand text-danger fw-bold" href="{{ url_for('dashboard') }}">
-                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo" width="170px" height="60px" >
-                <span class="text-white fw-lighter" style="font-size: 10px;">Atencion al cliente</span>
+            <a class="navbar-brand text-danger fw-bold d-flex flex-column align-items-center" href="{{ url_for('dashboard') }}">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo" width="170px" height="60px" >
+                    <span class="text-white fw-lighter" style="font-size: 15px; margin-top: -5px;">Atencion al cliente</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -39,22 +39,27 @@
                             <i class="fa fa-ticket me-1"></i>Incidencias
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('clients') }}">
+                            <i class="fa fa-user me-1"></i>Client
+                        </a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-edit me-1"></i>Editar
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('clients') }}">
-                                <i class="fas fa-user me-1"></i>Clientes
-                            </a></li>
                             <li><a class="dropdown-item" href="{{ url_for('operateurs') }}">
                                 <i class="fas fa-headset me-1"></i>Operadores
+                            </a></li>
+                            <li><a class="dropdown-item" href="">
+                                <i class="fas fa-save me-1"></i>Exportar Datos
                             </a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('aide') }}">
-                            <i class="fas fa-question-circle me-1"></i>Ayuda
+                            <i class="fas fa-question-circle me-1"></i>
                         </a>
                     </li>
                 </ul>
