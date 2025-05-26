@@ -83,8 +83,8 @@
                 </div>
                 <div class="card-body">
                     {% set total_incidents = incidents|length %}
-                    {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Résolut')|list|length %}
-                    {% set incidents_attente = incidents|selectattr('status', 'equalto', 'En attente')|list|length %}
+                    {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Solucionadas')|list|length %}
+                    {% set incidents_attente = incidents|selectattr('status', 'equalto', 'Pendiente')|list|length %}
                     {% set incidents_bitrix = incidents|selectattr('status', 'equalto', 'Bitrix')|list|length %}
                     
                     <div class="row text-center">
@@ -152,9 +152,9 @@
                                 <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
                                 <td>{{ incident.intitule }}</td>
                                 <td>
-                                    {% if incident.status == 'Résolut' %}
+                                    {% if incident.status == 'Solucionadas' %}
                                         <span class="badge bg-success">{{ _('Solucionadas') }}</span>
-                                    {% elif incident.status == 'En attente' %}
+                                    {% elif incident.status == 'Pendiente' %}
                                         <span class="badge bg-warning">{{ _('Pendientes') }}</span>
                                     {% elif incident.status == 'Bitrix' %}
                                         <span class="badge bg-info">{{ _('Bitrix') }}</span>

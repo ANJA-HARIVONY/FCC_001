@@ -158,8 +158,49 @@ def aide():
 # Routes CRUD pour les clients
 @app.route('/clients')
 def clients():
-    clients = Client.query.all()
-    return render_template('clients.html', clients=clients)
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)  # Nombre d'éléments par page
+    
+    # Filtres optionnels
+    search_query = request.args.get('search', '')
+    ville_filter = request.args.get('ville', '')
+    
+    # Construction de la requête de base
+    query = Client.query
+    
+    # Appliquer les filtres
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Client.nom.contains(search_query),
+                Client.telephone.contains(search_query),
+                Client.adresse.contains(search_query),
+                Client.ville.contains(search_query),
+                Client.ip_router.contains(search_query),
+                Client.ip_antea.contains(search_query)
+            )
+        )
+    
+    if ville_filter:
+        query = query.filter(Client.ville.contains(ville_filter))
+    
+    # Pagination
+    clients_paginated = query.order_by(Client.nom.asc()).paginate(
+        page=page, 
+        per_page=per_page, 
+        error_out=False
+    )
+    
+    # Obtenir la liste des villes pour le filtre
+    villes = db.session.query(Client.ville).distinct().order_by(Client.ville).all()
+    villes_list = [ville[0] for ville in villes if ville[0]]
+    
+    return render_template('clients.html', 
+                         clients=clients_paginated,
+                         search_query=search_query,
+                         ville_filter=ville_filter,
+                         villes_list=villes_list,
+                         per_page=per_page)
 
 @app.route('/clients/nouveau', methods=['GET', 'POST'])
 def nouveau_client():
@@ -280,8 +321,41 @@ def supprimer_operateur(id):
 # Routes CRUD pour les incidents
 @app.route('/incidents')
 def incidents():
-    incidents = Incident.query.order_by(Incident.date_heure.desc()).all()
-    return render_template('incidents.html', incidents=incidents)
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)  # Nombre d'éléments par page
+    
+    # Filtres optionnels
+    status_filter = request.args.get('status', '')
+    search_query = request.args.get('search', '')
+    
+    # Construction de la requête de base
+    query = Incident.query
+    
+    # Appliquer les filtres
+    if status_filter:
+        query = query.filter(Incident.status == status_filter)
+    
+    if search_query:
+        query = query.join(Client).filter(
+            db.or_(
+                Incident.intitule.contains(search_query),
+                Incident.observations.contains(search_query),
+                Client.nom.contains(search_query)
+            )
+        )
+    
+    # Pagination
+    incidents_paginated = query.order_by(Incident.date_heure.desc()).paginate(
+        page=page, 
+        per_page=per_page, 
+        error_out=False
+    )
+    
+    return render_template('incidents.html', 
+                         incidents=incidents_paginated,
+                         status_filter=status_filter,
+                         search_query=search_query,
+                         per_page=per_page)
 
 @app.route('/incidents/nouveau', methods=['GET', 'POST'])
 def nouveau_incident():

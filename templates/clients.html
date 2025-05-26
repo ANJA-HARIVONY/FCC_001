@@ -21,17 +21,68 @@
         </div>
     </div>
 
+    <!-- Filtres et recherche -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Buscar</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ search_query }}" placeholder="Buscar en nombre, teléfono, dirección, IP...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="ville" class="form-label">Filtrar por ciudad</label>
+                            <select class="form-select" id="ville" name="ville">
+                                <option value="">Todas las ciudades</option>
+                                {% for ville in villes_list %}
+                                <option value="{{ ville }}" {% if ville_filter == ville %}selected{% endif %}>{{ ville }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="per_page" class="form-label">Por página</label>
+                            <select class="form-select" id="per_page" name="per_page">
+                                <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
+                                <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+                                <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+                                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                            <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card content-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>
-                        Lista de Clientes ({{ clients|length }})
+                        Lista de Clientes 
+                        {% if clients.items %}
+                            ({{ clients.total }} total{% if search_query or ville_filter %} - {{ clients.items|length }} mostrados{% endif %})
+                        {% endif %}
                     </h5>
+                    {% if clients.items %}
+                    <div class="text-muted small">
+                        Página {{ clients.page }} de {{ clients.pages }}
+                    </div>
+                    {% endif %}
                 </div>
                 <div class="card-body p-0">
-                    {% if clients %}
+                    {% if clients.items %}
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -47,7 +98,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for client in clients %}
+                                {% for client in clients.items %}
                                 <tr>
                                     <td><strong>#{{ client.id }}</strong></td>
                                     <td>{{ client.nom }}</td>
@@ -82,14 +133,88 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    {% if clients.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Pagination des clients">
+                            <ul class="pagination justify-content-center mb-0">
+                                <!-- Bouton Précédent -->
+                                {% if clients.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('clients', page=clients.prev_num, per_page=per_page, ville=ville_filter, search=search_query) }}">
+                                            <i class="fas fa-chevron-left"></i> Anterior
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-chevron-left"></i> Anterior</span>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Numéros de page -->
+                                {% for page_num in clients.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                    {% if page_num %}
+                                        {% if page_num != clients.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('clients', page=page_num, per_page=per_page, ville=ville_filter, search=search_query) }}">
+                                                    {{ page_num }}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">…</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                <!-- Bouton Suivant -->
+                                {% if clients.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('clients', page=clients.next_num, per_page=per_page, ville=ville_filter, search=search_query) }}">
+                                            Siguiente <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">Siguiente <i class="fas fa-chevron-right"></i></span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        
+                        <!-- Informations de pagination -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                Mostrando {{ (clients.page - 1) * clients.per_page + 1 }} a 
+                                {{ clients.page * clients.per_page if clients.page * clients.per_page < clients.total else clients.total }} 
+                                de {{ clients.total }} clientes
+                            </small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No hay clientes registrados</h5>
-                        <p class="text-muted">Comience agregando su primer cliente</p>
-                        <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Agregar un cliente
-                        </a>
+                        {% if search_query or ville_filter %}
+                            <h5 class="text-muted">No se encontraron clientes</h5>
+                            <p class="text-muted">Intente cambiar los filtros de búsqueda</p>
+                            <a href="{{ url_for('clients') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-times me-1"></i>Limpiar filtros
+                            </a>
+                        {% else %}
+                            <h5 class="text-muted">No hay clientes registrados</h5>
+                            <p class="text-muted">Comience agregando su primer cliente</p>
+                            <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Agregar un cliente
+                            </a>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -130,5 +255,10 @@ function confirmerSuppression(button) {
     document.getElementById('deleteForm').action = '/clients/' + clientId + '/supprimer';
     new bootstrap.Modal(document.getElementById('confirmModal')).show();
 }
+
+// Auto-submit du formulaire quand on change le nombre d'éléments par page
+document.getElementById('per_page').addEventListener('change', function() {
+    this.form.submit();
+});
 </script>
 {% endblock %} 

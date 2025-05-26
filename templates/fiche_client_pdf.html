@@ -199,8 +199,8 @@
     <div class="section">
         <div class="section-title">{{ _('Statistiques des Incidents') }}</div>
         {% set total_incidents = incidents|length %}
-        {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Résolut')|list|length %}
-        {% set incidents_attente = incidents|selectattr('status', 'equalto', 'En attente')|list|length %}
+        {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Solucionadas')|list|length %}
+        {% set incidents_attente = incidents|selectattr('status', 'equalto', 'Pendiente')|list|length %}
         {% set incidents_bitrix = incidents|selectattr('status', 'equalto', 'Bitrix')|list|length %}
         
         <div class="stats-grid">
@@ -243,9 +243,9 @@
                         <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
                         <td>{{ incident.intitule }}</td>
                         <td>
-                            {% if incident.status == 'Résolut' %}
+                            {% if incident.status == 'Solucionadas' %}
                                 <span class="status-badge status-resolut">{{ _('Solucionadas') }}</span>
-                            {% elif incident.status == 'En attente' %}
+                            {% elif incident.status == 'Pendiente' %}
                                 <span class="status-badge status-attente">{{ _('Pendientes') }}</span>
                             {% elif incident.status == 'Bitrix' %}
                                 <span class="status-badge status-bitrix">{{ _('Bitrix') }}</span>
