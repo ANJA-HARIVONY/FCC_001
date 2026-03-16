@@ -1,0 +1,135 @@
+# =============================================================================
+# FCC_001 - Docker Ignore File
+# Fichiers et dossiers à exclure lors du build Docker
+# =============================================================================
+
+# ==== Environnements virtuels Python ====
+.venv/
+venv/
+env/
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# ==== Cache Python ====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ==== Fichiers de test ====
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+test_*.py
+tests/
+*_test.py
+
+# ==== IDE et éditeurs ====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+.cursor/
+
+# ==== Logs et fichiers temporaires ====
+logs/
+*.log
+monitoring/logs/*.json
+monitoring/logs/*.sql
+monitoring/backups/*.sql
+*.tmp
+*.temp
+.cache/
+
+# ==== Base de données locales ====
+*.db
+*.sqlite
+*.sqlite3
+data/instance/*.db
+instance/*.db
+
+# ==== Documentation et fichiers non essentiels ====
+docs/guide/
+UNUSEFILE/
+*.md
+!README.md
+!docs/DEPLOYMENT.md
+!docs/DEPLOYMENT_DOCKER.md
+!docs/RAPPORT_DOCKERISATION.md
+
+# ==== Git ====
+.git/
+.gitignore
+.gitattributes
+
+# ==== Docker (éviter la récursion) ====
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# ==== Fichiers de configuration de développement ====
+config/env/test.env
+automation/check_data/
+automation/script_automatisation/*.py
+automation/utils/
+
+# ==== Fichiers de sauvegarde ====
+*.bak
+*.backup
+*.old
+*_backup*
+
+# ==== Fichiers OS ====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==== Fichiers de migration (optionnel, décommenter si nécessaire) ====
+# migrations/versions/
+
+# ==== Fichiers de compilation ====
+*.o
+*.a
+*.so
+
+# ==== Fichiers de certificats (ne pas inclure dans l'image) ====
+*.pem
+*.key
+*.crt
+*.cer
+
+# ==== Outils de développement ====
+tools/
+!tools/__init__.py
+

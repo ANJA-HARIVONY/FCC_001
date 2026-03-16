@@ -1,0 +1,11 @@
+{
+  "timestamp": "20250801_101719",
+  "operation_type": "client_name_duplicates_cleanup",
+  "backup_created": false,
+  "operations": [],
+  "summary": {
+    "total_operations": 0,
+    "clients_deleted": 0,
+    "incidents_transferred": 0
+  }
+}

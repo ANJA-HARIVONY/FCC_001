@@ -1,0 +1,279 @@
+{
+  "generated_at": "2025-08-01T09:11:02.494701",
+  "project": "FCC_001",
+  "database_analysis": {
+    "database_file": "data/instance/gestion_client.db",
+    "file_size": 28672,
+    "last_modified": "2025-05-27 11:22:24.484985",
+    "tables": {
+      "client": {
+        "row_count": 0,
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": false,
+            "default": null,
+            "primary_key": true
+          },
+          {
+            "name": "nom",
+            "type": "VARCHAR(100)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "telephone",
+            "type": "VARCHAR(100)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "adresse",
+            "type": "VARCHAR(200)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "ville",
+            "type": "VARCHAR(100)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "ip_router",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "ip_antea",
+            "type": "VARCHAR(50)",
+            "not_null": false,
+            "default": null,
+            "primary_key": false
+          }
+        ],
+        "primary_keys": [
+          "id"
+        ],
+        "foreign_keys": []
+      },
+      "operateur": {
+        "row_count": 0,
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": false,
+            "default": null,
+            "primary_key": true
+          },
+          {
+            "name": "nom",
+            "type": "VARCHAR(100)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "telephone",
+            "type": "VARCHAR(20)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          }
+        ],
+        "primary_keys": [
+          "id"
+        ],
+        "foreign_keys": []
+      },
+      "incident": {
+        "row_count": 0,
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "not_null": false,
+            "default": null,
+            "primary_key": true
+          },
+          {
+            "name": "id_client",
+            "type": "INTEGER",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "intitule",
+            "type": "VARCHAR(200)",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "observations",
+            "type": "TEXT",
+            "not_null": false,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "status",
+            "type": "VARCHAR(20)",
+            "not_null": true,
+            "default": "'Pendiente'",
+            "primary_key": false
+          },
+          {
+            "name": "id_operateur",
+            "type": "INTEGER",
+            "not_null": true,
+            "default": null,
+            "primary_key": false
+          },
+          {
+            "name": "date_heure",
+            "type": "DATETIME",
+            "not_null": true,
+            "default": "CURRENT_TIMESTAMP",
+            "primary_key": false
+          }
+        ],
+        "primary_keys": [
+          "id"
+        ],
+        "foreign_keys": [
+          {
+            "from_column": "id_operateur",
+            "to_table": "operateur",
+            "to_column": "id"
+          },
+          {
+            "from_column": "id_client",
+            "to_table": "client",
+            "to_column": "id"
+          }
+        ]
+      },
+      "alembic_version": {
+        "row_count": 0,
+        "columns": [
+          {
+            "name": "version_num",
+            "type": "VARCHAR(32)",
+            "not_null": false,
+            "default": null,
+            "primary_key": true
+          }
+        ],
+        "primary_keys": [
+          "version_num"
+        ],
+        "foreign_keys": []
+      }
+    },
+    "indexes": [],
+    "foreign_keys": [
+      {
+        "table": "incident",
+        "from_column": "id_operateur",
+        "to_table": "operateur",
+        "to_column": "id"
+      },
+      {
+        "table": "incident",
+        "from_column": "id_client",
+        "to_table": "client",
+        "to_column": "id"
+      }
+    ],
+    "integrity_checks": {
+      "general": "ok",
+      "foreign_keys": 0
+    }
+  },
+  "all_databases": [
+    {
+      "name": "fcc_001_demo.db",
+      "path": "data/instance\\fcc_001_demo.db",
+      "size_bytes": 24576,
+      "size_mb": 0.02,
+      "last_modified": "2025-06-02 09:35:22"
+    },
+    {
+      "name": "gestion_client.db",
+      "path": "data/instance\\gestion_client.db",
+      "size_bytes": 28672,
+      "size_mb": 0.03,
+      "last_modified": "2025-05-27 11:22:24"
+    },
+    {
+      "name": "gestion_client_backup_20250527_112429.db",
+      "path": "data/instance\\gestion_client_backup_20250527_112429.db",
+      "size_bytes": 36864,
+      "size_mb": 0.04,
+      "last_modified": "2025-05-27 11:01:36"
+    },
+    {
+      "name": "gestion_client_backup_20250527_112520.db",
+      "path": "data/instance\\gestion_client_backup_20250527_112520.db",
+      "size_bytes": 36864,
+      "size_mb": 0.04,
+      "last_modified": "2025-05-27 11:01:36"
+    },
+    {
+      "name": "gestion_client_backup.db",
+      "path": "data/instance\\gestion_client_backup.db",
+      "size_bytes": 28672,
+      "size_mb": 0.03,
+      "last_modified": "2025-05-27 09:42:45"
+    },
+    {
+      "name": "gestion_client_backup_20250527_111106.db",
+      "path": "data/instance\\gestion_client_backup_20250527_111106.db",
+      "size_bytes": 24576,
+      "size_mb": 0.02,
+      "last_modified": "2025-05-27 09:42:45"
+    }
+  ],
+  "migrations": [
+    {
+      "name": "2adc92440c6c_ajout_des_champs_ip_router_et_ip_antea_.py",
+      "path": "data/migrations/versions\\2adc92440c6c_ajout_des_champs_ip_router_et_ip_antea_.py",
+      "date": "2025-05-27 09:42:45"
+    },
+    {
+      "name": "58af6f64a5ce_création_initiale_avec_modèle_client_.py",
+      "path": "data/migrations/versions\\58af6f64a5ce_création_initiale_avec_modèle_client_.py",
+      "date": "2025-05-27 09:42:45"
+    }
+  ],
+  "summary": {
+    "total_tables": 4,
+    "total_indexes": 0,
+    "total_foreign_keys": 2,
+    "database_files": 6,
+    "migration_files": 2,
+    "integrity_status": "ok"
+  },
+  "recommendations": [
+    {
+      "type": "cleanup",
+      "message": "Nettoyer les anciennes sauvegardes (6 fichiers DB)",
+      "priority": "medium"
+    },
+    {
+      "type": "optimization",
+      "message": "Considérer l'ajout d'index pour améliorer les performances",
+      "priority": "medium"
+    }
+  ]
+}

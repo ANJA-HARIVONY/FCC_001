@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Generar un Informe - {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-dark mb-0">
+                        <i class="fas fa-magic text-primary me-2"></i>
+                        Generar un Informe Inteligente
+                    </h1>
+                    <p class="text-muted">Cree análisis personalizados con IA</p>
+                </div>
+                <a href="{{ url_for('etats') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <form method="post" action="{{ url_for('etats_generer') }}">
+        <div class="row">
+            <!-- Selección del tipo de informe -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cogs me-2"></i>Tipo de Análisis
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row" id="types-etats">
+                            {% for type_etat in types_etats %}
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="type_etat" 
+                                           id="type_{{ type_etat.id }}" value="{{ type_etat.id }}"
+                                           {% if loop.first %}checked{% endif %}
+                                           onchange="updateTypeSelection()">
+                                    <label class="form-check-label w-100" for="type_{{ type_etat.id }}">
+                                        <div class="card h-100 type-card" data-type="{{ type_etat.id }}">
+                                            <div class="card-body text-center">
+                                                <i class="fas {{ type_etat.icon }} fa-2x text-{{ type_etat.color }} mb-2"></i>
+                                                <h6 class="card-title">{{ type_etat.nom }}</h6>
+                                                <p class="card-text small text-muted">{{ type_etat.description }}</p>
+                                                <small class="text-muted">
+                                                    <i class="fas fa-coins me-1"></i>~{{ type_etat.estimated_tokens }} tokens
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration de la période -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-calendar-alt me-2"></i>Período de Análisis
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="periode" class="form-label">Período predefinido</label>
+                                <select class="form-select" id="periode" name="periode" onchange="toggleCustomPeriod()">
+                                    {% for periode in periodes %}
+                                    <option value="{{ periode.id }}" 
+                                            {% if periode.id == 'current_month' %}selected{% endif %}>
+                                        {{ periode.nom }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6" id="custom-period" style="display: none;">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label for="date_debut" class="form-label">Fecha inicio</label>
+                                        <input type="date" class="form-control" id="date_debut" name="date_debut">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="date_fin" class="form-label">Fecha fin</label>
+                                        <input type="date" class="form-control" id="date_fin" name="date_fin">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration personnalisée -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Configuración
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="titre" class="form-label">Título del informe (opcional)</label>
+                            <input type="text" class="form-control" id="titre" name="titre" 
+                                   placeholder="Dejar vacío para generación automática">
+                        </div>
+
+                        <div class="mb-3" id="prompt-personnalise" style="display: none;">
+                            <label for="prompt_personnalise" class="form-label">
+                                Pregunta personalizada <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="prompt_personnalise" name="prompt_personnalise" 
+                                      rows="3" placeholder="Haga su pregunta específica para el análisis..."></textarea>
+                            <div class="form-text">
+                                Ejemplo: "Analice el impacto de los incidentes de red en la satisfacción del cliente"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Résumé et actions -->
+            <div class="col-lg-4">
+                <div class="card sticky-top">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-eye me-2"></i>Vista Previa de Generación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="generation-preview">
+                            <div class="mb-3">
+                                <strong>Tipo de análisis:</strong>
+                                <div id="preview-type" class="text-primary">Résumé Exécutif</div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Período:</strong>
+                                <div id="preview-periode" class="text-muted">Mois en cours</div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Costo estimado:</strong>
+                                <div id="preview-cost" class="text-success">~400 tokens</div>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-rocket me-2"></i>Generar Informe
+                            </button>
+                            <a href="{{ url_for('etats') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Cancelar
+                            </a>
+                        </div>
+
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                La generación toma generalmente 15-30 segundos
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+.type-card {
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.type-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.form-check-input:checked + .form-check-label .type-card {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.sticky-top {
+    top: 1rem;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+</style>
+
+<script>
+function updateTypeSelection() {
+    const selectedType = document.querySelector('input[name="type_etat"]:checked').value;
+    const types = {
+        'summary': {name: 'Resumen Ejecutivo', tokens: 400},
+        'analysis': {name: 'Análisis de Tendencias', tokens: 350},
+        'performance': {name: 'Rendimiento Operadores', tokens: 300},
+        'custom': {name: 'Análisis Personalizado', tokens: 500}
+    };
+    
+    document.getElementById('preview-type').textContent = types[selectedType].name;
+    document.getElementById('preview-cost').textContent = `~${types[selectedType].tokens} tokens`;
+    
+    // Afficher/masquer le prompt personnalisé
+    const promptDiv = document.getElementById('prompt-personnalise');
+    if (selectedType === 'custom') {
+        promptDiv.style.display = 'block';
+        document.getElementById('prompt_personnalise').required = true;
+    } else {
+        promptDiv.style.display = 'none';
+        document.getElementById('prompt_personnalise').required = false;
+    }
+}
+
+function toggleCustomPeriod() {
+    const periode = document.getElementById('periode').value;
+    const customDiv = document.getElementById('custom-period');
+    const periodeNames = {
+        'current_week': 'Semana actual',
+        'current_month': 'Mes actual',
+        'last_week': 'Semana pasada',
+        'last_month': 'Mes pasado',
+        'last_3_months': 'Últimos 3 meses',
+        'custom': 'Período personalizado'
+    };
+    
+    if (periode === 'custom') {
+        customDiv.style.display = 'block';
+        document.getElementById('date_debut').required = true;
+        document.getElementById('date_fin').required = true;
+    } else {
+        customDiv.style.display = 'none';
+        document.getElementById('date_debut').required = false;
+        document.getElementById('date_fin').required = false;
+    }
+    
+    document.getElementById('preview-periode').textContent = periodeNames[periode] || periode;
+}
+
+// Initialiser au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    updateTypeSelection();
+    toggleCustomPeriod();
+});
+</script>
+{% endblock %}

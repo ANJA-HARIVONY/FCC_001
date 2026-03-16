@@ -1,63 +1,71 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Script de démarrage simple pour l'application de gestion des clients
-Version macOS compatible
+🚀 Script de démarrage principal pour FCC_001
+Architecture organisée et optimisée
 """
 
 import os
 import sys
+import subprocess
 
 def main():
-    print("🚀 Application de Gestion Client")
+    """Lancer l'application avec la nouvelle structure"""
+    print("🚀 FCC_001 - Application de Gestion Client")
+    print("Architecture organisée v2.0")
     print("=" * 50)
     
+    # Vérifier l'environnement virtuel
+    if not os.path.exists('.venv'):
+        print("❌ Environnement virtuel non trouvé!")
+        print("Créez-le avec: python -m venv .venv")
+        return 1
+    
+    # Activer l'environnement et démarrer
+    print("🔄 Activation de l'environnement virtuel...")
+    if os.name == 'nt':  # Windows
+        activate_script = '.venv\\Scripts\\activate.bat'
+        python_exe = '.venv\\Scripts\\python.exe'
+    else:  # Unix/Linux/Mac
+        activate_script = '.venv/bin/activate'
+        python_exe = '.venv/bin/python'
+    
+    print("⚡ Démarrage de l'application...")
+    
+    # Ajouter core au path et lancer
+    sys.path.insert(0, 'core')
+    
     try:
-        # Import et test de l'application
-        print("📦 Chargement des modules...")
-        from app import app, db
-        print("✅ Modules chargés avec succès")
+        import subprocess
+        # Auto-installation des dépendances si Flask manque
+        try:
+            import flask
+        except ImportError:
+            print("📦 Installation automatique de Flask...")
+            subprocess.run([python_exe, '-m', 'pip', 'install', '--no-cache-dir', 'flask', 'flask-sqlalchemy', 'flask-babel'], check=True)
+            print("✅ Flask installé!")
         
-        # Création des tables
-        print("🗄️  Initialisation de la base de données...")
-        with app.app_context():
-            db.create_all()
-        print("✅ Base de données initialisée")
+        from core.app import app
+        print("✅ Application chargée avec succès")
+        print("🌐 Accès: http://localhost:5001")
+        print("📱 Interface multilingue (FR/ES/EN)")
+        print("🔧 Mode debug activé")
+        print("\nAppuyez sur Ctrl+C pour arrêter")
         
-        # Informations
-        print("\n🌟 Fonctionnalités disponibles:")
-        print("   • Support multilingue (FR/ES/EN)")
-        print("   • Gestion clients, opérateurs, incidents")
-        print("   • Dashboard avec graphiques")
-        print("   • Impression HTML optimisée")
-        
-        print("\n🌐 Accès à l'application:")
-        print("   http://localhost:5001")
-        
-        print("\n" + "=" * 50)
-        print("🎯 Démarrage du serveur...")
-        print("   Appuyez sur Ctrl+C pour arrêter")
-        print("=" * 50)
-        
-        # Démarrage du serveur
-        app.run(
-            debug=True,
-            host='0.0.0.0',
-            port=5001,
-            use_reloader=False  # Évite les problèmes de double démarrage
-        )
-        
-    except KeyboardInterrupt:
-        print("\n\n👋 Application arrêtée par l'utilisateur")
+        app.run(debug=True, port=5001, host='0.0.0.0')
         
     except ImportError as e:
-        print(f"\n❌ Erreur d'import: {e}")
-        print("💡 Solution: pip install -r requirements.txt")
-        sys.exit(1)
-        
+        print(f"❌ Erreur d'import: {e}")
+        print("Solution manuelle:")
+        print("  .venv\\Scripts\\activate")
+        print("  pip install flask flask-sqlalchemy flask-babel")
+        print("  python start_app.py")
+        return 1
     except Exception as e:
-        print(f"\n❌ Erreur inattendue: {e}")
-        print("💡 Consultez le guide INSTALL_MACOS.md")
-        sys.exit(1)
+        print(f"❌ Erreur: {e}")
+        return 1
+    
+    return 0
 
-if __name__ == '__main__':
-    main() 
+if __name__ == "__main__":
+    sys.exit(main())

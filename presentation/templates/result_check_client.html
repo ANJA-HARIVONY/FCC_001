@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Verificación de Conectividad - {{ client.nom }}{% endblock %}
+
+{% block content %}
+<div class="container-md min-vh-100">
+    <!-- En-tête -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-network-wired"></i> Verificación de Conectividad - {{ client.nom }}
+        </h1>
+        <div>
+            <a href="{{ url_for('incident', id=incident.id, client_id=client.id) }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            <a href="{{ url_for('verificar_cliente', id=client.id) }}" class="btn btn-primary">
+                <i class="fas fa-sync-alt"></i> Verificar de Nuevo
+            </a>
+        </div>
+    </div>
+
+    <!-- Información del Cliente -->
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <strong><i class="fas fa-user"></i> Nombre:</strong> {{ client.nom }}
+                </div>
+                <div class="col-md-4">
+                    <strong><i class="fas fa-map-marker-alt"></i> Dirección:</strong> {{ client.adresse }}
+                </div>
+                <div class="col-md-4">
+                    <strong><i class="fas fa-city"></i> Barrio:</strong> {{ client.ville or 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout en 2 Colonnes -->
+    <div class="row">
+
+        <!-- COLUMNA 1: ANTENA -->
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow h-100 {% if resultado_antena.success %}border-success{% else %}border-danger{% endif %}" style="border-width: 2px;">
+                <!-- En-tête Antena -->
+                <div class="card-header {% if resultado_antena.success %}bg-success{% else %}bg-danger{% endif %} text-white text-center py-2">
+                    <h6 class="mb-0">
+                         ANTENA
+                    </h6>
+                    <small><code class="text-white" style="font-size: 0.8rem;">{{ resultado_antena.ip or 'No configurada' }}</code></small>
+                </div>
+
+                <div class="card-body py-2 px-3">
+                    <!-- Estado -->
+                    <div class="text-center mb-2 py-1">
+                        <h5 class="{% if resultado_antena.success %}text-success{% else %}text-danger{% endif %} mb-0">
+                            {% if resultado_antena.success %}
+                                <i class="fas fa-check-circle fa-2x"></i>
+                                <p class="mt-2 mb-0" style="font-size: 0.9rem;">CONECTADO</p>
+                            {% else %}
+                                <i class="fas fa-times-circle fa-2x"></i>
+                                <p class="mt-2 mb-0" style="font-size: 0.9rem;">SIN CONEXIÓN</p>
+                            {% endif %}
+                        </h5>
+                    </div>
+
+                    {% if resultado_antena.get('error') %}
+                        <div class="alert alert-danger py-2">
+                            <small><i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> {{ resultado_antena.error }}</small>
+                        </div>
+                    {% else %}
+                        <!-- Estadísticas de Paquetes -->
+                        <div class="mb-2">
+                            <p class="text-uppercase text-muted mb-2" style="font-size: 0.75rem;"><i class="fas fa-chart-bar"></i> Estadísticas de Paquetes</p>
+                            <div class="row text-center g-1">
+                                <div class="col-6 mb-1">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-primary mb-0">{{ resultado_antena.packets_sent }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Enviados</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-1">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-success mb-0">{{ resultado_antena.packets_received }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Recibidos</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-danger mb-0">{{ resultado_antena.packets_lost }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Perdidos</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-warning mb-0">{{ resultado_antena.packet_loss }}%</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Pérdida</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Éxito -->
+                        <div class="mb-2">
+                            <p class="text-uppercase text-muted mb-1" style="font-size: 0.75rem;"><i class="fas fa-signal"></i> Tasa de Éxito</p>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar {% if resultado_antena.packet_loss == 0 %}bg-success{% elif resultado_antena.packet_loss < 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ 100 - resultado_antena.packet_loss }}%">
+                                    <small><strong>{{ 100 - resultado_antena.packet_loss }}%</strong></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tiempos de Respuesta -->
+                        <div class="mb-2">
+                            <p class="text-uppercase text-muted mb-2" style="font-size: 0.75rem;"><i class="fas fa-clock"></i> Tiempos de Respuesta</p>
+                            <div class="row text-center g-1">
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-info mb-0" style="font-size: 0.9rem;">{{ resultado_antena.min_time }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Min (ms)</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 bg-primary text-white rounded">
+                                        <h6 class="mb-0" style="font-size: 0.9rem;">{{ resultado_antena.avg_time }}</h6>
+                                        <small style="font-size: 0.7rem;">Promedio (ms)</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-warning mb-0" style="font-size: 0.9rem;">{{ resultado_antena.max_time }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Max (ms)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalles Técnicos -->
+                        {% if resultado_antena.raw_output %}
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#rawOutputAntena">
+                                <i class="fas fa-terminal"></i> Ver Salida del Ping
+                            </button>
+                            <div class="collapse mt-2" id="rawOutputAntena">
+                                <pre class="bg-dark text-white p-3 rounded small" style="max-height: 300px; overflow-y: auto;"><code>{{ resultado_antena.raw_output }}</code></pre>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA 2: ROUTER -->
+        <div class="col-lg-6 mb-3">
+            <div class="card shadow h-100 {% if resultado_router.success %}border-success{% else %}border-danger{% endif %}" style="border-width: 2px;">
+                <!-- En-tête Router -->
+                <div class="card-header {% if resultado_router.success %}bg-success{% else %}bg-danger{% endif %} text-white text-center py-2">
+                    <h6 class="mb-0">
+                        <i class="fas fa-network-wired"></i> ROUTER
+                    </h6>
+                    <small><code class="text-white" style="font-size: 0.8rem;">{{ resultado_router.ip or 'No configurada' }}</code></small>
+                </div>
+
+                <div class="card-body py-2 px-3">
+                    <!-- Estado -->
+                    <div class="text-center mb-2 py-1">
+                        <h5 class="{% if resultado_router.success %}text-success{% else %}text-danger{% endif %} mb-0">
+                            {% if resultado_router.success %}
+                                <i class="fas fa-check-circle fa-2x"></i>
+                                <p class="mt-2 mb-0" style="font-size: 0.9rem;">CONECTADO</p>
+                            {% else %}
+                                <i class="fas fa-times-circle fa-2x"></i>
+                                <p class="mt-2 mb-0" style="font-size: 0.9rem;">SIN CONEXIÓN</p>
+                            {% endif %}
+                        </h5>
+                    </div>
+
+                    {% if resultado_router.get('error') %}
+                        <div class="alert alert-danger py-2">
+                            <small><i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> {{ resultado_router.error }}</small>
+                        </div>
+                    {% else %}
+                        <!-- Estadísticas de Paquetes -->
+                        <div class="mb-2">
+                            <p class="text-uppercase text-muted mb-2" style="font-size: 0.75rem;"><i class="fas fa-chart-bar"></i> Estadísticas de Paquetes</p>
+                            <div class="row text-center g-1">
+                                <div class="col-6 mb-1">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-primary mb-0">{{ resultado_router.packets_sent }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Enviados</small>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-1">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-success mb-0">{{ resultado_router.packets_received }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Recibidos</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-danger mb-0">{{ resultado_router.packets_lost }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Perdidos</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-warning mb-0">{{ resultado_router.packet_loss }}%</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Pérdida</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barra de Éxito -->
+                        <div class="mb-2">
+                            <p class="text-uppercase text-muted mb-1" style="font-size: 0.75rem;"><i class="fas fa-signal"></i> Tasa de Éxito</p>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar {% if resultado_router.packet_loss == 0 %}bg-success{% elif resultado_router.packet_loss < 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ 100 - resultado_router.packet_loss }}%">
+                                    <small><strong>{{ 100 - resultado_router.packet_loss }}%</strong></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tiempos de Respuesta -->
+                        <div class="mb-2">
+                            <p class="text-uppercase text-muted mb-2" style="font-size: 0.75rem;"><i class="fas fa-clock"></i> Tiempos de Respuesta</p>
+                            <div class="row text-center g-1">
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-info mb-0" style="font-size: 0.9rem;">{{ resultado_router.min_time }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Min (ms)</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 bg-primary text-white rounded">
+                                        <h6 class="mb-0" style="font-size: 0.9rem;">{{ resultado_router.avg_time }}</h6>
+                                        <small style="font-size: 0.7rem;">Promedio (ms)</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 bg-light rounded">
+                                        <h6 class="text-warning mb-0" style="font-size: 0.9rem;">{{ resultado_router.max_time }}</h6>
+                                        <small class="text-muted" style="font-size: 0.7rem;">Max (ms)</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detalles Técnicos -->
+                        {% if resultado_router.raw_output %}
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-secondary w-100" type="button" data-bs-toggle="collapse" data-bs-target="#rawOutputRouter">
+                                <i class="fas fa-terminal"></i> Ver Salida del Ping
+                            </button>
+                            <div class="collapse mt-2" id="rawOutputRouter">
+                                <pre class="bg-dark text-white p-3 rounded small" style="max-height: 300px; overflow-y: auto;"><code>{{ resultado_router.raw_output }}</code></pre>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagnóstico y Recomendaciones -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 bg-info text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-stethoscope"></i> Diagnóstico y Recomendaciones
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if not resultado_router.success and not resultado_antena.success %}
+                <!-- CRÍTICO: Ambos Desconectados -->
+                <div class="alert alert-danger border-left-danger">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> PROBLEMA CRÍTICO</h5>
+                    <p class="mb-2">Ni el router ni la antena responden al ping.</p>
+                    <hr>
+                    <p class="mb-1"><strong>Posibles Causas:</strong></p>
+                    <ul class="mb-0">
+                        <li>Cliente completamente desconectado</li>
+                        <li>Problema de alimentación eléctrica</li>
+                        <li>IPs configuradas incorrectamente</li>
+                        <li>Firewall bloqueando ICMP (ping) </li>
+                    </ul>
+                </div>
+            {% elif not resultado_router.success %}
+                <!-- ADVERTENCIA: Solo Router Desconectado -->
+                <div class="alert alert-warning border-left-warning">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-circle"></i> PROBLEMA EN EL ROUTER</h5>
+                    <p class="mb-2">El router no responde, pero la antena funciona correctamente.</p>
+                    <hr>
+                    <p class="mb-1"><strong>Verificar:</strong></p>
+                    <ul class="mb-0">
+                        <li>Conexión física del router (cables Ethernet)</li>
+                        <li>Alimentación eléctrica del router</li>
+                        <li>Configuración de IP: <code>{{ resultado_router.ip or 'No configurada' }}</code></li>
+                        <li>Reiniciar el router si es necesario</li>
+                        <li>Verificar si el cliente no esta bloquedo, por impago de la factura</li>
+                    </ul>
+                </div>
+            {% elif not resultado_antena.success %}
+                <!-- ADVERTENCIA: Solo Antena Desconectada -->
+                <div class="alert alert-warning border-left-warning">
+                    <h5 class="alert-heading"><i class="fas fa-exclamation-circle"></i> PROBLEMA EN LA ANTENA</h5>
+                    <p class="mb-2">La antena no responde, pero el router funciona correctamente.</p>
+                    <hr>
+                    <p class="mb-1"><strong>Verificar:</strong></p>
+                    <ul class="mb-0">
+                        <li>Conexión física de la antena</li>
+                        <li>Alimentación PoE (Power over Ethernet)</li>
+                        <li>Configuración de IP: <code>{{ resultado_antena.ip or 'No configurada' }}</code></li>
+                        <li>Alineación y obstrucciones de la señal</li>
+                    </ul>
+                </div>
+            {% else %}
+                {% set router_loss = resultado_router.packet_loss %}
+                {% set antena_loss = resultado_antena.packet_loss %}
+                {% if router_loss > 10 or antena_loss > 10 %}
+                    <!-- ADVERTENCIA: Alta Pérdida de Paquetes -->
+                    <div class="alert alert-warning border-left-warning">
+                        <h5 class="alert-heading"><i class="fas fa-signal"></i> CONEXIÓN INESTABLE</h5>
+                        <p class="mb-2">Alta pérdida de paquetes detectada.</p>
+                        <hr>
+                        <div class="row">
+                            {% if antena_loss > 10 %}
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong><i class="fas fa-broadcast-tower"></i> Antena:</strong></p>
+                                <ul>
+                                    <li>Pérdida: <span class="badge bg-warning">{{ antena_loss }}%</span></li>
+                                    <li>Verificar alineación</li>
+                                    <li>Revisar obstrucciones</li>
+                                    <li>Comprobar calidad de señal</li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% if router_loss > 10 %}
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong><i class="fas fa-router"></i> Router:</strong></p>
+                                <ul class="mb-0">
+                                    <li>Pérdida: <span class="badge bg-warning">{{ router_loss }}%</span></li>
+                                    <li>Revisar cables y conexiones</li>
+                                    <li>Verificar configuración de red</li>
+                                    <li>Reiniciar router si es necesario</li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- ÉXITO: Todo Funciona Bien -->
+                    <div class="alert alert-success border-left-success">
+                        <h5 class="alert-heading"><i class="fas fa-check-circle"></i> CONEXIÓN ÓPTIMA</h5>
+                        <p class="mb-2">Ambos dispositivos responden correctamente...</p>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-0"><i class="fas fa-broadcast-tower text-success"></i> <strong>Antena:</strong> {{ 100 - antena_loss }}% de éxito</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-0"><i class="fas fa-router text-success"></i> <strong>Router:</strong> {{ 100 - router_loss }}% de éxito</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.border-left-danger {
+    border-left: 5px solid #dc3545;
+}
+.border-left-warning {
+    border-left: 5px solid #ffc107;
+}
+.border-left-success {
+    border-left: 5px solid #28a745;
+}
+</style>
+{% endblock %}

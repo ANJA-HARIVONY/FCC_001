@@ -1,0 +1,801 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Atencion al cliente{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-dark mb-0">
+                        <i class="fa fa-tachometer text-danger me-2"></i>
+                        Dashboard - <span id="period-title">Semana en curso</span>
+                    </h1>
+                    <p class="text-muted">Vista general de las incidencias y estadísticas</p>
+                </div>
+                <div class="d-flex align-items-center">
+                    <!-- Sélecteur de période -->
+                    <div class="me-4">
+                        <label for="period-selector" class="form-label mb-0 me-2 text-muted">Período:</label>
+                        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()" style="min-width: 200px;">
+                            <option value="current_month">Mes en curso</option>
+                            <option value="current_week" selected>Semana en curso</option>
+                            <option value="last_week">Semana pasada</option>
+                            <option value="last_3_months">Últimos 3 meses</option>
+                            <option value="last_month">Mes anterior</option>
+                            <option value="last_6_months">Últimos 6 meses</option>
+                            <option value="current_year">Año en curso</option>
+                            <option value="all_data">Todos los datos</option>
+                        </select>
+                    </div>
+                    <!-- Auto-actualización -->
+                    <div class="text-end">
+                        <div class="small text-muted mb-1">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Auto-actualización cada 5 min
+                        </div>
+                        <div class="refresh-indicator">
+                            <span class="badge bg-success" id="refresh-status">
+                                <i class="fas fa-circle pulse me-1"></i>
+                                Activo
+                            </span>
+                            <div class="small text-muted mt-1">
+                                Próxima actualización: <span id="next-refresh"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes de statistiques -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100 fade-in">
+                <div class="card-body text-center">
+                    <div class="stat-number">{{ total_incidents }}</div>
+                    <div class="stat-label">Total de Registrados</div>
+                    <i class="fa fa-ticket fa-2x text-danger mt-2"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100 fade-in">
+                <div class="card-body text-center">
+                    <div class="stat-number text-success">{{ incidents_resolus }}</div>
+                    <div class="stat-label">Solucionadas</div>
+                    <i class="fas fa-check-circle fa-2x text-success mt-2"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100 fade-in">
+                <div class="card-body text-center">
+                    <div class="stat-number text-warning">{{ incidents_attente }}</div>
+                    <div class="stat-label">Pendientes</div>
+                    <i class="fas fa-clock fa-2x text-warning mt-2"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stat-card h-100 fade-in">
+                <div class="card-body text-center">
+                    <div class="stat-number text-info">{{ incidents_bitrix }}</div>
+                    <div class="stat-label">Bitrix</div>
+                    <i class="fas fa-cog fa-2x text-info mt-2"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="row mb-4">
+        <div class="col-lg-8 mb-3">
+            <div class="chart-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line text-danger me-2"></i>
+                        Evolucion de las incidencias
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-danger active" onclick="changeChartView('date')" id="btn-date">
+                            Por dia
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('month')" id="btn-month">
+                            Por mes
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('year')" id="btn-year">
+                            Por año
+                        </button>
+                    </div>
+                </div>
+                <canvas id="incidentsChart" height="100"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-3">
+            <div class="chart-container">
+                <h5 class="mb-3">
+                    <i class="fas fa-chart-pie text-danger me-2"></i>
+                    Reparticion por operador
+                </h5>
+                <canvas id="operateursChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des derniers incidents -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        5 Ultimos Registrados
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if derniers_incidents %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Cliente</th>
+                                    <th>Asuntos</th>
+                                    <th>Status</th>
+                                    <th>Operador</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for incident in derniers_incidents %}
+                                <tr>
+                                    <td><strong>#{{ incident.id }}</strong></td>
+                                    <td><a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                    </td>
+                                    <td>{{ incident.intitule[:50] }}{% if incident.intitule|length > 50 %}...{% endif %}</td>
+                                    <td>
+                                        {% if incident.status == 'Solucionadas' %}
+                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                        {% elif incident.status == 'Pendiente' %}
+                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                        {% else %}
+                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                                <small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ incident.operateur.nom }}</td>
+                                    <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('modifier_incident', id=incident.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay incidencias registradas</p>
+                        <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>Agregar una incidencia
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Tableau des clients recurrents, 5 clients avec le plus d'incidents dans la periode selectionnée -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        5 Clientes Recurrentes
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Client</th>
+                                <th>N° de Incidencias</th>
+                                <th>Asuntos</th>
+                                <!--<th>Fecha</th> -->
+                            </tr>
+                        </thead>
+                        <tbody id="clients-recurrents-tbody">
+                            {% for client in clients_recurrents %}
+                            <tr>
+                                <td><strong># {{loop.index}}</strong></td>
+                                <td><a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
+                                <br><small class="small  fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small></td>
+                                <td>{{ client.incidents }}</span></td>
+                                <td>{{ client.intitule }}</td>
+                                <!--<td>{{ client.date_heure.strftime('%d/%m/%Y %H:%M') if client.date_heure else '' }}</td> -->
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let incidentsChart = null;
+let currentViewType = 'date';
+let refreshInterval;
+let countdownInterval;
+let nextRefreshTime;
+let currentPeriod = 'current_week'; // Période par défaut
+
+// Configuration des titres de période
+const periodTitles = {
+    'current_month': 'Mes en curso',
+    'current_week': 'Semana en curso',
+    'last_week': 'Semana pasada', 
+    'last_3_months': 'Últimos 3 meses',
+    'last_month': 'Mes anterior',
+    'last_6_months': 'Últimos 6 meses',
+    'current_year': 'Año en curso',
+    'all_data': 'Todos los datos'
+};
+
+// Fonction pour formater le temps restant
+function formatTimeRemaining(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Fonction pour mettre à jour le countdown
+function updateCountdown() {
+    const now = new Date().getTime();
+    const timeRemaining = Math.max(0, Math.floor((nextRefreshTime - now) / 1000));
+    
+    if (timeRemaining > 0) {
+        document.getElementById('next-refresh').textContent = formatTimeRemaining(timeRemaining);
+    } else {
+        document.getElementById('next-refresh').textContent = 'Actualizando...';
+    }
+}
+
+// Fonction pour démarrer le système d'auto-refresh
+function startAutoRefresh() {
+    // Calculer le prochain refresh (5 minutes)
+    nextRefreshTime = new Date().getTime() + (5 * 60 * 1000);
+    
+    // Mettre à jour le countdown chaque seconde
+    countdownInterval = setInterval(updateCountdown, 1000);
+    
+    // Programmer le refresh
+    refreshInterval = setTimeout(() => {
+        // Afficher un indicateur de chargement
+        document.getElementById('refresh-status').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+        document.getElementById('refresh-status').classList.remove('bg-success');
+        document.getElementById('refresh-status').classList.add('bg-info');
+        
+        // Recharger la page après un court délai pour afficher l'indicateur
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    }, 5 * 60 * 1000); // 5 minutes
+    
+    // Initialiser le countdown
+    updateCountdown();
+    
+    console.log('Auto-refresh activé - prochaine actualisation dans 5 minutes');
+}
+
+// Fonction pour arrêter l'auto-refresh (si nécessaire)
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearTimeout(refreshInterval);
+        refreshInterval = null;
+    }
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    
+    document.getElementById('refresh-status').innerHTML = '<i class="fas fa-pause me-1"></i>Pausado';
+    document.getElementById('refresh-status').classList.remove('bg-success', 'bg-info');
+    document.getElementById('refresh-status').classList.add('bg-secondary');
+    document.getElementById('next-refresh').textContent = 'Pausado';
+}
+
+// Fonction pour redémarrer l'auto-refresh manuellement
+function restartAutoRefresh() {
+    stopAutoRefresh();
+    startAutoRefresh();
+    
+    document.getElementById('refresh-status').innerHTML = '<i class="fas fa-circle pulse me-1"></i>Activo';
+    document.getElementById('refresh-status').classList.remove('bg-secondary', 'bg-info');
+    document.getElementById('refresh-status').classList.add('bg-success');
+}
+
+// Ajouter un gestionnaire pour permettre de cliquer sur l'indicateur pour forcer un refresh
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshStatus = document.getElementById('refresh-status');
+    if (refreshStatus) {
+        refreshStatus.style.cursor = 'pointer';
+        refreshStatus.title = 'Cliquer para actualizar ahora';
+        refreshStatus.addEventListener('click', function() {
+            if (confirm('¿Desea actualizar la página ahora?')) {
+                window.location.reload();
+            }
+        });
+    }
+    
+    // Démarrer l'auto-refresh
+    startAutoRefresh();
+    
+    // Initialiser les graphiques
+    initIncidentsChart();
+    initOperateursChart();
+    updateIncidentsChart('date');
+    
+    // Récupérer la période depuis l'URL si elle existe
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPeriod = urlParams.get('period');
+    if (urlPeriod) {
+        currentPeriod = urlPeriod;
+        document.getElementById('period-selector').value = urlPeriod;
+        document.getElementById('period-title').textContent = periodTitles[urlPeriod];
+    }
+});
+
+// Nettoyer les intervalles quand on quitte la page
+window.addEventListener('beforeunload', function() {
+    stopAutoRefresh();
+});
+
+// Fonction pour initialiser le graphique une seule fois
+function initIncidentsChart() {
+    const ctx = document.getElementById('incidentsChart').getContext('2d');
+    
+    incidentsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: "Numero de Incidencias",
+                data: [],
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#dc3545',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+                duration: 800
+            },
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Fecha'
+                    }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    },
+                    title: {
+                        display: true,
+                        text: 'Numero de Incidencias'
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+}
+
+// Fonction pour mettre à jour les données du graphique
+function updateIncidentsChart(viewType = 'date') {
+    currentViewType = viewType;
+    
+    fetch(`/api/incidents-par-date?type=${viewType}&period=${currentPeriod}`)
+        .then(response => response.json())
+        .then(data => {
+            if (incidentsChart) {
+                // Mettre à jour les données
+                incidentsChart.data.labels = data.map(item => item.date);
+                incidentsChart.data.datasets[0].data = data.map(item => item.count);
+                
+                // Mettre à jour le titre de l'axe X
+                incidentsChart.options.scales.x.title.text = viewType === 'date' ? 'Date' : 'Date et Heure';
+                
+                // Redessiner le graphique
+                incidentsChart.update('active');
+            }
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des données:', error);
+        });
+}
+
+// Fonction pour changer le type d'affichage
+function changeChartView(viewType) {
+    // Mettre à jour les boutons
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('btn-outline-danger');
+        btn.classList.remove('btn-danger');
+    });
+    
+    const activeBtn = document.getElementById(`btn-${viewType}`);
+    activeBtn.classList.add('active');
+    activeBtn.classList.remove('btn-outline-danger');
+    activeBtn.classList.add('btn-danger');
+    
+    // Mettre à jour le graphique
+    updateIncidentsChart(viewType);
+}
+
+// Fonction pour changer la période
+function changePeriod() {
+    const selector = document.getElementById('period-selector');
+    const newPeriod = selector.value;
+    
+    if (newPeriod !== currentPeriod) {
+        currentPeriod = newPeriod;
+        
+        // Mettre à jour le titre
+        document.getElementById('period-title').textContent = periodTitles[newPeriod];
+        
+        // Afficher un indicateur de chargement
+        showLoadingIndicator();
+        
+        // Recharger les données du dashboard
+        loadDashboardData(currentPeriod);
+        
+        // Mettre à jour le graphique
+        updateIncidentsChart(currentViewType);
+    }
+}
+
+// Fonction pour afficher l'indicateur de chargement
+function showLoadingIndicator() {
+    // Ajouter une classe de chargement aux cartes de statistiques
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.style.opacity = '0.6';
+        card.style.pointerEvents = 'none';
+    });
+    
+    // Afficher un spinner sur le graphique
+    const chartContainer = document.querySelector('.chart-container');
+    if (chartContainer && !chartContainer.querySelector('.loading-spinner')) {
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner text-center position-absolute';
+        spinner.style.cssText = 'top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;';
+        spinner.innerHTML = '<div class="spinner-border text-danger" role="status"><span class="sr-only">Cargando...</span></div>';
+        chartContainer.style.position = 'relative';
+        chartContainer.appendChild(spinner);
+    }
+}
+
+// Fonction pour masquer l'indicateur de chargement
+function hideLoadingIndicator() {
+    // Retirer la classe de chargement des cartes
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.style.opacity = '1';
+        card.style.pointerEvents = 'auto';
+    });
+    
+    // Masquer le spinner
+    const spinner = document.querySelector('.loading-spinner');
+    if (spinner) {
+        spinner.remove();
+    }
+}
+
+// Fonction pour charger les données du dashboard selon la période
+function loadDashboardData(period) {
+    fetch(`/dashboard-data?period=${period}`)
+        .then(response => response.json())
+        .then(data => {
+            // Mettre à jour les statistiques
+            updateStatistics(data);
+            
+            // Mettre à jour le tableau des derniers incidents
+            updateLastIncidents(data.derniers_incidents);
+            
+            // Mettre à jour la liste des clients récurrents
+            updateClientsRecurrents(data.clients_recurrents);
+            
+            // Mettre à jour le graphique des opérateurs
+            updateOperateursChart(data.incidents_par_operateur);
+            
+            // Masquer l'indicateur de chargement
+            hideLoadingIndicator();
+        })
+        .catch(error => {
+            console.error('Erreur lors du chargement des données:', error);
+            hideLoadingIndicator();
+            
+            // Afficher un message d'erreur
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'alert alert-danger mt-3';
+            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error al cargar los datos. Inténtelo de nuevo.';
+            document.querySelector('.container-fluid').prepend(errorMsg);
+            
+            setTimeout(() => errorMsg.remove(), 5000);
+        });
+}
+
+// Fonction pour mettre à jour les statistiques
+function updateStatistics(data) {
+    const statNumbers = document.querySelectorAll('.stat-number');
+    if (statNumbers.length >= 4) {
+        statNumbers[0].textContent = data.total_incidents;
+        statNumbers[1].textContent = data.incidents_resolus;
+        statNumbers[2].textContent = data.incidents_attente;
+        statNumbers[3].textContent = data.incidents_bitrix;
+    }
+}
+
+// Fonction pour mettre à jour le tableau des derniers incidents
+function updateLastIncidents(incidents) {
+    const tableBody = document.querySelector('table tbody');
+    const noDataDiv = document.querySelector('.text-center.py-4');
+    
+    if (incidents.length > 0) {
+        if (noDataDiv) noDataDiv.style.display = 'none';
+        
+        if (tableBody) {
+            tableBody.innerHTML = incidents.map(incident => `
+                <tr>
+                    <td><strong>#${incident.id}</strong></td>
+                    <td>${incident.client_nom}</td>
+                    <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
+                    <td>
+                        <span class="badge badge-${incident.status === 'Solucionadas' ? 'resolut' : 
+                                                     incident.status === 'Pendiente' ? 'attente' : 'bitrix'}">
+                            ${incident.status}
+                        </span>
+                    </td>
+                    <td>${incident.operateur_nom}</td>
+                    <td>${incident.date_heure_formatted}</td>
+                    <td>
+                        <a href="/incidents/${incident.id}/modifier" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } else {
+        if (tableBody) tableBody.innerHTML = '';
+        if (noDataDiv) noDataDiv.style.display = 'block';
+    }
+}
+
+// Fonction pour mettre à jour la liste des clients récurrents
+function updateClientsRecurrents(clients) {
+    const tbody = document.getElementById('clients-recurrents-tbody');
+    
+    if (tbody) {
+        if (clients && clients.length > 0) {
+            tbody.innerHTML = clients.map(client => `
+                <tr>
+                    <td><strong>#${client.id}</strong></td>
+                    <td>
+                        <a href="/clients/${client.id}" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
+                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${client.adresse || ''}</small>
+                    </td>
+                    <td>${client.incidents}</td>
+                    <td>${client.intitule || ''}</td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>Sin clientes recurrentes en este período</p>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+}
+
+// Fonction pour mettre à jour le graphique des opérateurs
+function updateOperateursChart(data) {
+    if (operateursChart && data && data.length > 0) {
+        operateursChart.data.labels = data.map(item => item[0]);
+        operateursChart.data.datasets[0].data = data.map(item => item[1]);
+        operateursChart.update('active');
+    } else if (data && data.length === 0) {
+        // Pas de données pour cette période
+        const container = document.getElementById('operateursChart').parentElement;
+        container.innerHTML = '<div class="text-center py-4"><p class="text-muted">Sin datos para este período</p></div>';
+    }
+}
+
+// Variables globales pour les graphiques
+let operateursChart = null;
+
+// Initialiser le graphique des opérateurs
+function initOperateursChart() {
+    const operateursData = {{ incidents_par_operateur | tojson }};
+    if (operateursData && operateursData.length > 0) {
+        const ctx2 = document.getElementById('operateursChart').getContext('2d');
+        operateursChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: operateursData.map(item => item[0]),
+                datasets: [{
+                    data: operateursData.map(item => item[1]),
+                    backgroundColor: [
+                        '#dc3545',
+                        '#6c757d',
+                        '#28a745',
+                        '#ffc107',
+                        '#17a2b8',
+                        '#6f42c1'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    } else {
+        // Afficher un message si pas de données
+        const ctx2 = document.getElementById('operateursChart');
+        ctx2.style.display = 'none';
+        const container = ctx2.parentElement;
+        container.innerHTML = '<div class="text-center py-4"><p class="text-muted">Aucune donnée disponible</p></div>';
+    }
+}
+</script>
+
+<style>
+.refresh-indicator .pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+.refresh-indicator .badge {
+    transition: all 0.3s ease;
+}
+
+.refresh-indicator .badge:hover {
+    transform: scale(1.05);
+}
+
+/* Styles pour le sélecteur de période */
+#period-selector {
+    border: 1px solid #dc3545;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+#period-selector:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+#period-selector:hover {
+    border-color: #b02a37;
+}
+
+/* Animation de chargement pour les cartes */
+.stat-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.stat-card.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: inherit;
+    z-index: 10;
+}
+
+/* Spinner de chargement */
+.loading-spinner {
+    z-index: 1000;
+}
+
+.loading-spinner .spinner-border {
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Responsive design pour le sélecteur */
+@media (max-width: 768px) {
+    .d-flex.align-items-center {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    
+    .me-4 {
+        margin-right: 0 !important;
+        margin-bottom: 1rem;
+    }
+    
+    #period-selector {
+        min-width: 100% !important;
+    }
+}
+
+/* Animation pour le changement de période */
+.period-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Style pour le titre de période */
+#period-title {
+    color: #dc3545;
+    font-weight: 600;
+}
+</style>
+{% endblock %} 

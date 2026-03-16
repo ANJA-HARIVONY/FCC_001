@@ -1,0 +1,3 @@
+# Ce dossier contient les scripts SQL exécutés au premier démarrage de MariaDB
+# Les fichiers .sql sont exécutés par ordre alphabétique
+# L'application initialise les tables via Flask-Migrate/docker-entrypoint.sh

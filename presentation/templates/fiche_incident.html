@@ -1,0 +1,642 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('Fiche Incident') }} #{{ incident.id }}{% endblock %}
+
+{% block content %}
+<div class="container-md min-vh-100">
+    <!-- Messages Flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-exclamation-circle"></i> {{ _('Incidencia :') }} #{{ incident.id }}
+        </h1>
+        <div>
+            <a href="{{ url_for('incidents') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> {{ _('Volver') }}
+            </a>
+            <button type="button" class="btn btn-success" id="btnVerificar" onclick="verificarCliente()">
+                <i class="fas fa-check" id="iconVerificar"></i>
+                <span id="textVerificar">{{ _('Ping') }}</span>
+            </button>
+            <a href="{{ url_for('modifier_incident', id=incident.id) }}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> {{ _('Modificar') }}
+            </a>
+            <!--<button onclick="window.print()" class="btn btn-primary">
+                <i class="fas fa-print"></i> {{ _('Imprimir') }}
+            </button> -->
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Informations de l'incident -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle"></i> {{ _('Detalles de la Incidencia') }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('ID Incidencia') }}:</strong></div>
+                        <div class="col-sm-9"><span class="badge bg-secondary">#{{ incident.id }}</span></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Asunto') }}:</strong></div>
+                        <div class="col-sm-9"><h5 class="text-primary mb-0">{{ incident.intitule }}</h5></div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Fecha/Hora') }}:</strong></div>
+                        <div class="col-sm-9">
+                            <i class="fas fa-calendar-alt text-muted"></i> 
+                            {{ incident.date_heure.strftime('%d/%m/%Y') }} 
+                            <i class="fas fa-clock text-muted ms-2"></i> 
+                            {{ incident.date_heure.strftime('%H:%M') }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Status') }}:</strong></div>
+                        <div class="col-sm-9">
+                            {% if incident.status == 'Solucionadas' %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> {{ _('Solucionadas') }}</span>
+                            {% elif incident.status == 'Pendiente' %}
+                                <span class="badge bg-warning"><i class="fas fa-hourglass-half"></i> {{ _('Pendientes') }}</span>
+                            {% elif incident.status == 'Bitrix' %}
+                                <span class="badge bg-info"><i class="fas fa-share"></i> {{ _('Bitrix') }}</span>
+                                {% if incident.ref_bitrix %}
+                                    <span class="ms-2 text-muted"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></span>
+                                {% endif %}
+                                {% if incident.ref_bitrix %}
+                                    <div id="bitrixInfoBlock" class="mt-2">
+                                        {% if bitrix_info %}
+                                            {% if bitrix_info.error %}
+                                                <div class="small text-warning" id="bitrixError">
+                                                    <i class="fas fa-exclamation-triangle"></i> {{ bitrix_info.error }}
+                                                </div>
+                                            {% else %}
+                                                <div class="bitrix-info-card" id="bitrixDataDiv">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <span class="bitrix-emoji me-2" id="bitrixEmoji">{{ bitrix_info.status_emoji|default('📋') }}</span>
+                                                        <div>
+                                                            <small class="text-uppercase text-muted">{{ _('Estado de la tarea') }}</small>
+                                                            <div class="fw-semibold text-dark" id="bitrixStatus">{{ bitrix_info.status_label }}</div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="me-2">🧑‍💻</span>
+                                                        <div>
+                                                            <small class="text-uppercase text-muted">{{ _('Responsable') }}</small>
+                                                            <div id="bitrixResponsable" class="text-dark fw-semibold">{{ bitrix_info.responsible_name }}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="small text-muted" id="bitrixNoConfig">
+                                                <i class="fas fa-cog"></i> {{ _('API Bitrix no configurada en .env') }}
+                                            </div>
+                                        {% endif %}
+                                        {% if bitrix_info is not none %}
+                                        <button type="button" class="btn btn-sm btn-outline-info mt-1" id="btnRefreshBitrix" onclick="refreshBitrixInfo()" title="{{ _('Actualizar información de Bitrix') }}">
+                                            <i class="fas fa-sync-alt" id="iconRefreshBitrix"></i> {{ _('Actualizar') }}
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Operador Asignado') }}:</strong></div>
+                        <div class="col-sm-9">
+                            <i class="fas fa-user text-primary"></i> 
+                            <strong>{{ incident.operateur.nom }}</strong>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Observaciones') }}:</strong></div>
+                        <div class="col-sm-9">
+                            {% if incident.observations %}
+                                <textarea class="form-control bg-light" rows="3" readonly resize="none">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n')|safe }}</textarea>
+                            {% else %}
+                                <em class="text-muted">{{ _('Ninguna observacion') }}</em>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions rapides -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-tasks"></i> {{ _('Acciones Rapidas') }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% if incident.status == 'Pendiente' %}
+                        <div class="col-md-4 mb-3">
+                            <form method="POST" action="{{ url_for('modifier_incident', id=incident.id) }}" style="display: inline;">
+                                <input type="hidden" name="status" value="Solucionadas">
+                                <input type="hidden" name="id_client" value="{{ incident.id_client }}">
+                                <input type="hidden" name="intitule" value="{{ incident.intitule }}">
+                                <textarea name="observations" style="display: none;">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n')|striptags }}</textarea>
+                                <input type="hidden" name="id_operateur" value="{{ incident.id_operateur }}">
+                                <input type="hidden" name="ref_bitrix" value="">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="fas fa-check-circle"></i> {{ _('Marcar como Solucionada') }}
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-4 mb-3">
+                            <a href="{{ url_for('modifier_incident', id=incident.id) }}" class="btn btn-warning w-100">
+                                <i class="fas fa-edit"></i> {{ _('Modificar Incidencia') }}
+                            </a>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <!--<form method="POST" action="{{ url_for('supprimer_incident', id=incident.id) }}" onsubmit="return confirm('{{ _('¿Está seguro de eliminar esta incidencia?') }}');" style="display: inline;">
+                                <button type="submit" class="btn btn-danger w-100">
+                                    <i class="fas fa-trash"></i> {{ _('Eliminar') }}
+                                </button>
+                            </form> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informations du client -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-tie"></i> {{ _('Cliente Afectado') }} - # {{ incident.client.id }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <div class="avatar-circle bg-primary text-white mx-auto" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-user fa-3x"></i>
+                        </div>
+                        <h5 class="mt-3 mb-0">{{ incident.client.nom }}</h5>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-phone text-muted"></i> 
+                        <strong>{{ _('Telefono') }}:</strong>
+                        <br>
+                        <span class="ms-4">{{ incident.client.telephone }}</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-map-marker-alt text-muted"></i> 
+                        <strong>{{ _('Direccion') }}:</strong>
+                        <br>
+                        <span class="ms-4">{{ incident.client.adresse }}</span>
+                    </div>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-city text-muted"></i> 
+                        <strong>{{ _('Barrio') }}:</strong>
+                        <br>
+                        <span class="ms-4">{{ incident.client.ville }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-2">
+                        <i class="fas fa-network-wired text-muted"></i> 
+                        <strong>{{ _('IP Router') }}:</strong>
+                        <br>
+                        <code class="ms-4">
+                            <a href="http://{{ incident.client.ip_router }}" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">
+                                {{ incident.client.ip_router }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i>
+                            </a>
+                        </code>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <i class="fas fa-satellite-dish text-muted"></i> 
+                        <strong>{{ _('IP Antena') }}:</strong>
+                        <br>
+                        <code class="ms-4">
+                            <a href="http://{{ incident.client.ip_antea }}" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">
+                                {{ incident.client.ip_antea }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i>
+                            </a>
+                        </code>
+                    </div>
+                    
+                    <hr>
+                    
+                    <a href="{{ url_for('fiche_client', id=incident.client.id) }}" class="btn btn-primary w-100">
+                        <i class="fas fa-eye"></i> {{ _('Ver Ficha Completa del Cliente') }}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estadísticas del tiempo -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-clock"></i> {{ _('Informacion de Tiempo') }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% set tiempo_transcurrido = (moment.now() - incident.date_heure) %}
+                    {% set dias = (tiempo_transcurrido.total_seconds() / 86400)|int %}
+                    {% set horas = ((tiempo_transcurrido.total_seconds() % 86400) / 3600)|int %}
+                    {% set minutos = ((tiempo_transcurrido.total_seconds() % 3600) / 60)|int %}
+                    
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <small class="text-muted text-uppercase">{{ _('Tiempo Transcurrido') }}</small>
+                            <h4 class="mb-0">
+                                {% if dias > 0 %}
+                                    {{ dias }}d {{ horas }}h
+                                {% elif horas > 0 %}
+                                    {{ horas }}h {{ minutos }}m
+                                {% else %}
+                                    {{ minutos }}m
+                                {% endif %}
+                            </h4>
+                        </div>
+                        
+                        {% if incident.status == 'Pendiente' and tiempo_transcurrido.total_seconds() > 1800 %}
+                        <div class="alert alert-warning mb-0">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>{{ _('¡Atención!') }}</strong><br>
+                            <small>{{ _('Incidencia pendiente por más de 30 minutos') }}</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn, .alert, .card-header .badge {
+            display: none !important;
+        }
+        .card {
+            border: 1px solid #ddd !important;
+            box-shadow: none !important;
+        }
+    }
+    /* Animation chenille : pointillés verts qui ondulent gauche ↔ droite */
+    .loading-dots {
+        width: 140px;
+        height: 28px;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+    }
+    .loading-dots span {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 6px;
+        height: 6px;
+        margin-top: -3px;
+        border-radius: 50%;
+        background: #28a745;
+        box-shadow: 0 0 4px rgba(40, 167, 69, 0.5);
+        animation: chenilleMove 2.4s ease-in-out infinite;
+    }
+    .loading-dots span:nth-child(1) { animation-delay: 0s; }
+    .loading-dots span:nth-child(2) { animation-delay: 0.12s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.24s; }
+    .loading-dots span:nth-child(4) { animation-delay: 0.36s; }
+    .loading-dots span:nth-child(5) { animation-delay: 0.48s; }
+    .loading-dots span:nth-child(6) { animation-delay: 0.6s; }
+    @keyframes chenilleMove {
+        0%, 100% { transform: translate(0, 0); }
+        25% { transform: translate(100px, -2px); }
+        50% { transform: translate(100px, 0); }
+        75% { transform: translate(0, 2px); }
+    }
+</style>
+
+<!-- Overlay de carga -->
+<div id="loadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="text-align: center; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+        <div class="loading-dots" role="status" aria-label="Cargando...">
+            <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <h4 class="mt-3 mb-2 text-success">
+            <i class="fas fa-network-wired"></i> Verificando Conectividad
+        </h4>
+        <p class="text-muted mb-0">
+            <i class="fas fa-broadcast-tower"></i> Haciendo ping a la Antena...<br>
+            <i class="fas fa-router"></i> Haciendo ping al Router...
+        </p>
+        <small class="text-muted">Por favor espere...</small>
+    </div>
+</div>
+
+<!-- Modal Verificación -->
+<div class="modal fade" id="modalVerificar" tabindex="-1" aria-labelledby="modalVerificarLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalVerificarLabel">
+                    <i class="fas fa-network-wired"></i> Verificación de Conectividad - <span id="modalClientNom"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="modalVerificarBody">
+                <!-- Contenu chargé dynamiquement -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" onclick="verificarCliente()">
+                    <i class="fas fa-sync-alt"></i> Verificar de Nuevo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const CLIENT_ID = {{ incident.client.id }};
+const INCIDENT_ID = {{ incident.id }};
+const VERIFICAR_URL = "{{ url_for('verificar_cliente', id=incident.client.id) }}";
+const BITRIX_INFO_URL = "{{ url_for('api_incident_bitrix_info', id=incident.id) }}";
+
+function renderCard(data, type) {
+    const r = data;
+    const isSuccess = r.success;
+    const statusClass = isSuccess ? 'text-success' : 'text-danger';
+    const statusIcon = isSuccess ? 'fa-check-circle' : 'fa-times-circle';
+    const statusText = isSuccess ? 'CONECTADO' : 'SIN CONEXIÓN';
+    const headerClass = isSuccess ? 'bg-success' : 'bg-danger';
+    const borderClass = isSuccess ? 'border-success' : 'border-danger';
+    
+    let statsHtml = '';
+    if (!r.error) {
+        statsHtml = `
+            <div class="mb-2">
+                <p class="text-uppercase text-muted mb-2" style="font-size: 0.75rem;"><i class="fas fa-chart-bar"></i> Estadísticas de Paquetes</p>
+                <div class="row text-center g-1">
+                    <div class="col-6 mb-1">
+                        <div class="p-2 bg-light rounded">
+                            <h6 class="text-primary mb-0">${r.packets_sent}</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">Enviados</small>
+                        </div>
+                    </div>
+                    <div class="col-6 mb-1">
+                        <div class="p-2 bg-light rounded">
+                            <h6 class="text-success mb-0">${r.packets_received}</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">Recibidos</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <h6 class="text-danger mb-0">${r.packets_lost}</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">Perdidos</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-2 bg-light rounded">
+                            <h6 class="text-warning mb-0">${r.packet_loss}%</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">Pérdida</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-2">
+                <p class="text-uppercase text-muted mb-1" style="font-size: 0.75rem;"><i class="fas fa-signal"></i> Tasa de Éxito</p>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar ${r.packet_loss == 0 ? 'bg-success' : r.packet_loss < 50 ? 'bg-warning' : 'bg-danger'}" 
+                         style="width: ${100 - r.packet_loss}%">
+                        <small><strong>${100 - r.packet_loss}%</strong></small>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-2">
+                <p class="text-uppercase text-muted mb-2" style="font-size: 0.75rem;"><i class="fas fa-clock"></i> Tiempos de Respuesta</p>
+                <div class="row text-center g-1">
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <h6 class="text-info mb-0" style="font-size: 0.9rem;">${r.min_time}</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">Min (ms)</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-primary text-white rounded">
+                            <h6 class="mb-0" style="font-size: 0.9rem;">${r.avg_time}</h6>
+                            <small style="font-size: 0.7rem;">Promedio (ms)</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 bg-light rounded">
+                            <h6 class="text-warning mb-0" style="font-size: 0.9rem;">${r.max_time}</h6>
+                            <small class="text-muted" style="font-size: 0.7rem;">Max (ms)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        statsHtml = `<div class="alert alert-danger py-2"><small><i class="fas fa-exclamation-triangle"></i> <strong>Error:</strong> ${r.error}</small></div>`;
+    }
+    
+    return `
+        <div class="card shadow h-100 ${borderClass}" style="border-width: 2px;">
+            <div class="card-header ${headerClass} text-white text-center py-2">
+                <h6 class="mb-0"><i class="fas fa-${type === 'antena' ? 'broadcast-tower' : 'router'}"></i> ${type === 'antena' ? 'ANTENA' : 'ROUTER'}</h6>
+                <small><code class="text-white" style="font-size: 0.8rem;">${r.ip || 'No configurada'}</code></small>
+            </div>
+            <div class="card-body py-2 px-3">
+                <div class="text-center mb-2 py-1">
+                    <h5 class="${statusClass} mb-0">
+                        <i class="fas ${statusIcon} fa-2x"></i>
+                        <p class="mt-2 mb-0" style="font-size: 0.9rem;">${statusText}</p>
+                    </h5>
+                </div>
+                ${statsHtml}
+            </div>
+        </div>
+    `;
+}
+
+function getDiagnosticoHtml(router, antena) {
+    if (!router.success && !antena.success) {
+        return `<div class="alert alert-danger border-left-danger">
+            <h6 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> PROBLEMA CRÍTICO</h6>
+            <p class="mb-1"><small>Ni el router ni la antena responden al ping.</small></p>
+        </div>`;
+    }
+    if (!router.success) {
+        return `<div class="alert alert-warning border-left-warning">
+            <h6 class="alert-heading"><i class="fas fa-exclamation-circle"></i> PROBLEMA EN EL ROUTER</h6>
+            <p class="mb-1"><small>El router no responde, pero la antena funciona correctamente.</small></p>
+        </div>`;
+    }
+    if (!antena.success) {
+        return `<div class="alert alert-warning border-left-warning">
+            <h6 class="alert-heading"><i class="fas fa-exclamation-circle"></i> PROBLEMA EN LA ANTENA</h6>
+            <p class="mb-1"><small>La antena no responde, pero el router funciona correctamente.</small></p>
+        </div>`;
+    }
+    const r = router.packet_loss, a = antena.packet_loss;
+    if (r > 10 || a > 10) {
+        return `<div class="alert alert-warning border-left-warning">
+            <h6 class="alert-heading"><i class="fas fa-signal"></i> CONEXIÓN INESTABLE</h6>
+            <p class="mb-1"><small>Alta pérdida de paquetes detectada.</small></p>
+        </div>`;
+    }
+    return `<div class="alert alert-success border-left-success">
+        <h6 class="alert-heading"><i class="fas fa-check-circle"></i> CONEXIÓN ÓPTIMA</h6>
+        <p class="mb-0"><small>Ambos dispositivos responden correctamente. Y Muy bien!!!</small></p>
+    </div>`;
+}
+
+function verificarCliente() {
+    const btn = document.getElementById('btnVerificar');
+    const icon = document.getElementById('iconVerificar');
+    const text = document.getElementById('textVerificar');
+    const overlay = document.getElementById('loadingOverlay');
+    
+    btn.classList.add('disabled');
+    btn.style.pointerEvents = 'none';
+    icon.className = 'fas fa-spinner fa-spin';
+    text.textContent = 'Verificando...';
+    overlay.style.display = 'flex';
+    
+    fetch(VERIFICAR_URL, { headers: { 'Accept': 'application/json' } })
+        .then(res => res.json())
+        .then(data => {
+            overlay.style.display = 'none';
+            btn.classList.remove('disabled');
+            btn.style.pointerEvents = 'auto';
+            icon.className = 'fas fa-check';
+            text.textContent = 'Ping';
+            
+            document.getElementById('modalClientNom').textContent = data.client.nom;
+            
+            const body = document.getElementById('modalVerificarBody');
+            body.innerHTML = `
+                <div class="card shadow mb-3">
+                    <div class="card-body py-2">
+                        <div class="row">
+                            <div class="col-md-4"><strong><i class="fas fa-user"></i> Nombre:</strong> ${data.client.nom}</div>
+                            <div class="col-md-4"><strong><i class="fas fa-map-marker-alt"></i> Dirección:</strong> ${data.client.adresse || 'N/A'}</div>
+                            <div class="col-md-4"><strong><i class="fas fa-city"></i> Barrio:</strong> ${data.client.ville || 'N/A'}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">${renderCard(data.resultado_antena, 'antena')}</div>
+                    <div class="col-md-6">${renderCard(data.resultado_router, 'router')}</div>
+                </div>
+                <div class="card shadow">
+                    <div class="card-header py-2 bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-stethoscope"></i> Diagnóstico y Recomendaciones</h6>
+                    </div>
+                    <div class="card-body py-2">
+                        ${getDiagnosticoHtml(data.resultado_router, data.resultado_antena)}
+                    </div>
+                </div>
+            `;
+            
+            new bootstrap.Modal(document.getElementById('modalVerificar')).show();
+        })
+        .catch(err => {
+            overlay.style.display = 'none';
+            btn.classList.remove('disabled');
+            btn.style.pointerEvents = 'auto';
+            icon.className = 'fas fa-check';
+            text.textContent = 'Verificar';
+            alert('Error al verificar la conectividad: ' + err.message);
+        });
+}
+
+function refreshBitrixInfo() {
+    const btn = document.getElementById('btnRefreshBitrix');
+    const icon = document.getElementById('iconRefreshBitrix');
+    if (!btn || !icon) return;
+    btn.disabled = true;
+    icon.className = 'fas fa-spinner fa-spin';
+    fetch(BITRIX_INFO_URL, { headers: { 'Accept': 'application/json' } })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            icon.className = 'fas fa-sync-alt';
+            const block = document.getElementById('bitrixInfoBlock');
+            if (!block) return;
+            const errEl = document.getElementById('bitrixError');
+            const dataDiv = document.getElementById('bitrixDataDiv');
+            const statusEl = document.getElementById('bitrixStatus');
+            const respEl = document.getElementById('bitrixResponsable');
+            const noConfigEl = document.getElementById('bitrixNoConfig');
+            if (data.ok && data.data) {
+                if (errEl) errEl.style.display = 'none';
+                if (noConfigEl) noConfigEl.style.display = 'none';
+                if (dataDiv) {
+                    dataDiv.style.display = '';
+                    if (statusEl) statusEl.textContent = data.data.status_label;
+                    if (respEl) respEl.textContent = data.data.responsible_name;
+                    const emojiEl = document.getElementById('bitrixEmoji');
+                    if (emojiEl && data.data.status_emoji) emojiEl.textContent = data.data.status_emoji;
+                } else {
+                    const emoji = data.data.status_emoji || '📋';
+                    const div = document.createElement('div');
+                    div.className = 'bitrix-info-card p-2 rounded bg-light border border-info';
+                    div.id = 'bitrixDataDiv';
+                    div.innerHTML = '<div class="d-flex align-items-center mb-2"><span class="bitrix-emoji me-2">' + emoji + '</span><div><small class="text-muted text-uppercase">Estado de la tarea</small><div class="fw-semibold text-dark" id="bitrixStatus">' + data.data.status_label + '</div></div></div><div class="d-flex align-items-center"><span class="me-2">👤</span><div><small class="text-muted text-uppercase">Responsable</small><div id="bitrixResponsable">' + data.data.responsible_name + '</div></div></div>';
+                    block.insertBefore(div, btn);
+                }
+            } else {
+                if (noConfigEl) noConfigEl.style.display = 'none';
+                if (statusEl && statusEl.parentElement) statusEl.parentElement.style.display = 'none';
+                if (errEl) {
+                    errEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (data.error || 'Error');
+                    errEl.style.display = 'block';
+                } else {
+                    const div = document.createElement('div');
+                    div.className = 'small text-warning';
+                    div.id = 'bitrixError';
+                    div.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (data.error || 'Error');
+                    block.insertBefore(div, btn);
+                }
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            icon.className = 'fas fa-sync-alt';
+            alert('Error: ' + err.message);
+        });
+}
+</script>
+<style>
+.border-left-danger { border-left: 5px solid #dc3545; }
+.border-left-warning { border-left: 5px solid #ffc107; }
+.border-left-success { border-left: 5px solid #28a745; }
+.bitrix-emoji { font-size: 1.5rem; line-height: 1; }
+.bitrix-info-card { max-width: 280px; }
+</style>
+{% endblock %}

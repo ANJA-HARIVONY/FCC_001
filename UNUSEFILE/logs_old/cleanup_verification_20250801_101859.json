@@ -1,0 +1,464 @@
+{
+  "timestamp": "20250801_101859",
+  "cleanup_status": "PARTIEL",
+  "verification_results": {
+    "remaining_duplicates": {
+      "client_name_duplicates": 0,
+      "client_phone_duplicates": 69,
+      "incident_identical": 10,
+      "details": {
+        "phone_duplicates": [
+          [
+            "222002884",
+            13,
+            "24:015340 JOSE MARIA NIKOBARA BOLEKIA,37:008601 CLINICA DONA MARTA,299:009501 DRAMERA OUSMANE,304:014601 SOLEIRO SIMNO,58:0110161 COMPLEJO PALMERA,71:013097 MARTA BINDANG ONA MANGUE,74:011240 JOSE GABRIEL DIAZ QUIALA,84:015555 MELCHOR BECOBA SICOCHA,152:011727 DANIEL MBA OWONO EYANG,177:015546 FELIPE MANSUETO ENSEMA OBAMA OYANA (BANGE),435:011284 ANTONIO ROSARIO NDONG ENDAMAN,213:014605 JUAN ABAGA NGUEMA,491:013506 JUSTICE WISE"
+          ],
+          [
+            "555383160",
+            12,
+            "18:011958 VALENTIN RIBEÑO ERIA,303:000109 CASA DG AFRICAN ASSURANCE,318:009671  JOSEFINA MEDJA NSENG MANGUE,348:014449 CELESTINA PANADES ZAMORA,111:010902 MANUEL NZE MBA MANGUE,119:013388 GAMALIEL RIPOPE BOKETALE,159:014909 TECLA JUSTINA AVOMO MONGO,421:MARCELO ONDO,166:011955 GABRIEL NDONG ELO OSA,458:007747 NOEMI OBONO ESONO OBONO,216:009277 ANTONIO TOMAS ABESO ESONO,230:011160 JACINTA ROKA ETEBA"
+          ],
+          [
+            "222241460",
+            9,
+            "281:014173 VICENTE MABALE UDO,282:008321 EMBAJADA VENEZUELA,57:013661 JOSUE ESONO EDU CORREDOR ( COMPLEJO RIO JOS,73:013177 ANGEL GABRIEL OKUE MANGUE,77:CASA MARCOS MICHA,425:010992 VANESA NOKONOKO WILASI,202:015119 MELCHOR OKUE EDU MBOHO,206:010385 DRAME CHEICKNE,218:009396GIL AGUSTIN WATSON SALAMI"
+          ],
+          [
+            "222253784",
+            9,
+            "23:015509 FELICIANA IKAKA NZAMBI,293:012277 JUAN CASTELLON ESTRADA,298:010238 AGUSTIN ENGONGA NSANG,75:008377  JENNYS MARIA BERTEL MORA,334:000645 MARIA ALOJA NVONO NSAGA,85:000542 SECUNDINA NCHAMA ONANA ANGUE,180:009552 MARIA DEL AMOR NCHAMA MANGUE,455:009596  PIJUAN NCHAMA  MARICRUZ,479:012924 ALBERTO ALOGO OBIANG NCHAMA"
+          ],
+          [
+            "222112708",
+            8,
+            "280:011761 OUSMANE BAH,38:012708 MARIANO SIMA PINDER,294:013734 TEODORA OBONO ONDO NTONGONO,44:010254 GRUPO FERNANDO POO S.L,99:013365 RAMON MABALE ELA ANDONG,162:011949 PROFETA GRACE,219:010964 DIANA MONGOLUE PERDENAL,487:008204 MACONSA"
+          ],
+          [
+            "222254664",
+            7,
+            "1576:012935 AGETRANSA,1331:010413 LINA MARIBEL BIKENE ESONO ANDONG,1617:013497 SALVADOR MITOGO OBIANG,1629:009321 FELICIANO TUNG,1640:016040 MANA PHARMA,1519:009583 CELSO PEDRO MICO FERREIRA,502:015681 FADOUL KITTIR ZAKARIA"
+          ],
+          [
+            "555577775",
+            7,
+            "1580:015854 PERLA HOME,1363:015830 KONATE AHAMADOU,1620:011266 NICOLAS MBA BECOBA,1663:012944 CARIDAD SEPA ETOPA,1712:013003 FLORENTINA SABE,1512:008385 CATALINA MARTINEZ ASUMU,1520:012746 CIRILO ENGONO NTUTUMU NCHAMA"
+          ],
+          [
+            "222096959",
+            5,
+            "1334:008945 AGUSTIN NSUE OBUGASE ANGONO,1347:009494 MARIA GUADALUPE MANE BAKA,928:011206 JOSE BIYANG NGUERE NKORO,1749:013472 FEDERICO NGUIAMBA NSIE,987:011537 ESTHER AFIAVI HOUNTONDJI NCHASO"
+          ],
+          [
+            "222384071",
+            4,
+            "1558:013694 FATIMA ALI HAIDAR NCHAMA,558:015503 HERMES RAFAEL OBIANG (LAVADO DE MONDONG),559:Blas Bolekia Boko,,1653:010095  ZHOU XING"
+          ],
+          [
+            "222584663",
+            4,
+            "1579:013993 MOHAMED ABDELMONEM IBRAHIM,1604:013522 KONE AKIBOU,1357:000664 SOFIA SENOKO SEPA,1401:010085 MIGUEL MBA OBIANG SIPOPO"
+          ],
+          [
+            "000000000",
+            3,
+            "94:011993 MILAGROSA MOKUY MITOGO NCHAMA,370:008975 ABDOUL JALA IDI,417:015084 FRANCISCA ISABEL MODJO NKONI SOLEY"
+          ],
+          [
+            "222259157",
+            3,
+            "519:010058 ANTONIA BEHEBA SITE,528:010033 CARINA CHUMO MERIKI (SGBGE),735:011653 FUENCISLA ANDEME MANSOGO EWUY"
+          ],
+          [
+            "222650415",
+            3,
+            "562:ALMUDENA IDA MANGUE ,1730: 015153  EMETERIO NDONG NDONG MIKUE,1533:013096 ALMUDENA ILDA MANGUE NSI NCHAMA"
+          ],
+          [
+            "222789277",
+            3,
+            "335:013278  YVONNE ENEME WATSON,1139:011088 IVON KING EJOME,1150:013278 YVONNE ENEME WATSON "
+          ],
+          [
+            "555846213",
+            3,
+            "887:008530 COLEGIO E WAISO IPOLA,888: 011200  JUAN CARLOS BILL ESTEBAN ,907:011200 JUAN CARLOS BILL ESTEBAN"
+          ],
+          [
+            "+240 222 970 456",
+            2,
+            "1127:011470 SINFOROSA NZANG OBAMA OBONO,656:010099 VAALCO ENERGY"
+          ],
+          [
+            "+240 551 987 032",
+            2,
+            "1338:000570 SAMUEL WEST STAR,1501:000569 WEST STAR AVIATION"
+          ],
+          [
+            "222 110 523",
+            2,
+            "1593:011900 ANGELES ONDO ABEKU-BANGE ,1607:011900  ANGELES ONDO ABEKU-BANGE, "
+          ],
+          [
+            "222 139 404",
+            2,
+            "1644:014025  PRINCESA KELLY MBA EBALE,1665:014025 PRINCESA KELLY MBA EBALE( BANGE)"
+          ],
+          [
+            "222 168 696",
+            2,
+            "1536:013421 ROSALIA MATILDE EYANG NDONG OBONO ,1694:014026 ROSALÍA MATILDE EYANG NDONG OBONO ARCO PAFICICO"
+          ],
+          [
+            "222 567 649",
+            2,
+            "551:011920 TEODORA OBONO ONDO NTONGONO,183:008073 TEODORA AKENG EBONA NZANG"
+          ],
+          [
+            "222037798",
+            2,
+            "114:012224  JOSE ANDRES TARI BOTEKE,155:012224 JOSE ANDRES TARI BOTEKE"
+          ],
+          [
+            "222093273",
+            2,
+            "323:010873  JOSE GABRIEL BEN MODO,383:010204 NASON FERNANDO OYONO MANGUE BIYOGO"
+          ],
+          [
+            "222116391",
+            2,
+            "365:012940 RAHUL DETANI CASA,380:012940 RAHUL DETANI (OFICINA)"
+          ],
+          [
+            "222121133",
+            2,
+            "1493:008166 VIRGILIO SERICHE,472:Virgilio Seriche"
+          ],
+          [
+            "222122675",
+            2,
+            "375:015632 PROPARTNES (CORP) VICENTE MANUEL ESONO,122:VICENTE MANUAL"
+          ],
+          [
+            "222124490",
+            2,
+            "1169:008636  BEAC MALABO,1233:008636 BEAC DN MALABO"
+          ],
+          [
+            "222130035",
+            2,
+            "397:009422 CLETO NDONG ASUMU,1183:0094422 BANCO MUNDIAL CLEITO"
+          ],
+          [
+            "222160046",
+            2,
+            "1381:ISSA MAHAMAT MAOULOUD,208:009394 ISSA MAHAMAT MAOULOUD"
+          ],
+          [
+            "222199324",
+            2,
+            "1386:010646 ANA MARIA EFUA MEBIAM ANDEME,1014:009278 DENISE MAYE OBAMA"
+          ],
+          [
+            "222200801",
+            2,
+            "286:011180 CISSE ISSA,182:011180  CISSE ISSA"
+          ],
+          [
+            "222208630",
+            2,
+            "376:010685 RICARDO SORIZO LOERI,394:RICARDOP SORIZO LOERI"
+          ],
+          [
+            "222231312",
+            2,
+            "1371:009975 ANDRES EBUERA BUALA,504:011904 FELICIDAD TARIFA (EG LNG)"
+          ],
+          [
+            "222232891",
+            2,
+            "1486:013315 ALDA MANGUE ENGONGA NSUGA S,503:010882 SALUSTIANO PASICO PECHO"
+          ],
+          [
+            "222237987",
+            2,
+            "333:010449  JOVITA ANDONG MILAM ESULE,879:010449 JOVITA ANDONG MILAM ESULE"
+          ],
+          [
+            "222249920",
+            2,
+            "539:000659 JOSE ANTONIO LLUCH MITIGÓ (CASA) SEMU,1415:013847 ALFA ASANGONO OBIANG EYANG"
+          ],
+          [
+            "222254233",
+            2,
+            "700:012477 LIDIA NCHAMA NNANDONGO MBANG ,976:012477  LIDIA NCHAMA NNANDONGO MBANG"
+          ],
+          [
+            "222257510",
+            2,
+            "1605:013279 FRANCISCO NTUTUMU NGU AYANG,689:012801 ALFONSO ESONO NSUE"
+          ],
+          [
+            "222272422",
+            2,
+            "1060:010916 BENJAMIN OBAMA EKO ADA( CASA),1117:009608 BENJAMIN OBAMA EKO ADA( TIENDA)"
+          ],
+          [
+            "222272998",
+            2,
+            "1306:010753 ALI ABDULGADER,1011:010489 EMBAJADA DE LIBIA"
+          ],
+          [
+            "222273987",
+            2,
+            "1193:014576 SEGISMUNDO NSUE AVORO,1207:000595 SEGISMUNDO NSUE AVORO"
+          ],
+          [
+            "222275929",
+            2,
+            "257:008136 MONSERRAT MBA NCHAMA,258:010387 SINGE ACROPOLIS"
+          ],
+          [
+            "222278441",
+            2,
+            "1676:009010 MOISES BULECHE EJOME ,1228:009010 FABRON CORPORTION LTD"
+          ],
+          [
+            "222278817",
+            2,
+            "553:008009  VICTORIANO ENGONGA ONDO KEA,444:010036 ANTHONY YOUBOTYE- BAR BATA"
+          ],
+          [
+            "222357307222808220",
+            2,
+            "56:012848 YANICK ESTANISLAO MASIE ENSEIÑ,489:014683 JOSEFINA BECHEM RIQUICHI"
+          ],
+          [
+            "222360324",
+            2,
+            "82:007737  PASCUAL ENBAMAN BIBANG,366:007737 PASCUAL ENDAMAN BIBANG"
+          ],
+          [
+            "222476932",
+            2,
+            "1378:011917 EXUPERANCIA BOMAGASI RIBAS,123:008461 GERARDO RICHARD BOMAGASI"
+          ],
+          [
+            "222511685",
+            2,
+            "1296:011108 CELSO BENJAMIN ONDO NGUEMA CP,1152:014502 BIENVENIDO ESONO"
+          ],
+          [
+            "222511747",
+            2,
+            "1282:011196 JOSE JUAN ESONO LESTER,973:015129 JUANITA MIKUE  ENGONGA ASONG"
+          ],
+          [
+            "222554209",
+            2,
+            "527:010936 ACHEL BIAHUTE BARRIL,706:010803 BORIS ARISTIDE SENOU"
+          ],
+          [
+            "222572462",
+            2,
+            "600:009158 PACIENCIA OYO CHOCHI,1222:015277 SOULEYMANE GUENE (SAN JOSÉ)"
+          ],
+          [
+            "222592619",
+            2,
+            "344:011182  GABINO NTUTUMU NSUE ABESO,401:011182 GABINO NTUTUMU NSUE ABESO"
+          ],
+          [
+            "222648704",
+            2,
+            "384:013894 JUAN CARLOS ELEMA MICHA,1224:012922 CONCEPCION BOKESA ESORA"
+          ],
+          [
+            "222671711",
+            2,
+            "534:011556 CLAUDIO BIRIBE BENDA,915: 011556  CLAUDIO BIRIBE BENDA"
+          ],
+          [
+            "222725530",
+            2,
+            "339:011258  DAVID NKO FERNANDEZ,368:011258 DAVID NKO FERNANDEZ"
+          ],
+          [
+            "222746809",
+            2,
+            "101:011046 MELCHOR ONDO OBIANG BINDANG,150:014842 LINO TORAO DAVIS"
+          ],
+          [
+            "222747170",
+            2,
+            "1409:000159 ROCK & NOBLE LIMITED. S.L,1239:011715 JORGE ROMPAO DELMAZO"
+          ],
+          [
+            "222763710",
+            2,
+            "289:015364 FELICIANO OBAMA MBA ANGUE,295:015364 FELICIANO OBAMA MBA ANGUESOMO"
+          ],
+          [
+            "222878378",
+            2,
+            "603:012598 MIRIAM RODRIGUEZ LOPEZ,1406:008451 PABLO KABIANG MBOGO BUAMBO"
+          ],
+          [
+            "222886653",
+            2,
+            "359:015657 EDELMIRO MAGENCIO MBA MBA,389:014792 MARIA NGUY NZANG AKARA"
+          ],
+          [
+            "222915215",
+            2,
+            "550:011886 BALATSKIY EVGENY,597:011886 Balatckiy Evgeniy"
+          ],
+          [
+            "222948109",
+            2,
+            "55:012994 HOTEL IMPALA,1639:000166 TERRAZA IMPALA"
+          ],
+          [
+            "222963489",
+            2,
+            "321:009479  JUAN MANUEL MITOGO NDONG AVOMO,439:009479 JUAN MANUEL MITOGO NDONG AVOMO"
+          ],
+          [
+            "551111211",
+            2,
+            "624:JOSE JUAQUIN,630:015781 HUSSEIN FAKIH"
+          ],
+          [
+            "555454713",
+            2,
+            "131:009722 EMPRESA KEY SOLUTION,151:011690 MARIANO MAÑE MIKUE"
+          ],
+          [
+            "555595706",
+            2,
+            "1280:011372  CELSO BARREIRO EKORO ,1462:011372 CELSO BARREIRO EKORO"
+          ],
+          [
+            "555611436",
+            2,
+            "145:000109 L'AFRICAINE DES ASSURANCES,993:000048 SOBOUO NACHIROU"
+          ],
+          [
+            "555705896",
+            2,
+            "331:015521  FORTUNATO ASUMU ALU,662:015521 FORTUNATO ASUMU"
+          ],
+          [
+            "555743200",
+            2,
+            "822:000650 NURIA BALBINA,201:010107 REVISTA GOM"
+          ]
+        ],
+        "identical_incidents": [
+          [
+            "SIN INTERNET",
+            "",
+            "Solucionadas",
+            581,
+            "4,5,8,10,11,12,13,14,15,16"
+          ],
+          [
+            "REVISAR LA CONEXXION",
+            "",
+            "Solucionadas",
+            216,
+            "7,19,45,90,121,141,150,192,208,226"
+          ],
+          [
+            "INTERNET LENTO ",
+            "",
+            "Solucionadas",
+            154,
+            "59,60,65,115,133,144,147,176,186,213"
+          ],
+          [
+            "CAMBIO DE CONTRASEÑA",
+            "",
+            "Solucionadas",
+            115,
+            "108,145,178,209,212,231,234,246,268,318"
+          ],
+          [
+            "MALA RED",
+            "",
+            "Solucionadas",
+            43,
+            "324,693,783,839,856,858,949,1031,1086,1105"
+          ],
+          [
+            "SIN INTERNET ",
+            "",
+            "Bitrix",
+            34,
+            "125,153,319,333,431,479,504,595,623,635"
+          ],
+          [
+            "VERIFICAR LA CONEXXION",
+            "",
+            "Solucionadas",
+            24,
+            "1006,1007,1075,1431,1603,1632,1657,1693,1782,1907"
+          ],
+          [
+            "INTERNET INESTABLE",
+            "",
+            "Solucionadas",
+            22,
+            "482,660,667,669,671,673,714,763,860,880"
+          ],
+          [
+            "REVISAR LA CONEXXION",
+            "",
+            "Bitrix",
+            16,
+            "433,638,652,656,675,676,678,691,698,708"
+          ],
+          [
+            "RECONECTAR",
+            "",
+            "Solucionadas",
+            14,
+            "98,104,137,230,250,253,254,264,408,531"
+          ]
+        ]
+      }
+    },
+    "data_integrity": {
+      "orphaned_incidents": 0,
+      "invalid_operators": 0,
+      "data_consistency": true,
+      "total_records": {
+        "clients": 1627,
+        "incidents": 2593,
+        "operateurs": 7
+      }
+    },
+    "total_remaining_issues": 79
+  },
+  "comparison": {
+    "client_name_duplicates": {
+      "before": 100,
+      "after": 0,
+      "reduction": 100
+    },
+    "client_phone_duplicates": {
+      "before": 104,
+      "after": 69,
+      "reduction": 35
+    },
+    "incident_identical": {
+      "before": 49,
+      "after": 10,
+      "reduction": 39
+    }
+  },
+  "recommendations": [
+    "Réviser manuellement les doublons de téléphone",
+    "Supprimer les incidents restants complètement identiques"
+  ]
+}

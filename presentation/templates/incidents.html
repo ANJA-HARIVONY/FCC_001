@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+
+{% block title %}Incidencias - Atencion al cliente{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-dark mb-0">
+                        <i class="fas fa-ticket text-danger me-2"></i>
+                        Incidencias
+                    </h1>
+                    <p class="text-muted">Lista y gestion de las incidencias</p>
+                </div>
+                <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>Nueva Incidencia
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone Filtres -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light py-3 d-flex align-items-center">
+                    <i class="fas fa-filter text-primary me-2"></i>
+                    <h6 class="mb-0 fw-bold">Filtros de búsqueda</h6>
+                    {% if search_query or status_filter or operateur_filter or date_from or date_to %}
+                    <span class="badge bg-primary ms-2" id="filtrosActivos">
+                        Filtros activos
+                    </span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form method="GET" id="formFiltros">
+                        <div class="row g-3 align-items-end">
+                            <!-- Buscar -->
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="search" class="form-label small text-muted text-uppercase fw-semibold">
+                                    <i class="fas fa-search me-1"></i>Buscar
+                                </label>
+                                <input type="text" class="form-control form-control-sm" id="search" name="search" 
+                                       value="{{ search_query }}" placeholder="Asunto, observaciones, cliente...">
+                            </div>
+                            <!-- Status -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="status" class="form-label small text-muted text-uppercase fw-semibold">
+                                    <i class="fas fa-flag me-1"></i>Status
+                                </label>
+                                <select class="form-select form-select-sm" id="status" name="status">
+                                    <option value="">Todos</option>
+                                    <option value="Solucionadas" {% if status_filter == 'Solucionadas' %}selected{% endif %}>Solucionadas</option>
+                                    <option value="Pendiente" {% if status_filter == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                                    <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix</option>
+                                </select>
+                            </div>
+                            <!-- Operador -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="operateur" class="form-label small text-muted text-uppercase fw-semibold">
+                                    <i class="fas fa-user-cog me-1"></i>Usuario
+                                </label>
+                                <select class="form-select form-select-sm" id="operateur" name="operateur">
+                                    <option value="">Todos</option>
+                                    {% for op in operateurs|default([]) %}
+                                    <option value="{{ op.id }}" {% if operateur_filter and op.id|string == operateur_filter|string %}selected{% endif %}>{{ op.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Fecha desde -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="date_from" class="form-label small text-muted text-uppercase fw-semibold">
+                                    <i class="fas fa-calendar-alt me-1"></i>Desde
+                                </label>
+                                <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ date_from }}">
+                            </div>
+                            <!-- Fecha hasta -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="date_to" class="form-label small text-muted text-uppercase fw-semibold">
+                                    <i class="fas fa-calendar-alt me-1"></i>Hasta
+                                </label>
+                                <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ date_to }}">
+                            </div>
+                            <!-- Por página -->
+                            <div class="col-4 col-md-2 col-lg-1">
+                                <label for="per_page" class="form-label small text-muted text-uppercase fw-semibold">
+                                    <i class="fas fa-list me-1"></i>Por pág.
+                                </label>
+                                <select class="form-select form-select-sm" id="per_page" name="per_page">
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
+                                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+                                </select>
+                            </div>
+                            <!-- Boutons -->
+                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                                <a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-times"></i> Limpiar
+                                </a>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir informe">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card content-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Registros de las Incidencias 
+                        {% if incidents.items %}
+                            ({{ incidents.total }} total{% if search_query or status_filter or operateur_filter or date_from or date_to %} - {{ incidents.items|length }} mostrados{% endif %})
+                        {% endif %}
+                    </h5>
+                    {% if incidents.items %}
+                    <div class="text-muted small">
+                        Página {{ incidents.page }} de {{ incidents.pages }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    {% if incidents.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-white">ID</th>
+                                    <th>
+                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                            Client
+                                            {% if sort_by|default('') == 'client' %}
+                                                <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
+                                            {% else %}
+                                                <i class="fas fa-sort"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                            Asunto
+                                            {% if sort_by|default('') == 'asunto' %}
+                                                <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
+                                            {% else %}
+                                                <i class="fas fa-sort"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="text-white">Status</th>
+                                    <th>
+                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                            Usuario
+                                            {% if sort_by|default('') == 'operador' %}
+                                                <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
+                                            {% else %}
+                                                <i class="fas fa-sort"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th>
+                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                            Fecha/Hora
+                                            {% if sort_by|default('') == 'fecha' %}
+                                                <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
+                                            {% else %}
+                                                <i class="fas fa-sort"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="text-white">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for incident in incidents.items %}
+                                <tr>
+                                    <td><strong>#{{ incident.id }}</strong></td>
+                                    <td><a href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate" style="max-width: 200px;" title="{{ incident.intitule }}">
+                                            {{ incident.intitule }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if incident.status == 'Solucionadas' %}
+                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                        {% elif incident.status == 'Pendiente' %}
+                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                        {% else %}
+                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                            {% if incident.ref_bitrix %}<small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title=" Abrir en nuevo tab"></i></a></small>{% endif %}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ incident.operateur.nom }}</td>
+                                    <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('modifier_incident', id=incident.id, next=request.url) }}" 
+                                               class="btn btn-sm btn-outline-primary" title="Modificar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-sm btn-outline-success" 
+                                                    data-incident-id="{{ incident.id }}"
+                                                    data-incident-intitule="{{ incident.intitule }}"
+                                                    data-incident-observations="{{ incident.observations or '' }}"
+                                                    data-incident-status="{{ incident.status }}"
+                                                    data-incident-date="{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}"
+                                                    data-client-nom="{{ incident.client.nom }}"
+                                                    data-client-telephone="{{ incident.client.telephone }}"
+                                                    data-client-adresse="{{ incident.client.adresse }}"
+                                                    data-client-ville="{{ incident.client.ville }}"
+                                                    data-client-ip-router="{{ incident.client.ip_router }}"
+                                                    data-client-ip-antea="{{ incident.client.ip_antea }}"
+                                                    data-operateur-nom="{{ incident.operateur.nom }}"
+                                                    onclick="copierIncident(this)" 
+                                                    title="Copiar información">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    data-incident-id="{{ incident.id }}" 
+                                                    data-incident-intitule="{{ incident.intitule }}"
+                                                    onclick="confirmerSuppression(this)" 
+                                                    title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if incidents.pages > 1 %}
+                    <div class="card-footer">
+                        <nav aria-label="Paginación de las incidencias">
+                            <ul class="pagination justify-content-center mb-0">
+                                <!-- Bouton Précédent -->
+                                {% if incidents.has_prev %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.prev_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                            <i class="fas fa-chevron-left"></i> Anterior
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-chevron-left"></i> Anterior</span>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Numéros de page -->
+                                {% for page_num in incidents.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                    {% if page_num %}
+                                        {% if page_num != incidents.page %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="{{ url_for('incidents', page=page_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                                    {{ page_num }}
+                                                </a>
+                                            </li>
+                                        {% else %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% endif %}
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link">…</span>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                <!-- Bouton Suivant -->
+                                {% if incidents.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.next_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                            Siguiente <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">Siguiente <i class="fas fa-chevron-right"></i></span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        
+                        <!-- Informations de pagination -->
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                Mostrando {{ (incidents.page - 1) * incidents.per_page + 1 }} a 
+                                {{ incidents.page * incidents.per_page if incidents.page * incidents.per_page < incidents.total else incidents.total }} 
+                                de {{ incidents.total }} incidencias
+                            </small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        {% if search_query or status_filter or operateur_filter or date_from or date_to %}
+                            <h5 class="text-muted">No se encontraron incidencias</h5>
+                            <p class="text-muted">Intente cambiar los filtros de búsqueda</p>
+                            <a href="{{ url_for('incidents') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-times me-1"></i>Limpiar filtros
+                            </a>
+                        {% else %}
+                            <h5 class="text-muted">No hay incidencias registradas</h5>
+                            <p class="text-muted">Comience agregando su primer incidencia</p>
+                            <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Agregar una incidencia
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar la eliminacion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro de querer eliminar la incidencia <strong id="incidentIntitule"></strong> ?</p>
+                <p class="text-danger"><small>Esta acción es irreversible.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script>
+// Fonction pour confirmer la suppression d'un incident
+function confirmerSuppression(button) {
+    const incidentId = button.getAttribute('data-incident-id');
+    const incidentIntitule = button.getAttribute('data-incident-intitule');
+    document.getElementById('incidentIntitule').textContent = incidentIntitule;
+    document.getElementById('deleteForm').action = '/incidents/' + incidentId + '/supprimer';
+    new bootstrap.Modal(document.getElementById('confirmModal')).show();
+}
+
+// Fonction pour copier les informations d'un incident
+function copierIncident(button) {
+    const incidentId = button.getAttribute('data-incident-id');
+    const incidentIntitule = button.getAttribute('data-incident-intitule');
+    const incidentObservations = button.getAttribute('data-incident-observations');
+    const incidentStatus = button.getAttribute('data-incident-status');
+    const incidentDate = button.getAttribute('data-incident-date');
+    const clientNom = button.getAttribute('data-client-nom');
+    const clientTelephone = button.getAttribute('data-client-telephone');
+    const clientAdresse = button.getAttribute('data-client-adresse');
+    const clientVille = button.getAttribute('data-client-ville');
+    const clientIpRouter = button.getAttribute('data-client-ip-router');
+    const clientIpAntea = button.getAttribute('data-client-ip-antea');
+    const operateurNom = button.getAttribute('data-operateur-nom');
+    
+    // Créer le texte à copier
+    const texteIncident = `
+${clientNom}
+${incidentIntitule}
+${incidentObservations}
+Contacto: ${clientTelephone}
+Ubicacíon: ${clientAdresse}
+IPs: ${clientIpRouter} - ${clientIpAntea}`;
+    
+    // Essayer d'abord l'API Clipboard moderne
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texteIncident).then(function() {
+            afficherToast('Información del incidente copiada al portapapeles');
+        }).catch(function(err) {
+            console.error('Erreur avec l\'API Clipboard:', err);
+            fallbackCopy();
+        });
+    } else {
+        fallbackCopy();
+    }
+    
+    // Méthode de fallback
+    function fallbackCopy() {
+        try {
+            const textArea = document.createElement('textarea');
+            textArea.value = texteIncident;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
+            if (successful) {
+                afficherToast('Información del incidente copiada al portapapeles');
+            } else {
+                afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
+            }
+        } catch (err) {
+            console.error('Erreur avec la méthode de fallback:', err);
+            afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
+        }
+    }
+}
+
+
+
+// Auto-submit du formulaire quand on change le nombre d'éléments par page
+document.getElementById('per_page').addEventListener('change', function() {
+    this.form.submit();
+});
+
+// Validation et amélioration de l'expérience utilisateur pour les champs de date
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFromInput = document.getElementById('date_from');
+    const dateToInput = document.getElementById('date_to');
+    
+    function validateDates() {
+        const dateFrom = dateFromInput.value;
+        const dateTo = dateToInput.value;
+        
+        if (dateFrom && dateTo) {
+            const fromDate = new Date(dateFrom);
+            const toDate = new Date(dateTo);
+            
+            if (fromDate > toDate) {
+                dateToInput.setCustomValidity('La fecha "hasta" debe ser posterior a la fecha "desde"');
+                return false;
+            } else {
+                dateToInput.setCustomValidity('');
+                return true;
+            }
+        }
+        return true;
+    }
+    
+    dateFromInput.addEventListener('change', validateDates);
+    dateToInput.addEventListener('change', validateDates);
+    
+    dateFromInput.addEventListener('change', function() {
+        if (this.value) {
+            dateToInput.setAttribute('min', this.value);
+        } else {
+            dateToInput.removeAttribute('min');
+        }
+    });
+    
+    dateToInput.addEventListener('change', function() {
+        if (this.value) {
+            dateFromInput.setAttribute('max', this.value);
+        } else {
+            dateFromInput.removeAttribute('max');
+        }
+    });
+    
+    const today = new Date().toISOString().split('T')[0];
+    dateFromInput.setAttribute('max', today);
+    dateToInput.setAttribute('max', today);
+    
+    if (dateFromInput.value || dateToInput.value) {
+        validateDates();
+    }
+});
+</script>
+{% endblock %} 

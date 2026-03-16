@@ -1,295 +1,182 @@
-<<<<<<< HEAD
-# Application de Gestion Client
+# 🚀 FCC_001 - Application de Gestion Client
 
-Une application web Flask moderne pour la gestion de la relation client avec un design élégant en rouge, blanc et noir. **Maintenant avec support multilingue et impression PDF !**
-
-## 🌟 Fonctionnalités
-
-- **Dashboard interactif** avec statistiques et graphiques
-- **Gestion des clients** (CRUD complet)
-- **Gestion des opérateurs**
-- **Gestion des incidents** avec statuts (En attente, Résolut, Bitrix)
-- **🌐 Support multilingue** : Français, Espagnol, Anglais
-- **📄 Impression PDF** : Fiches clients détaillées avec historique des incidents
-- **Fonction de recherche** avancée
-- **Interface responsive** avec Bootstrap 5
-- **Support SQLite et MariaDB**
-
-## 🚀 Installation
-
-### Prérequis
-
-- Python 3.8+
-- pip
-
-### Étapes d'installation
-
-1. **Cloner le projet**
+## Démarrage SIMPLE
 
 ```bash
-git clone <url-du-repo>
-cd FCC_001
+python start_app.py
 ```
-
-2. **Créer un environnement virtuel**
-
-```bash
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# ou
-.venv\Scripts\activate     # Windows
-```
-
-3. **Installer les dépendances**
-
-```bash
-pip install -r requirements.txt
-```
-
-4. **Lancer l'application**
-
-**Méthode simple (recommandée) :**
-
-```bash
-python3 start_app.py
-```
-
-**Méthode alternative :**
-
-```bash
-python3 test_app.py
-```
-
-**Pour macOS (si problèmes avec WeasyPrint) :**
-
-Consultez le guide détaillé : [INSTALL_MACOS.md](INSTALL_MACOS.md)
-
-**Méthode manuelle :**
-
-```bash
-source .venv/bin/activate
-python3 app.py
-```
-
-L'application sera accessible sur `http://localhost:5001`
-
-## 🌐 Support Multilingue
-
-L'application supporte maintenant 3 langues :
-
-- **🇫🇷 Français** (langue par défaut)
-- **🇪🇸 Español**
-- **🇬🇧 English**
-
-### Changer de langue
-
-1. Utiliser le sélecteur de langue dans la barre de navigation
-2. La langue choisie est sauvegardée en session
-3. Toute l'interface s'adapte automatiquement
-
-### Gestion des traductions
-
-Les traductions sont gérées avec Flask-Babel :
-
-```bash
-# Extraire les nouvelles chaînes à traduire
-pybabel extract -F babel.cfg -k _ -o messages.pot .
-
-# Mettre à jour les traductions existantes
-pybabel update -i messages.pot -d translations
-
-# Compiler les traductions
-pybabel compile -d translations
-```
-
-## 📄 Impression PDF
-
-### Fiches clients détaillées
-
-Chaque client dispose maintenant d'une fiche détaillée imprimable en PDF contenant :
-
-- **Informations du client** : nom, contact, adresse, IPs
-- **Statistiques des incidents** : total, résolus, en attente, Bitrix
-- **Historique complet** : tous les incidents avec dates, statuts, opérateurs et observations
-
-### Accès aux fiches
-
-1. **Depuis la liste des clients** : bouton "Voir la fiche" (icône 📄)
-2. **URL directe** : `/clients/{id}/fiche`
-3. **Impression PDF** : bouton "Imprimer PDF" dans la fiche
-
-### Fonctionnalités PDF
-
-- **Format A4** optimisé pour l'impression
-- **Design professionnel** avec en-tête et pied de page
-- **Tableaux structurés** pour l'historique des incidents
-- **Badges colorés** pour les statuts
-- **Date de génération** automatique
-- **Support multilingue** : le PDF s'adapte à la langue sélectionnée
-
-## Configuration de la base de données
-
-### SQLite (par défaut)
-
-L'application utilise SQLite par défaut. La base de données sera créée automatiquement au premier lancement.
-
-### Migration vers MariaDB
-
-1. **Installer MariaDB**
-2. **Créer une base de données**
-
-```sql
-CREATE DATABASE gestion_client;
-CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
-GRANT ALL PRIVILEGES ON gestion_client.* TO 'username'@'localhost';
-```
-
-3. **Configurer la variable d'environnement**
-
-```bash
-export DATABASE_URL="mysql+pymysql://username:password@localhost/gestion_client"
-```
-
-4. **Relancer l'application**
 
 ## Structure du projet
 
 ```
 FCC_001/
-├── app.py                 # Application principale Flask
-├── run_app.py            # Script de démarrage avec vérifications
-├── config.py             # Configuration des bases de données
-├── babel.cfg             # Configuration Babel pour les traductions
-├── requirements.txt      # Dépendances Python
-├── README.md            # Documentation
-├── templates/           # Templates HTML
-│   ├── base.html        # Template de base avec sélecteur de langue
-│   ├── dashboard.html
-│   ├── clients.html
-│   ├── fiche_client.html     # Nouvelle fiche client détaillée
-│   ├── fiche_client_pdf.html # Template PDF optimisé
-│   ├── operateurs.html
-│   ├── incidents.html
-│   └── ...
-├── translations/        # Fichiers de traduction
-│   ├── fr/LC_MESSAGES/
-│   ├── es/LC_MESSAGES/
-│   └── en/LC_MESSAGES/
-└── static/             # Fichiers statiques
-    └── css/
-        └── style.css   # Styles personnalisés
+├── core/           # 🎯 Application principale
+├── data/           # 🗄️ Base de données
+├── presentation/   # 🎨 Interface utilisateur
+├── i18n/           # 🌐 Internationalisation
+├── automation/     # 🔧 Scripts et utilitaires
+├── monitoring/     # 📊 Surveillance
+├── docs/           # 📚 Documentation complète
+├── config/         # ⚙️ Configuration
+└── tools/          # 🛠️ Outils de développement
 ```
 
-## Utilisation
+## Fonctionnalités
 
-### Dashboard
+- 👥 **Gestion des clients** (ajout, modification, recherche)
+- 👨‍💼 **Gestion des opérateurs**
+- 🚨 **Gestion des incidents**
+- 📄 **Impression PDF** des fiches clients
+- 🌍 **Interface multilingue** (FR/ES/EN)
+- 📊 **Dashboard** avec statistiques
 
-- Vue d'ensemble des statistiques du mois
-- Graphiques interactifs (Chart.js) avec 3 modes d'affichage :
-  - **Par jour** : Évolution quotidienne des incidents
-  - **Par heure** : Répartition horaire des incidents
-  - **Détaillé** : Chaque incident avec sa date/heure exacte
-- Liste des derniers incidents
+## Déploiement Docker
 
-### Gestion des Clients
+```bash
+# 1. Créer .env depuis le template
+cp .env.example .env
+# 2. Modifier .env avec vos paramètres (SECRET_KEY, mots de passe, etc.)
 
-- Ajouter/modifier/supprimer des clients
-- **Nouvelle fonctionnalité** : Fiche client détaillée avec historique complet
-- **Impression PDF** : Génération de rapports professionnels
-- Informations : nom, contact, adresse, ville, IP router, IP Antea
-- Validation des adresses IP
+# 3. Lancer les services
+docker compose up -d
 
-### Gestion des Opérateurs
+# L'app est accessible sur http://localhost:8089
+# Avec Nginx : docker compose --profile with-nginx up -d
+```
 
-- Gestion des opérateurs responsables des incidents
-- Informations : nom, téléphone
+---
 
-### Gestion des Incidents
+## Déploiement en production avec Portainer
 
-- Création et suivi des incidents
-- Statuts disponibles :
-  - **En attente** : Incident non traité
-  - **Résolut** : Incident résolu
-  - **Bitrix** : Incident transféré vers Bitrix
-- Association client/opérateur
-- Observations détaillées
+Ce guide décrit les étapes pour déployer FCC_001 sur un serveur avec Portainer.
 
-### Recherche
+### Prérequis
 
-- Recherche globale dans clients et incidents
-- Résultats filtrés et organisés
+- Serveur avec Docker et Portainer installés
+- Accès à l'interface web Portainer (admin)
+- Nom de domaine ou IP du serveur
 
-## Design
+### Étape 1 : Préparer le projet en local
 
-L'application utilise un thème moderne avec :
+```bash
+# 1. Cloner ou copier le projet sur votre machine
+cd FCC_001
 
-- **Couleurs principales** : Rouge (#dc3545), Blanc (#ffffff), Noir (#000000)
-- **Framework CSS** : Bootstrap 5
-- **Icônes** : Font Awesome 6
-- **Graphiques** : Chart.js
-- **Interface responsive** pour mobile et desktop
-- **Sélecteur de langue** intégré dans la navigation
+# 2. Créer et configurer le fichier .env
+cp .env.example .env
+# Éditer .env : SECRET_KEY, DB_PASSWORD, DB_ROOT_PASSWORD (mots de passe forts !)
+```
 
-## API
+**Variables importantes à modifier pour la production :**
 
-L'application expose une API REST pour les graphiques :
+| Variable | Description |
+|----------|-------------|
+| `SECRET_KEY` | Clé secrète unique et longue (générer avec `openssl rand -hex 32`) |
+| `DB_ROOT_PASSWORD` | Mot de passe root MariaDB |
+| `DB_PASSWORD` | Mot de passe utilisateur BDD |
+| `APP_PORT` | Port exposé (ex: 8089) |
 
-- `GET /api/incidents-par-date` : Données pour le graphique d'évolution
-  - `?type=date` : Groupement par jour (défaut)
-  - `?type=hour` : Groupement par heure
-  - `?type=datetime` : Affichage détaillé avec date/heure exacte
+### Étape 2 : Transférer le projet sur le serveur
 
-## Nouvelles routes
+**Option A – Via Git (recommandé) :**
 
-- `GET /clients/{id}/fiche` : Affichage de la fiche client détaillée
-- `GET /clients/{id}/imprimer` : Génération et téléchargement du PDF
-- `GET /set_language/{language}` : Changement de langue
+```bash
+# Sur le serveur (SSH)
+git clone <url-du-repo> FCC_001
+cd FCC_001
+```
 
-## Sécurité
+**Option B – Via SCP/SFTP :**
 
-- Protection CSRF avec Flask-WTF
-- Validation des données côté serveur
-- Échappement automatique des templates Jinja2
-- Génération PDF sécurisée avec WeasyPrint
+```bash
+# Depuis votre machine locale
+scp -r FCC_001/ user@votre-serveur:/chemin/destination/
+```
 
-## Développement
+Vérifier que ces fichiers/dossiers sont présents sur le serveur :
+- `docker-compose.yml`
+- `Dockerfile`
+- `.env`
+- `config/`, `core/`, `presentation/`, `data/init/`, `docker/`, `i18n/`, etc.
+- `docker-entrypoint.sh`
 
-Pour contribuer au projet :
+### Étape 3 : Déployer avec Portainer
 
-1. Fork le repository
-2. Créer une branche feature
-3. Commiter les changements
-4. Pousser vers la branche
-5. Créer une Pull Request
+1. **Connexion à Portainer**  
+   - Ouvrir `http://IP-DU-SERVEUR:9000` (ou le port configuré)  
+   - Se connecter avec vos identifiants admin  
 
-### Ajouter de nouvelles traductions
+2. **Créer une Stack**  
+   - Menu **Stacks** → **Add stack**  
+   - Nom : `fcc_001`  
 
-1. Marquer les chaînes avec `{{ _('Texte à traduire') }}` dans les templates
-2. Utiliser `gettext('Texte à traduire')` dans le code Python
-3. Extraire et mettre à jour les traductions
-4. Compiler les fichiers .mo
+3. **Configuration du déploiement**  
+
+   **Option A – Depuis un dépôt Git (recommandé) :**
+
+   - Build method : **Git repository** – URL du dépôt, branche `main`  
+   - Compose path : `docker-compose.yml`  
+   - Dans **Environment variables**, coller le contenu de `.env` (car `.env` n'est pas versionné)  
+
+   **Option B – Projet déjà sur le serveur :** Exécuter `docker compose up -d --build` dans le dossier du projet. **Option C – Web editor :** Si l'image est sur un registry, remplacer `build:` par `image: ...`.
+
+   - Compose path : `docker-compose.yml`  
+   - Si Git : saisir l’URL du repo et la branche  
+
+4. **Variables d’environnement**  
+   - À définir : `SECRET_KEY`, `DB_ROOT_PASSWORD`, `DB_PASSWORD`, `DB_NAME`, `DB_USER`, `APP_PORT`  
+   - Le fichier `.env` n'est pas versionné ; le créer sur le serveur ou saisir les variables dans Portainer  
+
+5. **Démarrer la stack**  
+   - Cliquer sur **Deploy the stack**  
+   - L’image sera buildée puis les services démarrés (MariaDB + app)  
+
+6. **Surveiller le déploiement**  
+   - Onglet **Containers** : vérifier que `fcc_001_app` et `fcc_001_mariadb` sont en état "running"  
+   - Consulter les logs en cas d’erreur : clic sur le conteneur → **Logs**  
+
+### Étape 4 : Vérifier l’accès
+
+- Application : `http://IP-DU-SERVEUR:8089` (ou le port défini dans `APP_PORT`)  
+- Base de données (optionnel) : `IP:3307` pour un accès externe à MariaDB  
+
+### Étape 5 : Mise à jour de l’application
+
+1. Mettre à jour le code sur le serveur (`git pull` ou upload des fichiers)
+2. Dans Portainer : **Stacks** → `fcc_001` → **Editor**
+3. Sauvegarder puis **Update the stack** (avec option "Pull and redeploy" si applicable)
+4. Ou en ligne de commande sur le serveur :
+   ```bash
+   cd FCC_001
+   docker compose pull  # si images sur un registry
+   docker compose up -d --build
+   ```
+
+### Dépannage
+
+| Problème | Solution |
+|----------|----------|
+| Container app redémarre en boucle | Vérifier les logs, la connexion DB et les variables d’environnement |
+| Erreur "env_file .env" | Vérifier que `.env` existe dans le projet sur le serveur |
+| Port déjà utilisé | Changer `APP_PORT` dans `.env` |
+| WeasyPrint / PDF en erreur | Vérifier les logs ; éventuellement mettre `WEASYPRINT_AVAILABLE=false` |
+
+### Nginx (optionnel)
+
+Pour exposer l’app derrière Nginx en production :
+
+```bash
+docker compose --profile with-nginx up -d
+```
+
+---
+
+## Accès
+
+- **Local (dev) :** http://localhost:5001
+- **Docker :** http://localhost:8089 (ou port configuré dans APP_PORT)
+- **Base de données :** MariaDB (avec fallback SQLite)
 
 ## Support
 
-Pour toute question ou problème :
-
-1. Consulter la page d'aide dans l'application
-2. Vérifier les logs de l'application
-3. S'assurer que tous les champs obligatoires sont remplis
-
-## Dépendances principales
-
-- **Flask** : Framework web
-- **Flask-SQLAlchemy** : ORM pour base de données
-- **Flask-Babel** : Support multilingue
-- **WeasyPrint** : Génération de PDF
-- **Bootstrap 5** : Framework CSS
-- **Chart.js** : Graphiques interactifs
-
-## Licence
-
-Ce projet est sous licence MIT.
-=======
-# FCC_001
-Gestion de atención al cliente
->>>>>>> ae4940927f4d9702044476de9859941b0f206002
+Consultez `docs/` pour la documentation complète.

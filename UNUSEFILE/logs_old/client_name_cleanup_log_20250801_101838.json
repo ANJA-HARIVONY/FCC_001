@@ -1,0 +1,1566 @@
+{
+  "timestamp": "20250801_101838",
+  "operation_type": "client_name_duplicates_cleanup",
+  "backup_created": true,
+  "operations": [
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 555,
+      "to_client_id": 554,
+      "client_name": "011508  MOISES ÑABA SEPA ",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.156673"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 556,
+      "to_client_id": 554,
+      "client_name": "011508  MOISES ÑABA SEPA ",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.156673"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 557,
+      "to_client_id": 554,
+      "client_name": "011508  MOISES ÑABA SEPA ",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.157675"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 555,
+      "client_name": "011508  MOISES ÑABA SEPA ",
+      "timestamp": "2025-08-01T10:18:18.171695"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 556,
+      "client_name": "011508  MOISES ÑABA SEPA ",
+      "timestamp": "2025-08-01T10:18:18.171695"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 557,
+      "client_name": "011508  MOISES ÑABA SEPA ",
+      "timestamp": "2025-08-01T10:18:18.171695"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 526,
+      "to_client_id": 447,
+      "client_name": "008833 SILVERIO MBULA PEPULA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.172678"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 627,
+      "to_client_id": 447,
+      "client_name": "008833 SILVERIO MBULA PEPULA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.172678"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 526,
+      "client_name": "008833 SILVERIO MBULA PEPULA",
+      "timestamp": "2025-08-01T10:18:18.173682"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 627,
+      "client_name": "008833 SILVERIO MBULA PEPULA",
+      "timestamp": "2025-08-01T10:18:18.174680"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 552,
+      "to_client_id": 485,
+      "client_name": "009105 RUFINO NGUEMA NZO MANGUE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:18.176186"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 568,
+      "to_client_id": 485,
+      "client_name": "009105 RUFINO NGUEMA NZO MANGUE",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.177192"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 552,
+      "client_name": "009105 RUFINO NGUEMA NZO MANGUE",
+      "timestamp": "2025-08-01T10:18:18.178209"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 568,
+      "client_name": "009105 RUFINO NGUEMA NZO MANGUE",
+      "timestamp": "2025-08-01T10:18:18.179205"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 643,
+      "to_client_id": 435,
+      "client_name": "011284 ANTONIO ROSARIO NDONG ENDAMAN",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.181200"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 673,
+      "to_client_id": 435,
+      "client_name": "011284 ANTONIO ROSARIO NDONG ENDAMAN",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:18.182192"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 643,
+      "client_name": "011284 ANTONIO ROSARIO NDONG ENDAMAN",
+      "timestamp": "2025-08-01T10:18:18.184206"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 673,
+      "client_name": "011284 ANTONIO ROSARIO NDONG ENDAMAN",
+      "timestamp": "2025-08-01T10:18:18.186192"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 755,
+      "to_client_id": 124,
+      "client_name": "011989 MANUEL MOTHO NKULU OYANA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.186192"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 763,
+      "to_client_id": 124,
+      "client_name": "011989 MANUEL MOTHO NKULU OYANA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:18.187193"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 755,
+      "client_name": "011989 MANUEL MOTHO NKULU OYANA",
+      "timestamp": "2025-08-01T10:18:18.188193"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 763,
+      "client_name": "011989 MANUEL MOTHO NKULU OYANA",
+      "timestamp": "2025-08-01T10:18:18.188193"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 569,
+      "to_client_id": 515,
+      "client_name": "012325 MOHAMED MMAH DIABY ",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:19.204911"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 574,
+      "to_client_id": 515,
+      "client_name": "012325 MOHAMED MMAH DIABY ",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:19.206041"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 569,
+      "client_name": "012325 MOHAMED MMAH DIABY ",
+      "timestamp": "2025-08-01T10:18:19.207052"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 574,
+      "client_name": "012325 MOHAMED MMAH DIABY ",
+      "timestamp": "2025-08-01T10:18:19.208194"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 674,
+      "to_client_id": 69,
+      "client_name": "013111 SOFIA AFOA LATTE NSANG",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:19.209202"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 676,
+      "to_client_id": 69,
+      "client_name": "013111 SOFIA AFOA LATTE NSANG",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:19.210668"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 674,
+      "client_name": "013111 SOFIA AFOA LATTE NSANG",
+      "timestamp": "2025-08-01T10:18:19.221986"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 676,
+      "client_name": "013111 SOFIA AFOA LATTE NSANG",
+      "timestamp": "2025-08-01T10:18:19.230003"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 536,
+      "to_client_id": 535,
+      "client_name": "013197 MARCELINO MINANG BIBANG MITUINI",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:19.243663"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 537,
+      "to_client_id": 535,
+      "client_name": "013197 MARCELINO MINANG BIBANG MITUINI",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:19.245306"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 536,
+      "client_name": "013197 MARCELINO MINANG BIBANG MITUINI",
+      "timestamp": "2025-08-01T10:18:19.251315"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 537,
+      "client_name": "013197 MARCELINO MINANG BIBANG MITUINI",
+      "timestamp": "2025-08-01T10:18:19.254318"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 622,
+      "to_client_id": 6,
+      "client_name": "013929 LUCIO BALTAZAR ASUMU MICHA NCHAMA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:19.255316"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 760,
+      "to_client_id": 6,
+      "client_name": "013929 LUCIO BALTAZAR ASUMU MICHA NCHAMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:19.257315"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 622,
+      "client_name": "013929 LUCIO BALTAZAR ASUMU MICHA NCHAMA",
+      "timestamp": "2025-08-01T10:18:19.258314"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 760,
+      "client_name": "013929 LUCIO BALTAZAR ASUMU MICHA NCHAMA",
+      "timestamp": "2025-08-01T10:18:19.259315"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 701,
+      "to_client_id": 158,
+      "client_name": "015079 ALI YASSINE CABA MARKET",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:19.259315"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1121,
+      "to_client_id": 158,
+      "client_name": "015079 ALI YASSINE CABA MARKET",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:19.260318"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 701,
+      "client_name": "015079 ALI YASSINE CABA MARKET",
+      "timestamp": "2025-08-01T10:18:19.260318"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1121,
+      "client_name": "015079 ALI YASSINE CABA MARKET",
+      "timestamp": "2025-08-01T10:18:19.262467"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 585,
+      "to_client_id": 145,
+      "client_name": "000109 L'AFRICAINE DES ASSURANCES",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:20.273591"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 585,
+      "client_name": "000109 L'AFRICAINE DES ASSURANCES",
+      "timestamp": "2025-08-01T10:18:20.273591"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1195,
+      "to_client_id": 411,
+      "client_name": "007761 ASUNCION FERNANDEZ MARAMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:20.274591"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1195,
+      "client_name": "007761 ASUNCION FERNANDEZ MARAMA",
+      "timestamp": "2025-08-01T10:18:20.274591"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 785,
+      "to_client_id": 530,
+      "client_name": "008445 MERCEDES OPO TOMOS ",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:20.274591"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 785,
+      "client_name": "008445 MERCEDES OPO TOMOS ",
+      "timestamp": "2025-08-01T10:18:20.274591"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1407,
+      "to_client_id": 1406,
+      "client_name": "008451 PABLO KABIANG MBOGO BUAMBO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:20.276612"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1407,
+      "client_name": "008451 PABLO KABIANG MBOGO BUAMBO",
+      "timestamp": "2025-08-01T10:18:20.276612"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 604,
+      "to_client_id": 239,
+      "client_name": "008579 RESTITUTA MUM VIAHUTE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:20.277591"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 604,
+      "client_name": "008579 RESTITUTA MUM VIAHUTE",
+      "timestamp": "2025-08-01T10:18:20.277591"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1267,
+      "to_client_id": 126,
+      "client_name": "008707 COMITÉ OLÍMPICO DE G.E",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:21.284258"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1267,
+      "client_name": "008707 COMITÉ OLÍMPICO DE G.E",
+      "timestamp": "2025-08-01T10:18:21.285228"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1465,
+      "to_client_id": 744,
+      "client_name": "008758 GUILLERMO KING MOUSSAMBANI PARAISO",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:21.286226"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1465,
+      "client_name": "008758 GUILLERMO KING MOUSSAMBANI PARAISO",
+      "timestamp": "2025-08-01T10:18:21.286226"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1149,
+      "to_client_id": 578,
+      "client_name": "008776 LUCAS ELA NGUEMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:21.286226"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1149,
+      "client_name": "008776 LUCAS ELA NGUEMA",
+      "timestamp": "2025-08-01T10:18:21.287224"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1479,
+      "to_client_id": 413,
+      "client_name": "009145 OCHAMAN SERVICE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:21.287224"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1479,
+      "client_name": "009145 OCHAMAN SERVICE",
+      "timestamp": "2025-08-01T10:18:21.288225"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 945,
+      "to_client_id": 600,
+      "client_name": "009158 PACIENCIA OYO CHOCHI",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:21.288225"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 945,
+      "client_name": "009158 PACIENCIA OYO CHOCHI",
+      "timestamp": "2025-08-01T10:18:21.288225"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1430,
+      "to_client_id": 1114,
+      "client_name": "009198 TOMAS ESONO NSUE AYA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:22.293324"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1430,
+      "client_name": "009198 TOMAS ESONO NSUE AYA",
+      "timestamp": "2025-08-01T10:18:22.294326"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 618,
+      "to_client_id": 492,
+      "client_name": "009291 DALMARA ASOMO OBAMA BILOGO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:22.296319"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 618,
+      "client_name": "009291 DALMARA ASOMO OBAMA BILOGO",
+      "timestamp": "2025-08-01T10:18:22.298318"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1389,
+      "to_client_id": 1192,
+      "client_name": "009478 COMERCIAL SANTY ALMACEN SEMU (CASA)",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:22.299320"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1389,
+      "client_name": "009478 COMERCIAL SANTY ALMACEN SEMU (CASA)",
+      "timestamp": "2025-08-01T10:18:22.299320"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 758,
+      "to_client_id": 160,
+      "client_name": "009489 COMASER S.L",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:22.301338"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 758,
+      "client_name": "009489 COMASER S.L",
+      "timestamp": "2025-08-01T10:18:22.302601"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 936,
+      "to_client_id": 174,
+      "client_name": "009507 ANDRES NSUE NSUE AYA",
+      "incidents_transferred": 4,
+      "timestamp": "2025-08-01T10:18:22.302601"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 936,
+      "client_name": "009507 ANDRES NSUE NSUE AYA",
+      "timestamp": "2025-08-01T10:18:22.303610"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 644,
+      "to_client_id": 455,
+      "client_name": "009596  PIJUAN NCHAMA  MARICRUZ",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:23.306047"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 644,
+      "client_name": "009596  PIJUAN NCHAMA  MARICRUZ",
+      "timestamp": "2025-08-01T10:18:23.306047"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 653,
+      "to_client_id": 404,
+      "client_name": "009744 DIOSDADO ONDO NGUEMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:23.307346"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 653,
+      "client_name": "009744 DIOSDADO ONDO NGUEMA",
+      "timestamp": "2025-08-01T10:18:23.307346"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1243,
+      "to_client_id": 197,
+      "client_name": "009748 CNH VILLA",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:23.308833"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1243,
+      "client_name": "009748 CNH VILLA",
+      "timestamp": "2025-08-01T10:18:23.308833"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1654,
+      "to_client_id": 739,
+      "client_name": "009768 HERMELINDA NFONO NGUEMA EDJANG",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:23.308833"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1654,
+      "client_name": "009768 HERMELINDA NFONO NGUEMA EDJANG",
+      "timestamp": "2025-08-01T10:18:23.309840"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 733,
+      "to_client_id": 297,
+      "client_name": "009984 JOSEFINA ATOGO OBAMA",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:23.309840"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 733,
+      "client_name": "009984 JOSEFINA ATOGO OBAMA",
+      "timestamp": "2025-08-01T10:18:23.310840"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 867,
+      "to_client_id": 819,
+      "client_name": "010033 ESPERANZA BAKALE SGB",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:24.316653"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 867,
+      "client_name": "010033 ESPERANZA BAKALE SGB",
+      "timestamp": "2025-08-01T10:18:24.317663"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1456,
+      "to_client_id": 923,
+      "client_name": "010164 JUAN RICARDO ELA NGUEMA ABEGUE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:24.319651"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1456,
+      "client_name": "010164 JUAN RICARDO ELA NGUEMA ABEGUE",
+      "timestamp": "2025-08-01T10:18:24.319651"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1101,
+      "to_client_id": 194,
+      "client_name": "010190 JAVIER ESONO NDONG NJAPNDOUNKE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:24.320649"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1101,
+      "client_name": "010190 JAVIER ESONO NDONG NJAPNDOUNKE",
+      "timestamp": "2025-08-01T10:18:24.321651"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1606,
+      "to_client_id": 1565,
+      "client_name": "010215 DAVID MATIAS NTUTUMU",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:24.321651"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1606,
+      "client_name": "010215 DAVID MATIAS NTUTUMU",
+      "timestamp": "2025-08-01T10:18:24.321651"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 581,
+      "to_client_id": 356,
+      "client_name": "010255 JUAN AGUSTIN EYI OVONO KEA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:24.322652"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 581,
+      "client_name": "010255 JUAN AGUSTIN EYI OVONO KEA",
+      "timestamp": "2025-08-01T10:18:24.322652"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1024,
+      "to_client_id": 400,
+      "client_name": "010340 EXMO CARLOS NZE NZUGA-CARACOLAS",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:25.326097"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1024,
+      "client_name": "010340 EXMO CARLOS NZE NZUGA-CARACOLAS",
+      "timestamp": "2025-08-01T10:18:25.326097"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 577,
+      "to_client_id": 424,
+      "client_name": "010411 MANUEL LUIS ONDO ESONO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:25.328226"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 577,
+      "client_name": "010411 MANUEL LUIS ONDO ESONO",
+      "timestamp": "2025-08-01T10:18:25.329223"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 682,
+      "to_client_id": 614,
+      "client_name": "010484 MARCOS ANTOLIN NDONG MBANG",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:25.331228"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 682,
+      "client_name": "010484 MARCOS ANTOLIN NDONG MBANG",
+      "timestamp": "2025-08-01T10:18:25.332216"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1683,
+      "to_client_id": 1278,
+      "client_name": "010487 JULIANA OLERU SERICHE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:25.335229"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1683,
+      "client_name": "010487 JULIANA OLERU SERICHE",
+      "timestamp": "2025-08-01T10:18:25.336215"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 508,
+      "to_client_id": 453,
+      "client_name": "010651 CLINICA MISALUD S.L",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:25.337214"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 508,
+      "client_name": "010651 CLINICA MISALUD S.L",
+      "timestamp": "2025-08-01T10:18:25.337214"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 845,
+      "to_client_id": 706,
+      "client_name": "010803 BORIS ARISTIDE SENOU",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:26.341670"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 845,
+      "client_name": "010803 BORIS ARISTIDE SENOU",
+      "timestamp": "2025-08-01T10:18:26.342607"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 837,
+      "to_client_id": 222,
+      "client_name": "010915 SEGUIBAT (CARIBE)",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:26.342607"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 837,
+      "client_name": "010915 SEGUIBAT (CARIBE)",
+      "timestamp": "2025-08-01T10:18:26.343562"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 531,
+      "to_client_id": 527,
+      "client_name": "010936 ACHEL BIAHUTE BARRIL",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:26.343562"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 531,
+      "client_name": "010936 ACHEL BIAHUTE BARRIL",
+      "timestamp": "2025-08-01T10:18:26.343562"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 666,
+      "to_client_id": 463,
+      "client_name": "010996 JULIA GRACIOSA NCHAM ENGONO MITOGO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:26.344598"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 666,
+      "client_name": "010996 JULIA GRACIOSA NCHAM ENGONO MITOGO",
+      "timestamp": "2025-08-01T10:18:26.344598"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 704,
+      "to_client_id": 532,
+      "client_name": "011115 MARIA LUISA NDONG ONGUENE",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:26.346568"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 704,
+      "client_name": "011115 MARIA LUISA NDONG ONGUENE",
+      "timestamp": "2025-08-01T10:18:26.347583"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 957,
+      "to_client_id": 401,
+      "client_name": "011182 GABINO NTUTUMU NSUE ABESO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:27.352112"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 957,
+      "client_name": "011182 GABINO NTUTUMU NSUE ABESO",
+      "timestamp": "2025-08-01T10:18:27.352112"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1398,
+      "to_client_id": 835,
+      "client_name": "011230 ELVIS COSTA LEON",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:27.352112"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1398,
+      "client_name": "011230 ELVIS COSTA LEON",
+      "timestamp": "2025-08-01T10:18:27.353108"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 860,
+      "to_client_id": 91,
+      "client_name": "011238 RUFFINI CLEMENTE NSOGO NDONG",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:27.353108"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 860,
+      "client_name": "011238 RUFFINI CLEMENTE NSOGO NDONG",
+      "timestamp": "2025-08-01T10:18:27.353108"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1482,
+      "to_client_id": 1477,
+      "client_name": "011244 JESUS PAULINO ABESO MICHA FARMATURAL",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:27.353108"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1482,
+      "client_name": "011244 JESUS PAULINO ABESO MICHA FARMATURAL",
+      "timestamp": "2025-08-01T10:18:27.354106"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1368,
+      "to_client_id": 211,
+      "client_name": "011338 ELISEO OBIANG MBOMIO NSANG",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:27.354106"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1368,
+      "client_name": "011338 ELISEO OBIANG MBOMIO NSANG",
+      "timestamp": "2025-08-01T10:18:27.354106"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1105,
+      "to_client_id": 427,
+      "client_name": "011352 DIONISIO OLOMO OBAMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:28.359246"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1105,
+      "client_name": "011352 DIONISIO OLOMO OBAMA",
+      "timestamp": "2025-08-01T10:18:28.359246"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1499,
+      "to_client_id": 1498,
+      "client_name": "011434 ANITA AKELE NDONG ANDEME",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:28.359769"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1499,
+      "client_name": "011434 ANITA AKELE NDONG ANDEME",
+      "timestamp": "2025-08-01T10:18:28.359769"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 599,
+      "to_client_id": 362,
+      "client_name": "011519 BEBA DILOUGOU KOKOU KAWESSINA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:28.360806"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 599,
+      "client_name": "011519 BEBA DILOUGOU KOKOU KAWESSINA",
+      "timestamp": "2025-08-01T10:18:28.360806"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 927,
+      "to_client_id": 534,
+      "client_name": "011556 CLAUDIO BIRIBE BENDA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:28.361333"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 927,
+      "client_name": "011556 CLAUDIO BIRIBE BENDA",
+      "timestamp": "2025-08-01T10:18:28.361333"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1043,
+      "to_client_id": 49,
+      "client_name": "011622 SINTIA ELONGA SEBBE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:28.362351"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1043,
+      "client_name": "011622 SINTIA ELONGA SEBBE",
+      "timestamp": "2025-08-01T10:18:28.362351"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 789,
+      "to_client_id": 779,
+      "client_name": "011938 LUIS EMILIO MAYE MAYE EPESI",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:29.368505"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 789,
+      "client_name": "011938 LUIS EMILIO MAYE MAYE EPESI",
+      "timestamp": "2025-08-01T10:18:29.369489"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1317,
+      "to_client_id": 954,
+      "client_name": "011944 FRANCISCO ONDO NCHAMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:29.369489"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1317,
+      "client_name": "011944 FRANCISCO ONDO NCHAMA",
+      "timestamp": "2025-08-01T10:18:29.369489"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1695,
+      "to_client_id": 162,
+      "client_name": "011949 PROFETA GRACE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:29.370490"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1695,
+      "client_name": "011949 PROFETA GRACE",
+      "timestamp": "2025-08-01T10:18:29.371487"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 661,
+      "to_client_id": 660,
+      "client_name": "012039 NICOLAS SAMUEL OWONO NDONG ANDEME",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:29.371487"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 661,
+      "client_name": "012039 NICOLAS SAMUEL OWONO NDONG ANDEME",
+      "timestamp": "2025-08-01T10:18:29.372487"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 516,
+      "to_client_id": 382,
+      "client_name": "012112 AMADOR MATA MOHOSO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:29.372487"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 516,
+      "client_name": "012112 AMADOR MATA MOHOSO",
+      "timestamp": "2025-08-01T10:18:29.372487"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 890,
+      "to_client_id": 170,
+      "client_name": "012522 EULALIA PRISCA NFUMU NKOGO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:30.375441"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 890,
+      "client_name": "012522 EULALIA PRISCA NFUMU NKOGO",
+      "timestamp": "2025-08-01T10:18:30.376443"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1041,
+      "to_client_id": 128,
+      "client_name": "012526 ALFONSINA AGUILAR CACHINA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:30.376443"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1041,
+      "client_name": "012526 ALFONSINA AGUILAR CACHINA",
+      "timestamp": "2025-08-01T10:18:30.376443"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 620,
+      "to_client_id": 269,
+      "client_name": "012538 DIOSDADO ODJAMA NSENG ADA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:30.377442"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 620,
+      "client_name": "012538 DIOSDADO ODJAMA NSENG ADA",
+      "timestamp": "2025-08-01T10:18:30.377442"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1050,
+      "to_client_id": 378,
+      "client_name": "012642 JULIANA NCHAMA OBIANG AKELE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:30.378463"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1050,
+      "client_name": "012642 JULIANA NCHAMA OBIANG AKELE",
+      "timestamp": "2025-08-01T10:18:30.379455"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 875,
+      "to_client_id": 399,
+      "client_name": "012645 FLAVIO MIGUEL SERICHE TOICHOA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:30.382433"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 875,
+      "client_name": "012645 FLAVIO MIGUEL SERICHE TOICHOA",
+      "timestamp": "2025-08-01T10:18:30.383657"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 668,
+      "to_client_id": 147,
+      "client_name": "012739 COULIBALY SALIF",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:31.389739"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 668,
+      "client_name": "012739 COULIBALY SALIF",
+      "timestamp": "2025-08-01T10:18:31.390738"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 855,
+      "to_client_id": 225,
+      "client_name": "012811 VICTOR MANUEL OYONO NDONG EKUBE",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:31.390738"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 855,
+      "client_name": "012811 VICTOR MANUEL OYONO NDONG EKUBE",
+      "timestamp": "2025-08-01T10:18:31.390738"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1013,
+      "to_client_id": 797,
+      "client_name": "012881 CRISTO CRISPIN NDONG MANGUE",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:31.391738"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1013,
+      "client_name": "012881 CRISTO CRISPIN NDONG MANGUE",
+      "timestamp": "2025-08-01T10:18:31.391738"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 679,
+      "to_client_id": 651,
+      "client_name": "012913 MARIA REINA MANGUE NKOGO EYANG",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:31.391738"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 679,
+      "client_name": "012913 MARIA REINA MANGUE NKOGO EYANG",
+      "timestamp": "2025-08-01T10:18:31.391738"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1084,
+      "to_client_id": 55,
+      "client_name": "012994 HOTEL IMPALA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:31.392738"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1084,
+      "client_name": "012994 HOTEL IMPALA",
+      "timestamp": "2025-08-01T10:18:31.392738"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 869,
+      "to_client_id": 35,
+      "client_name": "013060 RAQUEL SALAS CERVERA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:32.398825"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 869,
+      "client_name": "013060 RAQUEL SALAS CERVERA",
+      "timestamp": "2025-08-01T10:18:32.398825"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1125,
+      "to_client_id": 1031,
+      "client_name": "013284 JOSE MARTIN NKOGO ABESO MANGUE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:32.401846"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1125,
+      "client_name": "013284 JOSE MARTIN NKOGO ABESO MANGUE",
+      "timestamp": "2025-08-01T10:18:32.402834"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1122,
+      "to_client_id": 953,
+      "client_name": "013323 CARLOS EKEMA REÑAO",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:32.403835"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1122,
+      "client_name": "013323 CARLOS EKEMA REÑAO",
+      "timestamp": "2025-08-01T10:18:32.403835"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 713,
+      "to_client_id": 711,
+      "client_name": "013417 JAIME ANTONIO MBUÑA AYECABA",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:32.404839"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 713,
+      "client_name": "013417 JAIME ANTONIO MBUÑA AYECABA",
+      "timestamp": "2025-08-01T10:18:32.405837"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1466,
+      "to_client_id": 1432,
+      "client_name": "013647 ROBERTO CARLOS COLLIA BLANCO (ESP)",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:32.405837"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1466,
+      "client_name": "013647 ROBERTO CARLOS COLLIA BLANCO (ESP)",
+      "timestamp": "2025-08-01T10:18:32.406836"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1100,
+      "to_client_id": 384,
+      "client_name": "013894 JUAN CARLOS ELEMA MICHA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:33.410876"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1100,
+      "client_name": "013894 JUAN CARLOS ELEMA MICHA",
+      "timestamp": "2025-08-01T10:18:33.410876"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 853,
+      "to_client_id": 608,
+      "client_name": "014213 JUN KONDO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:33.411880"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 853,
+      "client_name": "014213 JUN KONDO",
+      "timestamp": "2025-08-01T10:18:33.412887"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 961,
+      "to_client_id": 787,
+      "client_name": "014257 RESIDENCIA DE LA EMBAJADA DE SAO TOME",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:33.413883"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 961,
+      "client_name": "014257 RESIDENCIA DE LA EMBAJADA DE SAO TOME",
+      "timestamp": "2025-08-01T10:18:33.414893"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 786,
+      "to_client_id": 348,
+      "client_name": "014449 CELESTINA PANADES ZAMORA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:33.416392"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 786,
+      "client_name": "014449 CELESTINA PANADES ZAMORA",
+      "timestamp": "2025-08-01T10:18:33.418402"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 986,
+      "to_client_id": 229,
+      "client_name": "014458 MARTINE EPE AGBOR",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:33.418402"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 986,
+      "client_name": "014458 MARTINE EPE AGBOR",
+      "timestamp": "2025-08-01T10:18:33.419401"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 708,
+      "to_client_id": 80,
+      "client_name": "014580 ABDULHAE_ALI_CONEXXIA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:34.422128"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 708,
+      "client_name": "014580 ABDULHAE_ALI_CONEXXIA",
+      "timestamp": "2025-08-01T10:18:34.423127"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1124,
+      "to_client_id": 490,
+      "client_name": "014610 ADOLFO NSUE ONDO MBASOGO",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:34.423127"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1124,
+      "client_name": "014610 ADOLFO NSUE ONDO MBASOGO",
+      "timestamp": "2025-08-01T10:18:34.423127"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1021,
+      "to_client_id": 484,
+      "client_name": "014681 LAURA MORANA MAMA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:34.424127"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1021,
+      "client_name": "014681 LAURA MORANA MAMA",
+      "timestamp": "2025-08-01T10:18:34.424127"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 509,
+      "to_client_id": 489,
+      "client_name": "014683 JOSEFINA BECHEM RIQUICHI",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:34.424127"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 509,
+      "client_name": "014683 JOSEFINA BECHEM RIQUICHI",
+      "timestamp": "2025-08-01T10:18:34.425128"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 511,
+      "to_client_id": 308,
+      "client_name": "014825 HIROKO MBA",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:34.425128"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 511,
+      "client_name": "014825 HIROKO MBA",
+      "timestamp": "2025-08-01T10:18:34.425128"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1602,
+      "to_client_id": 1143,
+      "client_name": "014969 LIGHTHOUSE_FELLOWSHIP (SAMPAKA)",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:35.429989"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1602,
+      "client_name": "014969 LIGHTHOUSE_FELLOWSHIP (SAMPAKA)",
+      "timestamp": "2025-08-01T10:18:35.430996"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1200,
+      "to_client_id": 1083,
+      "client_name": "014981 MIGUEL ÁNGEL NKOGO MONSUY",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:35.431988"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1200,
+      "client_name": "014981 MIGUEL ÁNGEL NKOGO MONSUY",
+      "timestamp": "2025-08-01T10:18:35.431988"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1461,
+      "to_client_id": 200,
+      "client_name": "014992 NESTOR BETA FERNANDEZ",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:35.433990"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1461,
+      "client_name": "014992 NESTOR BETA FERNANDEZ",
+      "timestamp": "2025-08-01T10:18:35.435031"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 980,
+      "to_client_id": 456,
+      "client_name": "015143 IRENEO NAZARET NCUL",
+      "incidents_transferred": 5,
+      "timestamp": "2025-08-01T10:18:35.435984"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 980,
+      "client_name": "015143 IRENEO NAZARET NCUL",
+      "timestamp": "2025-08-01T10:18:35.435984"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1633,
+      "to_client_id": 579,
+      "client_name": "015157 MANJEL EDU ONDO NTONGONO",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:35.436984"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1633,
+      "client_name": "015157 MANJEL EDU ONDO NTONGONO",
+      "timestamp": "2025-08-01T10:18:35.436984"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1682,
+      "to_client_id": 1681,
+      "client_name": "015271 RIGOBERTO NSOGO ESONO",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:36.442670"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1682,
+      "client_name": "015271 RIGOBERTO NSOGO ESONO",
+      "timestamp": "2025-08-01T10:18:36.442670"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 798,
+      "to_client_id": 13,
+      "client_name": "015292 TERESA ABANG MBA OYANA",
+      "incidents_transferred": 3,
+      "timestamp": "2025-08-01T10:18:36.442670"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 798,
+      "client_name": "015292 TERESA ABANG MBA OYANA",
+      "timestamp": "2025-08-01T10:18:36.443677"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 817,
+      "to_client_id": 51,
+      "client_name": "015338 KASEM ASSAF",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:36.443677"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 817,
+      "client_name": "015338 KASEM ASSAF",
+      "timestamp": "2025-08-01T10:18:36.443677"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 564,
+      "to_client_id": 295,
+      "client_name": "015364 FELICIANO OBAMA MBA ANGUESOMO",
+      "incidents_transferred": 0,
+      "timestamp": "2025-08-01T10:18:36.444675"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 564,
+      "client_name": "015364 FELICIANO OBAMA MBA ANGUESOMO",
+      "timestamp": "2025-08-01T10:18:36.445685"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 938,
+      "to_client_id": 613,
+      "client_name": "015366 CONCEPCION ADA ASU",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:36.446680"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 938,
+      "client_name": "015366 CONCEPCION ADA ASU",
+      "timestamp": "2025-08-01T10:18:36.447688"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1706,
+      "to_client_id": 812,
+      "client_name": "015693 SALVADOR BOKO BISOBE",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:37.452534"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1706,
+      "client_name": "015693 SALVADOR BOKO BISOBE",
+      "timestamp": "2025-08-01T10:18:37.453535"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 818,
+      "to_client_id": 440,
+      "client_name": "015724 MARÍA NTONGONO ASUMU ADA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:37.454535"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 818,
+      "client_name": "015724 MARÍA NTONGONO ASUMU ADA",
+      "timestamp": "2025-08-01T10:18:37.454535"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 983,
+      "to_client_id": 966,
+      "client_name": "015811 ÚRSULA NCHAMA MANGUE AFUIN",
+      "incidents_transferred": 1,
+      "timestamp": "2025-08-01T10:18:37.455535"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 983,
+      "client_name": "015811 ÚRSULA NCHAMA MANGUE AFUIN",
+      "timestamp": "2025-08-01T10:18:37.455535"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1534,
+      "to_client_id": 1217,
+      "client_name": "015862 FERNANDO JOSE EVITA IYANGA",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:37.456533"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1534,
+      "client_name": "015862 FERNANDO JOSE EVITA IYANGA",
+      "timestamp": "2025-08-01T10:18:37.456533"
+    },
+    {
+      "action": "transfer_incidents",
+      "from_client_id": 1601,
+      "to_client_id": 1600,
+      "client_name": "015901 RENPING QIU",
+      "incidents_transferred": 2,
+      "timestamp": "2025-08-01T10:18:37.456533"
+    },
+    {
+      "action": "delete_client",
+      "client_id": 1601,
+      "client_name": "015901 RENPING QIU",
+      "timestamp": "2025-08-01T10:18:37.457534"
+    }
+  ],
+  "summary": {
+    "total_operations": 222,
+    "clients_deleted": 111,
+    "incidents_transferred": 116
+  }
+}

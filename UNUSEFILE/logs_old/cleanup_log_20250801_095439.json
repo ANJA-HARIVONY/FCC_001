@@ -1,0 +1,11 @@
+{
+  "timestamp": "20250801_095439",
+  "backup_file": "monitoring/logs/mariadb_backup_before_cleanup_20250801_095439.sql",
+  "operations": [],
+  "summary": {
+    "total_operations": 0,
+    "clients_deleted": 0,
+    "incidents_transferred": 0,
+    "incidents_deleted": 0
+  }
+}

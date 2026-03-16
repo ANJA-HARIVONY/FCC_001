@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}{{ etat.titre }} - Informes IA{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- En-tête -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="d-flex align-items-center mb-2">
+                        <a href="{{ url_for('etats') }}" class="btn btn-outline-secondary btn-sm me-3">
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                        <h1 class="h2 text-dark mb-0">{{ etat.titre }}</h1>
+                        {% if etat.statut == 'generated' %}
+                            <span class="badge bg-success ms-2">Generado</span>
+                        {% elif etat.statut == 'generating' %}
+                            <span class="badge bg-warning ms-2">
+                                <i class="fas fa-spinner fa-spin me-1"></i>En progreso...
+                            </span>
+                        {% elif etat.statut == 'error' %}
+                            <span class="badge bg-danger ms-2">Error</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted">
+                        <small>
+                            <i class="fas fa-calendar me-1"></i>
+                            Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
+                            {% if etat.periode_debut %}
+                                | Período: {{ etat.periode_debut.strftime('%d/%m/%Y') }}
+                                {% if etat.periode_fin %}
+                                    - {{ etat.periode_fin.strftime('%d/%m/%Y') }}
+                                {% endif %}
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if etat.statut == 'generated' %}
+                                            <form method="post" action="{{ url_for('etats_regenerer', id=etat.id) }}" 
+                          class="d-inline" onsubmit="return confirm('¿Regenerar este informe?')">
+                        <button type="submit" class="btn btn-outline-warning">
+                            <i class="fas fa-sync me-1"></i>Regenerar
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{{ url_for('api_etats_export', id=etat.id) }}" class="btn btn-outline-success">
+                        <i class="fas fa-download me-1"></i>Exportar
+                    </a>
+                    <button onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="fas fa-print me-1"></i>Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if etat.statut == 'generating' %}
+    <!-- Informe en proceso de generación -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Generación en progreso...</span>
+                    </div>
+                    <h4 class="text-primary">Generación en progreso...</h4>
+                    <p class="text-muted">La IA analiza sus datos y prepara el informe inteligente.</p>
+                    <small class="text-muted">Esta página se recarga automáticamente cada 5 segundos.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Recharger la page toutes les 5 secondes pour voir le résultat
+        setTimeout(function() {
+            window.location.reload();
+        }, 5000);
+    </script>
+
+    {% elif etat.statut == 'error' %}
+    <!-- Informe con error -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Error de Generación
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <strong>Se produjo un error durante la generación:</strong><br>
+                        {% if contenu and contenu.error %}
+                            {{ contenu.error }}
+                        {% else %}
+                            Error desconocido
+                        {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <form method="post" action="{{ url_for('etats_regenerer', id=etat.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-sync me-1"></i>Intentar de Nuevo
+                            </button>
+                        </form>
+                        <a href="{{ url_for('etats_generer') }}" class="btn btn-outline-primary ms-2">
+                            <i class="fas fa-plus me-1"></i>Nuevo Informe
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif etat.statut == 'generated' and etat.contenu_ia %}
+    <!-- Informe generado con éxito -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>Análisis Generado por IA
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="ia-content">
+                        {% set contenu = etat.contenu_ia|from_json if etat.contenu_ia is string else etat.contenu_ia %}
+                        {% if (etat.type_etat == 'summary' or etat.type_etat == 'performance') and contenu.resume_executif %}
+                            <!-- Résumé Exécutif / Rendimiento -->
+                            <div class="mb-4">
+                                {% if etat.type_etat == 'summary' %}
+                                <h4 class="text-primary">📊 Resumen Ejecutivo</h4>
+                                {% else %}
+                                <h4 class="text-primary">👥 Análisis de Rendimiento de Operadores</h4>
+                                {% endif %}
+                                <div class="alert alert-light border-primary">
+                                    <p class="lead mb-0">{{ contenu.resume_executif }}</p>
+                                </div>
+                            </div>
+
+                            {% if contenu.points_positifs or contenu.points_attention %}
+                            <div class="row mb-4">
+                                {% if contenu.points_positifs %}
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0">✅ Puntos Positivos</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-unstyled mb-0">
+                                                {% for point in contenu.points_positifs %}
+                                                <li class="mb-3 p-2 bg-light rounded">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>{{ point }}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if contenu.points_attention %}
+                                <div class="col-md-6">
+                                    <div class="card border-warning">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h5 class="mb-0">⚠️ Puntos de Atención</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="list-unstyled mb-0">
+                                                {% for point in contenu.points_attention %}
+                                                <li class="mb-3 p-2 bg-light rounded">
+                                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>{{ point }}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+
+                            {% if contenu.kpis_cles %}
+                            <div class="mb-4">
+                                <div class="card border-info">
+                                    <div class="card-header bg-info text-white">
+                                        <h5 class="mb-0">📈 KPIs Clave</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {% for kpi, valeur in contenu.kpis_cles.items() %}
+                                            <div class="col-md-6 mb-3">
+                                                <div class="card bg-light border">
+                                                    <div class="card-body p-3">
+                                                        <h6 class="text-primary mb-2">{{ kpi.upper() }}</h6>
+                                                        <p class="mb-0">{{ valeur }}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if contenu.recommandations %}
+                            <div class="mb-4">
+                                <div class="card border-primary">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="mb-0">💡 Recomendaciones Estratégicas</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            {% for rec in contenu.recommandations %}
+                                            <div class="col-12 mb-3">
+                                                <div class="card border-light shadow-sm">
+                                                    <div class="card-body p-3">
+                                                        <div class="d-flex align-items-start">
+                                                            <i class="fas fa-lightbulb text-warning fa-lg me-3 mt-1"></i>
+                                                            <p class="mb-0">{{ rec }}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        {% elif etat.type_etat == 'analysis' %}
+                            <!-- Analyse des Tendances -->
+                            <div class="mb-4">
+                                <h4 class="text-primary">📈 Análisis de Tendencias</h4>
+                                {% if contenu.tendances_principales %}
+                                    <ul>
+                                        {% for tendance in contenu.tendances_principales %}
+                                        <li class="mb-2">{{ tendance }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+
+                        {% elif etat.type_etat == 'custom' %}
+                            <!-- Analyse Personnalisée -->
+                            <div class="mb-4">
+                                <h4 class="text-primary">🎯 Análisis Personalizado</h4>
+                                {% if contenu.analyse_personnalisee %}
+                                    <div class="alert alert-light">
+                                        {{ contenu.analyse_personnalisee|replace('\n', '<br>')|safe }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                        {% else %}
+                            <!-- Format générique -->
+                            <div class="alert alert-info">
+                                <h5>Contenido del Informe</h5>
+                                <pre class="mb-0">{{ contenu|tojson(indent=2) if contenu else etat.contenu_ia }}</pre>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if etat.parametres and etat.parametres.usage %}
+                    <hr>
+                    <div class="text-muted small">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Consumo: {{ etat.parametres.usage.total_tokens or 0 }} tokens
+                        ({{ etat.parametres.usage.prompt_tokens or 0 }} prompt + {{ etat.parametres.usage.completion_tokens or 0 }} respuesta)
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Informe desconocido -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Estado Desconocido</h4>
+                    <p class="text-muted">El estado de este informe no es reconocido.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+@media print {
+    .btn, .card-header, nav, footer {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    h1, h2, h3, h4, h5 {
+        color: #000 !important;
+    }
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.spinner-border {
+    animation: spinner-border .75s linear infinite;
+}
+
+#ia-content h4, #ia-content h5 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+#ia-content .card {
+    transition: transform 0.2s;
+}
+
+#ia-content .card:hover {
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

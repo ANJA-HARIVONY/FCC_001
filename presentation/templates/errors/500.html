@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Erreur serveur - Gestion Clients</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .error-container {
+            text-align: center;
+            padding: 100px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        .error-message {
+            font-size: 1.5rem;
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+        .error-description {
+            color: #666;
+            margin-bottom: 40px;
+        }
+        .btn-home {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+        .btn-home:hover {
+            background-color: #0056b3;
+            color: white;
+        }
+        .btn-reload {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .btn-reload:hover {
+            background-color: #1e7e34;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-code">500</div>
+        <div class="error-message">Erreur interne du serveur</div>
+        <div class="error-description">
+            <p>Une erreur inattendue s'est produite sur le serveur.</p>
+            <p>L'équipe technique a été notifiée et va résoudre le problème.</p>
+            <p>Veuillez réessayer dans quelques minutes.</p>
+        </div>
+        <a href="javascript:location.reload()" class="btn-reload">
+            🔄 Recharger la page
+        </a>
+        <a href="{{ url_for('dashboard') }}" class="btn-home">
+            🏠 Retour à l'accueil
+        </a>
+    </div>
+</body>
+</html> 

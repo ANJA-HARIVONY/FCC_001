@@ -1,0 +1,405 @@
+/* Variables CSS pour les couleurs */
+:root {
+    --primary-red: #dc3545;
+    --dark-red: #b02a37;
+    --light-red: #f8d7da;
+    --black: hsl(0, 0%, 0%);
+    --dark-gray: hsl(212, 41%, 13%);
+    --light-gray: #f8f9fa;
+    --white: #ffffff;
+    --primary-blue: #007bff;
+}
+
+/* Styles généraux */
+body {
+    background-color: var(--light-gray);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navigation */
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--primary-red) !important;
+}
+
+/* Cartes de statistiques */
+.stat-card {
+    background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+    border-left: 4px solid var(--primary-red);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-red);
+}
+
+.stat-label {
+    color: var(--dark-gray);
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+/* Boutons personnalisés */
+.btn-primary {
+    background-color: var(--primary-red);
+    border-color: var(--primary-red);
+}
+
+.btn-primary:hover {
+    background-color: var(--dark-red);
+    border-color: var(--dark-red);
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--primary-red);
+    border-color: var(--primary-red);
+}
+
+/* Tableaux */
+.table {
+    background-color: var(--white);
+    border-radius: 0px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+    background-color: var(--dark-gray);
+    color: var(--white);
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.table tbody tr:hover {
+    background-color: var(--light-red);
+}
+
+/* Formulaires */
+.form-control:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-select:focus {
+    border-color: var(--primary-red);
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Cartes de contenu */
+.content-card {
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+}
+
+.content-card .card-header {
+    background-color: var(--dark-gray);
+    color: var(--white);
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: 600;
+}
+
+/* Badges de statut */
+.badge-resolut {
+    background-color: #28a745;
+}
+
+.badge-attente {
+    background-color: #ffc107;
+    color: var(--black);
+}
+
+.badge-bitrix {
+    background-color: var(--primary-blue);
+}
+
+/* Graphiques */
+.chart-container {
+    background-color: var(--white);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.chart-container canvas {
+    max-height: 400px !important;
+    width: 100% !important;
+}
+
+/* Boutons de sélection du graphique */
+.btn-group .btn {
+    transition: all 0.3s ease;
+}
+
+.btn-group .btn.active {
+    background-color: var(--primary-red) !important;
+    border-color: var(--primary-red) !important;
+    color: var(--white) !important;
+    transform: scale(1.05);
+}
+
+.btn-group .btn:not(.active):hover {
+    background-color: var(--light-red);
+    border-color: var(--primary-red);
+    color: var(--primary-red);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .table-responsive {
+        border-radius: 10px;
+    }
+}
+
+/* Icônes colorées */
+.icon-red {
+    color: var(--primary-red);
+}
+
+.icon-success {
+    color: #28a745;
+}
+
+.icon-warning {
+    color: #ffc107;
+}
+
+.icon-info {
+    color: #17a2b8;
+}
+
+/* Sidebar pour les formulaires */
+.sidebar-form {
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+}
+
+/* Alertes personnalisées */
+.alert-success {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: var(--light-red);
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+/* Sistema de Notificaciones Toast */
+.notification-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    max-width: 400px;
+    width: 100%;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.notification-toast {
+    background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+    border: 2px solid #ff8f00;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(255, 193, 7, 0.4);
+    margin-top: 10px;
+    padding: 16px 20px;
+    color: #000;
+    font-weight: 500;
+    animation: slideInFromBottom 0.5s ease-out;
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Style spécial pour les notifications récentes (≤ 2h) - fond plus clair et transparent */
+.notification-toast.notification-recent {
+    background: linear-gradient(135deg, rgba(255, 245, 157, 0.3) 0%, rgba(255, 235, 59, 0.3) 100%);
+    border: 2px solid rgba(255, 193, 7, 0.5);
+    box-shadow: 0 8px 32px rgba(255, 193, 7, 0.2);
+    backdrop-filter: blur(15px);
+}
+
+.notification-toast::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6b00, #ff8f00, #ffb300);
+    animation: progressBar 15s linear;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.notification-icon {
+    color: #ff6b00;
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.notification-title {
+    font-weight: bold;
+    color: #000;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    color: #000;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.notification-close:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.notification-body {
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.notification-client {
+    font-weight: bold;
+    color: #cc5500;
+}
+
+.notification-operador {
+    color: #000000;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.notification-tiempo {
+    color: #cc0000;
+    font-weight: bold;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+/* Animations */
+@keyframes slideInFromBottom {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToBottom {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(150%);
+        opacity: 0;
+    }
+}
+
+@keyframes progressBar {
+    from {
+        width: 100%;
+    }
+    to {
+        width: 0%;
+    }
+}
+
+.notification-toast.hiding {
+    animation: slideOutToBottom 0.3s ease-in forwards;
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+    .notification-container {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .notification-toast {
+        padding: 12px 16px;
+    }
+    
+    .notification-title {
+        font-size: 13px;
+    }
+    
+    .notification-body {
+        font-size: 12px;
+    }
+} 
