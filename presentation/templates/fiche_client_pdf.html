@@ -163,8 +163,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>{{ _('Fiche Client') }}</h1>
-        <div class="subtitle">{{ _('Générée le') }} {{ current_time }}</div>
+        <h1>{{ _('Ficha del Cliente') }}</h1>
+        <div class="subtitle">{{ _('Generada el') }} {{ current_time }}</div>
     </div>
 
     <!-- Informations du client -->
@@ -200,7 +200,7 @@
 
     <!-- Statistiques des incidents -->
     <div class="section">
-        <div class="section-title">{{ _('Statistiques des Incidents') }}</div>
+        <div class="section-title">{{ _('Statistiques de las Incidencias') }}</div>
         {% set total_incidents = incidents|length %}
         {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Solucionadas')|list|length %}
         {% set incidents_attente = incidents|selectattr('status', 'equalto', 'Pendiente')|list|length %}
@@ -228,7 +228,7 @@
 
     <!-- Historique des incidents -->
     <div class="section">
-        <div class="section-title">{{ _('Historique des Incidents') }}</div>
+        <div class="section-title">{{ _('Historial de las Incidencias') }}</div>
         {% if incidents %}
             <table class="incidents-table">
                 <thead>
@@ -274,7 +274,7 @@
     </div>
 
     <div class="footer">
-        {{ _('Documento generado automaticamente por el sistema de gestion para atencion al cliente de CONNEXIA') }}
+        {{ _('Documento generado automaticamente por el portal de registro para atencion al cliente de CONNEXIA') }}
     </div>
 </body>
 </html> 
