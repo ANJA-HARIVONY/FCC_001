@@ -71,7 +71,7 @@ def setup_database_config():
             
             # Créer la base de données si elle n'existe pas
             with connection.cursor() as cursor:
-                cursor.execute(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
+                cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
                 print(f"✅ Base de données '{DB_NAME}' créée/vérifiée")
             
             connection.close()

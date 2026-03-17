@@ -96,7 +96,7 @@ try:
     )
     
     with conn.cursor() as cursor:
-        cursor.execute(f\"CREATE DATABASE IF NOT EXISTS \\\`{DB_NAME}\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci\")
+        cursor.execute('CREATE DATABASE IF NOT EXISTS ' + DB_NAME + ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
         print(f'Base de données {DB_NAME} créée/vérifiée')
     
     conn.close()
