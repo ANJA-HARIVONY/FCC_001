@@ -21,8 +21,12 @@ class Config:
         'pool_recycle': 3600,
     }
 
-    # Internationalisation
-    LANGUAGES = ['fr', 'es', 'en']
+    # Internationalisation (dict requis : base.html utilise LANGUAGES.items(), get_locale utilise .keys())
+    LANGUAGES = {
+        'fr': 'Français',
+        'es': 'Español',
+        'en': 'English'
+    }
     BABEL_DEFAULT_LOCALE = os.environ.get('BABEL_DEFAULT_LOCALE', 'fr')
     BABEL_DEFAULT_TIMEZONE = 'UTC'
 
