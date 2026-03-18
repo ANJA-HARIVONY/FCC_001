@@ -33,6 +33,7 @@ MANIFEST
 *.sqlite
 *.sqlite3
 instance/
+data/
 
 # Fichiers de migration Flask (optionnel - décommentez si vous ne voulez pas versionner)
 # migrations/
