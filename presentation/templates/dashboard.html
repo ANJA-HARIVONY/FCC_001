@@ -154,17 +154,17 @@
                                 {% for incident in derniers_incidents %}
                                 <tr>
                                     <td><strong>#{{ incident.id }}</strong></td>
-                                    <td><a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                    <td>👨‍💼​ <a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
                                     </td>
                                     <td>{{ incident.intitule[:50] }}{% if incident.intitule|length > 50 %}...{% endif %}</td>
                                     <td>
                                         {% if incident.status == 'Solucionadas' %}
-                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                            <span class="badge badge-resolut">{{ incident.status }} ✅​ </span>
                                         {% elif incident.status == 'Pendiente' %}
-                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                            <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                            <span class="badge badge-bitrix">{{ incident.status }} 🔗​ </span>
                                                 <small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></small>
                                         {% endif %}
                                     </td>
@@ -219,8 +219,8 @@
                             {% for client in clients_recurrents %}
                             <tr>
                                 <td><strong># {{loop.index}}</strong></td>
-                                <td><a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
-                                <br><small class="small  fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small></td>
+                                <td>👨‍💼​ <a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
+                                <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small></td>
                                 <td>{{ client.incidents }}</span></td>
                                 <td>{{ client.intitule }}</td>
                                 <!--<td>{{ client.date_heure.strftime('%d/%m/%Y %H:%M') if client.date_heure else '' }}</td> -->

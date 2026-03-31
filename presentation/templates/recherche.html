@@ -97,11 +97,11 @@
                                     <td>{{ incident.intitule }}</td>
                                     <td>
                                         {% if incident.status == 'Résolut' %}
-                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                            <span class="badge badge-resolut">{{ incident.status }} ✅​ </span>
                                         {% elif incident.status == 'En attente' %}
-                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                            <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                            <span class="badge badge-bitrix">{{ incident.status }} 🔗​ </span>
                                         {% endif %}
                                     </td>
                                     <td>{{ incident.operateur.nom }}</td>

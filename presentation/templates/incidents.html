@@ -51,10 +51,10 @@
                                     <i class="fas fa-flag me-1"></i>Status
                                 </label>
                                 <select class="form-select form-select-sm" id="status" name="status">
-                                    <option value="">Todos</option>
-                                    <option value="Solucionadas" {% if status_filter == 'Solucionadas' %}selected{% endif %}>Solucionadas</option>
-                                    <option value="Pendiente" {% if status_filter == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-                                    <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix</option>
+                                    <option value="">Todos 🎯​</option>
+                                    <option value="Solucionadas" {% if status_filter == 'Solucionadas' %}selected{% endif %}>Solucionadas ✅​</option>
+                                    <option value="Pendiente" {% if status_filter == 'Pendiente' %}selected{% endif %}>Pendiente ⏳​</option>
+                                    <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix 🔗​</option>
                                 </select>
                             </div>
                             <!-- Operador -->
@@ -186,8 +186,8 @@
                                 {% for incident in incidents.items %}
                                 <tr>
                                     <td><strong>#{{ incident.id }}</strong></td>
-                                    <td><a href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                    <td>👨‍💼​<a href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
                                     </td>
                                     <td>
                                         <div class="text-truncate" style="max-width: 200px;" title="{{ incident.intitule }}">
@@ -196,11 +196,11 @@
                                     </td>
                                     <td>
                                         {% if incident.status == 'Solucionadas' %}
-                                            <span class="badge badge-resolut">{{ incident.status }}</span>
+                                            <span class="badge badge-resolut">{{ incident.status }} ✅​ </span>
                                         {% elif incident.status == 'Pendiente' %}
-                                            <span class="badge badge-attente">{{ incident.status }}</span>
+                                            <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            <span class="badge badge-bitrix">{{ incident.status }}</span>
+                                            <span class="badge badge-bitrix">{{ incident.status }} 🔗​ </span>
                                             {% if incident.ref_bitrix %}<small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title=" Abrir en nuevo tab"></i></a></small>{% endif %}
                                         {% endif %}
                                     </td>
