@@ -177,7 +177,116 @@ docker compose --profile with-nginx up -d --build
 python tools/fetch_bitrix_info.py
 ```
 
-## 9 - Amelioration de la gestion des utilisateurs (Operadores)
+## 9 - Gestion de la base de données ✅ TERMINÉ
 
-- Les operateurs sont les utilisateurs de l'application:
-  -
+- ✅ Verification de la base de données
+- ✅ Exportations de la base de données au format .sql compatible HeidiSQL
+- ✅ La page est accessible depuis le menu `Editar > Base de datos`
+
+**FICHIERS CRÉÉS:**
+
+- `tools/verify_database_health.py` - Script de vérification (connectivité, intégrité, comptages, FK)
+- `tools/export_database_sql.py` - Script d'exportation .sql (structure + données, compatible HeidiSQL)
+- `presentation/templates/database.html` - Page de gestion (en Español)
+- `backups/exports/` - Dossier de stockage des exports .sql
+
+**ROUTES AJOUTÉES:**
+
+- `GET /base-de-datos` → Page de gestion
+- `POST /base-de-datos/verificar` → Vérification (retour JSON)
+- `GET /base-de-datos/exportar` → Téléchargement du fichier .sql
+
+**MENU:**
+
+- `Editar > Base de datos` → `url_for('base_de_datos')` (branché dans `base.html`)
+
+## 10 - Gestion des utilisateurs
+
+**Statut : plan réorganisé — en attente de validation avant toute implémentation.**
+
+---
+
+### 10.1 Contexte métier (ville → agence)
+
+- Chaque **utilisateur** est rattaché à une **ville (ciudad)** et à une **agence (agencia)**.
+- Une **ville** regroupe **plusieurs agences** (relation 1–N).
+- **Données de référence (à figer)** :
+  - **Malabo** : Malabo II Cede, Afrimal, Buena Esperanza 1
+  - **Bata** : Cocoteros
+  - **Mongomo** : Mongomo
+
+---
+
+### 10.2 Modèle de données
+
+| Élément | Action proposée |
+|--------|------------------|
+| **Nouvelles tables** | `ciudad` et `agencia`, liées (chaque agence appartient à une ville). |
+| **Table `operateur` (existante)** | Étendue pour servir de base aux **comptes utilisateurs** (voir schéma cible §10.2.1). |
+| **Table `client`** | Ajouter le champ **`id_ciudad`** (ville du client). |
+
+#### 10.2.1 Table `operateur` — schéma cible
+
+| Colonne | Type | Contrainte | Description |
+|---------|------|------------|-------------|
+| `id` | INTEGER | PK, auto | Identifiant unique |
+| `nom` | VARCHAR(100) | NOT NULL | Nom complet / affiché |
+| `telephone` | VARCHAR(20) | NOT NULL | Numéro de contact (utilisable comme identifiant de connexion) |
+| `email` | VARCHAR(255) | UNIQUE, nullable | Adresse e-mail (autre identifiant de connexion possible) |
+| `mot_de_passe_hash` | VARCHAR(255) | NOT NULL | Hachage du mot de passe (jamais en clair) |
+| `id_ciudad` | INTEGER | NOT NULL, FK → `ciudad.id` | Ville de rattachement |
+| `id_agencia` | INTEGER | NOT NULL, FK → `agencia.id` | Agence de travail (doit appartenir à la même ciudad) |
+| `role` | VARCHAR(20) | NOT NULL, défaut `'usuario'` | `'usuario'` ou `'admin'` |
+| `avatar_url` | VARCHAR(500) | nullable | Chemin ou URL de l'avatar |
+| `actif` | BOOLEAN | NOT NULL, défaut `TRUE` | Compte actif / désactivé sans suppression |
+| `cree_le` | DATETIME | NOT NULL | Horodatage de création |
+| `modifie_le` | DATETIME | nullable | Dernière mise à jour |
+
+**Règle d'intégrité** : `id_agencia` doit référencer une agence dont `agencia.id_ciudad = operateur.id_ciudad`.
+
+**Index recommandés** : `id_ciudad`, `id_agencia`, `email` (unique), `telephone`.
+
+---
+
+### 10.3 Authentification
+
+- La connexion se fait avec **email OU téléphone** + **mot de passe**.
+- **Seul l'administrateur** peut créer, modifier et supprimer un utilisateur (pas d'auto-inscription).
+- Pages dédiées : **connexion** et **déconnexion**.
+
+---
+
+### 10.4 Règles d'accès et visibilité
+
+| Action | Utilisateur standard | Administrateur |
+|--------|---------------------|----------------|
+| Voir les **clients** | ✅ Tous les clients, toutes villes | ✅ Tous |
+| Créer un **client** | ✅ Libre (toute ville, pas seulement la sienne) | ✅ Tous |
+| Voir les **incidencias** | ⚠️ Uniquement celles **qu'il a créées** ou de **son agence** | ✅ Toutes |
+| Créer / modifier une **incidencia** | ✅ Oui | ✅ Oui |
+| Gérer les **utilisateurs** | ❌ Non | ✅ Oui (CRUD complet) |
+
+---
+
+### 10.5 Migration des données existantes
+
+- Les clients actuels sont de **Malabo** ou **Bata** uniquement.
+- **Détection automatique** : les clients de Bata ont déjà le mot `"Bata"` dans leur champ `Barrio/Adresse` → affectation automatique à `ciudad = Bata`.
+- Tous les autres → affectation par défaut à `ciudad = Malabo`.
+- Script de migration à exécuter une seule fois après validation.
+
+---
+
+### 10.6 Traçabilité (audit)
+
+- Enregistrer les activités clés de chaque utilisateur en base (périmètre exact à confirmer : connexions, CRUD incidents, etc.).
+
+---
+
+### 10.7 Interface attendue
+
+- Page de **connexion** (email ou téléphone + mot de passe).
+- Page de **gestion des utilisateurs** (admin uniquement) : liste, création, modification, désactivation.
+- En session : afficher **avatar + nom** en haut à droite de l'interface.
+
+---

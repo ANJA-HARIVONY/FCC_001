@@ -1281,9 +1281,65 @@ def create_sample_data():
         db.session.commit()
         print("✅ Données d'exemple créées avec succès!")
 
-def export_to_sql_data():
-    # TODO: Crear la función para exportar los datos en un formato backup_<fecha_hora>.sql
-    Pass
+# ─────────────────────────────────────────────────────────────
+#  PUNTO 9 — Gestión de la base de datos
+# ─────────────────────────────────────────────────────────────
+
+@app.route('/base-de-datos')
+def base_de_datos():
+    """Page principale de gestion de la base de données."""
+    return render_template('database.html')
+
+
+@app.route('/base-de-datos/verificar', methods=['POST'])
+def base_de_datos_verificar():
+    """Lance la vérification de la BDD et retourne un rapport JSON."""
+    try:
+        import sys
+        tools_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools')
+        if tools_dir not in sys.path:
+            sys.path.insert(0, tools_dir)
+        from verify_database_health import verify_database
+        result = verify_database()
+        return jsonify({'ok': True, 'data': result})
+    except Exception as e:
+        return jsonify({'ok': False, 'error': str(e)}), 500
+
+
+@app.route('/base-de-datos/exportar')
+def base_de_datos_exportar():
+    """Génère et télécharge un fichier .sql compatible HeidiSQL."""
+    try:
+        import sys
+        from io import BytesIO
+        tools_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools')
+        if tools_dir not in sys.path:
+            sys.path.insert(0, tools_dir)
+        from export_database_sql import export_database
+
+        # Générer dans un fichier temporaire puis renvoyer en téléchargement
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix='.sql', delete=False) as tmp:
+            tmp_path = tmp.name
+
+        output_path = export_database(output_path=tmp_path)
+
+        with open(output_path, 'rb') as f:
+            sql_bytes = f.read()
+
+        os.unlink(tmp_path)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"backup_{timestamp}.sql"
+
+        response = make_response(sql_bytes)
+        response.headers['Content-Type'] = 'application/octet-stream'
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+    except Exception as e:
+        flash(f'Error al exportar la base de datos: {str(e)}', 'error')
+        return redirect(url_for('base_de_datos'))
 
 if __name__ == '__main__':
     # Créer les tables et données d'exemple
