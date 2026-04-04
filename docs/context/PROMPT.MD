@@ -202,7 +202,7 @@ python tools/fetch_bitrix_info.py
 
 ## 10 - Gestion des utilisateurs
 
-**Statut : plan réorganisé — en attente de validation avant toute implémentation.**
+**Statut : en attente de validation avant toute implémentation.**
 
 ---
 
@@ -279,7 +279,7 @@ python tools/fetch_bitrix_info.py
 
 ### 10.6 Traçabilité (audit)
 
-- Enregistrer les activités clés de chaque utilisateur en base (périmètre exact à confirmer : connexions, CRUD incidents, etc.).
+- Enregistrer les activités clés de chaque utilisateur en base.
 
 ---
 
@@ -288,5 +288,291 @@ python tools/fetch_bitrix_info.py
 - Page de **connexion** (email ou téléphone + mot de passe).
 - Page de **gestion des utilisateurs** (admin uniquement) : liste, création, modification, désactivation.
 - En session : afficher **avatar + nom** en haut à droite de l'interface.
+
+---
+
+### 10.8 Améliorations UX
+
+#### Formulaires `nuevo incidencia` et `modificar incidencia`
+
+- **Supprimer le champ `Operador`** de ces deux formulaires.
+- L'opérateur est automatiquement l'**utilisateur connecté** (`current_user`) — affecté côté serveur à la création/modification, sans intervention de l'utilisateur.
+- **À modifier** :
+  - `presentation/templates/nuevo_incident.html` — retirer le `<select>` operador
+  - `presentation/templates/modifier_incident.html` — retirer le `<select>` operador
+  - `core/app.py` route `nouveau_incident` → `incident.id_operateur = current_user.id`
+  - `core/app.py` route `modifier_incident` → `incident.id_operateur = current_user.id`
+
+---
+
+### 10.9 Plan d'implémentation détaillé
+
+#### Phase 1 — Base de données (migrations)
+
+##### Étape 1.1 — Table `ciudad`
+
+```sql
+CREATE TABLE ciudad (
+  id      INTEGER      PRIMARY KEY AUTO_INCREMENT,
+  nombre  VARCHAR(100) NOT NULL UNIQUE
+);
+INSERT INTO ciudad (nombre) VALUES ('Malabo'), ('Bata'), ('Mongomo');
+```
+
+##### Étape 1.2 — Table `agencia`
+
+```sql
+CREATE TABLE agencia (
+  id         INTEGER      PRIMARY KEY AUTO_INCREMENT,
+  nombre     VARCHAR(100) NOT NULL,
+  id_ciudad  INTEGER      NOT NULL,
+  FOREIGN KEY (id_ciudad) REFERENCES ciudad(id)
+);
+INSERT INTO agencia (nombre, id_ciudad) VALUES
+  ('Malabo II Cede',    1),
+  ('Afrimal',           1),
+  ('Buena Esperanza 1', 1),
+  ('Cocoteros',         2),
+  ('Mongomo',           3);
+```
+
+##### Étape 1.3 — Modification de la table `operateur`
+
+> **Note** : Tous les opérateurs existants sont actuellement à **Malabo**, agence **Malabo II Cede**.
+> Les valeurs `DEFAULT 1` correspondent à `ciudad.id = 1` (Malabo) et `agencia.id = 1` (Malabo II Cede),
+> ce qui les affecte automatiquement sans nécessiter de mise à jour manuelle.
+
+```sql
+-- Étape 1 : s'assurer que ciudad et agencia existent avant d'ajouter les FK
+-- ciudad id=1 → Malabo  |  agencia id=1 → Malabo II Cede  (voir étapes 1.1 et 1.2)
+
+ALTER TABLE operateur
+  ADD COLUMN email             VARCHAR(255) UNIQUE,
+  ADD COLUMN mot_de_passe_hash VARCHAR(255) NOT NULL DEFAULT '',
+  ADD COLUMN id_ciudad         INTEGER      NOT NULL DEFAULT 1,  -- Malabo par défaut
+  ADD COLUMN id_agencia        INTEGER      NOT NULL DEFAULT 1,  -- Malabo II Cede par défaut
+  ADD COLUMN role              VARCHAR(20)  NOT NULL DEFAULT 'usuario',
+  ADD COLUMN avatar_url        VARCHAR(500),
+  ADD COLUMN actif             BOOLEAN      NOT NULL DEFAULT TRUE,
+  ADD COLUMN cree_le           DATETIME     NOT NULL DEFAULT NOW(),
+  ADD COLUMN modifie_le        DATETIME,
+  ADD FOREIGN KEY (id_ciudad)  REFERENCES ciudad(id),
+  ADD FOREIGN KEY (id_agencia) REFERENCES agencia(id);
+
+-- Résultat : tous les opérateurs existants seront automatiquement
+-- rattachés à ciudad=Malabo (id=1) et agencia=Malabo II Cede (id=1).
+-- L'admin pourra ensuite modifier chaque opérateur si nécessaire.
+```
+
+##### Étape 1.4 — Modification de la table `client`
+
+```sql
+ALTER TABLE client
+  ADD COLUMN id_ciudad INTEGER,
+  ADD FOREIGN KEY (id_ciudad) REFERENCES ciudad(id);
+```
+
+##### Étape 1.5 — Table `audit_log` (traçabilité)
+
+```sql
+CREATE TABLE audit_log (
+  id           INTEGER     PRIMARY KEY AUTO_INCREMENT,
+  id_operateur INTEGER,
+  action       VARCHAR(50) NOT NULL,
+  detail       TEXT,
+  ip_address   VARCHAR(45),
+  date_heure   DATETIME    NOT NULL DEFAULT NOW(),
+  FOREIGN KEY (id_operateur) REFERENCES operateur(id) ON DELETE SET NULL
+);
+```
+
+**Fichier de migration Flask** : `migrations/versions/xxx_point10_users.py`
+
+---
+
+#### Phase 2 — Migration des données existantes
+
+**Script `tools/migrate_users_data.py`** — exécuté une seule fois :
+
+- **Clients → `id_ciudad`** :
+  - Si `adresse` ou `ville` contient `"Bata"` (insensible à la casse) → `id_ciudad = 2`
+  - Sinon → `id_ciudad = 1` (Malabo par défaut)
+
+- **Opérateurs existants** :
+  - Assigner par défaut `ciudad = Malabo`, `agencia = Malabo II Cede`
+  - **Compte administrateur unique** — Anja (qui existe déja dans la base) :
+    - `nom` : `Anja`
+    - `email` : `anjaharivoni@mail.com`
+    - `mot_de_passe_hash` : hash de `Malabo2026@#`
+    - `role` : `admin`
+  - **Autres opérateurs existants** : `mot_de_passe_hash` laissé vide (`''`) — ils ne peuvent pas se connecter tant que l'admin (Anja) ne leur définit pas un mot de passe via la page de gestion des utilisateurs.
+
+---
+
+#### Phase 3 — Backend Flask (`core/app.py`)
+
+##### Étape 3.1 — Nouvelle dépendance
+
+```
+flask-login        (à ajouter dans requirements.txt)
+werkzeug.security  (déjà présent dans Flask)
+```
+
+##### Étape 3.2 — Initialisation Flask-Login
+
+```python
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+```
+
+##### Étape 3.3 — Adaptation du modèle `Operateur` (UserMixin)
+
+```python
+from flask_login import UserMixin
+class Operateur(UserMixin, db.Model):
+    # + tous les nouveaux champs
+    # méthode is_admin() via role == 'admin'
+    # is_active via champ actif
+```
+
+##### Étape 3.4 — Nouvelles routes
+
+| Route | Méthode | Accès | Description |
+|-------|---------|-------|-------------|
+| `/login` | GET / POST | Public | Page de connexion |
+| `/logout` | GET | Connecté | Déconnexion |
+| `/usuarios` | GET | Admin | Liste des utilisateurs |
+| `/usuarios/nuevo` | GET / POST | Admin | Créer un utilisateur |
+| `/usuarios/<id>/editar` | GET / POST | Admin | Modifier un utilisateur |
+| `/usuarios/<id>/desactivar` | POST | Admin | Désactiver / activer |
+| `/usuarios/<id>/avatar` | POST | Admin ou soi-même | Upload avatar |
+| `/api/agencias/<id_ciudad>` | GET | Connecté | Agences d'une ville (AJAX) |
+
+##### Étape 3.5 — Décorateur admin
+
+```python
+from functools import wraps
+def admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+```
+
+##### Étape 3.6 — Filtrage des incidents (règle 10.4)
+
+Modifier la route `/incidents` : si `current_user.role != 'admin'`, filtrer par :
+
+```python
+.filter(
+    db.or_(
+        Incident.id_operateur == current_user.id,
+        Operateur.id_agencia  == current_user.id_agencia
+    )
+)
+```
+
+##### Étape 3.7 — Protection de toutes les routes existantes
+
+Ajouter `@login_required` sur toutes les routes actuelles (dashboard, clients, incidents, etc.).
+
+---
+
+#### Phase 4 — Templates HTML
+
+**Fichiers à créer :**
+
+| Fichier | Description |
+|---------|-------------|
+| `presentation/templates/login.html` | Page de connexion (email ou téléphone + mot de passe) |
+| `presentation/templates/usuarios.html` | Liste des utilisateurs (admin) |
+| `presentation/templates/nuevo_usuario.html` | Formulaire création |
+| `presentation/templates/editar_usuario.html` | Formulaire modification |
+
+**Fichiers à modifier :**
+
+| Fichier | Modification |
+|---------|-------------|
+| `presentation/templates/base.html` | Avatar + nom en haut à droite + bouton déconnexion |
+| `presentation/templates/incidents.html` | Masquer filtre "tous opérateurs" pour utilisateur standard |
+| `presentation/templates/nuevo_incident.html` | Supprimer le `<select>` Operador (§10.8) |
+| `presentation/templates/modifier_incident.html` | Supprimer le `<select>` Operador (§10.8) |
+
+**Zone session dans `base.html`** (haut à droite) :
+
+```html
+<div class="d-flex align-items-center gap-2">
+  <img src="{{ current_user.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+       class="rounded-circle" width="32" height="32">
+  <span class="text-white small">{{ current_user.nom }}</span>
+  <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger ms-2">
+    <i class="fas fa-sign-out-alt"></i> Salir
+  </a>
+</div>
+```
+
+---
+
+#### Phase 5 — Upload Avatar
+
+- Dossier de stockage : `presentation/static/avatars/`
+- Formats acceptés : JPG, PNG, WEBP
+- Taille max : 2 Mo
+- Nom de fichier : `avatar_<id_operateur>.<ext>`
+- Si pas d'avatar : `static/img/default_avatar.png`
+
+---
+
+#### Phase 6 — Traçabilité (audit)
+
+Enregistrement automatique dans `audit_log` pour :
+
+| Événement | Action enregistrée |
+|-----------|-------------------|
+| Connexion réussie | `LOGIN` |
+| Déconnexion | `LOGOUT` |
+| Création d'un incident | `CREATE_INCIDENT` |
+| Modification d'un incident | `UPDATE_INCIDENT` |
+| Suppression d'un incident | `DELETE_INCIDENT` |
+| Création d'un client | `CREATE_CLIENT` |
+| Modification d'un client | `UPDATE_CLIENT` |
+| Suppression d'un client | `DELETE_CLIENT` |
+
+---
+
+#### Ordre d'exécution
+
+```
+1. Phase 1  — Migrations DB (tables + colonnes)
+2. Phase 2  — Script de migration des données existantes
+3. Phase 3  — Backend Flask (login, routes, filtrage)
+4. Phase 4  — Templates HTML (+ suppression champ Operador §10.8)
+5. Phase 5  — Upload avatar
+6. Phase 6  — Traçabilité
+7. Tests    — Vérification des accès par rôle
+8. PROMPT.MD — Marquer le point 10 ✅ TERMINÉ
+```
+
+---
+
+#### Résumé des fichiers à créer / modifier
+
+| Action | Fichier |
+|--------|---------|
+| Créer | `tools/migrate_users_data.py` |
+| Créer | `presentation/templates/login.html` |
+| Créer | `presentation/templates/usuarios.html` |
+| Créer | `presentation/templates/nuevo_usuario.html` |
+| Créer | `presentation/templates/editar_usuario.html` |
+| Créer | `presentation/static/avatars/` (dossier) |
+| Modifier | `core/app.py` (modèles, routes, Flask-Login) |
+| Modifier | `presentation/templates/base.html` |
+| Modifier | `presentation/templates/incidents.html` |
+| Modifier | `presentation/templates/nuevo_incident.html` (§10.8) |
+| Modifier | `presentation/templates/modifier_incident.html` (§10.8) |
+| Modifier | `requirements.txt` (+ `flask-login`) |
 
 ---
