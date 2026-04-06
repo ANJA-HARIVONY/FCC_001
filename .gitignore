@@ -34,6 +34,7 @@ MANIFEST
 *.sqlite3
 instance/
 data/
+tools/
 
 # Fichiers de migration Flask (optionnel - décommentez si vous ne voulez pas versionner)
 # migrations/
@@ -44,7 +45,6 @@ logs/
 
 # Fichiers de configuration sensibles
 config.py
-.env
 .env.local
 .env.production
 .env.development
@@ -76,15 +76,14 @@ htmlcov/
 
 # Documentation générée
 docs/_build/
+docs/
 
 # Fichiers système
-.DS_Store
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db
 
 # Fichiers de déploiement
 *.pid

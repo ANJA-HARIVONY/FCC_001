@@ -1,1 +1,0 @@
-ALTER TABLE incident ADD COLUMN ref_bitrix VARCHAR(10) NULL;
