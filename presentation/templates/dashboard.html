@@ -443,7 +443,7 @@ function updateIncidentsChart(viewType = 'date') {
                 incidentsChart.data.datasets[0].data = data.map(item => item.count);
                 
                 // Mettre à jour le titre de l'axe X
-                incidentsChart.options.scales.x.title.text = viewType === 'date' ? 'Date' : 'Date et Heure';
+                incidentsChart.options.scales.x.title.text = viewType === 'date' ? 'Fecha' : 'Fecha y Hora';
                 
                 // Redessiner le graphique
                 incidentsChart.update('active');
