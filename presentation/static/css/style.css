@@ -11,6 +11,10 @@
 }
 
 /* Styles généraux */
+html {
+    font-size: 14px;
+}
+
 body {
     background-color: var(--light-gray);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -92,6 +96,20 @@ body {
 
 .table tbody tr:hover {
     background-color: var(--light-red);
+}
+
+/* Densité renforcée pour la liste des clients uniquement */
+.clients-table thead th,
+.clients-table tbody td {
+    font-size: 0.82rem;
+    padding-top: 0.38rem;
+    padding-bottom: 0.38rem;
+    white-space: nowrap;
+}
+
+.clients-table .btn.btn-sm {
+    padding: 0.18rem 0.35rem;
+    font-size: 0.76rem;
 }
 
 /* Formulaires */

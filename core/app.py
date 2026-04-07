@@ -231,6 +231,22 @@ def admin_required(view_fn):
     return wrapped
 
 
+def apply_incident_visibility(query):
+    """Applique la règle 10.4 de visibilité des incidents."""
+    if current_user.is_admin():
+        return query
+
+    same_agency_ids = db.session.query(Operateur.id).filter(
+        Operateur.id_agencia == current_user.id_agencia
+    )
+    return query.filter(
+        db.or_(
+            Incident.id_operateur == current_user.id,
+            Incident.id_operateur.in_(same_agency_ids),
+        )
+    )
+
+
 class Incident(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_client = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
@@ -815,13 +831,14 @@ def set_language(language=None):
 
 # Routes principales
 @app.route('/')
+@login_required
 def dashboard():
     # Obtenir la période depuis les paramètres URL ou utiliser la valeur par défaut
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
     
     # Construire la requête selon la période
-    query = Incident.query
+    query = apply_incident_visibility(Incident.query)
     if start_date:
         query = query.filter(Incident.date_heure >= start_date)
     if end_date:
@@ -835,12 +852,12 @@ def dashboard():
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
     
     # 5 derniers incidents
-    derniers_incidents = Incident.query.order_by(Incident.date_heure.desc()).limit(5).all()
+    derniers_incidents = apply_incident_visibility(Incident.query).order_by(Incident.date_heure.desc()).limit(5).all()
     
     # Données pour les graphiques selon la période
-    operateurs_query = db.session.query(
+    operateurs_query = apply_incident_visibility(db.session.query(
         Operateur.nom, func.count(Incident.id)
-    ).join(Incident)
+    ).join(Incident))
     
     if start_date:
         operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
@@ -853,14 +870,14 @@ def dashboard():
     incidents_par_operateur = [[nom, count] for nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
-    clients_recurrents_query = db.session.query(
+    clients_recurrents_query = apply_incident_visibility(db.session.query(
         Client.id,
         Client.nom,
         Client.adresse,
         func.count(Incident.id).label('incidents'),
         func.max(Incident.intitule).label('intitule'),
         func.max(Incident.date_heure).label('date_heure')
-    ).join(Incident)
+    ).join(Incident))
     
     if start_date:
         clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure >= start_date)
@@ -1502,13 +1519,14 @@ def api_clients_search():
 
 # API pour les données du dashboard selon la période
 @app.route('/dashboard-data')
+@login_required
 def dashboard_data():
     """API pour récupérer les données du dashboard selon la période"""
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
     
     # Construire la requête selon la période
-    query = Incident.query
+    query = apply_incident_visibility(Incident.query)
     if start_date:
         query = query.filter(Incident.date_heure >= start_date)
     if end_date:
@@ -1523,7 +1541,7 @@ def dashboard_data():
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
     
     # 5 derniers incidents de la période
-    derniers_query = Incident.query
+    derniers_query = apply_incident_visibility(Incident.query)
     if start_date:
         derniers_query = derniers_query.filter(Incident.date_heure >= start_date)
     if end_date:
@@ -1544,9 +1562,9 @@ def dashboard_data():
         })
     
     # Données par opérateur pour la période
-    operateurs_query = db.session.query(
+    operateurs_query = apply_incident_visibility(db.session.query(
         Operateur.nom, func.count(Incident.id)
-    ).join(Incident)
+    ).join(Incident))
     
     if start_date:
         operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
@@ -1557,14 +1575,14 @@ def dashboard_data():
     incidents_par_operateur = [[nom, count] for nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
-    clients_recurrents_query = db.session.query(
+    clients_recurrents_query = apply_incident_visibility(db.session.query(
         Client.id,
         Client.nom,
         Client.adresse,
         func.count(Incident.id).label('incidents'),
         func.max(Incident.intitule).label('intitule'),
         func.max(Incident.date_heure).label('date_heure')
-    ).join(Incident)
+    ).join(Incident))
     
     if start_date:
         clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure >= start_date)
@@ -1599,6 +1617,7 @@ def dashboard_data():
 
 # API pour les notifications d'incidents pendientes
 @app.route('/api/incidents-pendientes')
+@login_required
 def api_incidents_pendientes():
     """API para obtener incidencias pendientes de más de 30 minutos"""
     try:
@@ -1606,7 +1625,7 @@ def api_incidents_pendientes():
         limite_tiempo = datetime.now() - timedelta(minutes=30)
         
         # Buscar incidencias pendientes de más de 30 minutos
-        incidents_pendientes = db.session.query(Incident, Client, Operateur)\
+        incidents_pendientes = apply_incident_visibility(db.session.query(Incident, Client, Operateur))\
             .join(Client, Incident.id_client == Client.id)\
             .join(Operateur, Incident.id_operateur == Operateur.id)\
             .filter(Incident.status == 'Pendiente')\
@@ -1644,6 +1663,7 @@ def api_incidents_pendientes():
 
 # API pour les données des graphiques
 @app.route('/api/incidents-par-date')
+@login_required
 def api_incidents_par_date():
     """API pour les données des graphiques selon la période"""
     period = request.args.get('period', 'current_week')
@@ -1661,9 +1681,9 @@ def api_incidents_par_date():
     
     if view_type == 'month':
         # Grouper par mois - compatible MySQL/MariaDB
-        query = db.session.query(
+        query = apply_incident_visibility(db.session.query(
             func.date_format(Incident.date_heure, '%Y-%m-01'), func.count(Incident.id)
-        )
+        ))
         if base_filter:
             query = query.filter(*base_filter)
         
@@ -1680,9 +1700,9 @@ def api_incidents_par_date():
         
     elif view_type == 'year':
         # Grouper par année - compatible MySQL/MariaDB
-        query = db.session.query(
+        query = apply_incident_visibility(db.session.query(
             func.date_format(Incident.date_heure, '%Y-01-01'), func.count(Incident.id)
-        )
+        ))
         if base_filter:
             query = query.filter(*base_filter)
         
@@ -1699,9 +1719,9 @@ def api_incidents_par_date():
         
     else:
         # Par défaut : grouper par date
-        query = db.session.query(
+        query = apply_incident_visibility(db.session.query(
             func.date(Incident.date_heure), func.count(Incident.id)
-        )
+        ))
         if base_filter:
             query = query.filter(*base_filter)
         
