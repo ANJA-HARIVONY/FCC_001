@@ -22,7 +22,7 @@
         <div class="container">
             <a class="navbar-brand text-danger fw-bold d-flex flex-column align-items-center" href="{{ url_for('dashboard') }}">
                     <img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo" width="170px" height="60px" >
-                    <span class="text-white fw-lighter" style="font-size: 15px; margin-top: -5px;">Registro de Atencion al cliente</span>
+                    <span class="text-white fw-lighter" style="font-size: 15px; margin-top: -5px;">Registro de Atencion al cliente{% if current_user.is_authenticated %} - {{ current_user.agencia.nombre if current_user.agencia else 'N/A' }} / {{ current_user.ciudad.nombre if current_user.ciudad else 'N/A' }}{% endif %}</span>
                     </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -54,9 +54,14 @@
                             <i class="fas fa-edit me-1"></i>Editar
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ url_for('operateurs') }}">
-                                <i class="fas fa-headset me-1"></i>Operadores
+                            {% if current_user.is_authenticated and current_user.is_admin() %}
+                            <li><a class="dropdown-item" href="{{ url_for('usuarios') }}">
+                                <i class="fas fa-users me-1"></i>Usuarios
                             </a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('audit_log') }}">
+                                <i class="fas fa-clipboard-list me-1"></i>Trazabilidad
+                            </a></li>
+                            {% endif %}
                             <li><a class="dropdown-item" href="{{ url_for('base_de_datos') }}">
                                 <i class="fas fa-database me-1"></i>Base de datos
                             </a></li>
@@ -68,7 +73,29 @@
                         </a>
                     </li>
                 </ul>
-                <!-- Sélecteur de langue -->
+                {% if current_user.is_authenticated %}
+                {% set av = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default_avatar.png') %}
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{{ av }}" alt="" class="rounded-circle border border-secondary" width="32" height="32" style="object-fit:cover;">
+                        <span class="small d-none d-md-inline">{{ current_user.nom }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('perfil') }}">
+                                <i class="fas fa-user-cog me-2"></i>Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Salir
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
+                <!-- Sélecteur de langue 
                 <div class="dropdown me-3">
                     <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
                         <i class="fas fa-globe me-1"></i>
@@ -92,12 +119,14 @@
                     </ul>
                 </div>
                 
+                
                 <form class="d-flex" method="GET" action="{{ url_for('recherche') }}">
                     <input class="form-control me-2" type="search" name="q" placeholder="{{ _('Buscar un cliente o un incidente...') }}" aria-label="Search">
                     <button class="btn btn-outline-danger" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
                 </form>
+                -->
             </div>
         </div>
     </nav>
@@ -137,4 +166,4 @@
     <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     {% block scripts %}{% endblock %}
 </body>
-</html> 
+</html>

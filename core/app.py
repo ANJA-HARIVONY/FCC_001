@@ -1,8 +1,12 @@
 from ast import Pass
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_babel import Babel, gettext, ngettext, lazy_gettext, get_locale
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
 import re
@@ -11,6 +15,7 @@ from logging.handlers import RotatingFileHandler
 from sqlalchemy import func
 from config import config
 from io import BytesIO
+from urllib.parse import urlparse, urljoin
 
 # Import optionnel de weasyprint
 WEASYPRINT_AVAILABLE = False
@@ -107,6 +112,8 @@ if config_name == 'production':
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+login_manager = LoginManager()
+
 babel = Babel(app)
 
 def get_locale():
@@ -134,6 +141,26 @@ def inject_conf_vars():
     }
 
 # Modèles de données
+class Ciudad(db.Model):
+    __tablename__ = 'ciudad'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=True)
+
+    def __repr__(self):
+        return f'<Ciudad {self.nombre}>'
+
+
+class Agencia(db.Model):
+    __tablename__ = 'agencia'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=False)
+    ciudad = db.relationship('Ciudad', backref=db.backref('agencias', lazy=True))
+
+    def __repr__(self):
+        return f'<Agencia {self.nombre}>'
+
+
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
@@ -142,19 +169,67 @@ class Client(db.Model):
     ville = db.Column(db.String(100), nullable=False)
     ip_router = db.Column(db.String(50), nullable=True)
     ip_antea = db.Column(db.String(50), nullable=True)
+    id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=True)
+    ciudad_row = db.relationship('Ciudad', backref=db.backref('clients', lazy=True))
     incidents = db.relationship('Incident', backref='client', lazy=True)
 
     def __repr__(self):
         return f'<Client {self.nom}>'
 
-class Operateur(db.Model):
+
+class Operateur(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
-    telephone = db.Column(db.String(20), nullable=False)
+    telephone = db.Column(db.String(20), nullable=False, index=True)
+    email = db.Column(db.String(255), unique=True, nullable=True, index=True)
+    mot_de_passe_hash = db.Column(db.String(255), nullable=False, default='')
+    id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=False, default=1)
+    id_agencia = db.Column(db.Integer, db.ForeignKey('agencia.id'), nullable=False, default=1)
+    role = db.Column(db.String(20), nullable=False, default='usuario')
+    avatar_url = db.Column(db.String(500), nullable=True)
+    actif = db.Column(db.Boolean, nullable=False, default=True)
+    cree_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    modifie_le = db.Column(db.DateTime, nullable=True)
+
+    ciudad = db.relationship('Ciudad', backref=db.backref('operateurs', lazy=True))
+    agencia = db.relationship('Agencia', backref=db.backref('operateurs', lazy=True))
     incidents = db.relationship('Incident', backref='operateur', lazy=True)
+
+    def is_admin(self):
+        return (self.role or '') == 'admin'
+
+    @property
+    def is_active(self):
+        if self.actif is None:
+            return True
+        return bool(self.actif)
 
     def __repr__(self):
         return f'<Operateur {self.nom}>'
+
+
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    if user_id is None:
+        return None
+    try:
+        return db.session.get(Operateur, int(user_id))
+    except (TypeError, ValueError):
+        return None
+
+
+def admin_required(view_fn):
+    @wraps(view_fn)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin():
+            abort(403)
+        return view_fn(*args, **kwargs)
+    return wrapped
+
 
 class Incident(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -168,6 +243,34 @@ class Incident(db.Model):
 
     def __repr__(self):
         return f'<Incident {self.intitule}>'
+
+
+class AuditLog(db.Model):
+    __tablename__ = 'audit_log'
+    id = db.Column(db.Integer, primary_key=True)
+    id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True)
+    action = db.Column(db.String(50), nullable=False)
+    detail = db.Column(db.Text, nullable=True)
+    ip_address = db.Column(db.String(45), nullable=True)
+    date_heure = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    operateur = db.relationship('Operateur', backref=db.backref('audit_logs', lazy=True))
+
+
+def write_audit(action, id_operateur=None, detail=None):
+    """Enregistre une ligne dans audit_log (best-effort, ne lève pas vers l'utilisateur)."""
+    try:
+        row = AuditLog(
+            id_operateur=id_operateur,
+            action=action,
+            detail=detail,
+            ip_address=(request.remote_addr if request else None),
+            date_heure=datetime.now(),
+        )
+        db.session.add(row)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
 
 
 def _extract_ref_bitrix(observations):
@@ -305,6 +408,403 @@ from core.routes import etats_routes
 # Configurar filtros personalizados para templates
 from core.utils import setup_template_filters
 setup_template_filters(app)
+
+
+def _safe_redirect_target(target):
+    if not target or not str(target).strip():
+        return None
+    ref = urlparse(request.host_url)
+    test = urlparse(urljoin(request.host_url, target))
+    if test.scheme not in ('http', 'https') or ref.netloc != test.netloc:
+        return None
+    return target
+
+
+def ensure_ciudad_agencia_seed():
+    """Données de référence ville → agence (point 10.1)."""
+    if Ciudad.query.count() > 0:
+        return
+    db.session.add_all([
+        Ciudad(nombre='Malabo'),
+        Ciudad(nombre='Bata'),
+        Ciudad(nombre='Mongomo'),
+    ])
+    db.session.commit()
+    by_name = {c.nombre: c.id for c in Ciudad.query.all()}
+    for nombre, cid in (
+        ('Malabo II Cede', by_name['Malabo']),
+        ('Afrimal', by_name['Malabo']),
+        ('Buena Esperanza 1', by_name['Malabo']),
+        ('Cocoteros', by_name['Bata']),
+        ('Mongomo', by_name['Mongomo']),
+    ):
+        db.session.add(Agencia(nombre=nombre, id_ciudad=cid))
+    db.session.commit()
+
+
+@app.errorhandler(403)
+def acceso_denegado(_e):
+    return render_template('403.html'), 403
+
+
+@app.before_request
+def require_authentication():
+    if not request.endpoint or request.endpoint == 'static':
+        return
+    if request.endpoint in ('login', 'set_language'):
+        return
+    if not current_user.is_authenticated:
+        return redirect(url_for('login', next=request.url))
+
+
+def _find_operateur_for_login(ident_raw):
+    """Connexion par email (insensible à la casse) ou téléphone (égalité ou sans espaces)."""
+    ident = (ident_raw or '').strip()
+    if not ident:
+        return None
+    user = Operateur.query.filter(func.lower(Operateur.email) == ident.lower()).first()
+    if user:
+        return user
+    user = Operateur.query.filter(Operateur.telephone == ident).first()
+    if user:
+        return user
+    compact = re.sub(r'[\s\-]+', '', ident)
+    if compact and compact != ident:
+        for op in Operateur.query.all():
+            if op.telephone and re.sub(r'[\s\-]+', '', op.telephone) == compact:
+                return op
+    return None
+
+
+def _compte_actif_pour_login(user):
+    """NULL ou True = actif (compat. lignes anciennes) ; seuls False / 0 désactivent."""
+    if user.actif is None:
+        return True
+    return bool(user.actif)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        nxt = _safe_redirect_target(request.args.get('next'))
+        return redirect(nxt or url_for('dashboard'))
+    if request.method == 'POST':
+        ident = (request.form.get('identifiant') or request.form.get('email') or '').strip()
+        password = request.form.get('password') or ''
+        if not ident or not password:
+            flash(gettext('Introduzca correo o teléfono y contraseña.'), 'error')
+        else:
+            user = _find_operateur_for_login(ident)
+            if not user:
+                flash(gettext('Credenciales incorrectas o cuenta desactivada.'), 'error')
+            elif not _compte_actif_pour_login(user):
+                flash(gettext('Cuenta desactivada.'), 'error')
+            elif not (user.mot_de_passe_hash or '').strip():
+                flash(gettext('Su cuenta no tiene contraseña asignada; contacte al administrador.'), 'error')
+            elif check_password_hash(user.mot_de_passe_hash, password):
+                login_user(user, remember=bool(request.form.get('remember')))
+                user.modifie_le = datetime.now()
+                db.session.commit()
+                write_audit('LOGIN', id_operateur=user.id)
+                nxt = _safe_redirect_target(request.form.get('next') or request.args.get('next'))
+                return redirect(nxt or url_for('dashboard'))
+            else:
+                flash(gettext('Credenciales incorrectas.'), 'error')
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    if current_user.is_authenticated:
+        uid = current_user.id
+        logout_user()
+        write_audit('LOGOUT', id_operateur=uid)
+    return redirect(url_for('login'))
+
+
+@app.route('/perfil', methods=['GET', 'POST'])
+@login_required
+def perfil():
+    if request.method == 'POST':
+        password = request.form.get('password') or ''
+        password2 = request.form.get('password2') or ''
+        if password or password2:
+            if password != password2:
+                flash(gettext('Las contraseñas no coinciden.'), 'error')
+            elif len(password) < 6:
+                flash(gettext('La contraseña debe tener al menos 6 caracteres.'), 'error')
+            else:
+                current_user.mot_de_passe_hash = generate_password_hash(password)
+                current_user.modifie_le = datetime.now()
+                db.session.commit()
+                flash(gettext('Contraseña actualizada.'), 'success')
+        return redirect(url_for('perfil'))
+    return render_template('perfil.html')
+
+
+@app.route('/api/agencias/<int:id_ciudad>')
+def api_agencias_por_ciudad(id_ciudad):
+    agencias = Agencia.query.filter_by(id_ciudad=id_ciudad).order_by(Agencia.nombre).all()
+    return jsonify([{'id': a.id, 'nombre': a.nombre} for a in agencias])
+
+
+@app.route('/usuarios')
+@admin_required
+def usuarios():
+    users = Operateur.query.order_by(Operateur.nom).all()
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    return render_template('usuarios.html', users=users, ciudades=ciudades)
+
+
+@app.route('/usuarios/nuevo', methods=['GET', 'POST'])
+@admin_required
+def nuevo_usuario():
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    if request.method == 'POST':
+        nom = (request.form.get('nom') or '').strip()
+        telephone = (request.form.get('telephone') or '').strip()
+        email = (request.form.get('email') or '').strip() or None
+        password = request.form.get('password') or ''
+        id_ciudad = request.form.get('id_ciudad', type=int)
+        id_agencia = request.form.get('id_agencia', type=int)
+        role = (request.form.get('role') or 'usuario').strip()
+        if role not in ('usuario', 'admin'):
+            role = 'usuario'
+        if not nom or not telephone or not id_ciudad or not id_agencia:
+            flash(gettext('Nombre, teléfono, ciudad y agencia son obligatorios.'), 'error')
+        elif not password:
+            flash(gettext('La contraseña es obligatoria para un nuevo usuario.'), 'error')
+        else:
+            ag = Agencia.query.get_or_404(id_agencia)
+            if ag.id_ciudad != id_ciudad:
+                flash(gettext('La agencia no pertenece a la ciudad seleccionada.'), 'error')
+            elif email and Operateur.query.filter_by(email=email).first():
+                flash(gettext('Ya existe un usuario con este correo.'), 'error')
+            elif Operateur.query.filter_by(telephone=telephone).first():
+                flash(gettext('Ya existe un usuario con este teléfono.'), 'error')
+            else:
+                u = Operateur(
+                    nom=nom,
+                    telephone=telephone,
+                    email=email,
+                    mot_de_passe_hash=generate_password_hash(password),
+                    id_ciudad=id_ciudad,
+                    id_agencia=id_agencia,
+                    role=role,
+                    actif=True,
+                    cree_le=datetime.now(),
+                )
+                db.session.add(u)
+                db.session.commit()
+                write_audit('CREATE_USER', id_operateur=current_user.id, detail=f'id={u.id}')
+                flash(gettext('Usuario creado.'), 'success')
+                return redirect(url_for('usuarios'))
+    agencias = Agencia.query.order_by(Agencia.nombre).all() if request.method == 'GET' else []
+    return render_template('nuevo_usuario.html', ciudades=ciudades, agencias=agencias)
+
+
+@app.route('/usuarios/<int:user_id>/editar', methods=['GET', 'POST'])
+@admin_required
+def editar_usuario(user_id):
+    u = Operateur.query.get_or_404(user_id)
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    if request.method == 'POST':
+        nom = (request.form.get('nom') or '').strip()
+        telephone = (request.form.get('telephone') or '').strip()
+        email = (request.form.get('email') or '').strip() or None
+        password = request.form.get('password') or ''
+        id_ciudad = request.form.get('id_ciudad', type=int)
+        id_agencia = request.form.get('id_agencia', type=int)
+        role = (request.form.get('role') or 'usuario').strip()
+        if role not in ('usuario', 'admin'):
+            role = 'usuario'
+        if not nom or not telephone or not id_ciudad or not id_agencia:
+            flash(gettext('Nombre, teléfono, ciudad y agencia son obligatorios.'), 'error')
+        else:
+            ag = Agencia.query.get_or_404(id_agencia)
+            if ag.id_ciudad != id_ciudad:
+                flash(gettext('La agencia no pertenece a la ciudad seleccionada.'), 'error')
+            else:
+                other = Operateur.query.filter(Operateur.email == email, Operateur.id != u.id).first() if email else None
+                if other:
+                    flash(gettext('Ya existe un usuario con este correo.'), 'error')
+                else:
+                    other_tel = Operateur.query.filter(Operateur.telephone == telephone, Operateur.id != u.id).first()
+                    if other_tel:
+                        flash(gettext('Ya existe un usuario con este teléfono.'), 'error')
+                    else:
+                        u.nom = nom
+                        u.telephone = telephone
+                        u.email = email
+                        u.id_ciudad = id_ciudad
+                        u.id_agencia = id_agencia
+                        u.role = role
+                        u.modifie_le = datetime.now()
+                        if password.strip():
+                            u.mot_de_passe_hash = generate_password_hash(password)
+                        db.session.commit()
+                        write_audit('UPDATE_USER', id_operateur=current_user.id, detail=f'id={u.id}')
+                        flash(gettext('Usuario actualizado.'), 'success')
+                        return redirect(url_for('usuarios'))
+    agencias = Agencia.query.filter_by(id_ciudad=u.id_ciudad).order_by(Agencia.nombre).all()
+    return render_template('editar_usuario.html', user=u, ciudades=ciudades, agencias=agencias)
+
+
+@app.route('/usuarios/<int:user_id>/desactivar', methods=['POST'])
+@admin_required
+def desactivar_usuario(user_id):
+    u = Operateur.query.get_or_404(user_id)
+    if u.id == current_user.id:
+        flash(gettext('No puede desactivar su propia cuenta.'), 'error')
+        return redirect(url_for('usuarios'))
+    u.actif = not u.actif
+    u.modifie_le = datetime.now()
+    db.session.commit()
+    write_audit('TOGGLE_USER_ACTIVE', id_operateur=current_user.id, detail=f'id={user_id} actif={u.actif}')
+    flash(gettext('Estado del usuario actualizado.'), 'success')
+    return redirect(url_for('usuarios'))
+
+
+def _allowed_avatar(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ('jpg', 'jpeg', 'png', 'webp')
+
+
+@app.route('/usuarios/<int:user_id>/avatar', methods=['POST'])
+@login_required
+def upload_avatar_usuario(user_id):
+    if not current_user.is_admin() and current_user.id != user_id:
+        abort(403)
+    u = Operateur.query.get_or_404(user_id)
+    f = request.files.get('avatar')
+    if not f or not f.filename:
+        flash(gettext('Seleccione un archivo.'), 'error')
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+    if not _allowed_avatar(f.filename):
+        flash(gettext('Formato no válido (JPG, PNG, WEBP).'), 'error')
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+    data = f.read()
+    if len(data) > 2 * 1024 * 1024:
+        flash(gettext('Archivo demasiado grande (máx. 2 Mo).'), 'error')
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+    ext = secure_filename(f.filename).rsplit('.', 1)[-1].lower()
+    av_dir = os.path.join(app.static_folder, 'avatars')
+    os.makedirs(av_dir, exist_ok=True)
+    fname = f'avatar_{user_id}.{ext}'
+    path = os.path.join(av_dir, fname)
+    with open(path, 'wb') as out:
+        out.write(data)
+    u.avatar_url = f'/static/avatars/{fname}'
+    u.modifie_le = datetime.now()
+    db.session.commit()
+    flash(gettext('Avatar actualizado.'), 'success')
+    if current_user.is_admin():
+        return redirect(url_for('editar_usuario', user_id=user_id))
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/audit-log')
+@admin_required
+def audit_log():
+    user_id = request.args.get('user_id', type=int)
+    date_from = request.args.get('date_from', '')
+    date_to = request.args.get('date_to', '')
+    page = request.args.get('page', 1, type=int)
+
+    # Par défaut: 30 derniers jours
+    if not date_from and not date_to:
+        date_from_obj = datetime.now() - timedelta(days=30)
+        date_to_obj = datetime.now()
+        date_from = date_from_obj.strftime('%Y-%m-%d')
+        date_to = date_to_obj.strftime('%Y-%m-%d')
+    else:
+        date_from_obj = None
+        date_to_obj = None
+        if date_from:
+            try:
+                date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+            except ValueError:
+                flash(gettext('Formato inválido para fecha inicio.'), 'error')
+                date_from = ''
+        if date_to:
+            try:
+                date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            except ValueError:
+                flash(gettext('Formato inválido para fecha fin.'), 'error')
+                date_to = ''
+
+    query = AuditLog.query
+    if user_id:
+        query = query.filter(AuditLog.id_operateur == user_id)
+    if date_from_obj:
+        query = query.filter(AuditLog.date_heure >= date_from_obj)
+    if date_to_obj:
+        query = query.filter(AuditLog.date_heure <= date_to_obj)
+
+    logs_paginated = query.order_by(AuditLog.date_heure.desc()).paginate(
+        page=page,
+        per_page=50,
+        error_out=False,
+    )
+    users = Operateur.query.order_by(Operateur.nom).all()
+    return render_template(
+        'audit_log.html',
+        logs=logs_paginated,
+        users=users,
+        selected_user_id=user_id,
+        date_from=date_from,
+        date_to=date_to,
+    )
+
+
+@app.route('/audit-log/export.txt')
+@admin_required
+def audit_log_export_txt():
+    user_id = request.args.get('user_id', type=int)
+    date_from = request.args.get('date_from', '')
+    date_to = request.args.get('date_to', '')
+
+    date_from_obj = None
+    date_to_obj = None
+    if date_from:
+        try:
+            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
+        except ValueError:
+            date_from = ''
+    if date_to:
+        try:
+            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+        except ValueError:
+            date_to = ''
+
+    query = AuditLog.query
+    if user_id:
+        query = query.filter(AuditLog.id_operateur == user_id)
+    if date_from_obj:
+        query = query.filter(AuditLog.date_heure >= date_from_obj)
+    if date_to_obj:
+        query = query.filter(AuditLog.date_heure <= date_to_obj)
+
+    rows = query.order_by(AuditLog.date_heure.desc()).all()
+    lines = [
+        'TRAZABILIDAD FCC_001',
+        f'Generado: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}',
+        f'Filtros: user_id={user_id or "ALL"} | desde={date_from or "N/A"} | hasta={date_to or "N/A"}',
+        '-' * 100,
+    ]
+    for row in rows:
+        user_name = row.operateur.nom if row.operateur else 'N/A'
+        lines.append(
+            f'{row.date_heure.strftime("%Y-%m-%d %H:%M:%S")} | {user_name} | {row.action} | '
+            f'IP={row.ip_address or "-"} | {row.detail or ""}'
+        )
+
+    payload = '\n'.join(lines) + '\n'
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    response = make_response(payload)
+    response.headers['Content-Type'] = 'text/plain; charset=utf-8'
+    response.headers['Content-Disposition'] = f'attachment; filename="audit_log_{timestamp}.txt"'
+    return response
+
 
 # Route pour changer de langue
 @app.route('/set_language/<language>')
@@ -478,26 +978,40 @@ def clients():
 
 @app.route('/clients/nouveau', methods=['GET', 'POST'])
 def nouveau_client():
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    default_ciudad_id = current_user.id_ciudad or (ciudades[0].id if ciudades else None)
     if request.method == 'POST':
+        id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
+        if not id_ciudad:
+            flash(gettext('La ciudad es obligatoria.'), 'error')
+            return render_template(
+                'nouveau_client.html',
+                ciudades=ciudades,
+                default_ciudad_id=default_ciudad_id,
+            )
         client = Client(
             nom=request.form['nom'],
             telephone=request.form['telephone'],
             adresse=request.form['adresse'],
             ville=request.form['ville'],
             ip_router=request.form['ip_router'],
-            ip_antea=request.form['ip_antea']
+            ip_antea=request.form['ip_antea'],
+            id_ciudad=id_ciudad,
         )
         db.session.add(client)
         db.session.commit()
+        write_audit('CREATE_CLIENT', id_operateur=current_user.id, detail=f'client_id={client.id}')
         flash(gettext('Cliente creado con éxito!'), 'success')
         return redirect(url_for('clients'))
-    return render_template('nouveau_client.html')
+    return render_template('nouveau_client.html', ciudades=ciudades, default_ciudad_id=default_ciudad_id)
 
 @app.route('/clients/<int:id>/modifier', methods=['GET', 'POST'])
 def modifier_client(id):
     client = Client.query.get_or_404(id)
     next_url = request.args.get('next', url_for('clients'))
-    
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    default_ciudad_id = client.id_ciudad or current_user.id_ciudad or (ciudades[0].id if ciudades else None)
+
     if request.method == 'POST':
         client.nom = request.form['nom']
         client.telephone = request.form['telephone']
@@ -505,17 +1019,36 @@ def modifier_client(id):
         client.ville = request.form['ville']
         client.ip_router = request.form['ip_router']
         client.ip_antea = request.form['ip_antea']
+        client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
+        if not client.id_ciudad:
+            flash(gettext('La ciudad es obligatoria.'), 'error')
+            return render_template(
+                'modifier_client.html',
+                client=client,
+                next_url=next_url,
+                ciudades=ciudades,
+                default_ciudad_id=default_ciudad_id,
+            )
         db.session.commit()
+        write_audit('UPDATE_CLIENT', id_operateur=current_user.id, detail=f'client_id={client.id}')
         flash(gettext('Cliente modificado con éxito!'), 'success')
         return redirect(next_url)
-    
-    return render_template('modifier_client.html', client=client, next_url=next_url)
+
+    return render_template(
+        'modifier_client.html',
+        client=client,
+        next_url=next_url,
+        ciudades=ciudades,
+        default_ciudad_id=default_ciudad_id,
+    )
 
 @app.route('/clients/<int:id>/supprimer', methods=['POST'])
 def supprimer_client(id):
     client = Client.query.get_or_404(id)
+    cid = client.id
     db.session.delete(client)
     db.session.commit()
+    write_audit('DELETE_CLIENT', id_operateur=current_user.id, detail=f'client_id={cid}')
     flash(gettext('Cliente eliminado con éxito!'), 'success')
     return redirect(url_for('clients'))
 
@@ -706,11 +1239,13 @@ def verificar_cliente(id):
 
 # Routes CRUD pour les opérateurs
 @app.route('/operateurs')
+@admin_required
 def operateurs():
     operateurs = Operateur.query.all()
     return render_template('operateurs.html', operateurs=operateurs)
 
 @app.route('/operateurs/nouveau', methods=['GET', 'POST'])
+@admin_required
 def nouveau_operateur():
     if request.method == 'POST':
         operateur = Operateur(
@@ -724,6 +1259,7 @@ def nouveau_operateur():
     return render_template('nouveau_operateur.html')
 
 @app.route('/operateurs/<int:id>/modifier', methods=['GET', 'POST'])
+@admin_required
 def modifier_operateur(id):
     operateur = Operateur.query.get_or_404(id)
     if request.method == 'POST':
@@ -735,6 +1271,7 @@ def modifier_operateur(id):
     return render_template('modifier_operateur.html', operateur=operateur)
 
 @app.route('/operateurs/<int:id>/supprimer', methods=['POST'])
+@admin_required
 def supprimer_operateur(id):
     operateur = Operateur.query.get_or_404(id)
     db.session.delete(operateur)
@@ -759,7 +1296,19 @@ def incidents():
     
     # Construction de la requête de base
     query = Incident.query
-    
+
+    if not current_user.is_admin():
+        same_agency_ids = db.session.query(Operateur.id).filter(
+            Operateur.id_agencia == current_user.id_agencia
+        )
+        query = query.filter(
+            db.or_(
+                Incident.id_operateur == current_user.id,
+                Incident.id_operateur.in_(same_agency_ids),
+            )
+        )
+        operateur_filter = ''
+
     # Appliquer les filtres
     if status_filter:
         query = query.filter(Incident.status == status_filter)
@@ -824,9 +1373,13 @@ def incidents():
         error_out=False
     )
     
-    # Liste des opérateurs pour le filtre
-    operateurs = Operateur.query.order_by(Operateur.nom).all()
-    
+    # Liste des opérateurs pour le filtre (admin uniquement, règle 10.4)
+    operateurs = (
+        Operateur.query.order_by(Operateur.nom).all()
+        if current_user.is_admin()
+        else []
+    )
+
     return render_template('incidents.html', 
                          incidents=incidents_paginated,
                          status_filter=status_filter,
@@ -847,7 +1400,7 @@ def nouveau_incident():
             intitule=request.form['intitule'],
             observations=request.form['observations'],
             status=request.form['status'],
-            id_operateur=request.form['id_operateur']
+            id_operateur=current_user.id,
         )
         if request.form.get('status') == 'Bitrix':
             ref = request.form.get('ref_bitrix', '').strip()[:10]
@@ -856,12 +1409,12 @@ def nouveau_incident():
             incident.ref_bitrix = ref or None
         db.session.add(incident)
         db.session.commit()
+        write_audit('CREATE_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={incident.id}')
         flash(gettext('Incidencia creada con éxito!'), 'success')
         return redirect(url_for('incidents'))
-    
+
     clients = Client.query.all()
-    operateurs = Operateur.query.all()
-    return render_template('nouveau_incident.html', clients=clients, operateurs=operateurs)
+    return render_template('nouveau_incident.html', clients=clients)
 
 @app.route('/incidents/<int:id>/fiche_incident')
 def fiche_incident(id):
@@ -899,7 +1452,7 @@ def modifier_incident(id):
         incident.intitule = request.form['intitule']
         incident.observations = request.form['observations']
         incident.status = request.form['status']
-        incident.id_operateur = request.form['id_operateur']
+        incident.id_operateur = current_user.id
         if request.form.get('status') == 'Bitrix':
             ref = request.form.get('ref_bitrix', '').strip()[:10]
             if not ref:
@@ -908,19 +1461,21 @@ def modifier_incident(id):
         else:
             incident.ref_bitrix = None
         db.session.commit()
+        write_audit('UPDATE_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={incident.id}')
         flash(gettext('Incidencia modificada con éxito!'), 'success')
         return redirect(next_url)
-    
+
     clients = Client.query.all()
-    operateurs = Operateur.query.all()
     ref_bitrix_display = incident.ref_bitrix or (_extract_ref_bitrix(incident.observations) if incident.status == 'Bitrix' else '')
-    return render_template('modifier_incident.html', incident=incident, clients=clients, operateurs=operateurs, next_url=next_url, ref_bitrix_display=ref_bitrix_display)
+    return render_template('modifier_incident.html', incident=incident, clients=clients, next_url=next_url, ref_bitrix_display=ref_bitrix_display)
 
 @app.route('/incidents/<int:id>/supprimer', methods=['POST'])
 def supprimer_incident(id):
     incident = Incident.query.get_or_404(id)
+    iid = incident.id
     db.session.delete(incident)
     db.session.commit()
+    write_audit('DELETE_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={iid}')
     flash(gettext('Incidencia eliminada con éxito!'), 'success')
     return redirect(url_for('incidents'))
 
@@ -937,6 +1492,7 @@ def api_clients_search():
             'nom': client.nom,
             'telephone': client.telephone,
             'ville': client.ville,
+            'id_ciudad': client.id_ciudad,
             'adresse': client.adresse,
             'ip_router': client.ip_router,
             'ip_antea': client.ip_antea
@@ -1225,27 +1781,64 @@ def get_date_range_for_period(period):
 
 def create_sample_data():
     """Créer des données d'exemple si la base est vide"""
+    ensure_ciudad_agencia_seed()
+    malabo = Ciudad.query.filter_by(nombre='Malabo').first()
+    ag_malabo = Agencia.query.filter_by(nombre='Malabo II Cede').first()
+    if not malabo or not ag_malabo:
+        print('⚠️  Référence ciudad/agencia introuvable — données d\'exemple ignorées.')
+        return
+
     if Client.query.count() == 0:
         print("📊 Création de données d'exemple...")
-        
-        # Créer des opérateurs
-        op1 = Operateur(nom="Carlos Rodriguez", telephone="555-0101")
-        op2 = Operateur(nom="María González", telephone="555-0102")
-        op3 = Operateur(nom="José Martínez", telephone="555-0103")
-        
+
+        mid, aid = malabo.id, ag_malabo.id
+        op1 = Operateur(
+            nom='Carlos Rodriguez',
+            telephone='555-0101',
+            email='admin@demo.local',
+            mot_de_passe_hash=generate_password_hash('demo'),
+            id_ciudad=mid,
+            id_agencia=aid,
+            role='admin',
+            actif=True,
+            cree_le=datetime.now(),
+        )
+        op2 = Operateur(
+            nom='María González',
+            telephone='555-0102',
+            mot_de_passe_hash='',
+            id_ciudad=mid,
+            id_agencia=aid,
+            role='usuario',
+            actif=True,
+            cree_le=datetime.now(),
+        )
+        op3 = Operateur(
+            nom='José Martínez',
+            telephone='555-0103',
+            mot_de_passe_hash='',
+            id_ciudad=mid,
+            id_agencia=aid,
+            role='usuario',
+            actif=True,
+            cree_le=datetime.now(),
+        )
+
         db.session.add_all([op1, op2, op3])
         db.session.commit()
-        
-        # Créer des clients
+
         clients_data = [
             ("Empresa ABC", "555-1001", "Av. Principal 123", "Madrid", "192.168.1.1", "10.0.0.1"),
             ("Comercial XYZ", "555-1002", "Calle Segunda 456", "Barcelona", "192.168.1.2", "10.0.0.2"),
             ("Industrias DEF", "555-1003", "Plaza Central 789", "Valencia", "192.168.1.3", "10.0.0.3"),
         ]
-        
+
         clients = []
         for nom, tel, addr, ville, ip_router, ip_antea in clients_data:
-            client = Client(nom=nom, telephone=tel, adresse=addr, ville=ville, ip_router=ip_router, ip_antea=ip_antea)
+            client = Client(
+                nom=nom, telephone=tel, adresse=addr, ville=ville,
+                ip_router=ip_router, ip_antea=ip_antea, id_ciudad=mid,
+            )
             clients.append(client)
             db.session.add(client)
         
@@ -1347,6 +1940,7 @@ if __name__ == '__main__':
         try:
             print(f"📊 Utilisation de la base: {app.config['SQLALCHEMY_DATABASE_URI']}")
             db.create_all()
+            ensure_ciudad_agencia_seed()
             create_sample_data()
             print("✅ Base de données initialisée avec succès")
         except Exception as e:

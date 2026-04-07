@@ -119,6 +119,7 @@
                                         </a>
                                     </th>
                                     <th>Barrio</th>
+                                    <th>Ciudad</th>
                                     <th>IP Router</th>
                                     <th>IP Antea</th>
                                     <th>
@@ -142,6 +143,7 @@
                                     <td>📞<a href="https://wa.me/+240{{ client.telephone }}" target="_blank">{{ client.telephone }}</a></td>
                                     <td>🏠​ {{ client.adresse }}</td>
                                     <td>📍​​ {{ client.ville }}</td>
+                                    <td>🌆 {{ client.ciudad_row.nombre if client.ciudad_row else "N/A" }}</td>
                                     <td><code><a href="http://{{ client.ip_router }}" target="_blank">{{ client.ip_router }}</a></code></td>
                                     <td><code><a href="http://{{ client.ip_antea }}" target="_blank">{{ client.ip_antea }}</a></code></td>
                                     <td>

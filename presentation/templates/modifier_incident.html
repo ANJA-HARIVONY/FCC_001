@@ -45,18 +45,8 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="id_operateur" class="form-label">Operador <span class="text-danger">*</span></label>
-                                <select class="form-select" id="id_operateur" name="id_operateur" required>
-                                    <option value="">Seleccionar un operador</option>
-                                    {% for operateur in operateurs %}
-                                    <option value="{{ operateur.id }}" {% if operateur.id == incident.id_operateur %}selected{% endif %}>
-                                        {{ operateur.nom }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
                         </div>
+                        <p class="small text-muted mb-3"><i class="fas fa-user me-1"></i>Operador al guardar: <strong>{{ current_user.nom }}</strong></p>
                         
                         <div class="mb-3">
                             <label for="intitule" class="form-label">Asunto de la incidencia <span class="text-danger">*</span></label>

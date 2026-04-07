@@ -188,6 +188,10 @@
                 <td>{{ client.ville }}</td>
             </tr>
             <tr>
+                <td class="label">Ciudad:</td>
+                <td>{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}</td>
+            </tr>
+            <tr>
                 <td class="label">{{ _('IP Router') }}:</td>
                 <td>{{ client.ip_router }}</td>
             </tr>

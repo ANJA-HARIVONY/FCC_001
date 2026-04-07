@@ -57,7 +57,8 @@
                                     <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix 🔗​</option>
                                 </select>
                             </div>
-                            <!-- Operador -->
+                            {% if current_user.is_admin() %}
+                            <!-- Operador (solo administrador) -->
                             <div class="col-6 col-md-4 col-lg-2">
                                 <label for="operateur" class="form-label small text-muted text-uppercase fw-semibold">
                                     <i class="fas fa-user-cog me-1"></i>Usuario
@@ -69,6 +70,7 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            {% endif %}
                             <!-- Fecha desde -->
                             <div class="col-6 col-md-4 col-lg-2">
                                 <label for="date_from" class="form-label small text-muted text-uppercase fw-semibold">

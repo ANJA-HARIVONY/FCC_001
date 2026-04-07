@@ -64,6 +64,11 @@
                     </div>
                     <hr>
                     <div class="row">
+                        <div class="col-sm-4"><strong>Ciudad:</strong></div>
+                        <div class="col-sm-8">{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
                         <div class="col-sm-4"><strong>{{ _('IP Router') }}:</strong></div>
                         <div class="col-sm-8"><code><a href="http://{{ client.ip_router }}" target="_blank">{{ client.ip_router }}</a></code></div>
                     </div>

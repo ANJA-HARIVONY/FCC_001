@@ -57,6 +57,18 @@
                                 <input type="text" class="form-control" id="ville" name="ville" required>
                             </div>
                         </div>
+                        {% if ciudades %}
+                        <div class="mb-3">
+                            <label for="id_ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>
+                            <select class="form-select" id="id_ciudad" name="id_ciudad" required>
+                                <option value="">Seleccione una ciudad</option>
+                                {% for c in ciudades %}
+                                <option value="{{ c.id }}" {% if default_ciudad_id and c.id == default_ciudad_id %}selected{% endif %}>{{ c.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Por defecto: ciudad del usuario conectado.</div>
+                        </div>
+                        {% endif %}
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">

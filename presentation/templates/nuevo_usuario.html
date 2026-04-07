@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Nuevo usuario{% endblock %}
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
+            <li class="breadcrumb-item active">Nuevo</li>
+        </ol>
+    </nav>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card content-card">
+                <div class="card-header"><h5 class="mb-0">Nuevo usuario</h5></div>
+                <div class="card-body">
+                    <form method="POST" id="formUsuario">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                                <input type="text" name="nom" class="form-control" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+                                <input type="text" name="telephone" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Correo (opcional)</label>
+                            <input type="email" name="email" class="form-control">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ciudad <span class="text-danger">*</span></label>
+                                <select name="id_ciudad" id="id_ciudad" class="form-select" required>
+                                    <option value="">—</option>
+                                    {% for c in ciudades %}
+                                    <option value="{{ c.id }}">{{ c.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Agencia <span class="text-danger">*</span></label>
+                                <select name="id_agencia" id="id_agencia" class="form-select" required>
+                                    <option value="">Seleccione ciudad primero</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Rol</label>
+                                <select name="role" class="form-select">
+                                    <option value="usuario">usuario</option>
+                                    <option value="admin">admin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contraseña <span class="text-danger">*</span></label>
+                                <input type="password" name="password" class="form-control" required minlength="6">
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">Volver</a>
+                            <button type="submit" class="btn btn-primary">Crear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+async function cargarAgencias(idCiudad) {
+    const sel = document.getElementById('id_agencia');
+    sel.innerHTML = '<option value="">Cargando…</option>';
+    if (!idCiudad) {
+        sel.innerHTML = '<option value="">Seleccione ciudad</option>';
+        return;
+    }
+    const r = await fetch('/api/agencias/' + idCiudad);
+    const data = await r.json();
+    sel.innerHTML = '<option value="">—</option>';
+    data.forEach(a => {
+        const o = document.createElement('option');
+        o.value = a.id;
+        o.textContent = a.nombre;
+        sel.appendChild(o);
+    });
+}
+document.getElementById('id_ciudad').addEventListener('change', function() {
+    cargarAgencias(this.value);
+});
+</script>
+{% endblock %}
