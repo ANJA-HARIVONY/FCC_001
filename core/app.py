@@ -1570,6 +1570,7 @@ def dashboard_data():
             'status': incident.status,
             'client_nom': incident.client.nom,
             'operateur_nom': incident.operateur.nom,
+            'operateur_avatar_url': incident.operateur.avatar_url,
             'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M')
         })
     

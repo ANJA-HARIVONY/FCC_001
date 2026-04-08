@@ -26,7 +26,19 @@
                 <tbody>
                     {% for u in users %}
                     <tr class="{% if not u.actif %}table-secondary{% endif %}">
-                        <td>{{ u.nom }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img
+                                    src="{{ u.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                                    alt="Avatar de {{ u.nom }}"
+                                    class="rounded-circle"
+                                    width="28"
+                                    height="28"
+                                    onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
+                                >
+                                <span>{{ u.nom }}</span>
+                            </div>
+                        </td>
                         <td>{{ u.telephone }}</td>
                         <td>{{ u.email or '—' }}</td>
                         <td>

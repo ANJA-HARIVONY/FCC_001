@@ -70,7 +70,22 @@
                 <div class="card-header"><h5 class="mb-0">Avatar</h5></div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('upload_avatar_usuario', user_id=user.id) }}" enctype="multipart/form-data">
-                        <input type="file" name="avatar" class="form-control mb-2" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <img
+                                id="avatarPreview"
+                                src="{{ user.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                                alt="Avatar de {{ user.nom }}"
+                                class="rounded-circle border"
+                                width="72"
+                                height="72"
+                                onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
+                            >
+                            <div>
+                                <div class="fw-semibold">{{ user.nom }}</div>
+                                <small class="text-muted">Aperçu actuel de l'avatar</small>
+                            </div>
+                        </div>
+                        <input id="avatarInput" type="file" name="avatar" class="form-control mb-2" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                         <button type="submit" class="btn btn-outline-primary btn-sm">Subir imagen (máx. 2 Mo)</button>
                     </form>
                 </div>
@@ -99,5 +114,17 @@ async function cargarAgencias(idCiudad, selectedId) {
 document.getElementById('id_ciudad').addEventListener('change', function() {
     cargarAgencias(this.value, null);
 });
+
+const avatarInput = document.getElementById('avatarInput');
+const avatarPreview = document.getElementById('avatarPreview');
+
+if (avatarInput && avatarPreview) {
+    avatarInput.addEventListener('change', function() {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        const objectUrl = URL.createObjectURL(file);
+        avatarPreview.src = objectUrl;
+    });
+}
 </script>
 {% endblock %}

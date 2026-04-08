@@ -168,7 +168,19 @@
                                                 <small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></small>
                                         {% endif %}
                                     </td>
-                                    <td>{{ incident.operateur.nom }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img
+                                                src="{{ incident.operateur.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                                                alt="Avatar de {{ incident.operateur.nom }}"
+                                                class="rounded-circle"
+                                                width="28"
+                                                height="28"
+                                                onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
+                                            >
+                                            <span>{{ incident.operateur.nom }}</span>
+                                        </div>
+                                    </td>
                                     <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
                                     <td>
                                         <a href="{{ url_for('modifier_incident', id=incident.id) }}" 
@@ -594,7 +606,19 @@ function updateLastIncidents(incidents) {
                             ${incident.status}
                         </span>
                     </td>
-                    <td>${incident.operateur_nom}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img
+                                src="${incident.operateur_avatar_url || '{{ url_for('static', filename='img/default_avatar.png') }}'}"
+                                alt="Avatar de ${incident.operateur_nom}"
+                                class="rounded-circle"
+                                width="28"
+                                height="28"
+                                onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
+                            >
+                            <span>${incident.operateur_nom}</span>
+                        </div>
+                    </td>
                     <td>${incident.date_heure_formatted}</td>
                     <td>
                         <a href="/incidents/${incident.id}/modifier" class="btn btn-sm btn-outline-primary">
