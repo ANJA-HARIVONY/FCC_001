@@ -1324,7 +1324,6 @@ def incidents():
                 Incident.id_operateur.in_(same_agency_ids),
             )
         )
-        operateur_filter = ''
 
     # Appliquer les filtres
     if status_filter:
@@ -1333,7 +1332,17 @@ def incidents():
     if operateur_filter:
         try:
             operateur_id = int(operateur_filter)
-            query = query.filter(Incident.id_operateur == operateur_id)
+            if not current_user.is_admin():
+                operateur_is_allowed = db.session.query(Operateur.id).filter(
+                    Operateur.id == operateur_id,
+                    Operateur.id_agencia == current_user.id_agencia,
+                    Operateur.actif.is_(True),
+                ).first()
+                if not operateur_is_allowed:
+                    operateur_filter = ''
+                    operateur_id = None
+            if operateur_filter:
+                query = query.filter(Incident.id_operateur == operateur_id)
         except (ValueError, TypeError):
             operateur_filter = ''
     
@@ -1390,11 +1399,14 @@ def incidents():
         error_out=False
     )
     
-    # Liste des opérateurs pour le filtre (admin uniquement, règle 10.4)
+    # Liste des opérateurs pour le filtre
     operateurs = (
         Operateur.query.order_by(Operateur.nom).all()
         if current_user.is_admin()
-        else []
+        else Operateur.query.filter(
+            Operateur.id_agencia == current_user.id_agencia,
+            Operateur.actif.is_(True),
+        ).order_by(Operateur.nom).all()
     )
 
     return render_template('incidents.html', 

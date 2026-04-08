@@ -79,8 +79,8 @@ class ProductionConfig(Config):
         f"{os.environ.get('DB_NAME', 'fcc_001_db')}?charset=utf8mb4"
     )
 
-    # Sécurité renforcée
-    SESSION_COOKIE_SECURE = True
+    # Sécurité renforcée (pilotable par variable d'environnement)
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'true').lower() == 'true'
     WTF_CSRF_TIME_LIMIT = 3600
 
     # Performance
