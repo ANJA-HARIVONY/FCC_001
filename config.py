@@ -31,7 +31,11 @@ class Config:
     BABEL_DEFAULT_TIMEZONE = 'UTC'
 
     # Session
-    PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
+    # 12h max de session, 30 min d'inactivité (warning 2 min avant)
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=12)
+    SESSION_IDLE_TIMEOUT = timedelta(minutes=30)
+    SESSION_WARNING_BEFORE = timedelta(minutes=2)
+    REMEMBER_COOKIE_DURATION = timedelta(days=7)
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'

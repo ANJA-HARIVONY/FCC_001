@@ -10,6 +10,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
 import re
+import time
 import logging
 from logging.handlers import RotatingFileHandler
 from sqlalchemy import func
@@ -131,13 +132,17 @@ babel.init_app(app, locale_selector=get_locale)
 
 @app.context_processor
 def inject_conf_vars():
+    idle_timeout_seconds = int(app.config.get('SESSION_IDLE_TIMEOUT', timedelta(minutes=30)).total_seconds())
+    warning_before_seconds = int(app.config.get('SESSION_WARNING_BEFORE', timedelta(minutes=2)).total_seconds())
     return {
         'LANGUAGES': app.config['LANGUAGES'],
         'CURRENT_LANGUAGE': session.get('language', app.config['BABEL_DEFAULT_LOCALE']),
         'moment': datetime,
         'current_time': datetime.now().strftime('%d/%m/%Y à %H:%M'),
         'app_name': app.config.get('APP_NAME', 'FCC_001'),
-        'app_version': app.config.get('APP_VERSION', '1.0.0')
+        'app_version': app.config.get('APP_VERSION', '1.0.0'),
+        'SESSION_IDLE_TIMEOUT_SECONDS': idle_timeout_seconds,
+        'SESSION_WARNING_BEFORE_SECONDS': warning_before_seconds
     }
 
 # Modèles de données
@@ -471,6 +476,34 @@ def require_authentication():
         return
     if not current_user.is_authenticated:
         return redirect(url_for('login', next=request.url))
+    now_ts = time.time()
+    idle_timeout_seconds = int(app.config.get('SESSION_IDLE_TIMEOUT', timedelta(minutes=30)).total_seconds())
+    absolute_timeout_seconds = int(app.config.get('PERMANENT_SESSION_LIFETIME', timedelta(hours=12)).total_seconds())
+    session_started_at = session.get('session_started_at')
+    last_activity_at = session.get('last_activity_at')
+    if not session_started_at:
+        session['session_started_at'] = now_ts
+        session_started_at = now_ts
+    if not last_activity_at:
+        session['last_activity_at'] = now_ts
+        last_activity_at = now_ts
+    if now_ts - float(session_started_at) >= absolute_timeout_seconds:
+        uid = current_user.id
+        logout_user()
+        write_audit('LOGOUT_ABSOLUTE_TIMEOUT', id_operateur=uid)
+        session.pop('last_activity_at', None)
+        session.pop('session_started_at', None)
+        flash(gettext('Votre session a expiré (durée maximale atteinte). Veuillez vous reconnecter.'), 'error')
+        return redirect(url_for('login'))
+    if now_ts - float(last_activity_at) >= idle_timeout_seconds:
+        uid = current_user.id
+        logout_user()
+        write_audit('LOGOUT_IDLE_TIMEOUT', id_operateur=uid)
+        session.pop('last_activity_at', None)
+        session.pop('session_started_at', None)
+        flash(gettext('Vous avez été déconnecté après 30 minutes d’inactivité.'), 'error')
+        return redirect(url_for('login'))
+    session['last_activity_at'] = now_ts
 
 
 def _find_operateur_for_login(ident_raw):
@@ -519,6 +552,10 @@ def login():
                 flash(gettext('Su cuenta no tiene contraseña asignada; contacte al administrador.'), 'error')
             elif check_password_hash(user.mot_de_passe_hash, password):
                 login_user(user, remember=bool(request.form.get('remember')))
+                session.permanent = True
+                now_ts = time.time()
+                session['session_started_at'] = now_ts
+                session['last_activity_at'] = now_ts
                 user.modifie_le = datetime.now()
                 db.session.commit()
                 write_audit('LOGIN', id_operateur=user.id)
@@ -535,7 +572,16 @@ def logout():
         uid = current_user.id
         logout_user()
         write_audit('LOGOUT', id_operateur=uid)
+    session.pop('last_activity_at', None)
+    session.pop('session_started_at', None)
     return redirect(url_for('login'))
+
+
+@app.route('/api/session/ping', methods=['POST'])
+@login_required
+def session_ping():
+    session['last_activity_at'] = time.time()
+    return jsonify({'success': True})
 
 
 @app.route('/perfil', methods=['GET', 'POST'])

@@ -30,6 +30,15 @@ FCC_001/
 - 🌍 **Interface multilingue** (FR/ES/EN)
 - 📊 **Dashboard** avec statistiques
 
+## Gestion de session et sécurité
+
+- ⏱️ **Inactivité** : déconnexion automatique après **30 minutes** sans activité.
+- 🕛 **Durée maximale** : une session active expire au bout de **12 heures**.
+- ✅ **Alerte avant expiration** : message affiché **2 minutes** avant la déconnexion pour inactivité.
+- 🔐 **Option "Recordarme"** : cookie de reconnexion limité à **7 jours**.
+
+Ces règles sont configurées dans `config.py` et appliquées côté serveur dans `core/app.py`, avec une alerte côté interface.
+
 ## Déploiement Docker
 
 ```bash
