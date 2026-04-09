@@ -8,29 +8,92 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body.login-page {
-            background: radial-gradient(circle at top, #20242c 0%, #11151b 45%, #0b0e13 100%);
+            background:
+                radial-gradient(1200px 500px at 10% -10%, rgba(220, 53, 69, 0.22), transparent 60%),
+                radial-gradient(1000px 450px at 100% 0%, rgba(13, 110, 253, 0.16), transparent 60%),
+                linear-gradient(180deg, #181d26 0%, #0f141c 100%);
         }
         .login-card {
-            background: rgba(255, 255, 255, 0.97);
-            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 1.1rem;
+            box-shadow: 0 18px 45px rgba(0, 0, 0, 0.33);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
         .login-logo {
-            max-width: 190px;
+            max-width: 180px;
             height: auto;
         }
         .login-welcome {
             color: #f8f9fa;
             text-align: center;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
         }
         .login-welcome h2 {
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
+            font-size: 1.05rem;
+            margin-bottom: 0.15rem;
+            letter-spacing: 0.01em;
         }
         .login-welcome p {
-            color: #c7ced7;
+            color: #d5dbe4;
             margin-bottom: 0;
+            font-size: 0.88rem;
+        }
+        .login-title {
+            color: #1f2937;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+        .login-subtitle {
+            color: #6b7280;
             font-size: 0.9rem;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #2f3a4a;
+            margin-bottom: 0.4rem;
+        }
+        .form-control {
+            border-radius: 0.7rem;
+            padding: 0.64rem 0.78rem;
+            border: 1px solid #d9dee7;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-control::placeholder {
+            color: #a0a9b6;
+        }
+        .form-control:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.16);
+        }
+        .login-submit-btn {
+            border-radius: 0.7rem;
+            font-weight: 600;
+            padding: 0.66rem 0.8rem;
+        }
+        .login-submit-btn:focus-visible,
+        .form-check-input:focus-visible,
+        .btn-close:focus-visible {
+            outline: 2px solid #0d6efd;
+            outline-offset: 2px;
+        }
+        .alert {
+            border-radius: 0.7rem;
+            font-size: 0.9rem;
+        }
+        .login-footer-note {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.82rem;
+        }
+        @media (max-width: 576px) {
+            .login-card .card-body {
+                padding: 1.2rem !important;
+            }
+            .login-logo {
+                max-width: 150px;
+            }
+            .login-welcome {
+                margin-bottom: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -40,47 +103,52 @@
             <div class="col-md-5 col-lg-4">
                 <div class="login-welcome">
                     <h2>Portal de Atención al cliente</h2>
+                    <p>Acceso seguro para usuarios autorizados</p>
                 </div>
                 <div class="card login-card shadow border-0">
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
                             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Conexxia" class="login-logo mb-3">
-                            <h1 class="h4 text-dark">Iniciar sesión</h1>
-                            <p class="text-muted small mb-0">Correo o teléfono y contraseña</p>
+                            <h1 class="h4 login-title">Iniciar sesión</h1>
+                            <p class="login-subtitle mb-0">Ingresa con tu correo o teléfono y contraseña</p>
                         </div>
                         {% with messages = get_flashed_messages(with_categories=true) %}
                             {% if messages %}
                                 {% for category, message in messages %}
                                     <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show small" role="alert">
+                                        {% if category == 'error' %}
+                                        <i class="fas fa-circle-exclamation me-1" aria-hidden="true"></i>
+                                        {% endif %}
                                         {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                                     </div>
                                 {% endfor %}
                             {% endif %}
                         {% endwith %}
-                        <form method="POST" action="{{ url_for('login') }}">
+                        <form method="POST" action="{{ url_for('login') }}" novalidate>
                             {% if request.args.get('next') %}
                             <input type="hidden" name="next" value="{{ request.args.get('next') }}">
                             {% endif %}
                             <div class="mb-3">
                                 <label for="identifiant" class="form-label">Correo o teléfono</label>
-                                <input type="text" class="form-control" id="identifiant" name="identifiant" required autocomplete="username">
+                                <input type="text" class="form-control" id="identifiant" name="identifiant" required autocomplete="username" placeholder="usuario@correo.com o +240..." aria-describedby="identifiant-help">
+                                <div id="identifiant-help" class="form-text">Utiliza tu correo o teléfono registrado.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password">
+                                <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" placeholder="Tu contraseña">
                             </div>
-                            <div class="mb-3 form-check">
+                            <div class="mb-4 form-check">
                                 <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
                                 <label class="form-check-label" for="remember">Recordarme</label>
                             </div>
-                            <button type="submit" class="btn btn-danger w-100">
+                            <button type="submit" class="btn btn-danger w-100 login-submit-btn">
                                 <i class="fas fa-sign-in-alt me-1"></i> Entrar
                             </button>
                         </form>
                     </div>
                 </div>
-                <p class="text-center text-white-50 small mt-3 mb-0">&copy; 2026 CONNEXIA</p>
+                <p class="text-center login-footer-note mt-3 mb-0">&copy; 2026 CONNEXIA</p>
             </div>
         </div>
     </div>
