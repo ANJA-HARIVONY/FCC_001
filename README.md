@@ -25,7 +25,7 @@ FCC_001/
 
 - 👥 **Gestion des clients** (ajout, modification, recherche)
 - 👨‍💼 **Gestion des opérateurs**
-- 🚨 **Gestion des incidents**
+- 🚨 **Gestion des incidents** (commentaires sur la fiche incidencia, modale d’ajout ; édition réservée au créateur ou à l’admin)
 - 📄 **Impression PDF** des fiches clients
 - 🌍 **Interface multilingue** (FR/ES/EN)
 - 📊 **Dashboard** avec statistiques

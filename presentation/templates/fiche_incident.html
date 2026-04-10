@@ -28,9 +28,11 @@
                 <i class="fas fa-check" id="iconVerificar"></i>
                 <span id="textVerificar">{{ _('Ping') }}</span>
             </button>
+            {% if can_modify_incident %}
             <a href="{{ url_for('modifier_incident', id=incident.id) }}" class="btn btn-warning">
                 <i class="fas fa-edit"></i> {{ _('Modificar') }}
             </a>
+            {% endif %}
             <!--<button onclick="window.print()" class="btn btn-primary">
                 <i class="fas fa-print"></i> {{ _('Imprimir') }}
             </button> -->
@@ -141,6 +143,47 @@
                 </div>
             </div>
 
+            <!-- Comentarios -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-comments"></i> {{ _('Comentarios') }}
+                    </h6>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoComentario">
+                        <i class="fas fa-plus"></i> {{ _('Añadir comentario') }}
+                    </button>
+                </div>
+                <div class="card-body">
+                    {% if comentarios %}
+                        {% for c in comentarios %}
+                        <div class="d-flex border-bottom pb-3 mb-3{% if loop.last %} border-bottom-0 pb-0 mb-0{% endif %}">
+                            <div class="flex-shrink-0 me-3">
+                                {% if c.operateur and c.operateur.avatar_url %}
+                                <img src="{{ c.operateur.avatar_url|e }}" class="rounded-circle" width="48" height="48" alt="" referrerpolicy="no-referrer">
+                                {% else %}
+                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-semibold" style="width:48px;height:48px;font-size:1.1rem;" aria-hidden="true">
+                                    {{ (c.operateur.nom[0] if c.operateur else '?')|upper }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="d-flex flex-wrap justify-content-between gap-1 align-items-baseline">
+                                    <strong class="text-dark">{{ c.operateur.nom if c.operateur else _('Usuario') }}</strong>
+                                    <small class="text-muted text-nowrap">
+                                        <i class="fas fa-clock"></i>
+                                        {{ c.creado_en.strftime('%d/%m/%Y %H:%M') }}
+                                    </small>
+                                </div>
+                                <p class="mb-0 mt-2 text-break" style="white-space: pre-wrap;">{{ c.contenido }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0"><em>{{ _('No hay comentarios todavía.') }}</em></p>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Actions rapides -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
@@ -149,6 +192,7 @@
                     </h6>
                 </div>
                 <div class="card-body">
+                    {% if can_modify_incident %}
                     <div class="row">
                         {% if incident.status == 'Pendiente' %}
                         <div class="col-md-4 mb-3">
@@ -165,13 +209,13 @@
                             </form>
                         </div>
                         {% endif %}
-                        
+
                         <div class="col-md-4 mb-3">
                             <a href="{{ url_for('modifier_incident', id=incident.id) }}" class="btn btn-warning w-100">
                                 <i class="fas fa-edit"></i> {{ _('Modificar Incidencia') }}
                             </a>
                         </div>
-                        
+
                         <div class="col-md-4 mb-3">
                             <!--<form method="POST" action="{{ url_for('supprimer_incident', id=incident.id) }}" onsubmit="return confirm('{{ _('¿Está seguro de eliminar esta incidencia?') }}');" style="display: inline;">
                                 <button type="submit" class="btn btn-danger w-100">
@@ -180,6 +224,9 @@
                             </form> -->
                         </div>
                     </div>
+                    {% else %}
+                    <p class="text-muted small mb-0">{{ _('Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba.') }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -296,6 +343,33 @@
     </div>
 </div>
 
+<!-- Modal nuevo comentario -->
+<div class="modal fade" id="modalNuevoComentario" tabindex="-1" aria-labelledby="modalNuevoComentarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('agregar_comentario_incident', id=incident.id) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalNuevoComentarioLabel">
+                        <i class="fas fa-comment-dots"></i> {{ _('Nuevo comentario') }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <label for="contenidoComentario" class="form-label">{{ _('Comentario') }} <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="contenidoComentario" name="contenido" rows="5" required maxlength="1000" placeholder="{{ _('Escriba su comentario…') }}"></textarea>
+                    <div class="form-text">{{ _('Máximo 1000 caracteres.') }}</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> {{ _('Publicar') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     @media print {
         .btn, .alert, .card-header .badge {
@@ -381,6 +455,14 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+    {% if abrir_comentario %}
+    var modalEl = document.getElementById('modalNuevoComentario');
+    if (modalEl && typeof bootstrap !== 'undefined') {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+    {% endif %}
+});
 const CLIENT_ID = {{ incident.client.id }};
 const INCIDENT_ID = {{ incident.id }};
 const VERIFICAR_URL = "{{ url_for('verificar_cliente', id=incident.client.id) }}";

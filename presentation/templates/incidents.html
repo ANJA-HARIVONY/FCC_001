@@ -220,10 +220,12 @@
                                     <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
+                                            {% if current_user.is_admin() or incident.id_operateur == current_user.id %}
                                             <a href="{{ url_for('modifier_incident', id=incident.id, next=request.url) }}" 
                                                class="btn btn-sm btn-outline-primary" title="Modificar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
+                                            {% endif %}
                                             <button type="button" class="btn btn-sm btn-outline-success" 
                                                     data-incident-id="{{ incident.id }}"
                                                     data-incident-intitule="{{ incident.intitule }}"
@@ -241,6 +243,7 @@
                                                     title="Copiar información">
                                                 <i class="fas fa-copy"></i>
                                             </button>
+                                            {% if current_user.is_admin() or incident.id_operateur == current_user.id %}
                                             <button type="button" class="btn btn-sm btn-outline-danger" 
                                                     data-incident-id="{{ incident.id }}" 
                                                     data-incident-intitule="{{ incident.intitule }}"
@@ -248,6 +251,7 @@
                                                     title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

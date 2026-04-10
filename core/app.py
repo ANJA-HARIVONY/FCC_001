@@ -14,6 +14,7 @@ import time
 import logging
 from logging.handlers import RotatingFileHandler
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from config import config
 from io import BytesIO
 from urllib.parse import urlparse, urljoin
@@ -252,6 +253,18 @@ def apply_incident_visibility(query):
     )
 
 
+def user_can_access_incident(incident):
+    """True si l'utilisateur courant peut consulter cet incident (règle 10.4)."""
+    q = Incident.query.filter(Incident.id == incident.id)
+    q = apply_incident_visibility(q)
+    return q.first() is not None
+
+
+def user_can_modify_incident(incident):
+    """Créateur de l'incident ou administrateur."""
+    return current_user.is_admin() or incident.id_operateur == current_user.id
+
+
 class Incident(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     id_client = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=False)
@@ -262,8 +275,27 @@ class Incident(db.Model):
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
     date_heure = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
+    comentarios = db.relationship(
+        'IncidentComentario',
+        back_populates='incident',
+        lazy='dynamic',
+        cascade='all, delete-orphan',
+    )
+
     def __repr__(self):
         return f'<Incident {self.intitule}>'
+
+
+class IncidentComentario(db.Model):
+    __tablename__ = 'incident_comentario'
+    id = db.Column(db.Integer, primary_key=True)
+    id_incident = db.Column(db.Integer, db.ForeignKey('incident.id', ondelete='CASCADE'), nullable=False, index=True)
+    id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True)
+    contenido = db.Column(db.String(1000), nullable=False)
+    creado_en = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    incident = db.relationship('Incident', back_populates='comentarios')
+    operateur = db.relationship('Operateur', backref=db.backref('incident_comentarios', lazy=True))
 
 
 class AuditLog(db.Model):
@@ -1494,18 +1526,61 @@ def nouveau_incident():
 @app.route('/incidents/<int:id>/fiche_incident')
 def fiche_incident(id):
     incident = Incident.query.get_or_404(id)
+    if not user_can_access_incident(incident):
+        abort(403)
+    comentarios = (
+        IncidentComentario.query.filter_by(id_incident=incident.id)
+        .order_by(IncidentComentario.creado_en.desc())
+        .options(joinedload(IncidentComentario.operateur))
+        .all()
+    )
+    abrir_comentario = request.args.get('abrir_comentario') == '1'
+    can_modify_incident = user_can_modify_incident(incident)
     bitrix_info = None
     if incident.status == 'Bitrix' and incident.ref_bitrix and str(incident.ref_bitrix).strip():
         api_url = os.environ.get('BITRIX24_API', '').strip()
         if api_url:
             bitrix_info = _get_bitrix_task_info(api_url, incident.ref_bitrix.strip())
-    return render_template('fiche_incident.html', incident=incident, bitrix_info=bitrix_info)
+    return render_template(
+        'fiche_incident.html',
+        incident=incident,
+        bitrix_info=bitrix_info,
+        comentarios=comentarios,
+        can_modify_incident=can_modify_incident,
+        abrir_comentario=abrir_comentario,
+    )
+
+
+@app.route('/incidents/<int:id>/comentario', methods=['POST'])
+def agregar_comentario_incident(id):
+    incident = Incident.query.get_or_404(id)
+    if not user_can_access_incident(incident):
+        abort(403)
+    contenido = (request.form.get('contenido') or '').strip()
+    if not contenido:
+        flash(gettext('El comentario no puede estar vacío.'), 'error')
+        return redirect(url_for('fiche_incident', id=id, abrir_comentario='1'))
+    if len(contenido) > 1000:
+        flash(gettext('El comentario no puede superar 1000 caracteres.'), 'error')
+        return redirect(url_for('fiche_incident', id=id, abrir_comentario='1'))
+    row = IncidentComentario(
+        id_incident=id,
+        id_operateur=current_user.id,
+        contenido=contenido,
+    )
+    db.session.add(row)
+    db.session.commit()
+    write_audit('COMMENT_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={id}')
+    flash(gettext('Comentario publicado.'), 'success')
+    return redirect(url_for('fiche_incident', id=id))
 
 
 @app.route('/api/incidents/<int:id>/bitrix-info')
 def api_incident_bitrix_info(id):
     """API pour récupérer les infos Bitrix d'un incident (AJAX)."""
     incident = Incident.query.get_or_404(id)
+    if not user_can_access_incident(incident):
+        abort(403)
     if incident.status != 'Bitrix' or not incident.ref_bitrix or not str(incident.ref_bitrix).strip():
         return jsonify({'ok': False, 'error': 'Incident non Bitrix ou sans ref_bitrix'}), 400
     api_url = os.environ.get('BITRIX24_API', '').strip()
@@ -1520,6 +1595,8 @@ def api_incident_bitrix_info(id):
 @app.route('/incidents/<int:id>/modifier', methods=['GET', 'POST'])
 def modifier_incident(id):
     incident = Incident.query.get_or_404(id)
+    if not user_can_modify_incident(incident):
+        abort(403)
     next_url = request.args.get('next', url_for('incidents'))
     
     if request.method == 'POST':
@@ -1547,6 +1624,8 @@ def modifier_incident(id):
 @app.route('/incidents/<int:id>/supprimer', methods=['POST'])
 def supprimer_incident(id):
     incident = Incident.query.get_or_404(id)
+    if not user_can_modify_incident(incident):
+        abort(403)
     iid = incident.id
     db.session.delete(incident)
     db.session.commit()

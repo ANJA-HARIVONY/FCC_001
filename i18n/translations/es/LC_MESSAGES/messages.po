@@ -177,5 +177,51 @@ msgstr "Generado el"
 msgid "Document généré automatiquement par le système de gestion des clients"
 msgstr "Documento generado automáticamente por el sistema de gestión de clientes"
 
+#: core/app.py incident comments
+msgid "El comentario no puede estar vacío."
+msgstr "El comentario no puede estar vacío."
+
+msgid "El comentario no puede superar 1000 caracteres."
+msgstr "El comentario no puede superar 1000 caracteres."
+
+msgid "Comentario publicado."
+msgstr "Comentario publicado."
+
+#: templates/fiche_incident.html
+msgid "Comentarios"
+msgstr "Comentarios"
+
+msgid "Añadir comentario"
+msgstr "Añadir comentario"
+
+msgid "Usuario"
+msgstr "Usuario"
+
+msgid "No hay comentarios todavía."
+msgstr "No hay comentarios todavía."
+
+msgid "Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba."
+msgstr "Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba."
+
+msgid "Nuevo comentario"
+msgstr "Nuevo comentario"
+
+msgid "Comentario"
+msgstr "Comentario"
+
+msgid "Escriba su comentario…"
+msgstr "Escriba su comentario…"
+
+msgid "Máximo 1000 caracteres."
+msgstr "Máximo 1000 caracteres."
+
+msgid "Cancelar"
+msgstr "Cancelar"
+
+msgid "Publicar"
+msgstr "Publicar"
+
+msgid "Cerrar"
+msgstr "Cerrar"
 
 

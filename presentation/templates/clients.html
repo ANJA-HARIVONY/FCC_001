@@ -140,7 +140,7 @@
                                 <tr>
                                     <td><strong>#{{ client.id }}</strong></td>
                                     <td><a href="{{ url_for('fiche_client', id=client.id) }} " class="text-decoration-none text-dark">👨‍💼​ {{ client.nom }}</a></td>
-                                    <td>📞<a href="https://wa.me/+240{{ client.telephone }}" target="_blank" class="text-decoration-none">{{ client.telephone }}</a></td>
+                                    <td>📞 <a href="https://wa.me/+240{{ client.telephone }}" target="_blank" class="text-decoration-none">{{ client.telephone }}</a></td>
                                     <td>🏠​ {{ client.adresse }}</td>
                                     <td>📍​​ {{ client.ville }}</td>
                                     <td>🌆 {{ client.ciudad_row.nombre if client.ciudad_row else "N/A" }}</td>
