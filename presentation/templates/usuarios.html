@@ -9,18 +9,28 @@
         </div>
         <a href="{{ url_for('nuevo_usuario') }}" class="btn btn-primary"><i class="fas fa-user-plus me-1"></i>Nuevo usuario</a>
     </div>
-    <div class="card content-card shadow-sm stagger-in">
+    <div class="card shadow-sm border-0 content-card stagger-in">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>
+                Lista de usuarios
+            </h5>
+            {% if users %}
+            <small class="text-white-50">{{ users|length }} usuario{% if users|length != 1 %}s{% endif %}</small>
+            {% endif %}
+        </div>
+        <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
+                <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Teléfono</th>
-                        <th>Correo</th>
-                        <th>Ciudad / Agencia</th>
-                        <th>Rol</th>
-                        <th>Activo</th>
-                        <th></th>
+                        <th class="text-white">Nombre</th>
+                        <th class="text-white">Teléfono</th>
+                        <th class="text-white">Correo</th>
+                        <th class="text-white">Ciudad / Agencia</th>
+                        <th class="text-white">Rol</th>
+                        <th class="text-white">Activo</th>
+                        <th class="text-white text-end">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -58,6 +68,7 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
         </div>
     </div>
 </div>

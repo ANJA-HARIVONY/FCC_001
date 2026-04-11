@@ -8,6 +8,12 @@
     --light-gray: #f8f9fa;
     --white: #ffffff;
     --primary-blue: #007bff;
+    /* Même palette que la page login : cohérence navbar / pied / fonds */
+    --shell-top: #181d26;
+    --shell-bottom: #0f141c;
+    --shell-glow-red: rgba(220, 53, 69, 0.22);
+    --shell-glow-blue: rgba(13, 110, 253, 0.16);
+    --shell-line: rgba(255, 255, 255, 0.08);
     --anim-fast: 120ms;
     --anim-base: 220ms;
     --anim-slow: 300ms;
@@ -39,7 +45,25 @@ main.page-enter {
     }
 }
 
-/* Navigation */
+/* Navigation — alignée sur --dark-gray et la palette login (#181d26 / #0f141c) */
+.navbar.app-shell-nav {
+    background: linear-gradient(180deg, var(--shell-top) 0%, var(--dark-gray) 100%) !important;
+    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.22);
+    border-bottom: 1px solid var(--shell-line);
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+.navbar.app-shell-nav .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+.navbar.app-shell-nav .dropdown-menu {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    border-radius: 0.65rem;
+}
+
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: bold;
@@ -51,7 +75,7 @@ main.page-enter {
 
 .navbar-nav .nav-link,
 .dropdown-item {
-    transition: color var(--anim-fast) var(--anim-ease), background-color var(--anim-fast) var(--anim-ease);
+    transition: background-color var(--anim-fast) var(--anim-ease);
 }
 
 /* Cartes de statistiques */
@@ -494,4 +518,159 @@ footer {
     .notification-body {
         font-size: 12px;
     }
-} 
+}
+
+/* Pied de page — même langage que la navbar et les en-têtes (--dark-gray) */
+footer.app-shell-footer {
+    background: linear-gradient(180deg, var(--dark-gray) 0%, var(--shell-bottom) 100%) !important;
+    border-top: 1px solid var(--shell-line);
+    box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.14);
+}
+
+footer.app-shell-footer .text-footer-muted {
+    color: rgba(255, 255, 255, 0.68) !important;
+    font-size: 0.875rem;
+}
+
+/* Page de connexion : charte partagée (plus de styles dupliqués dans le HTML) */
+body.login-page {
+    background:
+        radial-gradient(1200px 500px at 10% -10%, var(--shell-glow-red), transparent 60%),
+        radial-gradient(1000px 450px at 100% 0%, var(--shell-glow-blue), transparent 60%),
+        linear-gradient(180deg, var(--shell-top) 0%, var(--shell-bottom) 100%);
+    min-height: 100vh;
+}
+
+.login-page .login-card {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 1.1rem;
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.33);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    animation: loginCardIn 260ms cubic-bezier(0.2, 0, 0, 1);
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.login-page .login-card:hover {
+    transform: translateY(-1px);
+}
+
+.login-page .login-logo {
+    max-width: 180px;
+    height: auto;
+}
+
+.login-page .login-welcome {
+    color: #f8f9fa;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.login-page .login-welcome h2 {
+    font-size: 1.05rem;
+    margin-bottom: 0.15rem;
+    letter-spacing: 0.01em;
+}
+
+.login-page .login-welcome p {
+    color: #d5dbe4;
+    margin-bottom: 0;
+    font-size: 0.88rem;
+}
+
+.login-page .login-title {
+    color: #1f2937;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+
+.login-page .login-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.login-page .login-card .form-label {
+    font-weight: 600;
+    color: #2f3a4a;
+    margin-bottom: 0.4rem;
+}
+
+.login-page .login-card .form-control {
+    border-radius: 0.7rem;
+    padding: 0.64rem 0.78rem;
+    border: 1px solid #d9dee7;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-page .login-card .form-control::placeholder {
+    color: #a0a9b6;
+}
+
+.login-page .login-card .form-control:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.16);
+}
+
+.login-page .login-submit-btn {
+    border-radius: 0.7rem;
+    font-weight: 600;
+    padding: 0.66rem 0.8rem;
+    transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.login-page .login-submit-btn:hover {
+    transform: translateY(-1px);
+}
+
+.login-page .login-submit-btn:active {
+    transform: translateY(0);
+}
+
+.login-page .login-submit-btn:focus-visible,
+.login-page .login-card .form-check-input:focus-visible,
+.login-page .login-card .btn-close:focus-visible {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+.login-page .login-card .alert {
+    border-radius: 0.7rem;
+    font-size: 0.9rem;
+}
+
+.login-page .login-footer-note {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.82rem;
+}
+
+@keyframes loginCardIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 576px) {
+    .login-page .login-card .card-body {
+        padding: 1.2rem !important;
+    }
+
+    .login-page .login-logo {
+        max-width: 150px;
+    }
+
+    .login-page .login-welcome {
+        margin-bottom: 0.8rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .login-page .login-card,
+    .login-page .login-submit-btn {
+        animation: none !important;
+        transition: none !important;
+    }
+}
