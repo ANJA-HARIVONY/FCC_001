@@ -13,7 +13,7 @@ import re
 import time
 import logging
 from logging.handlers import RotatingFileHandler
-from sqlalchemy import func
+from sqlalchemy import func, text, inspect
 from sqlalchemy.orm import joinedload
 from config import config
 from io import BytesIO
@@ -1177,6 +1177,7 @@ def verificar_cliente(id):
     import subprocess
     import platform
     import re
+    import shutil
     
     client = Client.query.get_or_404(id)
     
@@ -1201,8 +1202,25 @@ def verificar_cliente(id):
             # Détecter le système d'exploitation
             param = '-n' if platform.system().lower() == 'windows' else '-c'
             
+            # Localiser le binaire ping (souvent absent dans certaines images Docker minimales)
+            ping_cmd = shutil.which('ping')
+            if not ping_cmd:
+                return {
+                    'success': False,
+                    'ip': ip_address,
+                    'error': "Commande 'ping' introuvable dans le conteneur (installer iputils-ping).",
+                    'packets_sent': count,
+                    'packets_received': 0,
+                    'packets_lost': count,
+                    'packet_loss': 100,
+                    'min_time': 0,
+                    'avg_time': 0,
+                    'max_time': 0,
+                    'raw_output': ''
+                }
+
             # Exécuter le ping
-            command = ['ping', param, str(count), ip_address]
+            command = [ping_cmd, param, str(count), ip_address]
             result = subprocess.run(
                 command,
                 capture_output=True,
@@ -2046,12 +2064,98 @@ def base_de_datos():
 def base_de_datos_verificar():
     """Lance la vérification de la BDD et retourne un rapport JSON."""
     try:
-        import sys
-        tools_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools')
-        if tools_dir not in sys.path:
-            sys.path.insert(0, tools_dir)
-        from verify_database_health import verify_database
-        result = verify_database()
+        # Vérification intégrée pour éviter la dépendance à un module externe absent en prod.
+        db.session.execute(text('SELECT 1'))
+
+        inspector = inspect(db.engine)
+        table_names = inspector.get_table_names()
+        counts = {}
+        integrity = []
+        foreign_keys = []
+        warnings = 0
+        errors = 0
+        passed = 0
+
+        for table in table_names:
+            try:
+                count_result = db.session.execute(text(f'SELECT COUNT(*) FROM `{table}`'))
+                counts[table] = int(count_result.scalar() or 0)
+                integrity.append({'table': table, 'status': 'OK', 'message': 'Tabla accesible'})
+                passed += 1
+            except Exception as table_error:
+                counts[table] = None
+                integrity.append({'table': table, 'status': 'ERROR', 'message': str(table_error)})
+                errors += 1
+
+            # Vérification simple des clés étrangères (orphans)
+            try:
+                for fk in inspector.get_foreign_keys(table):
+                    constrained_columns = fk.get('constrained_columns') or []
+                    referred_table = fk.get('referred_table')
+                    referred_columns = fk.get('referred_columns') or []
+
+                    if len(constrained_columns) != 1 or len(referred_columns) != 1 or not referred_table:
+                        continue
+
+                    local_col = constrained_columns[0]
+                    ref_col = referred_columns[0]
+                    fk_name = fk.get('name') or f'{table}.{local_col} -> {referred_table}.{ref_col}'
+
+                    orphan_query = text(
+                        f'''
+                        SELECT COUNT(*)
+                        FROM `{table}` t
+                        LEFT JOIN `{referred_table}` r ON t.`{local_col}` = r.`{ref_col}`
+                        WHERE t.`{local_col}` IS NOT NULL AND r.`{ref_col}` IS NULL
+                        '''
+                    )
+                    orphans = int(db.session.execute(orphan_query).scalar() or 0)
+
+                    status = 'OK' if orphans == 0 else 'WARNING'
+                    if status == 'OK':
+                        passed += 1
+                    else:
+                        warnings += 1
+
+                    foreign_keys.append({
+                        'name': fk_name,
+                        'orphans': orphans,
+                        'status': status
+                    })
+            except Exception as fk_error:
+                warnings += 1
+                foreign_keys.append({
+                    'name': f'FK check failed on {table}',
+                    'orphans': 0,
+                    'status': 'WARNING',
+                    'message': str(fk_error)
+                })
+
+        total_checks = passed + warnings + errors
+        if errors > 0:
+            global_status = 'ERROR'
+        elif warnings > 0:
+            global_status = 'WARNING'
+        else:
+            global_status = 'OK'
+
+        result = {
+            'host': os.environ.get('DB_HOST', 'localhost'),
+            'database': os.environ.get('DB_NAME', 'fcc_001_db'),
+            'timestamp': datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
+            'connection': {'ok': True, 'message': 'Conexión exitosa'},
+            'tables': table_names,
+            'counts': counts,
+            'integrity': integrity,
+            'foreign_keys': foreign_keys,
+            'summary': {
+                'status': global_status,
+                'total_checks': total_checks,
+                'passed': passed,
+                'warnings': warnings,
+                'errors': errors
+            }
+        }
         return jsonify({'ok': True, 'data': result})
     except Exception as e:
         return jsonify({'ok': False, 'error': str(e)}), 500

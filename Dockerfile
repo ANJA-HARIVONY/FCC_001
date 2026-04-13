@@ -85,6 +85,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-mysql-client \
     # Utilitaires (healthcheck)
     curl \
+    # Utilitaire réseau pour la fonction de ping
+    iputils-ping \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

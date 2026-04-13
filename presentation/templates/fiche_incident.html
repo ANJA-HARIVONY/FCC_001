@@ -302,7 +302,8 @@
                 </div>
             </div>
 
-            <!-- Estadísticas del tiempo -->
+            <!-- Estadísticas del tiempo (solo incidencias Pendiente) -->
+            {% if incident.status == 'Pendiente' %}
             <div class="card shadow mb-4 content-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
@@ -329,7 +330,7 @@
                             </h4>
                         </div>
                         
-                        {% if incident.status == 'Pendiente' and tiempo_transcurrido.total_seconds() > 1800 %}
+                        {% if tiempo_transcurrido.total_seconds() > 1800 %}
                         <div class="alert alert-warning mb-0">
                             <i class="fas fa-exclamation-triangle"></i>
                             <strong>{{ _('¡Atención!') }}</strong><br>
@@ -339,6 +340,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
