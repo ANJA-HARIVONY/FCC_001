@@ -28,6 +28,20 @@
                             <option value="current_year">Año en curso</option>
                             <option value="all_data">Todos los datos</option>
                         </select>
+                        <div class="d-flex align-items-center gap-3 mt-2">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
+                                <label class="form-check-label small text-muted" for="remember-filters-toggle">
+                                    Memorizar filtros en este panel
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters-btn">
+                                <i class="fas fa-undo-alt me-1"></i>Reiniciar filtros
+                            </button>
+                        </div>
+                        <div id="filters-feedback" class="small text-success mt-1 d-none">
+                            <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+                        </div>
                     </div>
                     <!-- Auto-actualización -->
                     <div class="text-end">
@@ -51,8 +65,8 @@
     </div>
 
     <!-- Cartes de statistiques -->
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
+    <div class="row row-cols-1 row-cols-lg-4 mb-4 g-3">
+        <div class="col">
             <div class="card stat-card h-100 stagger-in delay-1">
                 <div class="card-body text-center">
                     <div class="stat-number">{{ total_incidents }}</div>
@@ -61,7 +75,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
+        <div class="col">
             <div class="card stat-card h-100 stagger-in delay-2">
                 <div class="card-body text-center">
                     <div class="stat-number text-success">{{ incidents_resolus }}</div>
@@ -70,7 +84,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
+        <div class="col">
             <div class="card stat-card h-100 stagger-in delay-3">
                 <div class="card-body text-center">
                     <div class="stat-number text-warning">{{ incidents_attente }}</div>
@@ -79,7 +93,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-3">
+        <div class="col">
             <div class="card stat-card h-100 stagger-in delay-4">
                 <div class="card-body text-center">
                     <div class="stat-number text-info">{{ incidents_bitrix }}</div>
@@ -255,6 +269,22 @@ let refreshInterval;
 let countdownInterval;
 let nextRefreshTime;
 let currentPeriod = 'current_week'; // Période par défaut
+const defaultPeriod = 'current_week';
+const defaultViewType = 'date';
+const filterCookieMaxAgeSeconds = 30 * 24 * 60 * 60; // 30 jours
+const dashboardFilterCookieName = 'dashboard_filters_v1';
+const rememberedPeriods = new Set([
+    'current_month',
+    'current_week',
+    'last_week',
+    'last_3_months',
+    'last_month',
+    'last_6_months',
+    'current_year',
+    'all_data'
+]);
+const rememberedViewTypes = new Set(['date', 'month', 'year']);
+const dashboardFilterScope = `dashboard_user_{{ current_user.id if current_user.is_authenticated else 'anonymous' }}`;
 
 // Configuration des titres de période
 const periodTitles = {
@@ -343,6 +373,8 @@ function restartAutoRefresh() {
 
 // Ajouter un gestionnaire pour permettre de cliquer sur l'indicateur pour forcer un refresh
 document.addEventListener('DOMContentLoaded', function() {
+    initializeFilterPersistence();
+
     const refreshStatus = document.getElementById('refresh-status');
     if (refreshStatus) {
         refreshStatus.style.cursor = 'pointer';
@@ -360,16 +392,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialiser les graphiques
     initIncidentsChart();
     initOperateursChart();
-    updateIncidentsChart('date');
-    
-    // Récupérer la période depuis l'URL si elle existe
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlPeriod = urlParams.get('period');
-    if (urlPeriod) {
-        currentPeriod = urlPeriod;
-        document.getElementById('period-selector').value = urlPeriod;
-        document.getElementById('period-title').textContent = periodTitles[urlPeriod];
-    }
+    applyInitialFilters();
+    updateIncidentsChart(currentViewType);
 });
 
 // Nettoyer les intervalles quand on quitte la page
@@ -468,6 +492,10 @@ function updateIncidentsChart(viewType = 'date') {
 
 // Fonction pour changer le type d'affichage
 function changeChartView(viewType) {
+    if (!rememberedViewTypes.has(viewType)) {
+        return;
+    }
+
     // Mettre à jour les boutons
     document.querySelectorAll('.btn-group .btn').forEach(btn => {
         btn.classList.remove('active');
@@ -482,6 +510,7 @@ function changeChartView(viewType) {
     
     // Mettre à jour le graphique
     updateIncidentsChart(viewType);
+    saveDashboardFilters();
 }
 
 // Fonction pour changer la période
@@ -503,7 +532,169 @@ function changePeriod() {
         
         // Mettre à jour le graphique
         updateIncidentsChart(currentViewType);
+        saveDashboardFilters();
     }
+}
+
+function initializeFilterPersistence() {
+    const rememberToggle = document.getElementById('remember-filters-toggle');
+    const resetButton = document.getElementById('reset-filters-btn');
+    const saved = getDashboardFiltersCookie();
+
+    if (saved && saved.enabled === false) {
+        rememberToggle.checked = false;
+    }
+
+    rememberToggle.addEventListener('change', () => {
+        if (rememberToggle.checked) {
+            saveDashboardFilters();
+            return;
+        }
+
+        clearDashboardFiltersCookie();
+    });
+
+    resetButton.addEventListener('click', () => {
+        resetDashboardFilters();
+    });
+}
+
+function applyInitialFilters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlPeriod = urlParams.get('period');
+    const urlView = urlParams.get('view');
+    const saved = getDashboardFiltersCookie();
+    const rememberToggle = document.getElementById('remember-filters-toggle');
+
+    const hasUrlPeriod = rememberedPeriods.has(urlPeriod);
+    const hasUrlView = rememberedViewTypes.has(urlView);
+    const canUseSavedFilters = (
+        rememberToggle.checked &&
+        saved &&
+        saved.enabled !== false
+    );
+
+    if (hasUrlPeriod) {
+        currentPeriod = urlPeriod;
+    } else if (canUseSavedFilters && rememberedPeriods.has(saved.period)) {
+        currentPeriod = saved.period;
+    } else {
+        currentPeriod = defaultPeriod;
+    }
+
+    if (hasUrlView) {
+        currentViewType = urlView;
+    } else if (canUseSavedFilters && rememberedViewTypes.has(saved.viewType)) {
+        currentViewType = saved.viewType;
+    } else {
+        currentViewType = defaultViewType;
+    }
+
+    applyPeriodToUI(currentPeriod);
+    applyChartViewToUI(currentViewType);
+
+    if (!hasUrlPeriod && !hasUrlView && canUseSavedFilters && (saved.period || saved.viewType)) {
+        showFiltersFeedback();
+    }
+
+    saveDashboardFilters();
+}
+
+function applyPeriodToUI(period) {
+    const selector = document.getElementById('period-selector');
+    selector.value = period;
+    document.getElementById('period-title').textContent = periodTitles[period];
+}
+
+function applyChartViewToUI(viewType) {
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('btn-outline-danger');
+        btn.classList.remove('btn-danger');
+    });
+
+    const activeBtn = document.getElementById(`btn-${viewType}`);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.classList.remove('btn-outline-danger');
+        activeBtn.classList.add('btn-danger');
+    }
+}
+
+function saveDashboardFilters() {
+    const rememberToggle = document.getElementById('remember-filters-toggle');
+    if (!rememberToggle.checked) {
+        return;
+    }
+
+    const payload = {
+        scope: dashboardFilterScope,
+        enabled: true,
+        period: currentPeriod,
+        viewType: currentViewType
+    };
+    setCookie(dashboardFilterCookieName, JSON.stringify(payload), filterCookieMaxAgeSeconds);
+}
+
+function resetDashboardFilters() {
+    clearDashboardFiltersCookie();
+    currentPeriod = defaultPeriod;
+    currentViewType = defaultViewType;
+
+    applyPeriodToUI(currentPeriod);
+    applyChartViewToUI(currentViewType);
+    loadDashboardData(currentPeriod);
+    updateIncidentsChart(currentViewType);
+}
+
+function getDashboardFiltersCookie() {
+    const rawValue = getCookie(dashboardFilterCookieName);
+    if (!rawValue) {
+        return null;
+    }
+
+    try {
+        const parsed = JSON.parse(rawValue);
+        if (!parsed || parsed.scope !== dashboardFilterScope) {
+            return null;
+        }
+
+        return parsed;
+    } catch (error) {
+        return null;
+    }
+}
+
+function clearDashboardFiltersCookie() {
+    document.cookie = `${dashboardFilterCookieName}=; path=/; max-age=0; SameSite=Lax`;
+}
+
+function showFiltersFeedback() {
+    const feedback = document.getElementById('filters-feedback');
+    if (!feedback) {
+        return;
+    }
+
+    feedback.classList.remove('d-none');
+    setTimeout(() => feedback.classList.add('d-none'), 3000);
+}
+
+function setCookie(name, value, maxAgeSeconds) {
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+}
+
+function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    for (const cookie of cookies) {
+        const separatorIndex = cookie.indexOf('=');
+        const key = separatorIndex >= 0 ? cookie.slice(0, separatorIndex) : cookie;
+        if (key === name) {
+            const rawValue = separatorIndex >= 0 ? cookie.slice(separatorIndex + 1) : '';
+            return decodeURIComponent(rawValue);
+        }
+    }
+
+    return null;
 }
 
 // Fonction pour afficher l'indicateur de chargement

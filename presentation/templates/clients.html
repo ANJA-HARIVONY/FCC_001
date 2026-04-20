@@ -37,7 +37,7 @@
                     {% endif %}
                 </div>
                 <div class="card-body">
-                    <form method="GET" class="row g-3">
+                    <form method="GET" class="row g-3" id="formFiltrosClients">
                         <div class="col-md-4">
                             <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
                                 <i class="fas fa-search me-1"></i>Buscar
@@ -74,8 +74,20 @@
                             <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Limpiar
                             </a>
+                            <div class="form-check ms-2">
+                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
+                                <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
+                                    Memorizar filtros
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary" id="reset-filters-btn-clients">
+                                <i class="fas fa-undo-alt"></i> Reiniciar
+                            </button>
                         </div>
                     </form>
+                    <div id="filters-feedback-clients" class="small text-success mt-2 d-none">
+                        <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+                    </div>
                 </div>
             </div>
         </div>
@@ -421,6 +433,123 @@ IPs: ${clientIpRouter} - ${clientIpAntea}`;
 // Auto-submit du formulaire quand on change le nombre d'éléments par page
 document.getElementById('per_page').addEventListener('change', function() {
     this.form.submit();
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formFiltrosClients');
+    const rememberToggle = document.getElementById('remember-filters-toggle-clients');
+    const resetButton = document.getElementById('reset-filters-btn-clients');
+    const feedback = document.getElementById('filters-feedback-clients');
+    const cookieName = 'clients_filters_v1';
+    const cookieMaxAge = 30 * 24 * 60 * 60;
+    const cookieScope = 'clients_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
+    const trackedParams = ['search', 'ville', 'per_page'];
+
+    function setCookie(name, value, maxAgeSeconds) {
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split('; ') : [];
+        for (const cookie of cookies) {
+            const index = cookie.indexOf('=');
+            const key = index >= 0 ? cookie.slice(0, index) : cookie;
+            if (key === name) {
+                return decodeURIComponent(index >= 0 ? cookie.slice(index + 1) : '');
+            }
+        }
+        return null;
+    }
+
+    function clearCookie(name) {
+        document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+    }
+
+    function getCurrentFilters() {
+        return {
+            search: document.getElementById('search').value || '',
+            ville: document.getElementById('ville').value || '',
+            per_page: document.getElementById('per_page').value || '50'
+        };
+    }
+
+    function saveFilters() {
+        if (!rememberToggle.checked) {
+            return;
+        }
+        const payload = {
+            scope: cookieScope,
+            enabled: true,
+            filters: getCurrentFilters()
+        };
+        setCookie(cookieName, JSON.stringify(payload), cookieMaxAge);
+    }
+
+    function loadSavedFilters() {
+        const raw = getCookie(cookieName);
+        if (!raw) {
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed.scope !== cookieScope) {
+                return null;
+            }
+            return parsed;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function hasUrlFilters() {
+        const params = new URLSearchParams(window.location.search);
+        return trackedParams.some(param => params.has(param));
+    }
+
+    function applyFilters(filters) {
+        document.getElementById('search').value = filters.search || '';
+        document.getElementById('ville').value = filters.ville || '';
+        document.getElementById('per_page').value = filters.per_page || '50';
+    }
+
+    function showFeedback() {
+        feedback.classList.remove('d-none');
+        setTimeout(() => feedback.classList.add('d-none'), 3000);
+    }
+
+    const saved = loadSavedFilters();
+    if (saved && saved.enabled === false) {
+        rememberToggle.checked = false;
+    }
+
+    const shouldRestore = !hasUrlFilters() && saved && saved.enabled !== false && saved.filters;
+    if (shouldRestore) {
+        applyFilters(saved.filters);
+        showFeedback();
+        form.submit();
+        return;
+    }
+
+    if (saved && rememberToggle.checked) {
+        saveFilters();
+    }
+
+    rememberToggle.addEventListener('change', function() {
+        if (this.checked) {
+            saveFilters();
+        } else {
+            clearCookie(cookieName);
+        }
+    });
+
+    resetButton.addEventListener('click', function() {
+        clearCookie(cookieName);
+        window.location.href = '{{ url_for("clients") }}';
+    });
+
+    form.addEventListener('submit', function() {
+        saveFilters();
+    });
 });
 </script>
 {% endblock %} 

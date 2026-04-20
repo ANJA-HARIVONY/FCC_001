@@ -105,12 +105,24 @@
                                 <a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-times"></i> Limpiar
                                 </a>
+                                <div class="form-check ms-2">
+                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
+                                    <label class="form-check-label small text-muted" for="remember-filters-toggle">
+                                        Memorizar filtros
+                                    </label>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn">
+                                    <i class="fas fa-undo-alt"></i> Reiniciar
+                                </button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir informe">
                                     <i class="fas fa-print"></i>
                                 </button>
                             </div>
                         </div>
                     </form>
+                    <div id="filters-feedback" class="small text-success mt-2 d-none">
+                        <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+                    </div>
                 </div>
             </div>
         </div>
@@ -458,6 +470,127 @@ document.getElementById('per_page').addEventListener('change', function() {
 
 // Validation et amélioration de l'expérience utilisateur pour les champs de date
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('formFiltros');
+    const rememberToggle = document.getElementById('remember-filters-toggle');
+    const resetButton = document.getElementById('reset-filters-btn');
+    const feedback = document.getElementById('filters-feedback');
+    const cookieName = 'incidents_filters_v1';
+    const cookieMaxAge = 30 * 24 * 60 * 60;
+    const cookieScope = 'incidents_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
+    const trackedParams = ['search', 'status', 'operateur', 'date_from', 'date_to', 'per_page'];
+
+    function setCookie(name, value, maxAgeSeconds) {
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split('; ') : [];
+        for (const cookie of cookies) {
+            const index = cookie.indexOf('=');
+            const key = index >= 0 ? cookie.slice(0, index) : cookie;
+            if (key === name) {
+                return decodeURIComponent(index >= 0 ? cookie.slice(index + 1) : '');
+            }
+        }
+        return null;
+    }
+
+    function clearCookie(name) {
+        document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+    }
+
+    function getCurrentFilters() {
+        return {
+            search: document.getElementById('search').value || '',
+            status: document.getElementById('status').value || '',
+            operateur: document.getElementById('operateur').value || '',
+            date_from: document.getElementById('date_from').value || '',
+            date_to: document.getElementById('date_to').value || '',
+            per_page: document.getElementById('per_page').value || '50'
+        };
+    }
+
+    function saveFilters() {
+        if (!rememberToggle.checked) {
+            return;
+        }
+        const payload = {
+            scope: cookieScope,
+            enabled: true,
+            filters: getCurrentFilters()
+        };
+        setCookie(cookieName, JSON.stringify(payload), cookieMaxAge);
+    }
+
+    function loadSavedFilters() {
+        const raw = getCookie(cookieName);
+        if (!raw) {
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed.scope !== cookieScope) {
+                return null;
+            }
+            return parsed;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function hasUrlFilters() {
+        const params = new URLSearchParams(window.location.search);
+        return trackedParams.some(param => params.has(param));
+    }
+
+    function applyFilters(filters) {
+        document.getElementById('search').value = filters.search || '';
+        document.getElementById('status').value = filters.status || '';
+        document.getElementById('operateur').value = filters.operateur || '';
+        document.getElementById('date_from').value = filters.date_from || '';
+        document.getElementById('date_to').value = filters.date_to || '';
+        document.getElementById('per_page').value = filters.per_page || '50';
+    }
+
+    function showFeedback() {
+        feedback.classList.remove('d-none');
+        setTimeout(() => feedback.classList.add('d-none'), 3000);
+    }
+
+    const saved = loadSavedFilters();
+    if (saved && saved.enabled === false) {
+        rememberToggle.checked = false;
+    }
+
+    const shouldRestore = !hasUrlFilters() && saved && saved.enabled !== false && saved.filters;
+    if (shouldRestore) {
+        applyFilters(saved.filters);
+        showFeedback();
+        form.submit();
+        return;
+    }
+
+    if (saved && rememberToggle.checked) {
+        saveFilters();
+    }
+
+    rememberToggle.addEventListener('change', function() {
+        if (this.checked) {
+            saveFilters();
+        } else {
+            clearCookie(cookieName);
+        }
+    });
+
+    resetButton.addEventListener('click', function() {
+        clearCookie(cookieName);
+        window.location.href = '{{ url_for("incidents") }}';
+    });
+
+    form.addEventListener('submit', function() {
+        saveFilters();
+    });
+
     const dateFromInput = document.getElementById('date_from');
     const dateToInput = document.getElementById('date_to');
     

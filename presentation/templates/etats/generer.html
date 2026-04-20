@@ -79,6 +79,20 @@
                                     </option>
                                     {% endfor %}
                                 </select>
+                                <div class="d-flex align-items-center gap-3 mt-2">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input" type="checkbox" id="remember-filters-toggle-etats" checked>
+                                        <label class="form-check-label small text-muted" for="remember-filters-toggle-etats">
+                                            Memorizar filtros
+                                        </label>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters-btn-etats">
+                                        <i class="fas fa-undo-alt me-1"></i>Reiniciar
+                                    </button>
+                                </div>
+                                <div id="filters-feedback-etats" class="small text-success mt-1 d-none">
+                                    <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+                                </div>
                             </div>
                             <div class="col-md-6" id="custom-period" style="display: none;">
                                 <div class="row">
@@ -200,6 +214,10 @@
 </style>
 
 <script>
+const etatsCookieName = 'etats_generer_filters_v1';
+const etatsCookieMaxAge = 30 * 24 * 60 * 60;
+const etatsCookieScope = 'etats_generer_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
+
 function updateTypeSelection() {
     const selectedType = document.querySelector('input[name="type_etat"]:checked').value;
     const types = {
@@ -248,10 +266,123 @@ function toggleCustomPeriod() {
     document.getElementById('preview-periode').textContent = periodeNames[periode] || periode;
 }
 
+function setCookie(name, value, maxAgeSeconds) {
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+}
+
+function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    for (const cookie of cookies) {
+        const index = cookie.indexOf('=');
+        const key = index >= 0 ? cookie.slice(0, index) : cookie;
+        if (key === name) {
+            return decodeURIComponent(index >= 0 ? cookie.slice(index + 1) : '');
+        }
+    }
+    return null;
+}
+
+function clearCookie(name) {
+    document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+}
+
+function getCurrentEtatFilters() {
+    const selectedType = document.querySelector('input[name="type_etat"]:checked');
+    return {
+        type_etat: selectedType ? selectedType.value : 'summary',
+        periode: document.getElementById('periode').value || 'current_month',
+        date_debut: document.getElementById('date_debut').value || '',
+        date_fin: document.getElementById('date_fin').value || ''
+    };
+}
+
+function saveEtatFilters() {
+    const rememberToggle = document.getElementById('remember-filters-toggle-etats');
+    if (!rememberToggle.checked) {
+        return;
+    }
+    const payload = {
+        scope: etatsCookieScope,
+        enabled: true,
+        filters: getCurrentEtatFilters()
+    };
+    setCookie(etatsCookieName, JSON.stringify(payload), etatsCookieMaxAge);
+}
+
+function loadSavedEtatFilters() {
+    const raw = getCookie(etatsCookieName);
+    if (!raw) {
+        return null;
+    }
+    try {
+        const parsed = JSON.parse(raw);
+        if (parsed.scope !== etatsCookieScope) {
+            return null;
+        }
+        return parsed;
+    } catch (error) {
+        return null;
+    }
+}
+
+function applySavedEtatFilters(filters) {
+    if (!filters) {
+        return;
+    }
+
+    const typeRadio = document.querySelector(`input[name="type_etat"][value="${filters.type_etat}"]`);
+    if (typeRadio) {
+        typeRadio.checked = true;
+    }
+
+    document.getElementById('periode').value = filters.periode || 'current_month';
+    document.getElementById('date_debut').value = filters.date_debut || '';
+    document.getElementById('date_fin').value = filters.date_fin || '';
+}
+
+function showEtatsFeedback() {
+    const feedback = document.getElementById('filters-feedback-etats');
+    feedback.classList.remove('d-none');
+    setTimeout(() => feedback.classList.add('d-none'), 3000);
+}
+
 // Initialiser au chargement
 document.addEventListener('DOMContentLoaded', function() {
+    const rememberToggle = document.getElementById('remember-filters-toggle-etats');
+    const resetButton = document.getElementById('reset-filters-btn-etats');
+    const form = document.querySelector('form[action="{{ url_for("etats_generer") }}"]');
+    const saved = loadSavedEtatFilters();
+
+    if (saved && saved.enabled === false) {
+        rememberToggle.checked = false;
+    }
+
+    if (saved && saved.enabled !== false && saved.filters) {
+        applySavedEtatFilters(saved.filters);
+        showEtatsFeedback();
+    }
+
     updateTypeSelection();
     toggleCustomPeriod();
+
+    rememberToggle.addEventListener('change', function() {
+        if (this.checked) {
+            saveEtatFilters();
+        } else {
+            clearCookie(etatsCookieName);
+        }
+    });
+
+    resetButton.addEventListener('click', function() {
+        clearCookie(etatsCookieName);
+        window.location.reload();
+    });
+
+    document.querySelectorAll('input[name="type_etat"], #periode, #date_debut, #date_fin').forEach(element => {
+        element.addEventListener('change', saveEtatFilters);
+    });
+
+    form.addEventListener('submit', saveEtatFilters);
 });
 </script>
 {% endblock %}
