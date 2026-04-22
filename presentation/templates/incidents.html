@@ -501,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function getCurrentFilters() {
         return {
-            search: document.getElementById('search').value || '',
             status: document.getElementById('status').value || '',
             operateur: document.getElementById('operateur').value || '',
             date_from: document.getElementById('date_from').value || '',
@@ -544,7 +543,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function applyFilters(filters) {
-        document.getElementById('search').value = filters.search || '';
         document.getElementById('status').value = filters.status || '';
         document.getElementById('operateur').value = filters.operateur || '';
         document.getElementById('date_from').value = filters.date_from || '';
