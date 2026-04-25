@@ -8,9 +8,13 @@ class NotificationSystem {
     constructor() {
         this.container = document.getElementById('notification-container');
         this.checkInterval = 30 * 60 * 1000; // 30 minutos en milisegundos
+        this.commentCheckInterval = 30 * 1000; // compteur de commentaires plus reactif
         this.notificationDuration = 5 * 1000; // 5 segundos en milisegundos
         this.isActive = true;
         this.shownNotifications = new Set(); // Para evitar duplicados
+        this.commentCountEl = document.getElementById('comment-notification-count');
+        this.commentHeaderCountEl = document.getElementById('comment-notification-header-count');
+        this.commentListEl = document.getElementById('comment-notification-list');
         
         this.init();
     }
@@ -18,6 +22,7 @@ class NotificationSystem {
     init() {
         // Verificar inmediatamente al cargar la página
         this.checkPendingIncidents();
+        this.checkCommentNotifications();
         
         // Configurar verificación periódica cada 30 minutos
         setInterval(() => {
@@ -25,6 +30,12 @@ class NotificationSystem {
                 this.checkPendingIncidents();
             }
         }, this.checkInterval);
+
+        setInterval(() => {
+            if (this.isActive) {
+                this.checkCommentNotifications();
+            }
+        }, this.commentCheckInterval);
         
         console.log('✅ Sistema de notificaciones iniciado');
         console.log(`🔄 Verificación cada ${this.checkInterval / 60000} minutos`);
@@ -59,6 +70,69 @@ class NotificationSystem {
         } catch (error) {
             console.error('❌ Error al verificar incidencias pendientes:', error);
         }
+    }
+
+    async checkCommentNotifications() {
+        if (!this.commentCountEl || !this.commentListEl) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/notifications/commentaires');
+            const data = await response.json();
+
+            if (!data.success) {
+                console.error('❌ Error al verificar notificaciones de comentarios:', data.error);
+                return;
+            }
+
+            this.updateCommentNotificationUi(data.count || 0, data.notifications || []);
+        } catch (error) {
+            console.error('❌ Error al verificar notificaciones de comentarios:', error);
+        }
+    }
+
+    updateCommentNotificationUi(count, notifications) {
+        this.updateCountBadge(this.commentCountEl, count);
+        this.updateCountBadge(this.commentHeaderCountEl, count);
+
+        if (!notifications.length) {
+            this.commentListEl.innerHTML = '<div class="dropdown-item-text small text-muted">Aucune notification non lue.</div>';
+            return;
+        }
+
+        this.commentListEl.innerHTML = notifications.map(notification => {
+            const message = this.escapeHtml(notification.message);
+            const createdAt = this.escapeHtml(notification.cree_le || '');
+            const url = this.escapeAttribute(notification.url || '#');
+
+            return `
+                <a class="dropdown-item notification-menu-item" href="${url}">
+                    <div class="fw-semibold text-wrap">${message}</div>
+                    <small class="text-muted">
+                        <i class="fas fa-clock me-1"></i>${createdAt}
+                    </small>
+                </a>
+            `;
+        }).join('');
+    }
+
+    updateCountBadge(element, count) {
+        if (!element) {
+            return;
+        }
+        element.textContent = count > 99 ? '99+' : String(count);
+        element.classList.toggle('d-none', count <= 0);
+    }
+
+    escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
+
+    escapeAttribute(value) {
+        return this.escapeHtml(value).replace(/"/g, '&quot;');
     }
     
     showNotification(incident) {

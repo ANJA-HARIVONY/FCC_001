@@ -298,6 +298,22 @@ class IncidentComentario(db.Model):
     operateur = db.relationship('Operateur', backref=db.backref('incident_comentarios', lazy=True))
 
 
+class IncidentNotification(db.Model):
+    __tablename__ = 'incident_notification'
+    id = db.Column(db.Integer, primary_key=True)
+    id_incident = db.Column(db.Integer, db.ForeignKey('incident.id', ondelete='CASCADE'), nullable=False, index=True)
+    id_destinataire = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='CASCADE'), nullable=False, index=True)
+    id_auteur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True, index=True)
+    message = db.Column(db.String(255), nullable=False)
+    lue = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    cree_le = db.Column(db.DateTime, nullable=False, default=datetime.now, index=True)
+    lue_le = db.Column(db.DateTime, nullable=True)
+
+    incident = db.relationship('Incident', backref=db.backref('notifications', lazy=True, cascade='all, delete-orphan'))
+    destinataire = db.relationship('Operateur', foreign_keys=[id_destinataire], backref=db.backref('incident_notifications', lazy=True))
+    auteur = db.relationship('Operateur', foreign_keys=[id_auteur])
+
+
 class AuditLog(db.Model):
     __tablename__ = 'audit_log'
     id = db.Column(db.Integer, primary_key=True)
@@ -324,6 +340,71 @@ def write_audit(action, id_operateur=None, detail=None):
         db.session.commit()
     except Exception:
         db.session.rollback()
+
+
+def ensure_incident_notification_table():
+    """Cree la table des notifications si l'application demarre sans migration."""
+    if getattr(ensure_incident_notification_table, '_done', False):
+        return
+    try:
+        if not inspect(db.engine).has_table(IncidentNotification.__tablename__):
+            IncidentNotification.__table__.create(db.engine)
+        ensure_incident_notification_table._done = True
+    except Exception:
+        app.logger.exception('Impossible de verifier/creer la table incident_notification')
+
+
+def build_comment_notification_message(actor_name, client_name):
+    return f"L'utilisateur {actor_name} a commente votre incidencia du client {client_name}."
+
+
+def create_comment_notifications(incident, actor):
+    """Cree une notification par destinataire concerne, hors auteur du commentaire."""
+    ensure_incident_notification_table()
+
+    recipient_ids = set()
+    if incident.id_operateur and incident.id_operateur != actor.id:
+        recipient_ids.add(incident.id_operateur)
+
+    previous_commenter_ids = (
+        db.session.query(IncidentComentario.id_operateur)
+        .filter(
+            IncidentComentario.id_incident == incident.id,
+            IncidentComentario.id_operateur.isnot(None),
+            IncidentComentario.id_operateur != actor.id,
+        )
+        .distinct()
+        .all()
+    )
+    recipient_ids.update(row[0] for row in previous_commenter_ids if row[0])
+
+    if not recipient_ids:
+        return 0
+
+    message = build_comment_notification_message(
+        actor.nom,
+        incident.client.nom if incident.client else gettext('client inconnu'),
+    )
+    now = datetime.now()
+    for recipient_id in recipient_ids:
+        db.session.add(IncidentNotification(
+            id_incident=incident.id,
+            id_destinataire=recipient_id,
+            id_auteur=actor.id,
+            message=message,
+            cree_le=now,
+        ))
+    return len(recipient_ids)
+
+
+def mark_incident_notifications_read(incident_id, user_id):
+    ensure_incident_notification_table()
+    now = datetime.now()
+    return (
+        IncidentNotification.query
+        .filter_by(id_incident=incident_id, id_destinataire=user_id, lue=False)
+        .update({'lue': True, 'lue_le': now}, synchronize_session=False)
+    )
 
 
 def _extract_ref_bitrix(observations):
@@ -1546,6 +1627,9 @@ def fiche_incident(id):
     incident = Incident.query.get_or_404(id)
     if not user_can_access_incident(incident):
         abort(403)
+    notifications_lues = mark_incident_notifications_read(incident.id, current_user.id)
+    if notifications_lues:
+        db.session.commit()
     comentarios = (
         IncidentComentario.query.filter_by(id_incident=incident.id)
         .order_by(IncidentComentario.creado_en.desc())
@@ -1587,6 +1671,7 @@ def agregar_comentario_incident(id):
         contenido=contenido,
     )
     db.session.add(row)
+    create_comment_notifications(incident, current_user)
     db.session.commit()
     write_audit('COMMENT_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={id}')
     flash(gettext('Comentario publicado.'), 'success')
@@ -1816,6 +1901,58 @@ def api_incidents_pendientes():
             'error': str(e),
             'notifications': []
         }), 500
+
+
+@app.route('/api/notifications/commentaires')
+@login_required
+def api_comment_notifications():
+    """Notifications non lues de commentaires pour l'utilisateur courant."""
+    try:
+        ensure_incident_notification_table()
+        rows = (
+            IncidentNotification.query
+            .filter_by(id_destinataire=current_user.id, lue=False)
+            .options(
+                joinedload(IncidentNotification.incident).joinedload(Incident.client),
+                joinedload(IncidentNotification.auteur),
+            )
+            .order_by(IncidentNotification.cree_le.desc())
+            .limit(20)
+            .all()
+        )
+
+        notifications = []
+        for row in rows:
+            incident = row.incident
+            client = incident.client if incident else None
+            auteur = row.auteur
+            notifications.append({
+                'id': row.id,
+                'incident_id': row.id_incident,
+                'message': row.message,
+                'auteur_nom': auteur.nom if auteur else gettext('Utilisateur'),
+                'client_nom': client.nom if client else '',
+                'cree_le': row.cree_le.strftime('%d/%m/%Y %H:%M'),
+                'url': url_for('fiche_incident', id=row.id_incident),
+            })
+
+        return jsonify({
+            'success': True,
+            'count': (
+                IncidentNotification.query
+                .filter_by(id_destinataire=current_user.id, lue=False)
+                .count()
+            ),
+            'notifications': notifications,
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'count': 0,
+            'notifications': [],
+        }), 500
+
 
 # API pour les données des graphiques
 @app.route('/api/incidents-par-date')
