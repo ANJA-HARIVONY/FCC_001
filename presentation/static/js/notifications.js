@@ -15,7 +15,13 @@ class NotificationSystem {
         this.commentCountEl = document.getElementById('comment-notification-count');
         this.commentHeaderCountEl = document.getElementById('comment-notification-header-count');
         this.commentListEl = document.getElementById('comment-notification-list');
-        
+        // Etat audio pour le son ding-dong
+        this.audioContext = null;
+        this.audioUnlocked = false;
+        // Suivi des notifications de commentaires deja connues (pour detecter les nouvelles)
+        this.knownCommentNotificationIds = new Set();
+        this.commentNotificationsInitialized = false;
+
         this.init();
     }
     
@@ -36,9 +42,80 @@ class NotificationSystem {
                 this.checkCommentNotifications();
             }
         }, this.commentCheckInterval);
-        
+
+        // Debloquer le contexte audio au premier geste utilisateur
+        // (les navigateurs bloquent l'autoplay tant qu'il n'y a pas eu d'interaction)
+        this.setupAudioUnlock();
+
         console.log('✅ Sistema de notificaciones iniciado');
         console.log(`🔄 Verificación cada ${this.checkInterval / 60000} minutos`);
+    }
+
+    setupAudioUnlock() {
+        const unlock = () => {
+            this.ensureAudioContext();
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume().catch(() => {});
+            }
+            this.audioUnlocked = true;
+            window.removeEventListener('click', unlock);
+            window.removeEventListener('keydown', unlock);
+            window.removeEventListener('touchstart', unlock);
+        };
+        window.addEventListener('click', unlock, { once: false });
+        window.addEventListener('keydown', unlock, { once: false });
+        window.addEventListener('touchstart', unlock, { once: false });
+    }
+
+    ensureAudioContext() {
+        if (this.audioContext) {
+            return this.audioContext;
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) {
+            return null;
+        }
+        try {
+            this.audioContext = new AudioCtx();
+        } catch (error) {
+            console.warn('No se pudo inicializar AudioContext:', error);
+            this.audioContext = null;
+        }
+        return this.audioContext;
+    }
+
+    playDingDong() {
+        const ctx = this.ensureAudioContext();
+        if (!ctx) {
+            return;
+        }
+        if (ctx.state === 'suspended') {
+            ctx.resume().catch(() => {});
+        }
+        // Deux tonalites enchainees: "ding" plus aigu puis "dong" plus grave
+        const now = ctx.currentTime;
+        this.playTone(ctx, 880, now, 0.35);            // Ding (A5)
+        this.playTone(ctx, 587.33, now + 0.32, 0.45);  // Dong (D5)
+    }
+
+    playTone(ctx, frequency, startTime, duration) {
+        try {
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(frequency, startTime);
+            // Enveloppe ADSR simple pour eviter les clicks et adoucir le son
+            const peak = 0.18;
+            gain.gain.setValueAtTime(0.0001, startTime);
+            gain.gain.exponentialRampToValueAtTime(peak, startTime + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+            oscillator.connect(gain);
+            gain.connect(ctx.destination);
+            oscillator.start(startTime);
+            oscillator.stop(startTime + duration + 0.05);
+        } catch (error) {
+            console.warn('Error al reproducir tono:', error);
+        }
     }
     
     async checkPendingIncidents() {
@@ -48,8 +125,9 @@ class NotificationSystem {
             
             if (data.success && data.notifications && data.notifications.length > 0) {
                 console.log(`🔔 ${data.count} incidencias pendientes encontradas`);
-                
+
                 // Mostrar notificaciones para incidencias nuevas
+                let playedSound = false;
                 data.notifications.forEach(incident => {
                     const notificationId = `incident-${incident.id}`;
                     
@@ -57,7 +135,14 @@ class NotificationSystem {
                     if (!this.shownNotifications.has(notificationId)) {
                         this.showNotification(incident);
                         this.shownNotifications.add(notificationId);
-                        
+
+                        // Reproducir el ding-dong una sola vez por lote, solo
+                        // si el usuario ya interactuo con la pagina (autoplay).
+                        if (!playedSound && this.audioUnlocked) {
+                            this.playDingDong();
+                            playedSound = true;
+                        }
+
                         // Remover de la lista después de 1 hora para permitir nuevas notificaciones
                         setTimeout(() => {
                             this.shownNotifications.delete(notificationId);
@@ -95,6 +180,28 @@ class NotificationSystem {
     updateCommentNotificationUi(count, notifications) {
         this.updateCountBadge(this.commentCountEl, count);
         this.updateCountBadge(this.commentHeaderCountEl, count);
+
+        // Detectar las notificaciones nuevas para reproducir el ding-dong
+        // Al primer chequeo, solo se memoriza el estado existente sin sonido,
+        // para no spammear al usuario con notificaciones ya antiguas.
+        const currentIds = new Set();
+        let hasNewNotification = false;
+        notifications.forEach(notification => {
+            if (notification && notification.id != null) {
+                const idKey = String(notification.id);
+                currentIds.add(idKey);
+                if (this.commentNotificationsInitialized
+                    && !this.knownCommentNotificationIds.has(idKey)) {
+                    hasNewNotification = true;
+                }
+            }
+        });
+        this.knownCommentNotificationIds = currentIds;
+        if (!this.commentNotificationsInitialized) {
+            this.commentNotificationsInitialized = true;
+        } else if (hasNewNotification && this.audioUnlocked) {
+            this.playDingDong();
+        }
 
         if (!notifications.length) {
             this.commentListEl.innerHTML = '<div class="dropdown-item-text small text-muted">No hay notificaciones sin leer.</div>';
@@ -264,6 +371,13 @@ window.debugNotifications = {
                 fecha_creacion: '08/01/2025 10:30'
             };
             window.notificationSystem.showNotification(testIncident);
+        }
+    },
+
+    // Probar el sonido ding-dong
+    playSound: () => {
+        if (window.notificationSystem) {
+            window.notificationSystem.playDingDong();
         }
     }
 };
