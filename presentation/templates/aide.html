@@ -1,72 +1,837 @@
 {% extends "base.html" %}
 
-{% block title %}Ayuda - Atencion al cliente{% endblock %}
+{% block title %}Ayuda - Centro de Ayuda{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h2 text-dark mb-0">
-                <i class="fas fa-question-circle text-danger me-2"></i>
-                Centro de Ayuda
-            </h1>
-            <p class="text-muted">Guia de uso de la aplicacion de gestion de clientes</p>
-        </div>
-    </div>
+<div class="aide-page">
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card content-card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle text-danger me-2"></i>
-                        Guia de uso
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-tachometer-alt text-danger me-2"></i>Dashboard</h6>
-                            <p>Vista general con estadisticas, graficos y ultimos incidentes.</p>
-                            
-                            <h6><i class="fas fa-users text-danger me-2"></i>Gestion de los Clientes</h6>
-                            <p>Agregar, modificar y eliminar clientes con sus informaciones de red.</p>
-                            
-                            <h6><i class="fas fa-headset text-danger me-2"></i>Gestion de los Operadores</h6>
-                            <p>Gestion de los operadores responsables de la resolucion de las incidencias.</p>
-                        </div>
-                        <div class="col-md-6">
-                            <h6><i class="fas fa-exclamation-triangle text-danger me-2"></i>Gestion de las Incidencias</h6>
-                            <p>Creacion y seguimiento de incidencias con status: Pendiente, Solucionadas, Bitrix.</p>
-                            
-                            <h6><i class="fas fa-search text-danger me-2"></i>Busqueda</h6>
-                            <p>Busqueda rapida en la base de datos de clientes y incidencias.</p>
-                            
-                            <h6><i class="fas fa-database text-danger me-2"></i>Migration MariaDB</h6>
-                            <p>Soporte SQLite por defecto con posibilidad de migracion a MariaDB.</p>
-                        </div>
+    <!-- HERO -->
+    <section class="aide-hero" id="aide-top" aria-label="Centro de Ayuda">
+        <div class="aide-hero-bg" aria-hidden="true">
+            <i class="fas fa-life-ring aide-hero-icon aide-hero-icon-1"></i>
+            <i class="fas fa-book-open aide-hero-icon aide-hero-icon-2"></i>
+            <i class="fas fa-question-circle aide-hero-icon aide-hero-icon-3"></i>
+        </div>
+        <div class="container position-relative">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-9 col-xl-8">
+                    <span class="aide-hero-badge">
+                        <i class="fas fa-sparkles me-2"></i>Centro de Ayuda
+                    </span>
+                    <h1 class="aide-hero-title">¿En qué podemos ayudarte hoy?</h1>
+                    <p class="aide-hero-subtitle">
+                        Guía completa para sacar el máximo provecho de la aplicación
+                        de gestión de clientes e incidencias.
+                    </p>
+
+                    <div class="aide-search-wrapper" role="search">
+                        <i class="fas fa-search aide-search-icon" aria-hidden="true"></i>
+                        <input
+                            type="search"
+                            id="aide-search-input"
+                            class="aide-search-input"
+                            placeholder="Buscar una funcionalidad, una pregunta..."
+                            aria-label="Buscar en la ayuda"
+                            autocomplete="off">
+                        <button type="button" class="aide-search-clear d-none" id="aide-search-clear" aria-label="Borrar búsqueda">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    
-                    <hr>
-                    
-                    <div class="alert alert-info">
-                        <h6><i class="fas fa-info-circle me-2"></i>Informaciones tecnicas</h6>
-                        <ul class="mb-0">
-                            <li><strong>Framework :</strong> Flask + SQLAlchemy</li>
-                            <li><strong>Base de datos :</strong> SQLite (por defecto) / MariaDB (opcional) - Versión: {{ mariadb_version }}</li>
-                            <li><strong>Interface :</strong> Bootstrap 5 con tema rojo/blanco/negro</li>
-                            <li><strong>Graficos :</strong> Chart.js para las visualizaciones</li>
-                        </ul>
-                    </div>
-                    
-                    <div class="alert alert-warning">
-                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Migracion a MariaDB</h6>
-                        <p class="mb-2">Para migrar a MariaDB, defina la variable de entorno :</p>
-                        <code>export DATABASE_URL="mysql+pymysql://username:password@localhost/gestion_client"</code>
+
+                    <div class="aide-hero-shortcuts">
+                        <a href="#dashboard" class="aide-shortcut" data-aide-anchor>
+                            <i class="fas fa-tachometer-alt"></i><span>Dashboard</span>
+                        </a>
+                        <a href="#incidencias" class="aide-shortcut" data-aide-anchor>
+                            <i class="fas fa-exclamation-triangle"></i><span>Incidencias</span>
+                        </a>
+                        <a href="#clientes" class="aide-shortcut" data-aide-anchor>
+                            <i class="fas fa-users"></i><span>Clientes</span>
+                        </a>
+                        <a href="#faq" class="aide-shortcut" data-aide-anchor>
+                            <i class="fas fa-question-circle"></i><span>FAQ</span>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- CONTENU PRINCIPAL : SIDEBAR + SECTIONS -->
+    <div class="container aide-main">
+        <div class="row g-4">
+
+            <!-- SIDEBAR : Table des matieres -->
+            <aside class="col-lg-3 d-none d-lg-block">
+                <nav class="aide-toc" id="aide-toc" aria-label="Tabla de contenidos">
+                    <div class="aide-toc-header">
+                        <i class="fas fa-list-ul me-2"></i>
+                        <span>Contenido</span>
+                    </div>
+                    <ul class="aide-toc-list">
+                        <li><a href="#introduccion" class="aide-toc-link" data-aide-anchor><i class="fas fa-rocket"></i>Introducción</a></li>
+                        <li><a href="#navegacion" class="aide-toc-link" data-aide-anchor><i class="fas fa-compass"></i>Navegación</a></li>
+                        <li><a href="#dashboard" class="aide-toc-link" data-aide-anchor><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
+                        <li><a href="#clientes" class="aide-toc-link" data-aide-anchor><i class="fas fa-users"></i>Clientes</a></li>
+                        <li><a href="#incidencias" class="aide-toc-link" data-aide-anchor><i class="fas fa-exclamation-triangle"></i>Incidencias</a></li>
+                        <li><a href="#operadores" class="aide-toc-link" data-aide-anchor><i class="fas fa-headset"></i>Operadores</a></li>
+                        <li><a href="#informes" class="aide-toc-link" data-aide-anchor><i class="fas fa-chart-bar"></i>Informes</a></li>
+                        <li><a href="#notificaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-bell"></i>Notificaciones</a></li>
+                        <li><a href="#perfil" class="aide-toc-link" data-aide-anchor><i class="fas fa-user-circle"></i>Perfil</a></li>
+                        <li><a href="#faq" class="aide-toc-link" data-aide-anchor><i class="fas fa-question-circle"></i>Preguntas frecuentes</a></li>
+                        {% if current_user.is_authenticated and current_user.is_admin() %}
+                        <li><a href="#administracion" class="aide-toc-link" data-aide-anchor><i class="fas fa-cog"></i>Administración</a></li>
+                        {% endif %}
+                        <li><a href="#soporte" class="aide-toc-link" data-aide-anchor><i class="fas fa-life-ring"></i>Contactar al soporte</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- SOMMAIRE MOBILE (accordeon) -->
+            <div class="col-12 d-lg-none">
+                <div class="accordion aide-toc-mobile" id="aide-toc-mobile-accordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#aide-toc-mobile">
+                                <i class="fas fa-list-ul me-2"></i>Contenido
+                            </button>
+                        </h2>
+                        <div id="aide-toc-mobile" class="accordion-collapse collapse" data-bs-parent="#aide-toc-mobile-accordion">
+                            <div class="accordion-body p-0">
+                                <ul class="aide-toc-list">
+                                    <li><a href="#introduccion" class="aide-toc-link" data-aide-anchor><i class="fas fa-rocket"></i>Introducción</a></li>
+                                    <li><a href="#navegacion" class="aide-toc-link" data-aide-anchor><i class="fas fa-compass"></i>Navegación</a></li>
+                                    <li><a href="#dashboard" class="aide-toc-link" data-aide-anchor><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
+                                    <li><a href="#clientes" class="aide-toc-link" data-aide-anchor><i class="fas fa-users"></i>Clientes</a></li>
+                                    <li><a href="#incidencias" class="aide-toc-link" data-aide-anchor><i class="fas fa-exclamation-triangle"></i>Incidencias</a></li>
+                                    <li><a href="#operadores" class="aide-toc-link" data-aide-anchor><i class="fas fa-headset"></i>Operadores</a></li>
+                                    <li><a href="#informes" class="aide-toc-link" data-aide-anchor><i class="fas fa-chart-bar"></i>Informes</a></li>
+                                    <li><a href="#notificaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-bell"></i>Notificaciones</a></li>
+                                    <li><a href="#perfil" class="aide-toc-link" data-aide-anchor><i class="fas fa-user-circle"></i>Perfil</a></li>
+                                    <li><a href="#faq" class="aide-toc-link" data-aide-anchor><i class="fas fa-question-circle"></i>Preguntas frecuentes</a></li>
+                                    {% if current_user.is_authenticated and current_user.is_admin() %}
+                                    <li><a href="#administracion" class="aide-toc-link" data-aide-anchor><i class="fas fa-cog"></i>Administración</a></li>
+                                    {% endif %}
+                                    <li><a href="#soporte" class="aide-toc-link" data-aide-anchor><i class="fas fa-life-ring"></i>Contactar al soporte</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENU -->
+            <main class="col-lg-9">
+                <div id="aide-no-results" class="alert alert-warning d-none aide-no-results" role="status">
+                    <i class="fas fa-search me-2"></i>
+                    Sin resultados. Intenta con otra palabra clave.
+                </div>
+
+                <!-- INTRODUCCION -->
+                <section id="introduccion" class="aide-section" data-aide-keywords="introduccion bienvenida aplicacion fcc gestion clientes incidencias">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-rocket"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Introducción</h2>
+                                <p class="aide-section-lead">Una visión general de lo que puedes hacer con la aplicación.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <p>
+                                Esta aplicación centraliza la <strong>gestión de clientes</strong>,
+                                <strong>incidencias</strong>, <strong>operadores</strong> e
+                                <strong>informes</strong> de Atención al Cliente. Su objetivo es
+                                ofrecer una vista única y rápida del estado del servicio,
+                                con herramientas eficientes para registrar, hacer seguimiento y
+                                resolver casos.
+                            </p>
+                            <div class="aide-feature-grid">
+                                <div class="aide-feature">
+                                    <i class="fas fa-bolt"></i>
+                                    <div>
+                                        <strong>Rapidez</strong>
+                                        <p>Acceso directo a las pantallas más usadas.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <div>
+                                        <strong>Seguridad</strong>
+                                        <p>Permisos según el rol del usuario.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-chart-line"></i>
+                                    <div>
+                                        <strong>Trazabilidad</strong>
+                                        <p>Historial completo de las acciones realizadas.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- NAVEGACION -->
+                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu barra superior dashboard incidencias clientes informes perfil ayuda administracion notificaciones">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-compass"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Navegación</h2>
+                                <p class="aide-section-lead">Encuentra cualquier pantalla en pocos clics.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <div class="aide-feature-grid">
+                                <div class="aide-feature">
+                                    <i class="fas fa-bars"></i>
+                                    <div>
+                                        <strong>Menú principal (izquierda)</strong>
+                                        <p>Dashboard, Incidencias, Clientes, Informes.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-user-circle"></i>
+                                    <div>
+                                        <strong>Menú de usuario (derecha)</strong>
+                                        <p>Perfil, Administración (admin), Ayuda y Salir.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-bell"></i>
+                                    <div>
+                                        <strong>Campana de notificaciones</strong>
+                                        <p>Acceso rápido a las novedades sin leer.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- DASHBOARD -->
+                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen ultimos incidentes">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-tachometer-alt"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Dashboard</h2>
+                                <p class="aide-section-lead">Una vista global del estado del servicio en tiempo real.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-check"></i><span><strong>Indicadores clave (KPI):</strong> total de clientes, incidencias abiertas, resueltas, etc.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Gráficos:</strong> evolución mensual, distribución por estado y por operador.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Últimos incidentes:</strong> acceso directo a las fichas más recientes.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Filtros rápidos:</strong> por agencia, ciudad o periodo.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CLIENTES -->
+                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion red">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-users"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Gestión de Clientes</h2>
+                                <p class="aide-section-lead">Crea, consulta y mantén actualizada la base de clientes.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-plus-circle"></i><span><strong>Nuevo cliente:</strong> menú <em>Clientes</em> → botón <em>Nuevo cliente</em> → completar el formulario y guardar.</span></li>
+                                <li><i class="fas fa-edit"></i><span><strong>Modificar:</strong> abrir la ficha del cliente y pulsar <em>Modificar</em>.</span></li>
+                                <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde el listado, con confirmación.</span></li>
+                                <li><i class="fas fa-id-card"></i><span><strong>Ficha completa:</strong> datos de contacto, red, agencia, ciudad e historial de incidencias.</span></li>
+                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- INCIDENCIAS -->
+                <section id="incidencias" class="aide-section" data-aide-keywords="incidencias crear comentar estado pendiente solucionada bitrix exportar ticket">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Gestión de Incidencias</h2>
+                                <p class="aide-section-lead">Registra, da seguimiento y resuelve incidencias con eficacia.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-plus-circle"></i><span><strong>Nueva incidencia:</strong> menú <em>Incidencias</em> → <em>Nueva incidencia</em> → seleccionar cliente, operador y describir el problema.</span></li>
+                                <li><i class="fas fa-comment-dots"></i><span><strong>Comentarios:</strong> añade comentarios desde la ficha; el equipo recibe una notificación.</span></li>
+                                <li><i class="fas fa-tag"></i><span><strong>Estados disponibles:</strong> <span class="badge badge-attente">Pendiente</span> <span class="badge badge-resolut">Solucionada</span> <span class="badge badge-bitrix">Bitrix</span>.</span></li>
+                                <li><i class="fas fa-file-export"></i><span><strong>Exportar:</strong> generación de PDF de la ficha o exportación a Excel desde el listado.</span></li>
+                                <li><i class="fas fa-history"></i><span><strong>Historial:</strong> cada cambio se registra con fecha, hora y autor.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- OPERADORES -->
+                <section id="operadores" class="aide-section" data-aide-keywords="operadores crear modificar tecnico responsable">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-headset"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Gestión de Operadores</h2>
+                                <p class="aide-section-lead">Mantén la lista de operadores responsables de las incidencias.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-user-plus"></i><span><strong>Nuevo operador:</strong> formulario para añadir un operador con sus datos.</span></li>
+                                <li><i class="fas fa-user-edit"></i><span><strong>Modificar:</strong> actualiza los datos de contacto o la asignación.</span></li>
+                                <li><i class="fas fa-link"></i><span><strong>Asignación:</strong> cada incidencia se asocia a un operador responsable.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- INFORMES -->
+                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion pdf excel filtros estadisticas">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-chart-bar"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Informes</h2>
+                                <p class="aide-section-lead">Consulta resúmenes y exporta datos para análisis externos.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-filter"></i><span><strong>Filtros:</strong> por periodo, agencia, ciudad, operador o estado.</span></li>
+                                <li><i class="fas fa-file-pdf"></i><span><strong>Exportación PDF:</strong> informes listos para compartir.</span></li>
+                                <li><i class="fas fa-file-excel"></i><span><strong>Exportación Excel:</strong> para tratamiento posterior de los datos.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- NOTIFICACIONES -->
+                <section id="notificaciones" class="aide-section" data-aide-keywords="notificaciones campana alertas comentarios marcar leido">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-bell"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Notificaciones</h2>
+                                <p class="aide-section-lead">No te pierdas ningún comentario ni cambio importante.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-bell"></i><span><strong>Campana superior:</strong> muestra el número de notificaciones sin leer.</span></li>
+                                <li><i class="fas fa-mouse-pointer"></i><span><strong>Acceso directo:</strong> al pulsar una notificación se abre la incidencia o el cliente concernido.</span></li>
+                                <li><i class="fas fa-check-double"></i><span><strong>Marcar como leído:</strong> al consultar la incidencia o desde el menú desplegable.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PERFIL -->
+                <section id="perfil" class="aide-section" data-aide-keywords="perfil datos personales cambiar contraseña avatar foto">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-user-circle"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Perfil</h2>
+                                <p class="aide-section-lead">Gestiona tus datos personales y tu contraseña.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-id-badge"></i><span><strong>Datos personales:</strong> nombre, email y avatar.</span></li>
+                                <li><i class="fas fa-key"></i><span><strong>Cambiar contraseña:</strong> sección dedicada con confirmación.</span></li>
+                                <li><i class="fas fa-camera"></i><span><strong>Foto de perfil:</strong> sube tu avatar para personalizar la interfaz.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- FAQ -->
+                <section id="faq" class="aide-section" data-aide-keywords="faq preguntas frecuentes ayuda dudas">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon aide-section-icon-faq"><i class="fas fa-question-circle"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Preguntas frecuentes</h2>
+                                <p class="aide-section-lead">Respuestas rápidas a las dudas más comunes.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <div class="accordion aide-faq" id="aide-faq-accordion">
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="crear cliente nuevo formulario">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-1">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo creo un nuevo cliente?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-1" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Accede a <em>Clientes</em> en el menú principal, pulsa el botón <strong>Nuevo cliente</strong>, completa el formulario y guarda. El cliente aparecerá inmediatamente en el listado.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="registrar incidencia nueva ticket">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-2">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo registro una incidencia?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-2" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Ve a <em>Incidencias</em> → <strong>Nueva incidencia</strong>. Selecciona el cliente, el operador responsable y describe el problema. Al guardar, la incidencia queda en estado <span class="badge badge-attente">Pendiente</span>.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="cambiar estado incidencia pendiente solucionada bitrix">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-3">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo cambio el estado de una incidencia (Pendiente / Solucionada / Bitrix)?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-3" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Abre la ficha de la incidencia, selecciona el nuevo estado en el desplegable correspondiente y guarda. El cambio queda registrado en el historial con fecha, hora y autor.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="comentario incidencia añadir mensaje">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-4">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo añado un comentario a una incidencia?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-4" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            En la ficha de la incidencia, ve a la sección <strong>Comentarios</strong>, escribe tu mensaje y pulsa <em>Publicar</em>. El equipo asignado recibirá una notificación inmediata.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="exportar informe pdf excel">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-5">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo exporto un informe?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-5" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Accede al menú <em>Informes</em>, aplica los filtros que necesites (periodo, agencia, ciudad…) y pulsa el botón <strong>Exportar</strong> para generar un PDF o un Excel listo para descargar.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="cambiar contraseña perfil seguridad">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-6">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo cambio mi contraseña?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-6" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Abre el menú de usuario (avatar arriba a la derecha), pulsa <em>Perfil</em> y dirígete a la sección <strong>Cambiar contraseña</strong>. Introduce la contraseña actual y la nueva dos veces para confirmar.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="notificaciones campana sin leer badge">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-7">
+                                            <i class="fas fa-circle-question me-2"></i>¿Dónde veo mis notificaciones?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-7" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            La campana en la barra superior muestra un <span class="badge bg-danger">badge rojo</span> con el número de notificaciones sin leer. Pulsa la campana para abrir el desplegable y acceder directamente a la incidencia o cliente correspondiente.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="opcion menu admin permisos no veo">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-8">
+                                            <i class="fas fa-circle-question me-2"></i>¿Qué hago si no veo una opción del menú?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-8" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Algunas opciones (Usuarios, Trazabilidad) son exclusivas de los administradores. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <!-- ADMINISTRACION (admin only) -->
+                <section id="administracion" class="aide-section" data-aide-keywords="administracion admin usuarios trazabilidad base de datos mariadb tecnico">
+                    <div class="aide-section-card aide-section-card-admin">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon aide-section-icon-admin"><i class="fas fa-cog"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Administración
+                                    <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo admin</span>
+                                </h2>
+                                <p class="aide-section-lead">Funciones avanzadas reservadas a los administradores.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <div class="aide-feature-grid">
+                                <div class="aide-feature">
+                                    <i class="fas fa-users-cog"></i>
+                                    <div>
+                                        <strong>Usuarios</strong>
+                                        <p>Crear, modificar y eliminar cuentas; gestionar roles y permisos.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    <div>
+                                        <strong>Trazabilidad</strong>
+                                        <p>Historial detallado de todas las acciones realizadas en la aplicación.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-database"></i>
+                                    <div>
+                                        <strong>Base de datos</strong>
+                                        <p>Consulta y mantenimiento de la base de datos de la aplicación.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="aide-admin-tech">
+                                <h3 class="aide-admin-tech-title">
+                                    <i class="fas fa-microchip me-2"></i>Información técnica
+                                </h3>
+                                <ul class="aide-tech-list">
+                                    <li><span class="aide-tech-key">Framework</span><span class="aide-tech-value">Flask + SQLAlchemy</span></li>
+                                    <li><span class="aide-tech-key">Base de datos</span><span class="aide-tech-value">MariaDB - Versión: <code>{{ mariadb_version }}</code></span></li>
+                                    <li><span class="aide-tech-key">Interfaz</span><span class="aide-tech-value">Bootstrap 5</span></li>
+                                    <li><span class="aide-tech-key">Gráficos</span><span class="aide-tech-value">Chart.js</span></li>
+                                </ul>
+                            </div>
+
+                            <div class="aide-admin-migration">
+                                <h3 class="aide-admin-tech-title">
+                                    <i class="fas fa-database me-2"></i>Configuración MariaDB
+                                </h3>
+                                <p class="mb-2">Para conectar la aplicación a MariaDB, define la variable de entorno:</p>
+                                <div class="aide-code-block">
+                                    <pre><code id="aide-code-mariadb">export DATABASE_URL="mysql+pymysql://username:password@localhost/gestion_client"</code></pre>
+                                    <button type="button"
+                                            class="aide-copy-btn"
+                                            data-copy-target="aide-code-mariadb"
+                                            aria-label="Copiar comando">
+                                        <i class="fas fa-copy"></i>
+                                        <span class="aide-copy-label">Copiar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
+                <!-- SOPORTE -->
+                <section id="soporte" class="aide-section" data-aide-keywords="soporte contacto ayuda email correo asistencia">
+                    <div class="aide-section-card aide-section-card-support">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon aide-section-icon-support"><i class="fas fa-life-ring"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">¿Necesitas más ayuda?</h2>
+                                <p class="aide-section-lead">Nuestro equipo de soporte está disponible para resolver tus dudas.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body text-center">
+                            <a href="mailto:anjaharivoni@gmail.com?subject=Soporte%20-%20Centro%20de%20Ayuda"
+                               class="btn btn-danger btn-lg aide-support-btn">
+                                <i class="fas fa-paper-plane me-2"></i>Contactar al soporte
+                            </a>
+                            <p class="aide-support-meta">
+                                <i class="fas fa-envelope me-2"></i>anjaharivoni@gmail.com
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
     </div>
+
+    <!-- BOUTON RETOUR EN HAUT -->
+    <button type="button" id="aide-back-to-top" class="aide-back-to-top" aria-label="Volver arriba">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
 </div>
-{% endblock %} 
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
+
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ===== Scroll fluide pour les ancres =====
+    function smoothScrollTo(targetId) {
+        var el = document.getElementById(targetId);
+        if (!el) return;
+        var offset = 80;
+        var top = el.getBoundingClientRect().top + window.pageYOffset - offset;
+        window.scrollTo({
+            top: top,
+            behavior: prefersReducedMotion ? 'auto' : 'smooth'
+        });
+    }
+
+    document.querySelectorAll('[data-aide-anchor]').forEach(function (link) {
+        link.addEventListener('click', function (ev) {
+            var href = link.getAttribute('href') || '';
+            if (!href.startsWith('#')) return;
+            ev.preventDefault();
+            var id = href.slice(1);
+            smoothScrollTo(id);
+            history.replaceState(null, '', '#' + id);
+            var mobileToc = document.getElementById('aide-toc-mobile');
+            if (mobileToc && mobileToc.classList.contains('show')) {
+                var collapse = bootstrap.Collapse.getInstance(mobileToc);
+                if (collapse) collapse.hide();
+            }
+        });
+    });
+
+    // ===== Scroll-spy : section active dans la sidebar =====
+    var sections = Array.prototype.slice.call(document.querySelectorAll('.aide-section'));
+    var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.aide-toc-link'));
+
+    function updateActiveLink() {
+        if (sections.length === 0) return;
+        var scrollPos = window.pageYOffset + 120;
+        var current = sections[0];
+        for (var i = 0; i < sections.length; i++) {
+            if (sections[i].offsetTop <= scrollPos) {
+                current = sections[i];
+            } else {
+                break;
+            }
+        }
+        var currentId = current.getAttribute('id');
+        tocLinks.forEach(function (link) {
+            var href = link.getAttribute('href') || '';
+            if (href === '#' + currentId) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+    }
+
+    var scrollTimer = null;
+    window.addEventListener('scroll', function () {
+        if (scrollTimer) return;
+        scrollTimer = window.requestAnimationFrame(function () {
+            updateActiveLink();
+            updateBackToTop();
+            updateHeroParallax();
+            scrollTimer = null;
+        });
+    });
+    updateActiveLink();
+
+    // ===== Bouton retour en haut =====
+    var backToTopBtn = document.getElementById('aide-back-to-top');
+    function updateBackToTop() {
+        if (!backToTopBtn) return;
+        if (window.pageYOffset > 300) {
+            backToTopBtn.classList.add('is-visible');
+        } else {
+            backToTopBtn.classList.remove('is-visible');
+        }
+    }
+    if (backToTopBtn) {
+        backToTopBtn.addEventListener('click', function () {
+            window.scrollTo({
+                top: 0,
+                behavior: prefersReducedMotion ? 'auto' : 'smooth'
+            });
+        });
+    }
+
+    // ===== Parallaxe leger sur le hero =====
+    var heroBg = document.querySelector('.aide-hero-bg');
+    function updateHeroParallax() {
+        if (!heroBg || prefersReducedMotion) return;
+        var y = window.pageYOffset;
+        if (y > 600) return;
+        heroBg.style.transform = 'translate3d(0,' + (y * 0.25) + 'px,0)';
+    }
+
+    // ===== Recherche en direct =====
+    var searchInput = document.getElementById('aide-search-input');
+    var searchClear = document.getElementById('aide-search-clear');
+    var noResults = document.getElementById('aide-no-results');
+
+    function normalize(str) {
+        return (str || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function filterContent(query) {
+        var q = normalize(query.trim());
+        var anyVisibleSection = false;
+
+        sections.forEach(function (section) {
+            var keywords = normalize(section.getAttribute('data-aide-keywords') || '');
+            var text = normalize(section.textContent || '');
+            var matchSection = q === '' || keywords.indexOf(q) !== -1 || text.indexOf(q) !== -1;
+
+            var faqItems = section.querySelectorAll('.aide-faq-item');
+            if (faqItems.length > 0 && q !== '') {
+                var anyFaqMatch = false;
+                faqItems.forEach(function (item) {
+                    var itemKeywords = normalize(item.getAttribute('data-aide-keywords') || '');
+                    var itemText = normalize(item.textContent || '');
+                    var match = itemKeywords.indexOf(q) !== -1 || itemText.indexOf(q) !== -1;
+                    item.style.display = match ? '' : 'none';
+                    if (match) anyFaqMatch = true;
+                });
+                matchSection = matchSection && anyFaqMatch;
+            } else {
+                faqItems.forEach(function (item) { item.style.display = ''; });
+            }
+
+            section.style.display = matchSection ? '' : 'none';
+            if (matchSection) anyVisibleSection = true;
+        });
+
+        if (noResults) {
+            if (anyVisibleSection || q === '') {
+                noResults.classList.add('d-none');
+            } else {
+                noResults.classList.remove('d-none');
+            }
+        }
+
+        if (searchClear) {
+            if (q === '') {
+                searchClear.classList.add('d-none');
+            } else {
+                searchClear.classList.remove('d-none');
+            }
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            filterContent(searchInput.value);
+        });
+    }
+    if (searchClear) {
+        searchClear.addEventListener('click', function () {
+            if (!searchInput) return;
+            searchInput.value = '';
+            filterContent('');
+            searchInput.focus();
+        });
+    }
+
+    // ===== Boutons "Copier" =====
+    document.querySelectorAll('.aide-copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var targetId = btn.getAttribute('data-copy-target');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            var text = target.textContent || '';
+            var label = btn.querySelector('.aide-copy-label');
+            var icon = btn.querySelector('i');
+            var originalLabel = label ? label.textContent : '';
+            var originalIcon = icon ? icon.className : '';
+
+            var done = function () {
+                btn.classList.add('is-copied');
+                if (label) label.textContent = '¡Copiado!';
+                if (icon) icon.className = 'fas fa-check';
+                setTimeout(function () {
+                    btn.classList.remove('is-copied');
+                    if (label) label.textContent = originalLabel;
+                    if (icon) icon.className = originalIcon;
+                }, 2000);
+            };
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(function () {
+                    fallbackCopy(text);
+                    done();
+                });
+            } else {
+                fallbackCopy(text);
+                done();
+            }
+        });
+    });
+
+    function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) { /* noop */ }
+        document.body.removeChild(ta);
+    }
+
+    // ===== Fade-in au scroll (IntersectionObserver) =====
+    if ('IntersectionObserver' in window && !prefersReducedMotion) {
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+        sections.forEach(function (section) {
+            section.classList.add('aide-fade-in');
+            observer.observe(section);
+        });
+    } else {
+        sections.forEach(function (section) {
+            section.classList.add('is-visible');
+        });
+    }
+
+    // ===== Ouverture initiale via hash dans l'URL =====
+    if (window.location.hash) {
+        setTimeout(function () {
+            var id = window.location.hash.slice(1);
+            if (document.getElementById(id)) {
+                smoothScrollTo(id);
+            }
+        }, 60);
+    }
+})();
+</script>
+{% endblock %}
