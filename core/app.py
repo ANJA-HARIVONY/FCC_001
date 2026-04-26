@@ -343,7 +343,7 @@ def write_audit(action, id_operateur=None, detail=None):
 
 
 def ensure_incident_notification_table():
-    """Cree la table des notifications si l'application demarre sans migration."""
+    """Crea la tabla de notificaciones si la aplicacion arranca sin migracion."""
     if getattr(ensure_incident_notification_table, '_done', False):
         return
     try:
@@ -351,15 +351,15 @@ def ensure_incident_notification_table():
             IncidentNotification.__table__.create(db.engine)
         ensure_incident_notification_table._done = True
     except Exception:
-        app.logger.exception('Impossible de verifier/creer la table incident_notification')
+        app.logger.exception('No se pudo verificar/crear la tabla incident_notification')
 
 
 def build_comment_notification_message(actor_name, client_name):
-    return f"L'utilisateur {actor_name} a commente votre incidencia du client {client_name}."
+    return f"El usuario {actor_name} ha comentado su incidencia del cliente {client_name}."
 
 
 def create_comment_notifications(incident, actor):
-    """Cree une notification par destinataire concerne, hors auteur du commentaire."""
+    """Crea una notificacion por destinatario afectado, excepto el autor del comentario."""
     ensure_incident_notification_table()
 
     recipient_ids = set()
@@ -383,7 +383,7 @@ def create_comment_notifications(incident, actor):
 
     message = build_comment_notification_message(
         actor.nom,
-        incident.client.nom if incident.client else gettext('client inconnu'),
+        incident.client.nom if incident.client else gettext('cliente desconocido'),
     )
     now = datetime.now()
     for recipient_id in recipient_ids:
@@ -1903,10 +1903,10 @@ def api_incidents_pendientes():
         }), 500
 
 
-@app.route('/api/notifications/commentaires')
+@app.route('/api/notificaciones/comentarios')
 @login_required
 def api_comment_notifications():
-    """Notifications non lues de commentaires pour l'utilisateur courant."""
+    """Notificaciones no leidas de comentarios para el usuario actual."""
     try:
         ensure_incident_notification_table()
         rows = (

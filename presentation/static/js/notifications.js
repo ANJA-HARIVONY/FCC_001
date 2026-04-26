@@ -8,7 +8,7 @@ class NotificationSystem {
     constructor() {
         this.container = document.getElementById('notification-container');
         this.checkInterval = 30 * 60 * 1000; // 30 minutos en milisegundos
-        this.commentCheckInterval = 30 * 1000; // compteur de commentaires plus reactif
+        this.commentCheckInterval = 30 * 1000; // contador de comentarios mas reactivo
         this.notificationDuration = 5 * 1000; // 5 segundos en milisegundos
         this.isActive = true;
         this.shownNotifications = new Set(); // Para evitar duplicados
@@ -78,7 +78,7 @@ class NotificationSystem {
         }
 
         try {
-            const response = await fetch('/api/notifications/commentaires');
+            const response = await fetch('/api/notificaciones/comentarios');
             const data = await response.json();
 
             if (!data.success) {
@@ -97,7 +97,7 @@ class NotificationSystem {
         this.updateCountBadge(this.commentHeaderCountEl, count);
 
         if (!notifications.length) {
-            this.commentListEl.innerHTML = '<div class="dropdown-item-text small text-muted">Aucune notification non lue.</div>';
+            this.commentListEl.innerHTML = '<div class="dropdown-item-text small text-muted">No hay notificaciones sin leer.</div>';
             return;
         }
 

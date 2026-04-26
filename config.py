@@ -27,7 +27,7 @@ class Config:
         'es': 'Español',
         'en': 'English'
     }
-    BABEL_DEFAULT_LOCALE = os.environ.get('BABEL_DEFAULT_LOCALE', 'fr')
+    BABEL_DEFAULT_LOCALE = os.environ.get('BABEL_DEFAULT_LOCALE', 'es')
     BABEL_DEFAULT_TIMEZONE = 'UTC'
     # Catalogues gettext : `i18n/translations/<locale>/LC_MESSAGES/messages.mo`
     BABEL_TRANSLATION_DIRECTORIES = os.path.join(

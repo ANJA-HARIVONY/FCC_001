@@ -76,17 +76,17 @@
                 {% if current_user.is_authenticated %}
                 {% set av = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default_avatar.png') %}
                 <div class="dropdown me-2" id="comment-notifications-dropdown">
-                    <button class="btn btn-outline-light btn-sm notification-bell-btn position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notifications">
+                    <button class="btn btn-outline-light btn-sm notification-bell-btn position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
                         <i class="fas fa-bell"></i>
                         <span class="notification-bell-count badge rounded-pill bg-danger d-none" id="comment-notification-count">0</span>
                     </button>
                     <div class="dropdown-menu dropdown-menu-end notification-menu" id="comment-notification-menu">
                         <div class="dropdown-header d-flex align-items-center justify-content-between">
-                            <span>Notifications</span>
+                            <span>Notificaciones</span>
                             <span class="badge bg-danger d-none" id="comment-notification-header-count">0</span>
                         </div>
                         <div id="comment-notification-list">
-                            <div class="dropdown-item-text small text-muted">Aucune notification non lue.</div>
+                            <div class="dropdown-item-text small text-muted">No hay notificaciones sin leer.</div>
                         </div>
                     </div>
                 </div>
