@@ -49,29 +49,6 @@
                             <i class="fas fa-chart-bar me-1"></i>Informes
                         </a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-edit me-1"></i>Editar
-                        </a>
-                        <ul class="dropdown-menu">
-                            {% if current_user.is_authenticated and current_user.is_admin() %}
-                            <li><a class="dropdown-item" href="{{ url_for('usuarios') }}">
-                                <i class="fas fa-users me-1"></i>Usuarios
-                            </a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('audit_log') }}">
-                                <i class="fas fa-clipboard-list me-1"></i>Trazabilidad
-                            </a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item" href="{{ url_for('base_de_datos') }}">
-                                <i class="fas fa-database me-1"></i>Base de datos
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('aide') }}">
-                            <i class="fas fa-question-circle me-1"></i>
-                        </a>
-                    </li>
                 </ul>
                 {% if current_user.is_authenticated %}
                 {% set av = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default_avatar.png') %}
@@ -99,6 +76,31 @@
                         <li>
                             <a class="dropdown-item" href="{{ url_for('perfil') }}">
                                 <i class="fas fa-user-cog me-2"></i>Perfil
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="fas fa-shield-alt me-2"></i>Administracion</h6></li>
+                        {% if current_user.is_admin() %}
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('usuarios') }}">
+                                <i class="fas fa-users me-2"></i>Usuarios
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('audit_log') }}">
+                                <i class="fas fa-clipboard-list me-2"></i>Trazabilidad
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('base_de_datos') }}">
+                                <i class="fas fa-database me-2"></i>Base de datos
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ url_for('aide') }}">
+                                <i class="fas fa-question-circle me-2"></i>Ayuda
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
