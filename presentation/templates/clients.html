@@ -68,18 +68,18 @@
                             </select>
                         </div>
                         <div class="col-md-3 d-flex align-items-end gap-2 flex-wrap">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Buscar
-                            </button>
-                            <a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
+                            <!--<a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
                                 <i class="fas fa-times"></i> Limpiar
-                            </a>
+                            </a>-->
                             <div class="form-check ms-2">
                                 <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
                                 <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
                                     Memorizar filtros
                                 </label>
                             </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
                             <button type="button" class="btn btn-outline-secondary" id="reset-filters-btn-clients">
                                 <i class="fas fa-undo-alt"></i> Reiniciar
                             </button>

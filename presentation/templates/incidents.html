@@ -99,18 +99,18 @@
                             </div>
                             <!-- Boutons -->
                             <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-search"></i> Buscar
-                                </button>
-                                <a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
+                                <!--<a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="fas fa-times"></i> Limpiar
-                                </a>
+                                </a>-->
                                 <div class="form-check ms-2">
                                     <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
                                     <label class="form-check-label small text-muted" for="remember-filters-toggle">
                                         Memorizar filtros
                                     </label>
                                 </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
                                 <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn">
                                     <i class="fas fa-undo-alt"></i> Reiniciar
                                 </button>
