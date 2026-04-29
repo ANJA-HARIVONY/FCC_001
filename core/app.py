@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_babel import Babel, gettext, ngettext, lazy_gettext, get_locale
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -19,6 +20,18 @@ from config import config
 from io import BytesIO
 from urllib.parse import urlparse, urljoin
 
+# Logger applicatif central : toutes les traces de demarrage et de runtime
+# passent par ce logger plutot que par print(), pour permettre la rotation
+# de fichier en production et l'horodatage cote stdout/stderr.
+_log_level_name = os.environ.get('LOG_LEVEL', 'INFO').upper()
+_log_level = getattr(logging, _log_level_name, logging.INFO)
+logging.basicConfig(
+    level=_log_level,
+    format='%(asctime)s %(levelname)s [%(name)s] %(message)s',
+    datefmt='%Y-%m-%dT%H:%M:%S',
+)
+logger = logging.getLogger('fcc_001')
+
 # Import optionnel de weasyprint
 WEASYPRINT_AVAILABLE = False
 try:
@@ -29,17 +42,15 @@ try:
         test_html = weasyprint.HTML(string='<html><body><h1>Test</h1></body></html>')
         test_html.write_pdf()
         WEASYPRINT_AVAILABLE = True
-        print("✅ WeasyPrint disponible - Fonctionnalités PDF activées")
+        logger.info('WeasyPrint disponible - fonctionnalites PDF activees')
     else:
-        print("⚠️  WeasyPrint désactivé via variable d'environnement")
+        logger.info('WeasyPrint desactive via variable d\'environnement')
 except ImportError as e:
     WEASYPRINT_AVAILABLE = False
-    print("⚠️  WeasyPrint non disponible. Les fonctionnalités PDF seront limitées.")
-    print(f"   Erreur: {str(e)[:100]}...")
+    logger.warning('WeasyPrint non disponible, fonctionnalites PDF limitees: %s', str(e)[:100])
 except Exception as e:
     WEASYPRINT_AVAILABLE = False
-    print("⚠️  Erreur lors du chargement de WeasyPrint. PDF désactivé.")
-    print(f"   Erreur: {str(e)[:100]}...")
+    logger.warning('Erreur lors du chargement de WeasyPrint, PDF desactive: %s', str(e)[:100])
 
 # Créer l'application Flask avec chemins corrects
 app = Flask(__name__, 
@@ -64,9 +75,11 @@ def setup_database_config():
             DB_NAME = os.environ.get('DB_NAME', 'fcc_001_db')
             DB_USER = os.environ.get('DB_USER', 'root')
             DB_PASSWORD = os.environ.get('DB_PASSWORD', 'toor')
-            
-            print(f"🔄 Tentative de connexion à MariaDB: {DB_USER}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
-            
+
+            # On ne logge pas le port ni le nom complet de la base pour limiter
+            # l'utilite de ces logs en cas de fuite (audit M5).
+            logger.info('Tentative de connexion MariaDB sur %s', DB_HOST)
+
             # Test de connexion direct
             connection = pymysql.connect(
                 host=DB_HOST,
@@ -79,18 +92,33 @@ def setup_database_config():
             # Créer la base de données si elle n'existe pas
             with connection.cursor() as cursor:
                 cursor.execute(f"CREATE DATABASE IF NOT EXISTS {DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci")
-                print(f"✅ Base de données '{DB_NAME}' créée/vérifiée")
-            
+                logger.info('Base de donnees verifiee/creee')
+
             connection.close()
-            print("✅ Connexion MariaDB réussie - utilisation de MariaDB")
+            logger.info('Connexion MariaDB reussie')
             return  # Garder la configuration MySQL
             
         except Exception as e:
-            print(f"⚠️  Erreur de connexion à MariaDB: {e}")
-            print("🔄 Basculement vers SQLite pour la démonstration...")
+            # En production, on refuse de basculer silencieusement vers SQLite :
+            # cela masquerait l'incident et pourrait provoquer une perte de
+            # donnees (ecriture dans une base parallele).
+            if config_name == 'production':
+                logger.error('Echec de connexion MariaDB en production: %s', e)
+                raise RuntimeError(
+                    "Connexion MariaDB impossible en production. "
+                    "Verifier DB_HOST/DB_USER/DB_PASSWORD."
+                ) from e
+            logger.warning('Erreur de connexion a MariaDB: %s', e)
+            logger.warning('Basculement vers SQLite (mode demonstration)')
             app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fcc_001_demo.db'
     else:
-        print("🔄 Aucune configuration MySQL trouvée - utilisation de SQLite...")
+        if config_name == 'production':
+            logger.error('Aucune configuration MySQL detectee en production')
+            raise RuntimeError(
+                "Configuration MySQL/MariaDB manquante en production. "
+                "Definir DATABASE_URL ou les variables DB_*."
+            )
+        logger.info('Aucune configuration MySQL detectee, utilisation de SQLite')
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fcc_001_demo.db'
 
 # Configurer la base de données
@@ -113,6 +141,28 @@ if config_name == 'production':
 # Initialiser SQLAlchemy et migrations après configuration
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Protection CSRF active sur toutes les routes mutantes (POST/PUT/PATCH/DELETE).
+# Les formulaires HTML doivent inclure {{ csrf_token() }} ; les fetch doivent
+# envoyer le header X-CSRFToken (utiliser le helper window.fcc.csrfFetch).
+csrf = CSRFProtect(app)
+
+
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    """Reponse uniformisee en cas d'echec CSRF.
+
+    JSON pour les requetes XHR/fetch (Accept: application/json), sinon HTML.
+    """
+    logger.warning('Echec CSRF sur %s depuis %s: %s', request.path, request.remote_addr, e.description)
+    wants_json = (
+        request.accept_mimetypes.best == 'application/json'
+        or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.is_json
+    )
+    if wants_json:
+        return jsonify({'ok': False, 'error': 'CSRF token missing or invalid'}), 400
+    return render_template('403.html'), 400
 
 login_manager = LoginManager()
 
@@ -235,6 +285,46 @@ def admin_required(view_fn):
             abort(403)
         return view_fn(*args, **kwargs)
     return wrapped
+
+
+# CSP minimaliste compatible avec Bootstrap 5, FontAwesome et Chart.js
+# (CDN deja utilises). On garde 'unsafe-inline' pour les scripts/styles inline
+# presents dans les templates ; un PR ulterieur pourra basculer vers nonce.
+_CSP_DIRECTIVES = (
+    "default-src 'self'; "
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+    "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+    "font-src 'self' https://cdnjs.cloudflare.com data:; "
+    "img-src 'self' data: blob:; "
+    "connect-src 'self'; "
+    "frame-ancestors 'none'; "
+    "base-uri 'self'; "
+    "form-action 'self'"
+)
+
+
+@app.after_request
+def apply_security_headers(response):
+    """Injecte les en-tetes HTTP de securite sur toutes les reponses.
+
+    Couvre clickjacking (X-Frame-Options), MIME sniffing (X-Content-Type-Options),
+    fuite de referer, geolocalisation/camera/micro indesirees, et XSS (CSP).
+    HSTS n'est pose que si la requete a ete servie en HTTPS.
+    """
+    response.headers.setdefault('X-Content-Type-Options', 'nosniff')
+    response.headers.setdefault('X-Frame-Options', 'SAMEORIGIN')
+    response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
+    response.headers.setdefault(
+        'Permissions-Policy',
+        'geolocation=(), microphone=(), camera=(), payment=()',
+    )
+    response.headers.setdefault('Content-Security-Policy', _CSP_DIRECTIVES)
+    if request.is_secure:
+        response.headers.setdefault(
+            'Strict-Transport-Security',
+            'max-age=31536000; includeSubDomains',
+        )
+    return response
 
 
 def apply_incident_visibility(query):
@@ -1079,7 +1169,7 @@ def aide():
         mariadb_version = result.fetchone()[0]
     except Exception as e:
         mariadb_version = "Version non disponible"
-        print(f"Erreur lors de la récupération de la version: {e}")
+        logger.warning('Erreur lors de la recuperation de la version BDD: %s', e)
     return render_template('aide.html', mariadb_version=mariadb_version)
 
 # Routes CRUD pour les clients
@@ -2098,11 +2188,11 @@ def create_sample_data():
     malabo = Ciudad.query.filter_by(nombre='Malabo').first()
     ag_malabo = Agencia.query.filter_by(nombre='Malabo II Cede').first()
     if not malabo or not ag_malabo:
-        print('⚠️  Référence ciudad/agencia introuvable — données d\'exemple ignorées.')
+        logger.warning('Reference ciudad/agencia introuvable, donnees d\'exemple ignorees')
         return
 
     if Client.query.count() == 0:
-        print("📊 Création de données d'exemple...")
+        logger.info('Creation de donnees d\'exemple')
 
         mid, aid = malabo.id, ag_malabo.id
         op1 = Operateur(
@@ -2185,19 +2275,21 @@ def create_sample_data():
             db.session.add(incident)
         
         db.session.commit()
-        print("✅ Données d'exemple créées avec succès!")
+        logger.info('Donnees d\'exemple creees avec succes')
 
 # ─────────────────────────────────────────────────────────────
 #  PUNTO 9 — Gestión de la base de datos
 # ─────────────────────────────────────────────────────────────
 
 @app.route('/base-de-datos')
+@admin_required
 def base_de_datos():
-    """Page principale de gestion de la base de données."""
+    """Page principale de gestion de la base de données (admin uniquement)."""
     return render_template('database.html')
 
 
 @app.route('/base-de-datos/verificar', methods=['POST'])
+@admin_required
 def base_de_datos_verificar():
     """Lance la vérification de la BDD et retourne un rapport JSON."""
     try:
@@ -2299,8 +2391,9 @@ def base_de_datos_verificar():
 
 
 @app.route('/base-de-datos/exportar')
+@admin_required
 def base_de_datos_exportar():
-    """Génère et télécharge un fichier .sql compatible HeidiSQL."""
+    """Génère et télécharge un fichier .sql compatible HeidiSQL (admin uniquement)."""
     try:
         import sys
         from io import BytesIO
@@ -2337,14 +2430,18 @@ if __name__ == '__main__':
     # Créer les tables et données d'exemple
     with app.app_context():
         try:
-            print(f"📊 Utilisation de la base: {app.config['SQLALCHEMY_DATABASE_URI']}")
+            # On ne logge pas l'URI complete (peut contenir user:pass) en INFO :
+            # juste le moteur (sqlite/mysql) et le nom de base.
+            uri = app.config.get('SQLALCHEMY_DATABASE_URI', '')
+            engine = uri.split('://', 1)[0] if '://' in uri else uri
+            logger.info('Initialisation de la base (moteur=%s)', engine)
             db.create_all()
             ensure_ciudad_agencia_seed()
             create_sample_data()
-            print("✅ Base de données initialisée avec succès")
+            logger.info('Base de donnees initialisee avec succes')
         except Exception as e:
-            print(f"⚠️  Erreur lors de l'initialisation: {e}")
+            logger.error('Erreur lors de l\'initialisation: %s', e)
     
     # Démarrer l'application
-    print(f"🚀 Démarrage de l'application sur http://localhost:5001")
+    logger.info('Demarrage de l\'application sur http://localhost:5001')
     app.run(debug=True, port=5001, host='0.0.0.0') 

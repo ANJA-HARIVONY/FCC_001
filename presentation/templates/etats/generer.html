@@ -23,6 +23,7 @@
     </div>
 
     <form method="post" action="{{ url_for('etats_generer') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="row">
             <!-- Selección del tipo de informe -->
             <div class="col-lg-8">

@@ -43,6 +43,10 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    # Cookie "remember me" Flask-Login : memes garanties que le cookie de session.
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = 'Lax'
+    REMEMBER_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
 
     # Application
     APP_NAME = os.environ.get('APP_NAME', 'FCC_001 - Atención al Cliente')
@@ -51,6 +55,10 @@ class Config:
     # Pagination
     ITEMS_PER_PAGE_DEFAULT = 10
     ITEMS_PER_PAGE_MAX = 100
+
+    # Limite globale de la taille d'une requete (anti-DoS upload).
+    # Override possible via MAX_CONTENT_LENGTH (en octets).
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
 
 
 class DevelopmentConfig(Config):
@@ -72,11 +80,49 @@ class DevelopmentConfig(Config):
     WEASYPRINT_AVAILABLE = os.environ.get('WEASYPRINT_AVAILABLE', 'True').lower() == 'true'
 
 
+_WEAK_SECRET_KEYS = {
+    'dev-secret-key-change-in-production',
+    'votre-cle-secrete-ici',
+    'changez-moi-en-production-avec-une-cle-secrete-longue',
+    'change_me_generate_with_openssl_rand_hex_32',
+    'your-super-secret-key-change-this-in-production',
+    'production-secret-key-2025',
+    'production-secret-key-change-me-2025',
+}
+
+
 class ProductionConfig(Config):
-    """Configuration pour environnement de production"""
+    """Configuration pour environnement de production.
+
+    En production, on **refuse de demarrer** si :
+      - SECRET_KEY n'est pas defini, ou
+      - SECRET_KEY correspond a un placeholder de developpement, ou
+      - SECRET_KEY est trop court (< 32 caracteres).
+    Cela evite qu'un deploiement utilise silencieusement la cle de fallback
+    et permette la forge de cookies de session.
+    """
 
     DEBUG = False
     TESTING = False
+
+    # Validation stricte de la SECRET_KEY au moment du chargement de la config.
+    _raw_secret = os.environ.get('SECRET_KEY', '')
+    if not _raw_secret:
+        raise RuntimeError(
+            "SECRET_KEY est obligatoire en production. "
+            "Generer avec: openssl rand -hex 32"
+        )
+    if _raw_secret.lower() in _WEAK_SECRET_KEYS or _raw_secret.startswith('CHANGE_ME'):
+        raise RuntimeError(
+            "SECRET_KEY est un placeholder de developpement. "
+            "Generer une cle reelle avec: openssl rand -hex 32"
+        )
+    if len(_raw_secret) < 32:
+        raise RuntimeError(
+            "SECRET_KEY doit faire au moins 32 caracteres en production. "
+            "Generer avec: openssl rand -hex 32"
+        )
+    SECRET_KEY = _raw_secret
 
     # Base de données production (MariaDB) - variables d'environnement Docker
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or (
@@ -89,6 +135,7 @@ class ProductionConfig(Config):
 
     # Sécurité renforcée (pilotable par variable d'environnement)
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'true').lower() == 'true'
+    REMEMBER_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'true').lower() == 'true'
     WTF_CSRF_TIME_LIMIT = 3600
 
     # Performance

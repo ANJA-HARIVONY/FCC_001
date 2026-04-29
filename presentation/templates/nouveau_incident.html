@@ -32,6 +32,7 @@
                 </div>
                 <div class="card-body">
                     <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="client_search" class="form-label">Cliente <span class="text-danger">*</span></label>
@@ -122,12 +123,11 @@ async function loadClientsData() {
         const response = await fetch('/api/clients-search');
         if (response.ok) {
             clientsData = await response.json();
-            console.log(`Données de ${clientsData.length} clients chargées`);
         } else {
             console.error('Erreur lors du chargement des clients');
         }
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur lors du chargement des clients', error);
     }
 }
 

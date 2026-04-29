@@ -17,6 +17,7 @@
                         </div>
                     </div>
                     <form method="POST" action="{{ url_for('upload_avatar_usuario', user_id=current_user.id) }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="file" name="avatar" class="form-control mb-2" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
                         <button type="submit" class="btn btn-primary btn-sm">Actualizar avatar</button>
                     </form>
@@ -28,6 +29,7 @@
                 <div class="card-header">Cambiar contraseña</div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('perfil') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label">Nueva contraseña</label>
                             <input type="password" name="password" class="form-control" minlength="6">

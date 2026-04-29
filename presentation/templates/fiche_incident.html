@@ -134,7 +134,7 @@
                         <div class="col-sm-3"><strong>{{ _('Observaciones') }}:</strong></div>
                         <div class="col-sm-9">
                             {% if incident.observations %}
-                                <textarea class="form-control bg-light" rows="3" readonly resize="none">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n')|safe }}</textarea>
+                                <textarea class="form-control bg-light" rows="3" readonly resize="none">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n') }}</textarea>
                             {% else %}
                                 <em class="text-muted">{{ _('Ninguna observacion') }}</em>
                             {% endif %}
@@ -197,6 +197,7 @@
                         {% if incident.status == 'Pendiente' %}
                         <div class="col-md-4 mb-3">
                             <form method="POST" action="{{ url_for('modifier_incident', id=incident.id) }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="status" value="Solucionadas">
                                 <input type="hidden" name="id_client" value="{{ incident.id_client }}">
                                 <input type="hidden" name="intitule" value="{{ incident.intitule }}">
@@ -350,6 +351,7 @@
     <div class="modal-dialog modal-dialog-scrollable">
         <div class="modal-content">
             <form method="POST" action="{{ url_for('agregar_comentario_incident', id=incident.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalNuevoComentarioLabel">
                         <i class="fas fa-comment-dots"></i> {{ _('Nuevo comentario') }}
