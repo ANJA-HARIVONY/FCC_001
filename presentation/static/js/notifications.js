@@ -46,9 +46,6 @@ class NotificationSystem {
         // Debloquer le contexte audio au premier geste utilisateur
         // (les navigateurs bloquent l'autoplay tant qu'il n'y a pas eu d'interaction)
         this.setupAudioUnlock();
-
-        console.log('✅ Sistema de notificaciones iniciado');
-        console.log(`🔄 Verificación cada ${this.checkInterval / 60000} minutos`);
     }
 
     setupAudioUnlock() {
@@ -78,7 +75,7 @@ class NotificationSystem {
         try {
             this.audioContext = new AudioCtx();
         } catch (error) {
-            console.warn('No se pudo inicializar AudioContext:', error);
+            console.warn('No se pudo inicializar AudioContext', error);
             this.audioContext = null;
         }
         return this.audioContext;
@@ -114,7 +111,7 @@ class NotificationSystem {
             oscillator.start(startTime);
             oscillator.stop(startTime + duration + 0.05);
         } catch (error) {
-            console.warn('Error al reproducir tono:', error);
+            console.warn('Error al reproducir tono', error);
         }
     }
     
@@ -124,8 +121,6 @@ class NotificationSystem {
             const data = await response.json();
             
             if (data.success && data.notifications && data.notifications.length > 0) {
-                console.log(`🔔 ${data.count} incidencias pendientes encontradas`);
-
                 // Mostrar notificaciones para incidencias nuevas
                 let playedSound = false;
                 data.notifications.forEach(incident => {
@@ -149,11 +144,9 @@ class NotificationSystem {
                         }, 60 * 60 * 1000); // 1 hora
                     }
                 });
-            } else {
-                console.log('✅ No hay incidencias pendientes que requieran notificación');
             }
         } catch (error) {
-            console.error('❌ Error al verificar incidencias pendientes:', error);
+            console.error('Error al verificar incidencias pendientes:', error);
         }
     }
 
@@ -167,13 +160,13 @@ class NotificationSystem {
             const data = await response.json();
 
             if (!data.success) {
-                console.error('❌ Error al verificar notificaciones de comentarios:', data.error);
+                console.error('Error al verificar notificaciones de comentarios:', data.error);
                 return;
             }
 
             this.updateCommentNotificationUi(data.count || 0, data.notifications || []);
         } catch (error) {
-            console.error('❌ Error al verificar notificaciones de comentarios:', error);
+            console.error('Error al verificar notificaciones de comentarios:', error);
         }
     }
 
@@ -277,8 +270,6 @@ class NotificationSystem {
         setTimeout(() => {
             this.closeNotification(notification);
         }, this.notificationDuration);
-        
-        console.log(`🔔 Notificación mostrada para incidencia #${incident.id}: ${incident.intitule} (${isRecent ? 'reciente' : 'antigua'})`);
     }
     
     isRecentNotification(tiempoTranscurrido) {
@@ -307,7 +298,6 @@ class NotificationSystem {
     // Método para pausar/reanudar el sistema
     toggleActive() {
         this.isActive = !this.isActive;
-        console.log(`🔔 Sistema de notificaciones ${this.isActive ? 'activado' : 'pausado'}`);
     }
     
     // Método para limpiar todas las notificaciones
@@ -317,7 +307,6 @@ class NotificationSystem {
             this.closeNotification(notification);
         });
         this.shownNotifications.clear();
-        console.log('🧹 Todas las notificaciones eliminadas');
     }
 }
 
@@ -381,6 +370,3 @@ window.debugNotifications = {
         }
     }
 };
-
-console.log('📱 Sistema de notificaciones cargado');
-console.log('🛠️ Funciones de debug disponibles en window.debugNotifications');
