@@ -590,6 +590,8 @@ function applyInitialFilters() {
 
     applyPeriodToUI(currentPeriod);
     applyChartViewToUI(currentViewType);
+    // Aligner les KPI avec la periode restauree (URL/cookie), pas uniquement avec le rendu serveur initial.
+    loadDashboardData(currentPeriod);
 
     if (!hasUrlPeriod && !hasUrlView && canUseSavedFilters && (saved.period || saved.viewType)) {
         showFiltersFeedback();
