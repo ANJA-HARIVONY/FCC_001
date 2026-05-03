@@ -6,7 +6,7 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="dashboard-header d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h2 text-dark mb-0">
                         <i class="fa fa-tachometer text-danger me-2"></i>
@@ -14,11 +14,11 @@
                     </h1>
                     <p class="text-muted">Vista general de las incidencias y estadísticas</p>
                 </div>
-                <div class="d-flex align-items-center">
+                <div class="dashboard-header-controls d-flex align-items-center">
                     <!-- Sélecteur de période -->
-                    <div class="me-4">
+                    <div class="dashboard-period-group me-4">
                         <label for="period-selector" class="form-label mb-0 me-2 text-muted">Período:</label>
-                        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()" style="min-width: 200px;">
+                        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
                             <option value="current_month">Mes en curso</option>
                             <option value="current_week" selected>Semana en curso</option>
                             <option value="last_week">Semana pasada</option>
@@ -65,40 +65,40 @@
     </div>
 
     <!-- Cartes de statistiques -->
-    <div class="row row-cols-1 row-cols-lg-4 mb-4 g-3">
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
         <div class="col">
-            <div class="card stat-card h-100 stagger-in delay-1">
+            <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
                 <div class="card-body text-center">
-                    <div class="stat-number">{{ total_incidents }}</div>
+                    <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
                     <div class="stat-label">Total de Registrados</div>
-                    <i class="fa fa-ticket fa-2x text-danger mt-2"></i>
+                    <div class="stat-card-icon stat-card-icon--registered mx-auto"><i class="fa fa-ticket"></i></div>
                 </div>
             </div>
         </div>
         <div class="col">
-            <div class="card stat-card h-100 stagger-in delay-2">
+            <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
                 <div class="card-body text-center">
-                    <div class="stat-number text-success">{{ incidents_resolus }}</div>
+                    <div class="stat-number stat-card-value text-success" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
                     <div class="stat-label">Solucionadas</div>
-                    <i class="fas fa-check-circle fa-2x text-success mt-2"></i>
+                    <div class="stat-card-icon stat-card-icon--resolved mx-auto"><i class="fas fa-check-circle"></i></div>
                 </div>
             </div>
         </div>
         <div class="col">
-            <div class="card stat-card h-100 stagger-in delay-3">
+            <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
                 <div class="card-body text-center">
-                    <div class="stat-number text-warning">{{ incidents_attente }}</div>
+                    <div class="stat-number stat-card-value text-warning" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
                     <div class="stat-label">Pendientes</div>
-                    <i class="fas fa-clock fa-2x text-warning mt-2"></i>
+                    <div class="stat-card-icon stat-card-icon--pending mx-auto"><i class="fas fa-clock"></i></div>
                 </div>
             </div>
         </div>
         <div class="col">
-            <div class="card stat-card h-100 stagger-in delay-4">
+            <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
                 <div class="card-body text-center">
-                    <div class="stat-number text-info">{{ incidents_bitrix }}</div>
+                    <div class="stat-number stat-card-value text-info" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
                     <div class="stat-label">Bitrix</div>
-                    <i class="fas fa-cog fa-2x text-info mt-2"></i>
+                    <div class="stat-card-icon stat-card-icon--bitrix mx-auto"><i class="fas fa-cog"></i></div>
                 </div>
             </div>
         </div>
@@ -392,7 +392,27 @@ document.addEventListener('DOMContentLoaded', function() {
     initOperateursChart();
     applyInitialFilters();
     updateIncidentsChart(currentViewType);
+
+    animateInitialStatCards();
 });
+
+// Rejoue un count-up sur les valeurs KPI rendues par le serveur a partir de 0.
+function animateInitialStatCards() {
+    const prefersReducedMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+        return;
+    }
+
+    document.querySelectorAll('.stat-card-value').forEach(el => {
+        const target = el.getAttribute('data-stat-target');
+        if (target === null) {
+            return;
+        }
+        el.textContent = '0';
+        animateCount(el, target, 600);
+    });
+}
 
 // Nettoyer les intervalles quand on quitte la page
 window.addEventListener('beforeunload', function() {
@@ -699,37 +719,76 @@ function getCookie(name) {
 
 // Fonction pour afficher l'indicateur de chargement
 function showLoadingIndicator() {
-    // Ajouter une classe de chargement aux cartes de statistiques
     document.querySelectorAll('.stat-card').forEach(card => {
-        card.style.opacity = '0.6';
-        card.style.pointerEvents = 'none';
+        card.classList.add('is-loading');
     });
-    
-    // Afficher un spinner sur le graphique
-    const chartContainer = document.querySelector('.chart-container');
-    if (chartContainer && !chartContainer.querySelector('.loading-spinner')) {
-        const spinner = document.createElement('div');
-        spinner.className = 'loading-spinner text-center position-absolute';
-        spinner.style.cssText = 'top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;';
-        spinner.innerHTML = '<div class="spinner-border text-danger" role="status"><span class="sr-only">Cargando...</span></div>';
-        chartContainer.style.position = 'relative';
-        chartContainer.appendChild(spinner);
-    }
+
+    document.querySelectorAll('.content-card').forEach(card => {
+        card.classList.add('is-loading');
+    });
+
+    document.querySelectorAll('.chart-container').forEach(container => {
+        if (!container.querySelector('.skeleton-chart')) {
+            const skeleton = document.createElement('div');
+            skeleton.className = 'skeleton skeleton-chart';
+            skeleton.setAttribute('aria-hidden', 'true');
+            container.appendChild(skeleton);
+        }
+    });
 }
 
 // Fonction pour masquer l'indicateur de chargement
 function hideLoadingIndicator() {
-    // Retirer la classe de chargement des cartes
     document.querySelectorAll('.stat-card').forEach(card => {
-        card.style.opacity = '1';
-        card.style.pointerEvents = 'auto';
+        card.classList.remove('is-loading');
     });
-    
-    // Masquer le spinner
-    const spinner = document.querySelector('.loading-spinner');
-    if (spinner) {
-        spinner.remove();
+
+    document.querySelectorAll('.content-card').forEach(card => {
+        card.classList.remove('is-loading');
+    });
+
+    document.querySelectorAll('.chart-container .skeleton-chart').forEach(skeleton => {
+        skeleton.remove();
+    });
+}
+
+// Count-up anime sur les valeurs KPI. Respect de prefers-reduced-motion.
+function animateCount(el, targetValue, duration = 500) {
+    if (!el) {
+        return;
     }
+
+    const prefersReducedMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const numericTarget = Number.parseFloat(targetValue);
+    if (!Number.isFinite(numericTarget)) {
+        el.textContent = targetValue;
+        return;
+    }
+
+    const isInteger = Number.isInteger(numericTarget);
+
+    if (prefersReducedMotion || duration <= 0) {
+        el.textContent = isInteger ? numericTarget : numericTarget.toString();
+        return;
+    }
+
+    const startValue = Number.parseFloat(el.textContent.replace(/[^\d.-]/g, '')) || 0;
+    const startTime = performance.now();
+
+    function step(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, Math.max(0, elapsed / duration));
+        const current = startValue + (numericTarget - startValue) * progress;
+        el.textContent = isInteger ? Math.round(current) : current.toFixed(1);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            el.textContent = isInteger ? numericTarget : numericTarget.toString();
+        }
+    }
+
+    window.requestAnimationFrame(step);
 }
 
 // Fonction pour charger les données du dashboard selon la période
@@ -770,10 +829,10 @@ function loadDashboardData(period) {
 function updateStatistics(data) {
     const statNumbers = document.querySelectorAll('.stat-number');
     if (statNumbers.length >= 4) {
-        statNumbers[0].textContent = data.total_incidents;
-        statNumbers[1].textContent = data.incidents_resolus;
-        statNumbers[2].textContent = data.incidents_attente;
-        statNumbers[3].textContent = data.incidents_bitrix;
+        animateCount(statNumbers[0], data.total_incidents);
+        animateCount(statNumbers[1], data.incidents_resolus);
+        animateCount(statNumbers[2], data.incidents_attente);
+        animateCount(statNumbers[3], data.incidents_bitrix);
     }
 }
 
@@ -956,49 +1015,48 @@ function initOperateursChart() {
     border-color: #b02a37;
 }
 
-/* Animation de chargement pour les cartes */
-.stat-card.loading {
-    opacity: 0.6;
-    pointer-events: none;
-    position: relative;
+/* Responsive design : scope au dashboard uniquement */
+#period-selector {
+    min-width: 200px;
 }
 
-.stat-card.loading::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: inherit;
-    z-index: 10;
-}
-
-/* Spinner de chargement */
-.loading-spinner {
-    z-index: 1000;
-}
-
-.loading-spinner .spinner-border {
-    width: 2rem;
-    height: 2rem;
-}
-
-/* Responsive design pour le sélecteur */
-@media (max-width: 768px) {
-    .d-flex.align-items-center {
+@media (max-width: 991.98px) {
+    .dashboard-header {
         flex-direction: column;
         align-items: stretch !important;
+        gap: 0.75rem;
     }
-    
-    .me-4 {
+
+    .dashboard-header-controls {
+        flex-direction: column;
+        align-items: stretch !important;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .dashboard-period-group {
         margin-right: 0 !important;
-        margin-bottom: 1rem;
+        width: 100%;
     }
-    
+
+    .dashboard-header-controls .text-end {
+        text-align: left !important;
+    }
+}
+
+@media (max-width: 575.98px) {
     #period-selector {
-        min-width: 100% !important;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .chart-container .btn-group {
+        display: flex;
+        width: 100%;
+    }
+
+    .chart-container .btn-group > .btn {
+        flex: 1 1 0;
     }
 }
 

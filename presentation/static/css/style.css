@@ -18,6 +18,24 @@
     --anim-base: 220ms;
     --anim-slow: 300ms;
     --anim-ease: cubic-bezier(0.2, 0, 0, 1);
+
+    /* Design tokens UI partages (dashboard + aide.html) */
+    --ui-radius: 18px;
+    --ui-radius-sm: 12px;
+    --ui-shadow-sm: 0 6px 16px rgba(15, 20, 28, 0.08);
+    --ui-shadow-md: 0 12px 32px rgba(15, 20, 28, 0.12);
+    --ui-shadow-lg: 0 24px 60px rgba(15, 20, 28, 0.18);
+    --ui-border: rgba(15, 20, 28, 0.08);
+
+    /* Degrades des pastilles d'icones KPI (alignes sur .aide-section-icon*) */
+    --kpi-gradient-registered: linear-gradient(135deg, rgba(220, 53, 69, 0.14) 0%, rgba(220, 53, 69, 0.04) 100%);
+    --kpi-gradient-resolved: linear-gradient(135deg, rgba(40, 167, 69, 0.14) 0%, rgba(40, 167, 69, 0.04) 100%);
+    --kpi-gradient-pending: linear-gradient(135deg, rgba(255, 193, 7, 0.16) 0%, rgba(255, 193, 7, 0.05) 100%);
+    --kpi-gradient-bitrix: linear-gradient(135deg, rgba(13, 110, 253, 0.12) 0%, rgba(13, 110, 253, 0.04) 100%);
+
+    /* Glass (cartes KPI) */
+    --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 249, 250, 0.88) 100%);
+    --glass-border: rgba(255, 255, 255, 0.6);
 }
 
 /* Styles généraux */
@@ -116,28 +134,43 @@ main.page-enter {
     background-color: rgba(220, 53, 69, 0.08);
 }
 
-/* Cartes de statistiques */
+/* Cartes de statistiques - rendu premium aligne sur .aide-section-card */
 .stat-card {
-    background: linear-gradient(135deg, var(--white) 0%, var(--light-gray) 100%);
+    position: relative;
+    overflow: hidden;
+    background-color: var(--white);
+    background: var(--glass-bg);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid var(--ui-border);
     border-left: 4px solid var(--primary-red);
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-sm);
+    transition: transform var(--anim-base) var(--anim-ease),
+                box-shadow var(--anim-base) var(--anim-ease),
+                border-color var(--anim-base) var(--anim-ease);
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+    box-shadow: var(--ui-shadow-md);
 }
 
 .stat-card .card-body {
     padding: 1.5rem;
 }
 
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: bold;
+.stat-card:hover .stat-card-icon {
+    transform: scale(1.04);
+}
+
+.stat-number,
+.stat-card-value {
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-weight: 700;
+    line-height: 1.1;
     color: var(--primary-red);
+    letter-spacing: -0.01em;
 }
 
 .stat-label {
@@ -145,6 +178,180 @@ main.page-enter {
     font-weight: 500;
     text-transform: uppercase;
     font-size: 0.9rem;
+    letter-spacing: 0.02em;
+}
+
+/* Pastille d'icone - meme forme que .aide-section-icon (rounded square 14px) */
+.stat-card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-top: 0.75rem;
+    border-radius: 14px;
+    font-size: 1.45rem;
+    border: 1px solid rgba(15, 20, 28, 0.06);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    transition: transform var(--anim-fast) var(--anim-ease);
+}
+
+.stat-card-icon--registered {
+    background: var(--kpi-gradient-registered);
+    color: var(--primary-red);
+    border-color: rgba(220, 53, 69, 0.18);
+}
+
+.stat-card-icon--resolved {
+    background: var(--kpi-gradient-resolved);
+    color: #1e8c3a;
+    border-color: rgba(40, 167, 69, 0.22);
+}
+
+.stat-card-icon--pending {
+    background: var(--kpi-gradient-pending);
+    color: #b7791f;
+    border-color: rgba(255, 193, 7, 0.32);
+}
+
+.stat-card-icon--bitrix {
+    background: var(--kpi-gradient-bitrix);
+    color: var(--primary-blue);
+    border-color: rgba(13, 110, 253, 0.2);
+}
+
+/* Accent lateral coherent avec la teinte du KPI */
+.stat-card--registered {
+    border-left-color: var(--primary-red);
+}
+
+.stat-card--resolved {
+    border-left-color: #28a745;
+}
+
+.stat-card--pending {
+    border-left-color: #ffc107;
+}
+
+.stat-card--bitrix {
+    border-left-color: var(--primary-blue);
+}
+
+/* Skeleton loaders (dashboard - cartes KPI, tableaux, graphiques) */
+.skeleton {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    background-color: #e9ecef;
+    background-image: linear-gradient(90deg, #e9ecef 0%, #f3f5f7 50%, #e9ecef 100%);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    border-radius: var(--ui-radius-sm);
+    color: transparent !important;
+    pointer-events: none;
+    user-select: none;
+    animation: skeletonShimmer 1.4s infinite linear;
+}
+
+.skeleton::before,
+.skeleton::after {
+    visibility: hidden;
+}
+
+.skeleton-line {
+    height: 0.9rem;
+    width: 80%;
+    margin: 0.35rem auto;
+}
+
+.skeleton-number {
+    height: clamp(2rem, 4vw, 2.75rem);
+    width: 60%;
+    margin: 0.2rem auto 0.5rem;
+}
+
+.skeleton-chart {
+    position: absolute;
+    inset: 12px;
+    height: auto;
+    width: auto;
+    border-radius: var(--ui-radius-sm);
+}
+
+@keyframes skeletonShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Etat "chargement" des cartes KPI : remplace l'ancien opacity: 0.6 par un shimmer */
+/* !important necessaire pour l'emporter sur les classes utilitaires Bootstrap (text-success, text-warning, text-info) */
+.stat-card.is-loading .stat-card-value {
+    background-color: #e9ecef;
+    background-image: linear-gradient(90deg, #e9ecef 0%, #f3f5f7 50%, #e9ecef 100%);
+    background-size: 200% 100%;
+    background-clip: border-box;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    border-radius: var(--ui-radius-sm);
+    animation: skeletonShimmer 1.4s infinite linear;
+}
+
+.stat-card.is-loading .stat-card-icon {
+    opacity: 0.55;
+}
+
+/* Etat "chargement" des tableaux : shimmer sur les cellules */
+.content-card.is-loading tbody tr td {
+    position: relative;
+    color: transparent !important;
+}
+
+.content-card.is-loading tbody tr td > * {
+    visibility: hidden;
+}
+
+.content-card.is-loading tbody tr td::after {
+    content: '';
+    position: absolute;
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 50%;
+    height: 0.9rem;
+    transform: translateY(-50%);
+    background-color: #e9ecef;
+    background-image: linear-gradient(90deg, #e9ecef 0%, #f3f5f7 50%, #e9ecef 100%);
+    background-size: 200% 100%;
+    border-radius: var(--ui-radius-sm);
+    animation: skeletonShimmer 1.4s infinite linear;
+}
+
+/* Reduced motion : desactive le shimmer et restaure la lisibilite des valeurs */
+@media (prefers-reduced-motion: reduce) {
+    .skeleton,
+    .stat-card.is-loading .stat-card-value,
+    .content-card.is-loading tbody tr td::after {
+        animation: none !important;
+        background-image: none !important;
+        background-color: #e9ecef;
+    }
+
+    .stat-card.is-loading .stat-card-value {
+        color: inherit !important;
+        -webkit-text-fill-color: currentColor !important;
+        background: transparent !important;
+    }
+
+    .content-card.is-loading tbody tr td {
+        color: inherit !important;
+    }
+
+    .content-card.is-loading tbody tr td > * {
+        visibility: visible !important;
+    }
+
+    .content-card.is-loading tbody tr td::after {
+        display: none;
+    }
 }
 
 /* Boutons personnalisés */
@@ -236,27 +443,38 @@ main.page-enter {
     outline-offset: 2px;
 }
 
-/* Cartes de contenu */
+/* Cartes de contenu - alignees sur .aide-section-card */
 .content-card {
     background-color: var(--white);
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: none;
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-sm);
+    border: 1px solid var(--ui-border);
+    overflow: hidden;
     transition: box-shadow var(--anim-base) var(--anim-ease), transform var(--anim-base) var(--anim-ease);
 }
 
 .content-card:hover {
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--ui-shadow-md);
 }
 
 .content-card .card-header {
     background-color: var(--dark-gray);
     color: var(--white);
-    border-radius: 10px 10px 0 0 !important;
+    border-radius: var(--ui-radius) var(--ui-radius) 0 0 !important;
     font-weight: 600;
 }
 
-/* Badges de statut */
+/* Badges de statut - harmonises avec .aide-admin-pill et .aide-hero-badge */
+.badge-resolut,
+.badge-attente,
+.badge-bitrix {
+    border-radius: 999px;
+    padding: 0.35em 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
 .badge-resolut {
     background-color: #28a745;
 }
@@ -270,13 +488,42 @@ main.page-enter {
     background-color: var(--primary-blue);
 }
 
-/* Graphiques */
+/* Tableaux du dashboard - hover premium et separateurs plus doux */
+.content-card .table tbody tr {
+    transition: background-color var(--anim-fast) var(--anim-ease),
+                box-shadow var(--anim-fast) var(--anim-ease);
+}
+
+.content-card .table tbody tr:hover {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 9999px rgba(220, 53, 69, 0.04);
+    transform: none;
+}
+
+.content-card .table tbody td,
+.content-card .table thead th {
+    border-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Graphiques - alignes sur les cartes du centre d'aide */
 .chart-container {
-    background-color: var(--white);
-    border-radius: 10px;
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius);
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--ui-shadow-sm);
     position: relative;
+    transition: box-shadow var(--anim-base) var(--anim-ease);
+}
+
+.chart-container:hover {
+    box-shadow: var(--ui-shadow-md);
+}
+
+.chart-container > .d-flex:first-child {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--ui-border);
+    margin-bottom: 1rem;
 }
 
 .chart-container canvas {
@@ -718,12 +965,13 @@ body.login-page {
    ============================================================ */
 
 .aide-page {
-    --aide-radius: 18px;
-    --aide-radius-sm: 12px;
-    --aide-shadow-sm: 0 6px 16px rgba(15, 20, 28, 0.08);
-    --aide-shadow-md: 0 12px 32px rgba(15, 20, 28, 0.12);
-    --aide-shadow-lg: 0 24px 60px rgba(15, 20, 28, 0.18);
-    --aide-border: rgba(15, 20, 28, 0.08);
+    /* Aliases retro-compatibles : valeurs mutualisees avec le dashboard via --ui-* */
+    --aide-radius: var(--ui-radius);
+    --aide-radius-sm: var(--ui-radius-sm);
+    --aide-shadow-sm: var(--ui-shadow-sm);
+    --aide-shadow-md: var(--ui-shadow-md);
+    --aide-shadow-lg: var(--ui-shadow-lg);
+    --aide-border: var(--ui-border);
     color: var(--dark-gray);
 }
 
@@ -1551,4 +1799,5 @@ body.login-page {
     .aide-shortcut {
         transition: none !important;
     }
+}
 }
