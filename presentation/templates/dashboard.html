@@ -140,7 +140,7 @@
     </div>
 
     <!-- Tableau des derniers incidents -->
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card content-card">
                 <div class="card-header">
@@ -890,11 +890,11 @@ function updateClientsRecurrents(clients) {
     
     if (tbody) {
         if (clients && clients.length > 0) {
-            tbody.innerHTML = clients.map(client => `
+            tbody.innerHTML = clients.map((client, i) => `
                 <tr>
-                    <td><strong>#${client.id}</strong></td>
+                    <td><strong># ${i + 1}</strong></td>
                     <td>
-                        <a href="/clients/${client.id}" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
+                        <a href="/clients/${client.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
                         <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${client.adresse || ''}</small>
                     </td>
                     <td>${client.incidents}</td>
