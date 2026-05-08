@@ -60,6 +60,10 @@ class Config:
     # Override possible via MAX_CONTENT_LENGTH (en octets).
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
 
+    # Informes « Inteligentes » : False = contenu déterministe local (sans API Kimi).
+    # Mettre ETATS_USE_AI=true dans l'environnement pour réactiver l'appel IA.
+    ETATS_USE_AI = os.environ.get('ETATS_USE_AI', '').lower() in ('1', 'true', 'yes')
+
 
 class DevelopmentConfig(Config):
     """Configuration pour environnement de développement"""

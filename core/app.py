@@ -14,7 +14,7 @@ import re
 import time
 import logging
 from logging.handlers import RotatingFileHandler
-from sqlalchemy import func, text, inspect
+from sqlalchemy import func, text, inspect, case
 from sqlalchemy.orm import joinedload
 from config import config
 from io import BytesIO
@@ -2065,7 +2065,10 @@ def api_incidents_par_date():
     if view_type == 'month':
         # Grouper par mois - compatible MySQL/MariaDB
         query = apply_incident_visibility(db.session.query(
-            func.date_format(Incident.date_heure, '%Y-%m-01'), func.count(Incident.id)
+            func.date_format(Incident.date_heure, '%Y-%m-01').label('period_key'),
+            func.count(Incident.id).label('count'),
+            func.sum(case((Incident.status == 'Solucionadas', 1), else_=0)).label('solucionadas'),
+            func.sum(case((Incident.status == 'Bitrix', 1), else_=0)).label('bitrix'),
         ))
         if base_filter:
             query = query.filter(*base_filter)
@@ -2077,14 +2080,19 @@ def api_incidents_par_date():
         ).all()
         
         return jsonify([{
-            'date': datetime.strptime(date_str, '%Y-%m-%d').strftime('%m/%Y'), 
-            'count': count
-        } for date_str, count in incidents])
+            'date': datetime.strptime(date_str, '%Y-%m-%d').strftime('%m/%Y'),
+            'count': count,
+            'solucionadas': int(solucionadas or 0),
+            'bitrix': int(bitrix or 0),
+        } for date_str, count, solucionadas, bitrix in incidents])
         
     elif view_type == 'year':
         # Grouper par année - compatible MySQL/MariaDB
         query = apply_incident_visibility(db.session.query(
-            func.date_format(Incident.date_heure, '%Y-01-01'), func.count(Incident.id)
+            func.date_format(Incident.date_heure, '%Y-01-01').label('period_key'),
+            func.count(Incident.id).label('count'),
+            func.sum(case((Incident.status == 'Solucionadas', 1), else_=0)).label('solucionadas'),
+            func.sum(case((Incident.status == 'Bitrix', 1), else_=0)).label('bitrix'),
         ))
         if base_filter:
             query = query.filter(*base_filter)
@@ -2096,14 +2104,19 @@ def api_incidents_par_date():
         ).all()
         
         return jsonify([{
-            'date': datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y'), 
-            'count': count
-        } for date_str, count in incidents])
+            'date': datetime.strptime(date_str, '%Y-%m-%d').strftime('%Y'),
+            'count': count,
+            'solucionadas': int(solucionadas or 0),
+            'bitrix': int(bitrix or 0),
+        } for date_str, count, solucionadas, bitrix in incidents])
         
     else:
         # Par défaut : grouper par date
         query = apply_incident_visibility(db.session.query(
-            func.date(Incident.date_heure), func.count(Incident.id)
+            func.date(Incident.date_heure).label('period_key'),
+            func.count(Incident.id).label('count'),
+            func.sum(case((Incident.status == 'Solucionadas', 1), else_=0)).label('solucionadas'),
+            func.sum(case((Incident.status == 'Bitrix', 1), else_=0)).label('bitrix'),
         ))
         if base_filter:
             query = query.filter(*base_filter)
@@ -2111,9 +2124,11 @@ def api_incidents_par_date():
         incidents = query.group_by(func.date(Incident.date_heure)).order_by(func.date(Incident.date_heure)).all()
         
         return jsonify([{
-            'date': date_obj.strftime('%d/%m'), 
-            'count': count
-        } for date_obj, count in incidents])
+            'date': date_obj.strftime('%d/%m'),
+            'count': count,
+            'solucionadas': int(solucionadas or 0),
+            'bitrix': int(bitrix or 0),
+        } for date_obj, count, solucionadas, bitrix in incidents])
 
 def get_date_range_for_period(period):
     """Retourne les dates de début et fin selon la période sélectionnée"""
