@@ -30,7 +30,7 @@
                         <i class="fas fa-filter me-2"></i>
                         Filtros de búsqueda
                     </h5>
-                    {% if search_query or status_filter or operateur_filter or date_from or date_to %}
+                    {% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %}
                     <span class="badge bg-light text-dark ms-0 ms-md-2" id="filtrosActivos">
                         Filtros activos
                     </span>
@@ -68,6 +68,30 @@
                                     <option value="">Todos</option>
                                     {% for op in operateurs|default([]) %}
                                     <option value="{{ op.id }}" {% if operateur_filter and op.id|string == operateur_filter|string %}selected{% endif %}>{{ op.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Ciudad -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-city me-1"></i>Ciudad
+                                </label>
+                                <select class="form-select form-select-sm" id="ciudad" name="ciudad">
+                                    <option value="">Todas las ciudades</option>
+                                    {% for c in ciudades|default([]) %}
+                                    <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!-- Agencia -->
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="agencia" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-building me-1"></i>Agencia
+                                </label>
+                                <select class="form-select form-select-sm" id="agencia" name="agencia">
+                                    <option value="">Todas las agencias</option>
+                                    {% for a in agencias|default([]) %}
+                                    <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -136,7 +160,7 @@
                         <i class="fas fa-list me-2"></i>
                         Registros de las Incidencias 
                         {% if incidents.items %}
-                            ({{ incidents.total }} total{% if search_query or status_filter or operateur_filter or date_from or date_to %} - {{ incidents.items|length }} mostrados{% endif %})
+                            ({{ incidents.total }} total{% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %} - {{ incidents.items|length }} mostrados{% endif %})
                         {% endif %}
                     </h5>
                     {% if incidents.items %}
@@ -153,7 +177,7 @@
                                 <tr>
                                     <th class="text-white">ID</th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
                                             Client
                                             {% if sort_by|default('') == 'client' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -163,7 +187,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
                                             Asunto
                                             {% if sort_by|default('') == 'asunto' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -174,7 +198,7 @@
                                     </th>
                                     <th class="text-white">Status</th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
                                             Usuario
                                             {% if sort_by|default('') == 'operador' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -184,7 +208,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
                                             Fecha/Hora
                                             {% if sort_by|default('') == 'fecha' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -282,7 +306,7 @@
                                 <!-- Bouton Précédent -->
                                 {% if incidents.has_prev %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.prev_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.prev_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
                                             <i class="fas fa-chevron-left"></i> Anterior
                                         </a>
                                     </li>
@@ -297,7 +321,7 @@
                                     {% if page_num %}
                                         {% if page_num != incidents.page %}
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ url_for('incidents', page=page_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                                <a class="page-link" href="{{ url_for('incidents', page=page_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
                                                     {{ page_num }}
                                                 </a>
                                             </li>
@@ -316,7 +340,7 @@
                                 <!-- Bouton Suivant -->
                                 {% if incidents.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.next_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.next_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
                                             Siguiente <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </li>
@@ -342,7 +366,7 @@
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                        {% if search_query or status_filter or operateur_filter or date_from or date_to %}
+                        {% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %}
                             <h5 class="text-muted">No se encontraron incidencias</h5>
                             <p class="text-muted">Intente cambiar los filtros de búsqueda</p>
                             <a href="{{ url_for('incidents') }}" class="btn btn-outline-primary">
@@ -478,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cookieName = 'incidents_filters_v1';
     const cookieMaxAge = 30 * 24 * 60 * 60;
     const cookieScope = 'incidents_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
-    const trackedParams = ['status', 'operateur', 'date_from', 'date_to', 'per_page'];
+    const trackedParams = ['status', 'operateur', 'ciudad', 'agencia', 'date_from', 'date_to', 'per_page'];
 
     function setCookie(name, value, maxAgeSeconds) {
         document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
@@ -504,6 +528,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return {
             status: document.getElementById('status').value || '',
             operateur: document.getElementById('operateur').value || '',
+            ciudad: document.getElementById('ciudad').value || '',
+            agencia: document.getElementById('agencia').value || '',
             date_from: document.getElementById('date_from').value || '',
             date_to: document.getElementById('date_to').value || '',
             per_page: document.getElementById('per_page').value || '50'
@@ -546,6 +572,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyFilters(filters) {
         document.getElementById('status').value = filters.status || '';
         document.getElementById('operateur').value = filters.operateur || '';
+        document.getElementById('ciudad').value = filters.ciudad || '';
+        document.getElementById('agencia').value = filters.agencia || '';
         document.getElementById('date_from').value = filters.date_from || '';
         document.getElementById('date_to').value = filters.date_to || '';
         document.getElementById('per_page').value = filters.per_page || '50';
@@ -588,6 +616,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
     form.addEventListener('submit', function() {
         saveFilters();
+    });
+
+    const ciudadSelect = document.getElementById('ciudad');
+    const agenciaSelect = document.getElementById('agencia');
+    const selectedAgencia = agenciaSelect.value;
+    const initialAgenciaOptions = agenciaSelect.innerHTML;
+
+    async function loadAgencias(idCiudad, keepSelection) {
+        if (!idCiudad) {
+            agenciaSelect.innerHTML = initialAgenciaOptions;
+            agenciaSelect.value = '';
+            return;
+        }
+        agenciaSelect.innerHTML = '<option value="">Todas las agencias</option>';
+        try {
+            const response = await fetch('/api/agencias/' + idCiudad);
+            if (!response.ok) {
+                return;
+            }
+            const agencias = await response.json();
+            agencias.forEach(function(agencia) {
+                const option = document.createElement('option');
+                option.value = agencia.id;
+                option.textContent = agencia.nombre;
+                if (keepSelection && String(agencia.id) === String(selectedAgencia)) {
+                    option.selected = true;
+                }
+                agenciaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar agencias:', error);
+        }
+    }
+
+    ciudadSelect.addEventListener('change', function() {
+        const previousAgencia = agenciaSelect.value;
+        loadAgencias(this.value, false).then(function() {
+            if (previousAgencia && Array.from(agenciaSelect.options).some(function(option) {
+                return option.value === previousAgencia;
+            })) {
+                agenciaSelect.value = previousAgencia;
+            }
+        });
     });
 
     const dateFromInput = document.getElementById('date_from');

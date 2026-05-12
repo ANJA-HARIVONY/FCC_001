@@ -1183,6 +1183,17 @@ def clients():
     # Filtres optionnels
     search_query = request.args.get('search', '')
     ville_filter = request.args.get('ville', '')
+    ciudad_filter = request.args.get('ciudad', '', type=str)
+    ciudad_id = None
+    if ciudad_filter:
+        try:
+            ciudad_id = int(ciudad_filter)
+            if not db.session.get(Ciudad, ciudad_id):
+                ciudad_filter = ''
+                ciudad_id = None
+        except (ValueError, TypeError):
+            ciudad_filter = ''
+            ciudad_id = None
     
     # Construction de la requête de base
     query = Client.query
@@ -1202,6 +1213,9 @@ def clients():
     
     if ville_filter:
         query = query.filter(Client.ville.contains(ville_filter))
+
+    if ciudad_id:
+        query = query.filter(Client.id_ciudad == ciudad_id)
     
     # Appliquer le tri
     if sort_by == 'id':
@@ -1232,11 +1246,14 @@ def clients():
     # Obtenir la liste des villes pour le filtre
     villes = db.session.query(Client.ville).distinct().order_by(Client.ville).all()
     villes_list = [ville[0] for ville in villes if ville[0]]
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
     
     return render_template('clients.html', 
                          clients=clients_paginated,
                          search_query=search_query,
                          ville_filter=ville_filter,
+                         ciudad_filter=ciudad_filter,
+                         ciudades=ciudades,
                          villes_list=villes_list,
                          per_page=per_page,
                          sort_by=sort_by,
@@ -1577,6 +1594,36 @@ def incidents():
     date_from = request.args.get('date_from', '')
     date_to = request.args.get('date_to', '')
     operateur_filter = request.args.get('operateur', '', type=str)
+    ciudad_filter = request.args.get('ciudad', '', type=str)
+    agencia_filter = request.args.get('agencia', '', type=str)
+    ciudad_id = None
+    if ciudad_filter:
+        try:
+            ciudad_id = int(ciudad_filter)
+            if not db.session.get(Ciudad, ciudad_id):
+                ciudad_filter = ''
+                ciudad_id = None
+        except (ValueError, TypeError):
+            ciudad_filter = ''
+            ciudad_id = None
+
+    agencia_id = None
+    if agencia_filter:
+        try:
+            agencia_id = int(agencia_filter)
+            agencia = db.session.get(Agencia, agencia_id)
+            if not agencia:
+                agencia_filter = ''
+                agencia_id = None
+            elif ciudad_id and agencia.id_ciudad != ciudad_id:
+                agencia_filter = ''
+                agencia_id = None
+            elif not current_user.is_admin() and agencia_id != current_user.id_agencia:
+                agencia_filter = ''
+                agencia_id = None
+        except (ValueError, TypeError):
+            agencia_filter = ''
+            agencia_id = None
     
     # Construction de la requête de base
     query = Incident.query
@@ -1621,6 +1668,12 @@ def incidents():
                 Client.nom.contains(search_query)
             )
         )
+
+    if ciudad_id:
+        query = query.filter(Incident.client.has(id_ciudad=ciudad_id))
+
+    if agencia_id:
+        query = query.filter(Incident.operateur.has(id_agencia=agencia_id))
     
     # Filtres par date
     if date_from:
@@ -1675,6 +1728,16 @@ def incidents():
             Operateur.actif.is_(True),
         ).order_by(Operateur.nom).all()
     )
+    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    if current_user.is_admin():
+        agencias_query = Agencia.query
+        if ciudad_id:
+            agencias_query = agencias_query.filter_by(id_ciudad=ciudad_id)
+        agencias = agencias_query.order_by(Agencia.nombre).all()
+    else:
+        agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
+        if ciudad_id and agencias and agencias[0].id_ciudad != ciudad_id:
+            agencias = []
 
     return render_template('incidents.html', 
                          incidents=incidents_paginated,
@@ -1683,6 +1746,10 @@ def incidents():
                          date_from=date_from,
                          date_to=date_to,
                          operateur_filter=operateur_filter,
+                         ciudad_filter=ciudad_filter,
+                         agencia_filter=agencia_filter,
+                         ciudades=ciudades,
+                         agencias=agencias,
                          operateurs=operateurs,
                          per_page=per_page,
                          sort_by=sort_by,

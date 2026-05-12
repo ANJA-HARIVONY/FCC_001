@@ -30,7 +30,7 @@
                         <i class="fas fa-filter me-2"></i>
                         Filtros de búsqueda
                     </h5>
-                    {% if search_query or ville_filter %}
+                    {% if search_query or ville_filter or ciudad_filter %}
                     <span class="badge bg-light text-dark ms-0 ms-md-2" id="filtrosActivos">
                         Filtros activos
                     </span>
@@ -53,6 +53,17 @@
                                 <option value="">Todos los barrios</option>
                                 {% for ville in villes_list %}
                                 <option value="{{ ville }}" {% if ville_filter == ville %}selected{% endif %}>{{ ville }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
+                                <i class="fas fa-city me-1"></i>Ciudad
+                            </label>
+                            <select class="form-select" id="ciudad" name="ciudad">
+                                <option value="">Todas las ciudades</option>
+                                {% for c in ciudades|default([]) %}
+                                <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -101,7 +112,7 @@
                         <i class="fas fa-list me-2"></i>
                         Lista de los clientes 
                         {% if clients.items %}
-                            ({{ clients.total }} total{% if search_query or ville_filter %} - {{ clients.items|length }} mostrados{% endif %})
+                            ({{ clients.total }} total{% if search_query or ville_filter or ciudad_filter %} - {{ clients.items|length }} mostrados{% endif %})
                         {% endif %}
                     </h5>
                     {% if clients.items %}
@@ -117,7 +128,7 @@
                             <thead>
                                 <tr>
                                     <th>
-                                        <a href="{{ url_for('clients', sort='id', order='asc' if sort_by|default('') == 'id' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('clients', sort='id', order='asc' if sort_by|default('') == 'id' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter) }}" class="text-white text-decoration-none">
                                             ID
                                             {% if sort_by|default('') == 'id' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -127,7 +138,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('clients', sort='nombre', order='asc' if sort_by|default('') == 'nombre' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('clients', sort='nombre', order='asc' if sort_by|default('') == 'nombre' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter) }}" class="text-white text-decoration-none">
                                             Nombre
                                             {% if sort_by|default('') == 'nombre' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -138,7 +149,7 @@
                                     </th>
                                     <th class="text-white">Teléfono</th>
                                     <th>
-                                        <a href="{{ url_for('clients', sort='direccion', order='asc' if sort_by|default('') == 'direccion' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('clients', sort='direccion', order='asc' if sort_by|default('') == 'direccion' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter) }}" class="text-white text-decoration-none">
                                             Dirección
                                             {% if sort_by|default('') == 'direccion' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -152,7 +163,7 @@
                                     <th class="text-white">IP Router</th>
                                     <th class="text-white">IP Antea</th>
                                     <th>
-                                        <a href="{{ url_for('clients', sort='incidents', order='asc' if sort_by|default('') == 'incidents' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('clients', sort='incidents', order='asc' if sort_by|default('') == 'incidents' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter) }}" class="text-white text-decoration-none">
                                             Incidencias
                                             {% if sort_by|default('') == 'incidents' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -223,7 +234,7 @@
                                 <!-- Bouton Précédent -->
                                 {% if clients.has_prev %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('clients', page=clients.prev_num, per_page=per_page, ville=ville_filter, search=search_query) }}">
+                                        <a class="page-link" href="{{ url_for('clients', page=clients.prev_num, per_page=per_page, ville=ville_filter, ciudad=ciudad_filter, search=search_query) }}">
                                             <i class="fas fa-chevron-left"></i> Anterior
                                         </a>
                                     </li>
@@ -238,7 +249,7 @@
                                     {% if page_num %}
                                         {% if page_num != clients.page %}
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ url_for('clients', page=page_num, per_page=per_page, ville=ville_filter, search=search_query) }}">
+                                                <a class="page-link" href="{{ url_for('clients', page=page_num, per_page=per_page, ville=ville_filter, ciudad=ciudad_filter, search=search_query) }}">
                                                     {{ page_num }}
                                                 </a>
                                             </li>
@@ -257,7 +268,7 @@
                                 <!-- Bouton Suivant -->
                                 {% if clients.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('clients', page=clients.next_num, per_page=per_page, ville=ville_filter, search=search_query) }}">
+                                        <a class="page-link" href="{{ url_for('clients', page=clients.next_num, per_page=per_page, ville=ville_filter, ciudad=ciudad_filter, search=search_query) }}">
                                             Siguiente <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </li>
@@ -283,7 +294,7 @@
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
-                        {% if search_query or ville_filter %}
+                        {% if search_query or ville_filter or ciudad_filter %}
                             <h5 class="text-muted">No se encontraron clientes</h5>
                             <p class="text-muted">Intente cambiar los filtros de búsqueda</p>
                             <a href="{{ url_for('clients') }}" class="btn btn-outline-primary">
@@ -444,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cookieName = 'clients_filters_v1';
     const cookieMaxAge = 30 * 24 * 60 * 60;
     const cookieScope = 'clients_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
-    const trackedParams = ['search', 'ville', 'per_page'];
+    const trackedParams = ['search', 'ville', 'ciudad', 'per_page'];
 
     function setCookie(name, value, maxAgeSeconds) {
         document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
@@ -470,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return {
             search: document.getElementById('search').value || '',
             ville: document.getElementById('ville').value || '',
+            ciudad: document.getElementById('ciudad').value || '',
             per_page: document.getElementById('per_page').value || '50'
         };
     }
@@ -510,6 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function applyFilters(filters) {
         document.getElementById('search').value = filters.search || '';
         document.getElementById('ville').value = filters.ville || '';
+        document.getElementById('ciudad').value = filters.ciudad || '';
         document.getElementById('per_page').value = filters.per_page || '50';
     }
 
