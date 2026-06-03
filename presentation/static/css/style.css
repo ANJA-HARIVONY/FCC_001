@@ -1716,6 +1716,28 @@ body.login-page {
     transform: translateY(0);
 }
 
+/* ---------- Horloge ---------- */
+.clock {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-left: 1rem;
+}
+
+.clock span {
+    display: inline-block;
+    width: 20px;
+    text-align: center;
+    margin-right: 0.2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--white);
+    margin-right: 0.2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--white);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 991.98px) {
     .aide-hero {
