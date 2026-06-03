@@ -58,6 +58,8 @@ services:
       mariadb:
         condition: service_healthy
     environment:
+      # Time zone
+      TZ: Africa/Malabo
       # Configuration Flask
       FLASK_ENV: production
       FLASK_APP: core/app.py
