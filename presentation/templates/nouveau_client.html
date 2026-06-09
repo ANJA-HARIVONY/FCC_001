@@ -58,6 +58,16 @@
                                 <input type="text" class="form-control" id="ville" name="ville" required>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
+                            <select class="form-select" id="categoria" name="categoria" required>
+                                {% for cat in categorias_cliente|default(['particular', 'corporativo']) %}
+                                <option value="{{ cat }}" {% if cat == categoria_default|default('particular') %}selected{% endif %}>
+                                    {{ categoria_cliente_labels.get(cat, cat) }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
                         {% if ciudades %}
                         <div class="mb-3">
                             <label for="id_ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>

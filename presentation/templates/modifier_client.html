@@ -33,6 +33,7 @@
                 <div class="card-body">
                     <form method="POST">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="next" value="{{ next_url }}">
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="nom" class="form-label">Nombre del Cliente <span class="text-danger">*</span></label>
@@ -53,6 +54,16 @@
                                 <label for="ville" class="form-label">Barrio <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="ville" name="ville" value="{{ client.ville }}" required>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
+                            <select class="form-select" id="categoria" name="categoria" required>
+                                {% for cat in categorias_cliente|default(['particular', 'corporativo']) %}
+                                <option value="{{ cat }}" {% if client.categoria == cat or (not client.categoria and cat == 'particular') %}selected{% endif %}>
+                                    {{ categoria_cliente_labels.get(cat, cat) }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
                         {% if ciudades %}
                         <div class="mb-3">

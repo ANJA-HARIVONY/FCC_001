@@ -217,6 +217,41 @@ class Agencia(db.Model):
         return f'<Agencia {self.nombre}>'
 
 
+CATEGORIAS_CLIENTE = ('particular', 'corporativo')
+CATEGORIA_CLIENTE_DEFAULT = 'particular'
+CATEGORIA_CLIENTE_LABELS = {
+    'particular': 'Particular',
+    'corporativo': 'Corporativo',
+}
+CORPORATIVO_NOM_KEYWORDS = (
+    'ministerio', 'embajada', 'eglng', 'pnud', 'unrco', 'unge',
+    'federacion', 'societe general', 'societe',
+)
+
+
+def normalize_categoria_cliente(value, default=CATEGORIA_CLIENTE_DEFAULT):
+    if value in CATEGORIAS_CLIENTE:
+        return value
+    return default
+
+
+def parse_categoria_filter(value):
+    if value in CATEGORIAS_CLIENTE:
+        return value
+    return None
+
+
+def nom_indica_corporativo(nom):
+    if not nom:
+        return False
+    lower = nom.lower()
+    return any(keyword in lower for keyword in CORPORATIVO_NOM_KEYWORDS)
+
+
+def categoria_cliente_label(value):
+    return CATEGORIA_CLIENTE_LABELS.get(value, CATEGORIA_CLIENTE_LABELS[CATEGORIA_CLIENTE_DEFAULT])
+
+
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
@@ -226,6 +261,7 @@ class Client(db.Model):
     ip_router = db.Column(db.String(50), nullable=True)
     ip_antea = db.Column(db.String(50), nullable=True)
     id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=True)
+    categoria = db.Column(db.String(20), nullable=False, default=CATEGORIA_CLIENTE_DEFAULT, index=True)
     ciudad_row = db.relationship('Ciudad', backref=db.backref('clients', lazy=True))
     incidents = db.relationship('Incident', backref='client', lazy=True)
 
@@ -444,6 +480,39 @@ def ensure_incident_notification_table():
         app.logger.exception('No se pudo verificar/crear la tabla incident_notification')
 
 
+def ensure_client_categoria_column():
+    """Añade client.categoria y reclasifica clientes corporativos si falta la columna."""
+    if getattr(ensure_client_categoria_column, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('client'):
+            ensure_client_categoria_column._done = True
+            return
+
+        columns = {col['name'] for col in inspector.get_columns('client')}
+        if 'categoria' not in columns:
+            with db.engine.begin() as conn:
+                conn.execute(text(
+                    "ALTER TABLE client ADD COLUMN categoria VARCHAR(20) NOT NULL DEFAULT 'particular'"
+                ))
+                try:
+                    conn.execute(text('CREATE INDEX ix_client_categoria ON client (categoria)'))
+                except Exception:
+                    pass
+
+            db.session.expire_all()
+            for client in Client.query.all():
+                if nom_indica_corporativo(client.nom):
+                    client.categoria = 'corporativo'
+            db.session.commit()
+
+        ensure_client_categoria_column._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear la columna client.categoria')
+
+
 def build_comment_notification_message(actor_name, client_name):
     return f"El usuario {actor_name} ha comentado su incidencia del cliente {client_name}."
 
@@ -644,6 +713,13 @@ def _safe_redirect_target(target):
     return target
 
 
+def _resolve_next_url(default=None):
+    """URL de retour sûre (liste filtrée, fiche, etc.) depuis GET ou POST."""
+    default = default or url_for('clients')
+    target = request.form.get('next') if request.method == 'POST' else request.args.get('next')
+    return _safe_redirect_target(target) or default
+
+
 def ensure_ciudad_agencia_seed():
     """Données de référence ville → agence (point 10.1)."""
     if Ciudad.query.count() > 0:
@@ -673,6 +749,7 @@ def acceso_denegado(_e):
 
 @app.before_request
 def require_authentication():
+    ensure_client_categoria_column()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -1184,6 +1261,10 @@ def clients():
     search_query = request.args.get('search', '')
     ville_filter = request.args.get('ville', '')
     ciudad_filter = request.args.get('ciudad', '', type=str)
+    categoria_filter = request.args.get('categoria', '', type=str)
+    categoria_value = parse_categoria_filter(categoria_filter)
+    if categoria_filter and not categoria_value:
+        categoria_filter = ''
     ciudad_id = None
     if ciudad_filter:
         try:
@@ -1216,6 +1297,9 @@ def clients():
 
     if ciudad_id:
         query = query.filter(Client.id_ciudad == ciudad_id)
+
+    if categoria_value:
+        query = query.filter(Client.categoria == categoria_value)
     
     # Appliquer le tri
     if sort_by == 'id':
@@ -1253,6 +1337,9 @@ def clients():
                          search_query=search_query,
                          ville_filter=ville_filter,
                          ciudad_filter=ciudad_filter,
+                         categoria_filter=categoria_filter,
+                         categorias_cliente=CATEGORIAS_CLIENTE,
+                         categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
                          ciudades=ciudades,
                          villes_list=villes_list,
                          per_page=per_page,
@@ -1271,7 +1358,11 @@ def nouveau_client():
                 'nouveau_client.html',
                 ciudades=ciudades,
                 default_ciudad_id=default_ciudad_id,
+                categorias_cliente=CATEGORIAS_CLIENTE,
+                categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
+                categoria_default=CATEGORIA_CLIENTE_DEFAULT,
             )
+        categoria = normalize_categoria_cliente(request.form.get('categoria'))
         client = Client(
             nom=request.form['nom'],
             telephone=request.form['telephone'],
@@ -1280,18 +1371,30 @@ def nouveau_client():
             ip_router=request.form['ip_router'],
             ip_antea=request.form['ip_antea'],
             id_ciudad=id_ciudad,
+            categoria=categoria,
         )
         db.session.add(client)
         db.session.commit()
-        write_audit('CREATE_CLIENT', id_operateur=current_user.id, detail=f'client_id={client.id}')
+        write_audit(
+            'CREATE_CLIENT',
+            id_operateur=current_user.id,
+            detail=f'client_id={client.id},categoria={client.categoria}',
+        )
         flash(gettext('Cliente creado con éxito!'), 'success')
         return redirect(url_for('clients'))
-    return render_template('nouveau_client.html', ciudades=ciudades, default_ciudad_id=default_ciudad_id)
+    return render_template(
+        'nouveau_client.html',
+        ciudades=ciudades,
+        default_ciudad_id=default_ciudad_id,
+        categorias_cliente=CATEGORIAS_CLIENTE,
+        categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
+        categoria_default=CATEGORIA_CLIENTE_DEFAULT,
+    )
 
 @app.route('/clients/<int:id>/modifier', methods=['GET', 'POST'])
 def modifier_client(id):
     client = Client.query.get_or_404(id)
-    next_url = request.args.get('next', url_for('clients'))
+    next_url = _resolve_next_url()
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
     default_ciudad_id = client.id_ciudad or current_user.id_ciudad or (ciudades[0].id if ciudades else None)
 
@@ -1303,6 +1406,7 @@ def modifier_client(id):
         client.ip_router = request.form['ip_router']
         client.ip_antea = request.form['ip_antea']
         client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
+        client.categoria = normalize_categoria_cliente(request.form.get('categoria'), default=client.categoria)
         if not client.id_ciudad:
             flash(gettext('La ciudad es obligatoria.'), 'error')
             return render_template(
@@ -1311,9 +1415,15 @@ def modifier_client(id):
                 next_url=next_url,
                 ciudades=ciudades,
                 default_ciudad_id=default_ciudad_id,
+                categorias_cliente=CATEGORIAS_CLIENTE,
+                categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
             )
         db.session.commit()
-        write_audit('UPDATE_CLIENT', id_operateur=current_user.id, detail=f'client_id={client.id}')
+        write_audit(
+            'UPDATE_CLIENT',
+            id_operateur=current_user.id,
+            detail=f'client_id={client.id},categoria={client.categoria}',
+        )
         flash(gettext('Cliente modificado con éxito!'), 'success')
         return redirect(next_url)
 
@@ -1323,6 +1433,8 @@ def modifier_client(id):
         next_url=next_url,
         ciudades=ciudades,
         default_ciudad_id=default_ciudad_id,
+        categorias_cliente=CATEGORIAS_CLIENTE,
+        categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
     )
 
 @app.route('/clients/<int:id>/supprimer', methods=['POST'])
@@ -1340,7 +1452,8 @@ def supprimer_client(id):
 def fiche_client(id):
     client = Client.query.get_or_404(id)
     incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
-    return render_template('fiche_client.html', client=client, incidents=incidents)
+    return_url = _resolve_next_url()
+    return render_template('fiche_client.html', client=client, incidents=incidents, return_url=return_url)
 
 # Nouvelle route pour imprimer la fiche client en PDF
 @app.route('/clients/<int:id>/imprimer')
@@ -1909,7 +2022,9 @@ def api_clients_search():
             'id_ciudad': client.id_ciudad,
             'adresse': client.adresse,
             'ip_router': client.ip_router,
-            'ip_antea': client.ip_antea
+            'ip_antea': client.ip_antea,
+            'categoria': client.categoria,
+            'categoria_label': categoria_cliente_label(client.categoria),
         })
     
     return jsonify(clients_data)
@@ -2518,6 +2633,7 @@ if __name__ == '__main__':
             engine = uri.split('://', 1)[0] if '://' in uri else uri
             logger.info('Initialisation de la base (moteur=%s)', engine)
             db.create_all()
+            ensure_client_categoria_column()
             ensure_ciudad_agencia_seed()
             create_sample_data()
             logger.info('Base de donnees initialisee avec succes')

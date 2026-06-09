@@ -192,6 +192,10 @@
                 <td>{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}</td>
             </tr>
             <tr>
+                <td class="label">Categoría:</td>
+                <td>{% if client.categoria == 'corporativo' %}Corporativo{% else %}Particular{% endif %}</td>
+            </tr>
+            <tr>
                 <td class="label">{{ _('IP Router') }}:</td>
                 <td>{{ client.ip_router }}</td>
             </tr>

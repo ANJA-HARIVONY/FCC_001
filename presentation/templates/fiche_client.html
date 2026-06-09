@@ -21,10 +21,10 @@
             <i class="fas fa-user-tie"></i> {{ _('Ficha del Cliente') }} - {{ client.nom }}
         </h1>
         <div>
-            <a href="{{ url_for('clients') }}" class="btn btn-secondary">
+            <a href="{{ return_url }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> {{ _('Volver') }}
             </a>
-            <a href="{{ url_for('modifier_client', id=client.id) }}" class="btn btn-warning">
+            <a href="{{ url_for('modifier_client', id=client.id, next=return_url) }}" class="btn btn-warning">
                 <i class="fas fa-edit"></i> {{ _('Modificar') }}
             </a>
             <a href="{{ url_for('imprimer_fiche_client', id=client.id) }}" class="btn btn-primary" target="_blank">
@@ -66,6 +66,17 @@
                     <div class="row">
                         <div class="col-sm-4"><strong>Ciudad:</strong></div>
                         <div class="col-sm-8">{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>Categoría:</strong></div>
+                        <div class="col-sm-8">
+                            {% if client.categoria == 'corporativo' %}
+                            <span class="badge bg-primary">Corporativo</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Particular</span>
+                            {% endif %}
+                        </div>
                     </div>
                     <hr>
                     <div class="row">

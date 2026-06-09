@@ -48,7 +48,7 @@
                                     <td>{{ client.ville }}</td>
                                     <td><code>{{ client.ip_router }}</code></td>
                                     <td>
-                                        <a href="{{ url_for('modifier_client', id=client.id) }}" 
+                                        <a href="{{ url_for('modifier_client', id=client.id, next=request.url) }}" 
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-edit"></i> Modificar
                                         </a>
