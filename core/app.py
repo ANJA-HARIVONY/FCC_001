@@ -1178,7 +1178,9 @@ def dashboard():
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
     
     # 5 derniers incidents
-    derniers_incidents = apply_incident_visibility(Incident.query).order_by(Incident.date_heure.desc()).limit(5).all()
+    derniers_incidents = apply_incident_visibility(
+        Incident.query.options(joinedload(Incident.client), joinedload(Incident.operateur))
+    ).order_by(Incident.date_heure.desc()).limit(5).all()
     
     # Données pour les graphiques selon la période
     operateurs_query = apply_incident_visibility(db.session.query(
@@ -1200,6 +1202,7 @@ def dashboard():
         Client.id,
         Client.nom,
         Client.adresse,
+        Client.categoria,
         func.count(Incident.id).label('incidents'),
         func.max(Incident.intitule).label('intitule'),
         func.max(Incident.date_heure).label('date_heure')
@@ -1210,7 +1213,9 @@ def dashboard():
     if end_date:
         clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure <= end_date)
     
-    clients_recurrents = clients_recurrents_query.group_by(Client.id, Client.nom, Client.adresse).order_by(
+    clients_recurrents = clients_recurrents_query.group_by(
+        Client.id, Client.nom, Client.adresse, Client.categoria
+    ).order_by(
         func.count(Incident.id).desc()
     ).limit(5).all()
     
@@ -2062,7 +2067,10 @@ def dashboard_data():
     if end_date:
         derniers_query = derniers_query.filter(Incident.date_heure <= end_date)
     
-    derniers_incidents = derniers_query.order_by(Incident.date_heure.desc()).limit(5).all()
+    derniers_incidents = derniers_query.options(
+        joinedload(Incident.client),
+        joinedload(Incident.operateur),
+    ).order_by(Incident.date_heure.desc()).limit(5).all()
     
     # Formater les derniers incidents pour l'API
     derniers_incidents_data = []
@@ -2072,6 +2080,8 @@ def dashboard_data():
             'intitule': incident.intitule,
             'status': incident.status,
             'client_nom': incident.client.nom,
+            'client_adresse': incident.client.adresse or '',
+            'client_categoria': incident.client.categoria,
             'operateur_nom': incident.operateur.nom,
             'operateur_avatar_url': incident.operateur.avatar_url,
             'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M')
@@ -2095,6 +2105,7 @@ def dashboard_data():
         Client.id,
         Client.nom,
         Client.adresse,
+        Client.categoria,
         func.count(Incident.id).label('incidents'),
         func.max(Incident.intitule).label('intitule'),
         func.max(Incident.date_heure).label('date_heure')
@@ -2105,17 +2116,20 @@ def dashboard_data():
     if end_date:
         clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure <= end_date)
     
-    clients_recurrents_raw = clients_recurrents_query.group_by(Client.id, Client.nom, Client.adresse).order_by(
+    clients_recurrents_raw = clients_recurrents_query.group_by(
+        Client.id, Client.nom, Client.adresse, Client.categoria
+    ).order_by(
         func.count(Incident.id).desc()
     ).limit(5).all()
     
     # Formater les clients récurrents pour l'API
     clients_recurrents_data = []
-    for client_id, nom, adresse, incidents, intitule, date_heure in clients_recurrents_raw:
+    for client_id, nom, adresse, categoria, incidents, intitule, date_heure in clients_recurrents_raw:
         clients_recurrents_data.append({
             'id': client_id,
             'nom': nom,
             'adresse': adresse if adresse else '',
+            'categoria': categoria,
             'incidents': incidents,
             'intitule': intitule if intitule else '',
             'date_heure_formatted': date_heure.strftime('%d/%m/%Y %H:%M') if date_heure else ''

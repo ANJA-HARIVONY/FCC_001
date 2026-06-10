@@ -164,12 +164,18 @@
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="derniers-incidents-tbody">
                                 {% for incident in derniers_incidents %}
                                 <tr>
                                     <td><strong>#{{ incident.id }}</strong></td>
-                                    <td>👨‍💼​ <a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                    <td>
+                                        <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+                                            {% with client=incident.client %}
+                                            {% include '_cliente_corporativo_icon.html' %}
+                                            {% endwith %}
+                                            <a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        </span>
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
                                     </td>
                                     <td>{{ incident.intitule[:50] }}{% if incident.intitule|length > 50 %}...{% endif %}</td>
                                     <td>
@@ -245,8 +251,13 @@
                             {% for client in clients_recurrents %}
                             <tr>
                                 <td><strong># {{loop.index}}</strong></td>
-                                <td>👨‍💼​ <a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
-                                <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small></td>
+                                <td>
+                                    <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+                                        {% include '_cliente_corporativo_icon.html' %}
+                                        <a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
+                                    </span>
+                                    <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small>
+                                </td>
                                 <td>{{ client.incidents }}</span></td>
                                 <td>{{ client.intitule }}</td>
                                 <!--<td>{{ client.date_heure.strftime('%d/%m/%Y %H:%M') if client.date_heure else '' }}</td> -->
@@ -810,6 +821,15 @@ function animateCount(el, targetValue, duration = 500) {
     window.requestAnimationFrame(step);
 }
 
+const CORPORATIVO_ICON_URL = "{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}";
+
+function corporativoIconHtml(categoria) {
+    if (categoria === 'corporativo') {
+        return `<img src="${CORPORATIVO_ICON_URL}" alt="Cliente corporativo" title="Cliente corporativo" class="icon-cliente-corporativo" width="22" height="22">`;
+    }
+    return '';
+}
+
 // Fonction pour charger les données du dashboard selon la période
 function loadDashboardData(period) {
     fetch(`/dashboard-data?period=${period}`)
@@ -857,7 +877,7 @@ function updateStatistics(data) {
 
 // Fonction pour mettre à jour le tableau des derniers incidents
 function updateLastIncidents(incidents) {
-    const tableBody = document.querySelector('table tbody');
+    const tableBody = document.getElementById('derniers-incidents-tbody');
     const noDataDiv = document.querySelector('.text-center.py-4');
     
     if (incidents.length > 0) {
@@ -867,7 +887,13 @@ function updateLastIncidents(incidents) {
             tableBody.innerHTML = incidents.map(incident => `
                 <tr>
                     <td><strong>#${incident.id}</strong></td>
-                    <td>${incident.client_nom}</td>
+                    <td>
+                        <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+                            ${corporativoIconHtml(incident.client_categoria)}
+                            <a href="/incidents/${incident.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${incident.client_nom}</a>
+                        </span>
+                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${incident.client_adresse || ''}</small>
+                    </td>
                     <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
                     <td>
                         <span class="badge badge-${incident.status === 'Solucionadas' ? 'resolut' : 
@@ -913,7 +939,10 @@ function updateClientsRecurrents(clients) {
                 <tr>
                     <td><strong># ${i + 1}</strong></td>
                     <td>
-                        <a href="/clients/${client.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
+                        <span class="d-inline-flex align-items-center gap-1 flex-wrap">
+                            ${corporativoIconHtml(client.categoria)}
+                            <a href="/clients/${client.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
+                        </span>
                         <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${client.adresse || ''}</small>
                     </td>
                     <td>${client.incidents}</td>
