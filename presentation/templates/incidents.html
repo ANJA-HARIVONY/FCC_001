@@ -260,8 +260,9 @@
                                         {% elif incident.status == 'Pendiente' %}
                                             <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            <span class="badge badge-bitrix">{{ incident.status }} 🔗​ </span>
-                                            {% if incident.ref_bitrix %}<small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title=" Abrir en nuevo tab"></i></a></small>{% endif %}
+                                            <span class="badge badge-bitrix">{{ incident.status }} |
+                                            {% if incident.ref_bitrix %}<small class="fst-italic" ><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-white" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title=" Abrir en nuevo tab"></i></a></small>{% endif %}
+                                            ​</span>
                                         {% endif %}
                                     </td>
                                     <td>
