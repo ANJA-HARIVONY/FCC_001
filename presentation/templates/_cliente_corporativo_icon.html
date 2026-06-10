@@ -1,0 +1,8 @@
+{% if client and client.categoria == 'corporativo' %}
+<img src="{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}"
+     alt="Cliente corporativo"
+     title="Cliente corporativo"
+     class="icon-cliente-corporativo"
+     width="22"
+     height="22">
+{% endif %}

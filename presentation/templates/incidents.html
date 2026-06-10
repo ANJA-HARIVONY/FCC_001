@@ -176,6 +176,7 @@
                             <thead>
                                 <tr>
                                     <th class="text-white">ID</th>
+                                    <th class="text-white text-center col-categoria-icon" title="Cliente corporativo"></th>
                                     <th>
                                         <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
                                             Client
@@ -224,6 +225,11 @@
                                 {% for incident in incidents.items %}
                                 <tr>
                                     <td><strong>#{{ incident.id }}</strong></td>
+                                    <td class="col-categoria-icon text-center">
+                                        {% with client=incident.client %}
+                                        {% include '_cliente_corporativo_icon.html' %}
+                                        {% endwith %}
+                                    </td>
                                     <td>👨‍💼​<a href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
                                         <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
                                     </td>

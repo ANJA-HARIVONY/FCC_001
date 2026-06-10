@@ -2311,3 +2311,23 @@ body.login-page {
         box-shadow: none;
     }
 }
+
+/* Icono cliente corporativo (categoria) */
+.icon-cliente-corporativo {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
+.col-categoria-icon {
+    width: 40px;
+    min-width: 40px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.categoria-cliente-radios .form-check-input:checked + .form-check-label {
+    font-weight: 600;
+}

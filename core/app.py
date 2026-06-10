@@ -1739,7 +1739,10 @@ def incidents():
             agencia_id = None
     
     # Construction de la requête de base
-    query = Incident.query
+    query = Incident.query.options(
+        joinedload(Incident.client),
+        joinedload(Incident.operateur),
+    )
 
     if not current_user.is_admin():
         same_agency_ids = db.session.query(Operateur.id).filter(

@@ -150,6 +150,7 @@
                                             {% endif %}
                                         </a>
                                     </th>
+                                    <th class="text-white text-center col-categoria-icon" title="Cliente corporativo">Categoría</th>
                                     <th>
                                         <a href="{{ url_for('clients', sort='nombre', order='asc' if sort_by|default('') == 'nombre' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter, categoria=categoria_filter) }}" class="text-white text-decoration-none">
                                             Nombre
@@ -173,7 +174,6 @@
                                     </th>
                                     <th class="text-white">Barrio</th>
                                     <th class="text-white">Ciudad</th>
-                                    <th class="text-white">Categoría</th>
                                     <th class="text-white">IP Router</th>
                                     <th class="text-white">IP Antea</th>
                                     <th>
@@ -193,18 +193,14 @@
                                 {% for client in clients.items %}
                                 <tr>
                                     <td><strong>#{{ client.id }}</strong></td>
+                                    <td class="col-categoria-icon text-center">
+                                        {% include '_cliente_corporativo_icon.html' %}
+                                    </td>
                                     <td><a href="{{ url_for('fiche_client', id=client.id, next=request.url) }}" class="text-decoration-none text-dark">👨‍💼​ {{ client.nom }}</a></td>
                                     <td>📞 <a href="https://wa.me/+240{{ client.telephone }}" target="_blank" class="text-decoration-none">{{ client.telephone }}</a></td>
                                     <td>🏠​ {{ client.adresse }}</td>
                                     <td>📍​​ {{ client.ville }}</td>
                                     <td>🌆 {{ client.ciudad_row.nombre if client.ciudad_row else "N/A" }}</td>
-                                    <td>
-                                        {% if client.categoria == 'corporativo' %}
-                                        <span class="badge bg-primary">Corporativo</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Particular</span>
-                                        {% endif %}
-                                    </td>
                                     <td><code><a href="http://{{ client.ip_router }}" target="_blank">{{ client.ip_router }}</a></code></td>
                                     <td><code><a href="http://{{ client.ip_antea }}" target="_blank">{{ client.ip_antea }}</a></code></td>
                                     <td>

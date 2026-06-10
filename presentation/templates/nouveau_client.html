@@ -59,14 +59,10 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="categoria" class="form-label">Categoría <span class="text-danger">*</span></label>
-                            <select class="form-select" id="categoria" name="categoria" required>
-                                {% for cat in categorias_cliente|default(['particular', 'corporativo']) %}
-                                <option value="{{ cat }}" {% if cat == categoria_default|default('particular') %}selected{% endif %}>
-                                    {{ categoria_cliente_labels.get(cat, cat) }}
-                                </option>
-                                {% endfor %}
-                            </select>
+                            <span class="form-label d-block">Categoría <span class="text-danger">*</span></span>
+                            {% with selected=categoria_default|default('particular') %}
+                            {% include '_categoria_cliente_radios.html' %}
+                            {% endwith %}
                         </div>
                         {% if ciudades %}
                         <div class="mb-3">

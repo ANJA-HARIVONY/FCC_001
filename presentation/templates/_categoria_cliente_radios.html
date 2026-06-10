@@ -1,0 +1,21 @@
+{# selected: 'particular' | 'corporativo' #}
+<div class="categoria-cliente-radios d-flex flex-wrap gap-4">
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="categoria" id="categoria_particular" value="particular"
+               {% if selected|default('particular') == 'particular' %}checked{% endif %} required>
+        <label class="form-check-label" for="categoria_particular">Particular</label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="categoria" id="categoria_corporativo" value="corporativo"
+               {% if selected|default('particular') == 'corporativo' %}checked{% endif %} required>
+        <label class="form-check-label d-inline-flex align-items-center gap-2" for="categoria_corporativo">
+            <img src="{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}"
+                 alt=""
+                 class="icon-cliente-corporativo"
+                 width="22"
+                 height="22"
+                 aria-hidden="true">
+            Corporativo
+        </label>
+    </div>
+</div>

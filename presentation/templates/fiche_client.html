@@ -72,9 +72,7 @@
                         <div class="col-sm-4"><strong>Categoría:</strong></div>
                         <div class="col-sm-8">
                             {% if client.categoria == 'corporativo' %}
-                            <span class="badge bg-primary">Corporativo</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Particular</span>
+                            {% include '_cliente_corporativo_icon.html' %}
                             {% endif %}
                         </div>
                     </div>
