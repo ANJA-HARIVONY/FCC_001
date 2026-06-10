@@ -1814,6 +1814,27 @@ def incidents():
         except ValueError:
             flash('Formato de fecha inválido para "Fecha hasta"', 'warning')
             date_to = ''
+
+    # Comptes par categoría cliente (mismos filtros que la lista, sin paginación)
+    filtered_ids_subq = query.with_entities(Incident.id).subquery()
+    incidents_corporativo_count = (
+        db.session.query(func.count(Incident.id))
+        .join(Client, Incident.id_client == Client.id)
+        .filter(
+            Incident.id.in_(filtered_ids_subq),
+            Client.categoria == 'corporativo',
+        )
+        .scalar()
+    ) or 0
+    incidents_particular_count = (
+        db.session.query(func.count(Incident.id))
+        .join(Client, Incident.id_client == Client.id)
+        .filter(
+            Incident.id.in_(filtered_ids_subq),
+            Client.categoria == 'particular',
+        )
+        .scalar()
+    ) or 0
     
     # Appliquer le tri
     if sort_by == 'client':
@@ -1874,7 +1895,9 @@ def incidents():
                          operateurs=operateurs,
                          per_page=per_page,
                          sort_by=sort_by,
-                         sort_order=sort_order)
+                         sort_order=sort_order,
+                         incidents_corporativo_count=incidents_corporativo_count,
+                         incidents_particular_count=incidents_particular_count)
 
 @app.route('/incidents/nouveau', methods=['GET', 'POST'])
 def nouveau_incident():
