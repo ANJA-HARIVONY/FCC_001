@@ -891,7 +891,7 @@ function updateLastIncidents(incidents) {
                     <td><strong>#${incident.id}</strong></td>
                     <td class="col-categoria-icon text-center">${corporativoIconHtml(incident.client_categoria)}</td>
                     <td>
-                        <a href="/incidents/${incident.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${incident.client_nom}</a>
+                        <a href="/incidents/${incident.id}/fiche_incident" class="text-decoration-none text-dark hover:text-primary">${incident.client_nom}</a>
                         <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${incident.client_adresse || ''}</small>
                     </td>
                     <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
