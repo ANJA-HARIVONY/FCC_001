@@ -149,10 +149,12 @@
                                                 </button>
                                             </form>
                                             {% endif %}
-                                            <a href="{{ url_for('api_etats_export', id=etat.id) }}"
-                                               class="btn btn-outline-success btn-sm" title="Exportar JSON">
-                                                <i class="fas fa-download"></i>
+                                            {% if etat.statut == 'generated' %}
+                                            <a href="{{ url_for('api_etats_export_xlsx', id=etat.id) }}"
+                                               class="btn btn-outline-success btn-sm" title="Exportar Excel">
+                                                <i class="fas fa-file-excel"></i>
                                             </a>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

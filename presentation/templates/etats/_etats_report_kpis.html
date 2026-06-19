@@ -1,0 +1,61 @@
+{# Grille d'indicateurs clés (summary) #}
+{% if contenu.kpis_cles %}
+<div class="etats-report-kpis mb-4">
+    <h6 class="etats-report-section-label mb-3">Indicadores clave del período</h6>
+    <div class="etats-kpi-grid">
+        {% if 'TOTAL_INCIDENTS' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card" title="Número total de incidentes registrados en el período">
+            <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.TOTAL_INCIDENTS }}</span>
+            <span class="etats-report-kpi-card__label">Total incidentes</span>
+            <span class="etats-report-kpi-card__hint">Todos los registros considerados</span>
+        </div>
+        {% elif 'TOTAL_INCIDENTES' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card" title="Número total de incidentes registrados en el período">
+            <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.TOTAL_INCIDENTES }}</span>
+            <span class="etats-report-kpi-card__label">Total incidentes</span>
+            <span class="etats-report-kpi-card__hint">Todos los registros considerados</span>
+        </div>
+        {% endif %}
+        {% if 'SOLUCIONADAS_DISTANCIA' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card etats-report-kpi-card--success" title="Resueltos a distancia por atención al cliente">
+            <span class="etats-report-kpi-card__value text-success">{{ contenu.kpis_cles.SOLUCIONADAS_DISTANCIA }}</span>
+            <span class="etats-report-kpi-card__label">Solucionadas</span>
+            <span class="etats-report-kpi-card__hint">Resolución a distancia</span>
+        </div>
+        {% elif 'SOLUCIONADAS' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card etats-report-kpi-card--success" title="Resueltos a distancia por atención al cliente">
+            <span class="etats-report-kpi-card__value text-success">{{ contenu.kpis_cles.SOLUCIONADAS }}</span>
+            <span class="etats-report-kpi-card__label">Solucionadas</span>
+            <span class="etats-report-kpi-card__hint">Resolución a distancia</span>
+        </div>
+        {% endif %}
+        {% if 'BITRIX' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card etats-report-kpi-card--primary" title="Intervención con técnicos en terreno">
+            <span class="etats-report-kpi-card__value text-primary">{{ contenu.kpis_cles.BITRIX }}</span>
+            <span class="etats-report-kpi-card__label">Bitrix</span>
+            <span class="etats-report-kpi-card__hint">Intervención en terreno</span>
+        </div>
+        {% elif 'BITRIX_TERRENO' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card etats-report-kpi-card--primary" title="Intervención con técnicos en terreno">
+            <span class="etats-report-kpi-card__value text-primary">{{ contenu.kpis_cles.BITRIX_TERRENO }}</span>
+            <span class="etats-report-kpi-card__label">Bitrix</span>
+            <span class="etats-report-kpi-card__hint">Intervención en terreno</span>
+        </div>
+        {% endif %}
+        {% if 'PENDIENTES' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card etats-report-kpi-card--warning" title="Casos aún abiertos">
+            <span class="etats-report-kpi-card__value text-warning">{{ contenu.kpis_cles.PENDIENTES }}</span>
+            <span class="etats-report-kpi-card__label">Pendientes</span>
+            <span class="etats-report-kpi-card__hint">Sin resolver aún</span>
+        </div>
+        {% endif %}
+        {% if 'TAUX_RESOLUTION' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card etats-report-kpi-card--accent" title="Porcentaje de incidentes resueltos (Solucionadas) sobre el total">
+            <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.TAUX_RESOLUTION }}</span>
+            <span class="etats-report-kpi-card__label">Tasa de resolución</span>
+            <span class="etats-report-kpi-card__hint">Solucionadas / total</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}

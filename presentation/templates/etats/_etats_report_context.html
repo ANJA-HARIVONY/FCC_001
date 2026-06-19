@@ -1,0 +1,31 @@
+{# Bandeau de contexte — tipo, período, agencia #}
+<div class="etats-report-context mb-4">
+    <span class="etats-report-pill etats-report-pill--{{ etat.type_etat }}">
+        {% if etat.type_etat == 'summary' %}Estado General
+        {% elif etat.type_etat == 'analysis' %}Evolución de Registros
+        {% elif etat.type_etat == 'performance' %}Actividad por Usuario
+        {% elif etat.type_etat == 'custom' %}Análisis Personalizado
+        {% else %}{{ etat.type_etat }}{% endif %}
+    </span>
+    <span class="etats-report-pill etats-report-pill--neutral">
+        <i class="fas fa-calendar-alt me-1 opacity-75"></i>
+        {% if etat.periode_debut %}
+            {{ etat.periode_debut.strftime('%d/%m/%Y') }}
+            {% if etat.periode_fin %}
+                – {{ etat.periode_fin.strftime('%d/%m/%Y') }}
+            {% else %}
+                – actualidad
+            {% endif %}
+        {% else %}
+            Período no definido
+        {% endif %}
+    </span>
+    <span class="etats-report-pill etats-report-pill--neutral">
+        <i class="fas fa-building me-1 opacity-75"></i>
+        {% if contenu and contenu.agence_label %}{{ contenu.agence_label }}{% else %}Todas las agencias{% endif %}
+    </span>
+    <span class="etats-report-pill etats-report-pill--neutral d-none d-md-inline-flex">
+        <i class="fas fa-clock me-1 opacity-75"></i>
+        Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
+    </span>
+</div>

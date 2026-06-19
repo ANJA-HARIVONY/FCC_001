@@ -2289,6 +2289,165 @@ body.login-page {
         box-shadow: none !important;
         break-inside: avoid;
     }
+
+    .etats-report-legend {
+        break-inside: avoid;
+    }
+}
+
+/* Bandeau contexte, légende et KPI rapport informe */
+
+.etats-report-context {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.85rem 1rem;
+    border-radius: var(--ui-radius);
+    border: 1px solid var(--ui-border);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: var(--ui-shadow-sm);
+}
+
+.etats-report-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid var(--ui-border);
+    background: var(--white);
+    color: var(--dark-gray);
+}
+
+.etats-report-pill--summary {
+    background: var(--etats-gradient-summary);
+    border-color: rgba(220, 53, 69, 0.2);
+    color: var(--primary-red);
+}
+
+.etats-report-pill--analysis {
+    background: var(--etats-gradient-analysis);
+    border-color: rgba(13, 110, 253, 0.2);
+    color: var(--primary-blue);
+}
+
+.etats-report-pill--performance {
+    background: var(--etats-gradient-performance);
+    border-color: rgba(40, 167, 69, 0.2);
+    color: rgb(40, 167, 69);
+}
+
+.etats-report-pill--custom {
+    background: var(--etats-gradient-custom);
+    border-color: rgba(255, 193, 7, 0.25);
+    color: rgb(180, 130, 0);
+}
+
+.etats-report-pill--neutral {
+    font-weight: 500;
+    color: rgb(75, 85, 99);
+}
+
+.etats-report-legend {
+    border-radius: var(--ui-radius-sm);
+    border: 1px solid var(--ui-border);
+    background: var(--white);
+    box-shadow: var(--ui-shadow-sm);
+    overflow: hidden;
+}
+
+.etats-report-legend__summary {
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--dark-gray);
+    list-style: none;
+    user-select: none;
+}
+
+.etats-report-legend__summary::-webkit-details-marker {
+    display: none;
+}
+
+.etats-report-legend__body {
+    padding: 0 1rem 0.85rem;
+    border-top: 1px solid var(--ui-border);
+}
+
+.etats-report-legend__item {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.5rem 0;
+    font-size: 0.88rem;
+    color: rgb(75, 85, 99);
+    border-bottom: 1px dashed rgba(15, 20, 28, 0.08);
+}
+
+.etats-report-legend__item:last-child {
+    border-bottom: none;
+}
+
+.etats-report-section-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgb(107, 114, 128);
+}
+
+.etats-report-kpi-card {
+    border-radius: var(--ui-radius-sm);
+    border: 1px solid var(--ui-border);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 1rem 1.1rem;
+    box-shadow: var(--ui-shadow-sm);
+    transition: box-shadow var(--anim-fast) var(--anim-ease), transform var(--anim-fast) var(--anim-ease);
+}
+
+.etats-report-kpi-card:hover {
+    box-shadow: var(--ui-shadow-md);
+    transform: translateY(-2px);
+}
+
+.etats-report-kpi-card__value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--dark-gray);
+}
+
+.etats-report-kpi-card__label {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: rgb(107, 114, 128);
+}
+
+.etats-report-kpi-card__hint {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.75rem;
+    color: rgb(156, 163, 175);
+}
+
+.etats-evolution-data-table thead th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: rgb(107, 114, 128);
+    border-bottom-width: 2px;
+}
+
+.etats-evolution-data-table tbody tr:hover {
+    background-color: rgba(13, 110, 253, 0.04);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2298,8 +2457,13 @@ body.login-page {
     .etats-preview-sticky,
     .etats-result-card,
     .etats-kpi-item,
-    .etats-rec-row {
+    .etats-rec-row,
+    .etats-report-kpi-card {
         transition: none !important;
+    }
+
+    .etats-report-kpi-card:hover {
+        transform: none !important;
     }
 
     .etats-type-card:hover,

@@ -8,7 +8,7 @@ Rutas para la gestión de los informes generados por IA.
 
 import json
 
-from flask import render_template, request, redirect, url_for, flash, jsonify, current_app
+from flask import render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
 from datetime import datetime, timedelta
 from sqlalchemy import desc
 from flask_login import current_user
@@ -280,6 +280,36 @@ def api_etats_export(id):
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/etats/<int:id>/export.xlsx')
+def api_etats_export_xlsx(id):
+    """Exportar un informe generado en Excel (.xlsx)."""
+    from core.services.etats_export_service import build_etat_workbook, build_export_filename
+
+    try:
+        etat = Etat.query.get_or_404(id)
+        if etat.statut != 'generated' or not etat.contenu_ia:
+            flash(
+                'No se puede exportar: el informe no está generado o no tiene contenido.',
+                'error',
+            )
+            return redirect(url_for('etats_detail', id=id))
+
+        buffer = build_etat_workbook(etat)
+        filename = build_export_filename(etat)
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename,
+        )
+    except ValueError as e:
+        flash(str(e), 'error')
+        return redirect(url_for('etats_detail', id=id))
+    except Exception as e:
+        flash(f'Error al exportar el informe: {str(e)}', 'error')
+        return redirect(url_for('etats_detail', id=id))
 
 
 def _get_date_range_for_period(period):

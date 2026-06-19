@@ -1,6 +1,6 @@
 from ast import Pass
 from functools import wraps
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -1699,205 +1699,78 @@ def supprimer_operateur(id):
     return redirect(url_for('operateurs'))
 
 # Routes CRUD pour les incidents
+def _paginated_incidents_from_request():
+    """Lista paginada y metadatos de filtros (lista y export Excel)."""
+    from core.services.incidents_list_service import (
+        apply_incidents_sort,
+        build_filtered_incidents_query,
+        get_incidents_category_counts,
+        get_incidents_filter_options,
+        get_incidents_list_params,
+    )
+
+    params = get_incidents_list_params(request)
+    for message, category in params.get('flash_messages', []):
+        flash(message, category)
+
+    query, params = build_filtered_incidents_query(current_user, params)
+    incidents_corporativo_count, incidents_particular_count = get_incidents_category_counts(query)
+    query = apply_incidents_sort(query, params['sort_by'], params['sort_order'])
+    incidents_paginated = query.paginate(
+        page=params['page'],
+        per_page=params['per_page'],
+        error_out=False,
+    )
+    operateurs, ciudades, agencias = get_incidents_filter_options(
+        current_user,
+        ciudad_id=params.get('ciudad_id'),
+    )
+    return {
+        'incidents': incidents_paginated,
+        'status_filter': params['status_filter'],
+        'search_query': params['search_query'],
+        'date_from': params['date_from'],
+        'date_to': params['date_to'],
+        'operateur_filter': params['operateur_filter'],
+        'ciudad_filter': params['ciudad_filter'],
+        'agencia_filter': params['agencia_filter'],
+        'ciudades': ciudades,
+        'agencias': agencias,
+        'operateurs': operateurs,
+        'per_page': params['per_page'],
+        'sort_by': params['sort_by'],
+        'sort_order': params['sort_order'],
+        'incidents_corporativo_count': incidents_corporativo_count,
+        'incidents_particular_count': incidents_particular_count,
+    }
+
+
 @app.route('/incidents')
 def incidents():
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
-    sort_by = request.args.get('sort', 'fecha')
-    sort_order = request.args.get('order', 'desc')
-    
-    # Filtres optionnels
-    status_filter = request.args.get('status', '')
-    search_query = request.args.get('search', '')
-    date_from = request.args.get('date_from', '')
-    date_to = request.args.get('date_to', '')
-    operateur_filter = request.args.get('operateur', '', type=str)
-    ciudad_filter = request.args.get('ciudad', '', type=str)
-    agencia_filter = request.args.get('agencia', '', type=str)
-    ciudad_id = None
-    if ciudad_filter:
-        try:
-            ciudad_id = int(ciudad_filter)
-            if not db.session.get(Ciudad, ciudad_id):
-                ciudad_filter = ''
-                ciudad_id = None
-        except (ValueError, TypeError):
-            ciudad_filter = ''
-            ciudad_id = None
+    return render_template('incidents.html', **_paginated_incidents_from_request())
 
-    agencia_id = None
-    if agencia_filter:
-        try:
-            agencia_id = int(agencia_filter)
-            agencia = db.session.get(Agencia, agencia_id)
-            if not agencia:
-                agencia_filter = ''
-                agencia_id = None
-            elif ciudad_id and agencia.id_ciudad != ciudad_id:
-                agencia_filter = ''
-                agencia_id = None
-            elif not current_user.is_admin() and agencia_id != current_user.id_agencia:
-                agencia_filter = ''
-                agencia_id = None
-        except (ValueError, TypeError):
-            agencia_filter = ''
-            agencia_id = None
-    
-    # Construction de la requête de base
-    query = Incident.query.options(
-        joinedload(Incident.client),
-        joinedload(Incident.operateur),
+
+@app.route('/api/incidents/export.xlsx')
+def api_incidents_export_xlsx():
+    """Exportar la página actual de incidencias en Excel (.xlsx)."""
+    from core.services.incidents_export_service import (
+        build_export_filename,
+        build_incidents_list_workbook,
     )
 
-    if not current_user.is_admin():
-        same_agency_ids = db.session.query(Operateur.id).filter(
-            Operateur.id_agencia == current_user.id_agencia
+    try:
+        context = _paginated_incidents_from_request()
+        buffer = build_incidents_list_workbook(context['incidents'].items)
+        filename = build_export_filename()
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename,
         )
-        query = query.filter(
-            db.or_(
-                Incident.id_operateur == current_user.id,
-                Incident.id_operateur.in_(same_agency_ids),
-            )
-        )
-
-    # Appliquer les filtres
-    if status_filter:
-        query = query.filter(Incident.status == status_filter)
-    
-    if operateur_filter:
-        try:
-            operateur_id = int(operateur_filter)
-            if not current_user.is_admin():
-                operateur_is_allowed = db.session.query(Operateur.id).filter(
-                    Operateur.id == operateur_id,
-                    Operateur.id_agencia == current_user.id_agencia,
-                    Operateur.actif.is_(True),
-                ).first()
-                if not operateur_is_allowed:
-                    operateur_filter = ''
-                    operateur_id = None
-            if operateur_filter:
-                query = query.filter(Incident.id_operateur == operateur_id)
-        except (ValueError, TypeError):
-            operateur_filter = ''
-    
-    if search_query:
-        query = query.join(Client).filter(
-            db.or_(
-                Incident.intitule.contains(search_query),
-                Incident.observations.contains(search_query),
-                Client.nom.contains(search_query)
-            )
-        )
-
-    if ciudad_id:
-        query = query.filter(Incident.client.has(id_ciudad=ciudad_id))
-
-    if agencia_id:
-        query = query.filter(Incident.operateur.has(id_agencia=agencia_id))
-    
-    # Filtres par date
-    if date_from:
-        try:
-            date_from_obj = datetime.strptime(date_from, '%Y-%m-%d')
-            query = query.filter(Incident.date_heure >= date_from_obj)
-        except ValueError:
-            flash('Formato de fecha inválido para "Fecha desde"', 'warning')
-            date_from = ''
-    
-    if date_to:
-        try:
-            date_to_obj = datetime.strptime(date_to, '%Y-%m-%d')
-            # Ajouter 23:59:59 pour inclure toute la journée
-            date_to_obj = date_to_obj.replace(hour=23, minute=59, second=59)
-            query = query.filter(Incident.date_heure <= date_to_obj)
-        except ValueError:
-            flash('Formato de fecha inválido para "Fecha hasta"', 'warning')
-            date_to = ''
-
-    # Comptes par categoría cliente (mismos filtros que la lista, sin paginación)
-    filtered_ids_subq = query.with_entities(Incident.id).subquery()
-    incidents_corporativo_count = (
-        db.session.query(func.count(Incident.id))
-        .join(Client, Incident.id_client == Client.id)
-        .filter(
-            Incident.id.in_(filtered_ids_subq),
-            Client.categoria == 'corporativo',
-        )
-        .scalar()
-    ) or 0
-    incidents_particular_count = (
-        db.session.query(func.count(Incident.id))
-        .join(Client, Incident.id_client == Client.id)
-        .filter(
-            Incident.id.in_(filtered_ids_subq),
-            Client.categoria == 'particular',
-        )
-        .scalar()
-    ) or 0
-    
-    # Appliquer le tri
-    if sort_by == 'client':
-        query = query.join(Client).order_by(
-            Client.nom.asc() if sort_order == 'asc' else Client.nom.desc()
-        )
-    elif sort_by == 'asunto':
-        query = query.order_by(
-            Incident.intitule.asc() if sort_order == 'asc' else Incident.intitule.desc()
-        )
-    elif sort_by == 'operador':
-        query = query.join(Operateur).order_by(
-            Operateur.nom.asc() if sort_order == 'asc' else Operateur.nom.desc()
-        )
-    elif sort_by == 'fecha':
-        query = query.order_by(
-            Incident.date_heure.asc() if sort_order == 'asc' else Incident.date_heure.desc()
-        )
-    
-    # Pagination
-    incidents_paginated = query.paginate(
-        page=page, 
-        per_page=per_page, 
-        error_out=False
-    )
-    
-    # Liste des opérateurs pour le filtre
-    operateurs = (
-        Operateur.query.order_by(Operateur.nom).all()
-        if current_user.is_admin()
-        else Operateur.query.filter(
-            Operateur.id_agencia == current_user.id_agencia,
-            Operateur.actif.is_(True),
-        ).order_by(Operateur.nom).all()
-    )
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
-    if current_user.is_admin():
-        agencias_query = Agencia.query
-        if ciudad_id:
-            agencias_query = agencias_query.filter_by(id_ciudad=ciudad_id)
-        agencias = agencias_query.order_by(Agencia.nombre).all()
-    else:
-        agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
-        if ciudad_id and agencias and agencias[0].id_ciudad != ciudad_id:
-            agencias = []
-
-    return render_template('incidents.html', 
-                         incidents=incidents_paginated,
-                         status_filter=status_filter,
-                         search_query=search_query,
-                         date_from=date_from,
-                         date_to=date_to,
-                         operateur_filter=operateur_filter,
-                         ciudad_filter=ciudad_filter,
-                         agencia_filter=agencia_filter,
-                         ciudades=ciudades,
-                         agencias=agencias,
-                         operateurs=operateurs,
-                         per_page=per_page,
-                         sort_by=sort_by,
-                         sort_order=sort_order,
-                         incidents_corporativo_count=incidents_corporativo_count,
-                         incidents_particular_count=incidents_particular_count)
+    except Exception as e:
+        flash(f'Error al exportar las incidencias: {str(e)}', 'error')
+        return redirect(url_for('incidents', **request.args))
 
 @app.route('/incidents/nouveau', methods=['GET', 'POST'])
 def nouveau_incident():

@@ -138,9 +138,14 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn">
                                     <i class="fas fa-undo-alt"></i> Reiniciar
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir informe">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
                                     <i class="fas fa-print"></i>
                                 </button>
+                                <a href="{{ url_for('api_incidents_export_xlsx', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}"
+                                   class="btn btn-outline-success btn-sm"
+                                   title="Exportar Excel (página actual)">
+                                    <i class="fas fa-file-excel"></i>
+                                </a>
                             </div>
                         </div>
                     </form>
@@ -187,6 +192,13 @@
                 </div>
                 <div class="card-body p-0">
                     {% if incidents.items %}
+                    <div id="incidents-export-meta"
+                         class="d-none"
+                         data-page="{{ incidents.page }}"
+                         data-pages="{{ incidents.pages }}"
+                         data-per-page="{{ per_page }}"
+                         data-total="{{ incidents.total }}"
+                         aria-hidden="true"></div>
                     <div class="table-responsive">
                         <table class="table table-hover mb-0">
                             <thead>
@@ -239,7 +251,16 @@
                             </thead>
                             <tbody>
                                 {% for incident in incidents.items %}
-                                <tr>
+                                <tr class="incident-export-row"
+                                    data-export-id="#{{ incident.id }}"
+                                    data-export-tipo="{{ 'Corporativo' if incident.client.categoria == 'corporativo' else 'Particular' }}"
+                                    data-export-cliente="{{ incident.client.nom|e }}"
+                                    data-export-direccion="{{ incident.client.adresse|replace('\n', ' ')|e }}"
+                                    data-export-asunto="{{ incident.intitule|replace('\n', ' ')|e }}"
+                                    data-export-estado="{{ incident.status|e }}"
+                                    data-export-bitrix="{{ (incident.ref_bitrix or '')|e }}"
+                                    data-export-usuario="{{ incident.operateur.nom|e }}"
+                                    data-export-fecha="{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}">
                                     <td><strong>#{{ incident.id }}</strong></td>
                                     <td class="col-categoria-icon text-center">
                                         {% with client=incident.client %}

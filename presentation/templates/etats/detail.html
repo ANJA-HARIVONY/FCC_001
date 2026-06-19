@@ -67,10 +67,10 @@
                                 <i class="fas fa-sync me-1"></i>Regenerar
                             </button>
                         </form>
+                        <a href="{{ url_for('api_etats_export_xlsx', id=etat.id) }}" class="btn btn-outline-success etats-print-hide">
+                            <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                        </a>
                     {% endif %}
-                    <a href="{{ url_for('api_etats_export', id=etat.id) }}" class="btn btn-outline-success">
-                        <i class="fas fa-download me-1"></i>Exportar
-                    </a>
                     <button onclick="window.print()" type="button" class="btn btn-outline-primary">
                         <i class="fas fa-print me-1"></i>Imprimir
                     </button>
@@ -137,6 +137,15 @@
     </div>
 
     {% elif etat.statut == 'generated' and etat.contenu_ia %}
+    {% set contenu = etat.contenu_ia|from_json if etat.contenu_ia is string else etat.contenu_ia %}
+
+    <div class="row mb-3">
+        <div class="col-12">
+            {% include 'etats/_etats_report_context.html' %}
+            {% include 'etats/_etats_report_legend.html' %}
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12">
             <div class="card etats-section-card">
@@ -150,20 +159,15 @@
                 </div>
                 <div class="card-body pt-0">
                     <div id="etats-contenido">
-                        {% set contenu = etat.contenu_ia|from_json if etat.contenu_ia is string else etat.contenu_ia %}
                         {% if (etat.type_etat == 'summary' or etat.type_etat == 'performance') and contenu.resume_executif %}
                             {% if etat.type_etat == 'summary' %}
                             <div class="etats-content-block-title">Estado General</div>
+                            {% include 'etats/_etats_report_kpis.html' %}
                             {% else %}
                             <div class="etats-content-block-title">Actividad por Usuario</div>
                             {% endif %}
                             <div class="etats-content-lead mb-4">
                                 <p class="lead mb-0">{{ contenu.resume_executif }}</p>
-                                {% if contenu.agence_label %}
-                                <small class="text-muted d-block mt-2">
-                                    <i class="fas fa-building me-1"></i>Agencia: {{ contenu.agence_label }}
-                                </small>
-                                {% endif %}
                             </div>
 
                             {% if contenu.points_positifs or contenu.points_attention %}
@@ -222,6 +226,9 @@
                                     <h5 class="etats-result-card__title">Actividades por Usuario</h5>
                                 </div>
                                 <div class="etats-result-card__body">
+                                    <p class="text-muted small mb-3">
+                                        Detalle por operador en el período seleccionado.
+                                    </p>
                                     {% set total_usuarios = contenu.activite_utilisateurs|length %}
                                     {% set total_incidencias = contenu.activite_utilisateurs|sum(attribute='total') %}
                                     {% set total_solucionadas = contenu.activite_utilisateurs|sum(attribute='solucionadas') %}
@@ -317,23 +324,42 @@
                                     <h5 class="etats-result-card__title">Evolución de Registros</h5>
                                 </div>
                                 <div class="etats-result-card__body">
-                                    {% if contenu.agence_label %}
-                                    <p class="small text-muted mb-3">
-                                        <i class="fas fa-building me-1"></i>Agencia: {{ contenu.agence_label }}
-                                    </p>
+                                    {% if contenu.evolution %}
+                                        <h6 class="fw-semibold mb-3">Gráfica de evolución</h6>
+                                        <div class="mb-4" style="height: 320px;">
+                                            <canvas id="etats-evolution-chart"></canvas>
+                                        </div>
+                                        <h6 class="fw-semibold mb-3">Datos del gráfico</h6>
+                                        <div class="table-responsive mb-4">
+                                            <table class="table table-sm align-middle mb-0 etats-evolution-data-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th title="Fecha del registro">Fecha</th>
+                                                        <th class="text-end" title="Total de incidentes del día">Total</th>
+                                                        <th class="text-end" title="Resueltos a distancia">Solucionadas</th>
+                                                        <th class="text-end" title="Intervención en terreno">Bitrix</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for point in contenu.evolution %}
+                                                    <tr>
+                                                        <td>{{ point.label }}</td>
+                                                        <td class="text-end fw-semibold">{{ point.count or 0 }}</td>
+                                                        <td class="text-end text-success">{{ point.solucionadas or 0 }}</td>
+                                                        <td class="text-end text-primary">{{ point.bitrix or 0 }}</td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     {% endif %}
                                     {% if contenu.tendances_principales %}
-                                        <ul class="mb-4 ps-3">
+                                        <h6 class="fw-semibold mb-3">Interpretación de tendencias</h6>
+                                        <ul class="mb-0 ps-3">
                                             {% for tendance in contenu.tendances_principales %}
                                             <li class="mb-2">{{ tendance }}</li>
                                             {% endfor %}
                                         </ul>
-                                    {% endif %}
-                                    {% if contenu.evolution %}
-                                        <h6 class="fw-semibold mb-3">Gráfica de evolución</h6>
-                                        <div class="mb-3" style="height: 320px;">
-                                            <canvas id="etats-evolution-chart"></canvas>
-                                        </div>
                                     {% endif %}
                                 </div>
                             </div>

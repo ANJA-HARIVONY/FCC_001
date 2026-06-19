@@ -1,0 +1,20 @@
+# Dépendances optionnelles — génération PDF (WeasyPrint)
+# Installer uniquement si nécessaire : pip install -r config/requirements-pdf.txt
+#
+# Prérequis Windows : roues précompilées selon version Python, ou
+# Microsoft C++ Build Tools si compilation source requise.
+# Sur Python 3.14+, utiliser cffi>=2.0.0 (roue disponible).
+
+-r requirements.txt
+
+weasyprint==60.2
+cairocffi==1.6.1
+cairosvg==2.7.1
+cffi>=2.0.0
+cssselect2==0.7.0
+fonttools==4.46.0
+html5lib==1.1
+pillow==10.1.0
+pyphen==0.14.0
+tinycss2==1.2.1
+webencodings==0.5.1
