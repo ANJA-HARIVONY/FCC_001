@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Catálogo de materiales{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+            <li class="breadcrumb-item active">Catálogo</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h2 text-dark mb-0"><i class="fas fa-list text-danger me-2"></i>Catálogo de materiales</h1>
+        <a href="{{ url_for('materiales_hub') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Volver</a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="card content-card">
+                <div class="card-header"><h5 class="mb-0">Nuevo material</h5></div>
+                <div class="card-body">
+                    <form method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="create">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" name="nombre" class="form-control" required maxlength="120">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo <span class="text-danger">*</span></label>
+                            <select name="tipo" class="form-select" required>
+                                {% for t in material_tipos %}
+                                <option value="{{ t }}">{{ tipo_labels[t] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="activo" id="activo_new" checked>
+                            <label class="form-check-label" for="activo_new">Activo (visible en salidas)</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100"><i class="fas fa-plus me-1"></i>Añadir</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8">
+            <div class="card content-card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <h5 class="mb-0">Lista</h5>
+                    <form method="GET" class="d-flex gap-2 align-items-center">
+                        <select name="tipo" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="">Todos los tipos</option>
+                            {% for t in material_tipos %}
+                            <option value="{{ t }}" {% if tipo_filter == t %}selected{% endif %}>{{ tipo_labels[t] }}</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="text-white">Nombre</th>
+                                    <th class="text-white">Tipo</th>
+                                    <th class="text-white">Activo</th>
+                                    <th class="text-white text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for m in materiales %}
+                                <tr class="{% if not m.activo %}table-secondary{% endif %}">
+                                    <td>{{ m.nombre }}</td>
+                                    <td><span class="badge bg-secondary">{{ tipo_labels.get(m.tipo, m.tipo) }}</span></td>
+                                    <td>{% if m.activo %}<span class="text-success">Sí</span>{% else %}<span class="text-muted">No</span>{% endif %}</td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#edit-{{ m.id }}">Editar</button>
+                                    </td>
+                                </tr>
+                                <tr class="collapse" id="edit-{{ m.id }}">
+                                    <td colspan="4" class="bg-light">
+                                        <form method="POST" class="p-3">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="action" value="update">
+                                            <input type="hidden" name="material_id" value="{{ m.id }}">
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-md-4">
+                                                    <label class="form-label small">Nombre</label>
+                                                    <input type="text" name="nombre" class="form-control form-control-sm" value="{{ m.nombre }}" required>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label small">Tipo</label>
+                                                    <select name="tipo" class="form-select form-select-sm">
+                                                        {% for t in material_tipos %}
+                                                        <option value="{{ t }}" {% if m.tipo == t %}selected{% endif %}>{{ tipo_labels[t] }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" name="activo" id="activo-{{ m.id }}" {% if m.activo %}checked{% endif %}>
+                                                        <label class="form-check-label small" for="activo-{{ m.id }}">Activo</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 text-end">
+                                                    <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="4" class="text-center text-muted py-4">No hay materiales. Añada el primero con el formulario.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

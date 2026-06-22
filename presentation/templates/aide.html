@@ -189,7 +189,7 @@
                                     <i class="fas fa-bars"></i>
                                     <div>
                                         <strong>Menú principal (izquierda)</strong>
-                                        <p>Dashboard, Incidencias, Clientes, Informes.</p>
+                                        <p>Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}, Materiales{% endif %}.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -514,6 +514,13 @@
                                     <div>
                                         <strong>Base de datos</strong>
                                         <p>Consulta y mantenimiento de la base de datos de la aplicación.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-toolbox"></i>
+                                    <div>
+                                        <strong>Materiales</strong>
+                                        <p>Catálogo de herramientas y materiales de cliente, registro de salidas a técnicos, informes por período y ficha de materiales por técnico.</p>
                                     </div>
                                 </div>
                             </div>

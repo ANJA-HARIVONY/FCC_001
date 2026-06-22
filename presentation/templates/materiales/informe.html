@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Informe de salidas{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+            <li class="breadcrumb-item active">Informe</li>
+        </ol>
+    </nav>
+    <h1 class="h2 text-dark mb-4"><i class="fas fa-chart-bar text-danger me-2"></i>Informe de salidas</h1>
+
+    <div class="card content-card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label">Fecha desde <span class="text-danger">*</span></label>
+                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Fecha hasta <span class="text-danger">*</span></label>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" required>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary">Generar</button>
+                </div>
+            </form>
+            {% if error %}<div class="alert alert-danger mt-3 mb-0">{{ error }}</div>{% endif %}
+        </div>
+    </div>
+
+    {% if rows is not none and date_from and date_to and not error %}
+    <div class="card content-card">
+        <div class="card-header d-flex justify-content-between">
+            <h5 class="mb-0">Resultados</h5>
+            {% if pagination %}<small class="text-white-50">{{ pagination.total }} línea{% if pagination.total != 1 %}s{% endif %}</small>{% endif %}
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="text-white">Fecha</th>
+                            <th class="text-white">Técnico</th>
+                            <th class="text-white">Cliente</th>
+                            <th class="text-white">Material</th>
+                            <th class="text-white">Tipo</th>
+                            <th class="text-white text-end">Cantidad</th>
+                            <th class="text-white">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        {% set salida = row.salida %}
+                        <tr>
+                            <td>{{ salida.fecha.strftime('%d/%m/%Y') if salida else '—' }}</td>
+                            <td>{{ salida.tecnico.nom if salida and salida.tecnico else '—' }}</td>
+                            <td>{{ salida.client.nom if salida and salida.client else 'Uso general' }}</td>
+                            <td>{{ row.material.nombre if row.material else '—' }}</td>
+                            <td>{{ tipo_labels.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td>
+                            <td class="text-end">{{ row.cantidad }}</td>
+                            <td>
+                                {% if salida and salida.estado == 'modificada' %}
+                                <span class="badge bg-warning text-dark">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
+                                {% else %}
+                                <span class="badge bg-success">{{ estado_labels.get(salida.estado if salida else 'registrada', 'Registrada') }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="7" class="text-center text-muted py-4">No hay líneas en este período.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if pagination and pagination.pages > 1 %}
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <small class="text-muted">Página {{ pagination.page }} / {{ pagination.pages }}</small>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('materiales_informe', page=pagination.prev_num, date_from=date_from, date_to=date_to) }}">Anterior</a>
+                    </li>
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('materiales_informe', page=pagination.next_num, date_from=date_from, date_to=date_to) }}">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

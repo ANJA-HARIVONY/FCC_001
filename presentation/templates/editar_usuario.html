@@ -48,18 +48,29 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Rol</label>
                                 <select name="role" class="form-select">
                                     <option value="usuario" {% if user.role == 'usuario' %}selected{% endif %}>usuario</option>
                                     <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>admin</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Categoría <span class="text-danger">*</span></label>
+                                <select name="categoria" class="form-select" required>
+                                    {% for cat in CATEGORIAS_OPERATEUR %}
+                                    <option value="{{ cat }}" {% if user.categoria == cat %}selected{% endif %}>{{ CATEGORIA_OPERATEUR_LABELS[cat] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Nueva contraseña</label>
                                 <input type="password" name="password" class="form-control" minlength="6" placeholder="Dejar vacío para no cambiar">
                             </div>
                         </div>
+                        {% if user.categoria == 'tecnico' %}
+                        <p class="mb-3"><a href="{{ url_for('tecnico_ficha', tecnico_id=user.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-toolbox me-1"></i>Ficha de materiales</a></p>
+                        {% endif %}
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">Volver</a>
                             <button type="submit" class="btn btn-primary">Guardar</button>

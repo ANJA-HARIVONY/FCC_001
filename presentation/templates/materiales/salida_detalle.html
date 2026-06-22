@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Salida #{{ salida.id }}{% endblock %}
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('materiales_salidas') }}">Salidas</a></li>
+            <li class="breadcrumb-item active">#{{ salida.id }}</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h2 text-dark mb-0">Salida #{{ salida.id }}</h1>
+        <div>
+            <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary btn-sm">Volver</a>
+            <a href="{{ url_for('materiales_salida_modificar', salida_id=salida.id) }}" class="btn btn-primary btn-sm">Modificar</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card content-card">
+                <div class="card-header"><h5 class="mb-0">Información general</h5></div>
+                <div class="card-body">
+                    <p><strong>Fecha:</strong> {{ salida.fecha.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>Técnico:</strong> {{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
+                    <p><strong>Cliente:</strong> {{ salida.client.nom if salida.client else 'Uso general' }}</p>
+                    <p><strong>Estado:</strong>
+                        {% if salida.estado == 'modificada' %}
+                        <span class="badge bg-warning text-dark">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
+                        {% else %}
+                        <span class="badge bg-success">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <p class="small mb-1"><strong>Registrado:</strong> {{ salida.fecha_registro.strftime('%d/%m/%Y %H:%M') if salida.fecha_registro else '—' }}
+                        {% if salida.registrado_por %}por {{ salida.registrado_por.nom }}{% endif %}</p>
+                    {% if salida.fecha_modificacion %}
+                    <p class="small mb-0"><strong>Última modificación:</strong> {{ salida.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}
+                        {% if salida.modificado_por %}por {{ salida.modificado_por.nom }}{% endif %}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card content-card">
+                <div class="card-header"><h5 class="mb-0">Líneas de material</h5></div>
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <thead><tr><th>Material</th><th>Tipo</th><th class="text-end">Cantidad</th></tr></thead>
+                        <tbody>
+                            {% for linea in salida.lineas %}
+                            <tr>
+                                <td>{{ linea.material.nombre if linea.material else '—' }}</td>
+                                <td>{{ tipo_labels.get(linea.material.tipo, linea.material.tipo) if linea.material else '—' }}</td>
+                                <td class="text-end">{{ linea.cantidad }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+# =============================================================================
+# Surcharge pour tests locaux (Ubuntu, poste de dev)
+# Usage : docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+# =============================================================================
+services:
+  app:
+    environment:
+      FLASK_ENV: development
+      SESSION_COOKIE_SECURE: "false"
+      LOG_LEVEL: DEBUG
+      INIT_SAMPLE_DATA: "true"

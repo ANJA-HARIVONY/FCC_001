@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<div class="container">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('materiales_salidas') }}">Salidas</a></li>
+            <li class="breadcrumb-item active">{{ page_title }}</li>
+        </ol>
+    </nav>
+    <h1 class="h2 text-dark mb-4"><i class="fas fa-dolly text-danger me-2"></i>{{ page_title }}</h1>
+
+    <div class="card content-card">
+        <div class="card-body">
+            <form method="POST" id="salidaForm" action="{{ form_action }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label for="fecha" class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="fecha" name="fecha" value="{{ salida.fecha.strftime('%Y-%m-%d') if salida else fecha_default }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="tecnico_search" class="form-label">Técnico <span class="text-danger">*</span></label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="tecnico_search"
+                                   placeholder="Buscar técnico por nombre o teléfono..."
+                                   autocomplete="off"
+                                   value="{{ salida.tecnico.nom if salida and salida.tecnico else '' }}">
+                            <input type="hidden" id="id_tecnico" name="id_tecnico" value="{{ salida.id_tecnico if salida else '' }}" required>
+                            <div id="tecnico_dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto; display: none;"></div>
+                        </div>
+                        <div id="selected_tecnico" class="mt-2" style="display: {% if salida and salida.tecnico %}block{% else %}none{% endif %};">
+                            <div class="alert alert-info py-2 mb-0">
+                                <i class="fas fa-user-cog me-2"></i>
+                                <strong>Técnico:</strong> <span id="selected_tecnico_info">{% if salida and salida.tecnico %}{{ salida.tecnico.nom }} — {{ salida.tecnico.telephone }}{% endif %}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearTecnicoBtn"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="client_search" class="form-label">Cliente <span class="text-muted">(opcional)</span></label>
+                        <div class="position-relative">
+                            <input type="text" class="form-control" id="client_search"
+                                   placeholder="Buscar cliente por nombre, teléfono o ciudad..."
+                                   autocomplete="off"
+                                   value="{{ salida.client.nom if salida and salida.client else '' }}">
+                            <input type="hidden" id="id_client" name="id_client" value="{{ salida.id_client if salida and salida.id_client else '' }}">
+                            <div id="client_dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto; display: none;"></div>
+                        </div>
+                        <div id="selected_client" class="mt-2" style="display: {% if salida and salida.client %}block{% else %}none{% endif %};">
+                            <div class="alert alert-secondary py-2 mb-0">
+                                <i class="fas fa-user me-2"></i>
+                                <strong>Cliente:</strong> <span id="selected_client_info">{% if salida and salida.client %}{{ salida.client.nom }}{% endif %}</span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearClientBtn"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-text">Vacío = uso general del técnico</div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3"><i class="fas fa-boxes me-2"></i>Líneas de material</h5>
+                <div class="table-responsive mb-3">
+                    <table class="table table-bordered align-middle" id="lineasTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:55%">Material</th>
+                                <th style="width:20%">Cantidad</th>
+                                <th style="width:25%" class="text-end">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lineasBody">
+                            {% if salida and salida.lineas %}
+                                {% for linea in salida.lineas %}
+                                <tr class="linea-row">
+                                    <td>
+                                        <select name="material_id[]" class="form-select material-select" required>
+                                            <option value="">— Seleccionar —</option>
+                                            {% for m in materiales %}
+                                            <option value="{{ m.id }}" data-tipo="{{ m.tipo }}" {% if m.id == linea.id_material %}selected{% endif %}>{{ m.nombre }} ({{ tipo_labels.get(m.tipo, m.tipo) }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="cantidad[]" class="form-control" min="1" value="{{ linea.cantidad }}" required></td>
+                                    <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-linea"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr class="linea-row">
+                                    <td>
+                                        <select name="material_id[]" class="form-select material-select" required>
+                                            <option value="">— Seleccionar —</option>
+                                            {% for m in materiales %}
+                                            <option value="{{ m.id }}" data-tipo="{{ m.tipo }}">{{ m.nombre }} ({{ tipo_labels.get(m.tipo, m.tipo) }})</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" name="cantidad[]" class="form-control" min="1" value="1" required></td>
+                                    <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-linea"><i class="fas fa-trash"></i></button></td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="addLineaBtn"><i class="fas fa-plus me-1"></i>Añadir línea</button>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Volver</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<template id="lineaRowTemplate">
+    <tr class="linea-row">
+        <td>
+            <select name="material_id[]" class="form-select material-select" required>
+                <option value="">— Seleccionar —</option>
+                {% for m in materiales %}
+                <option value="{{ m.id }}" data-tipo="{{ m.tipo }}">{{ m.nombre }} ({{ tipo_labels.get(m.tipo, m.tipo) }})</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input type="number" name="cantidad[]" class="form-control" min="1" value="1" required></td>
+        <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-linea"><i class="fas fa-trash"></i></button></td>
+    </tr>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/materiales-salida-form.js') }}"></script>
+{% endblock %}

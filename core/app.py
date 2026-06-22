@@ -223,6 +223,25 @@ CATEGORIA_CLIENTE_LABELS = {
     'particular': 'Particular',
     'corporativo': 'Corporativo',
 }
+
+CATEGORIAS_OPERATEUR = ('atencion_cliente', 'tecnico')
+CATEGORIA_OPERATEUR_DEFAULT = 'atencion_cliente'
+CATEGORIA_OPERATEUR_LABELS = {
+    'atencion_cliente': 'Atención al cliente',
+    'tecnico': 'Técnico',
+}
+
+MATERIAL_TIPOS = ('outillage', 'material_cliente')
+MATERIAL_TIPO_LABELS = {
+    'outillage': 'Herramientas',
+    'material_cliente': 'Materiales de cliente',
+}
+
+SALIDA_ESTADOS = ('registrada', 'modificada')
+SALIDA_ESTADO_LABELS = {
+    'registrada': 'Registrada',
+    'modificada': 'Modificada',
+}
 CORPORATIVO_NOM_KEYWORDS = (
     'ministerio', 'embajada', 'eglng', 'pnud', 'unrco', 'unge',
     'federacion', 'societe general', 'societe',
@@ -252,6 +271,27 @@ def categoria_cliente_label(value):
     return CATEGORIA_CLIENTE_LABELS.get(value, CATEGORIA_CLIENTE_LABELS[CATEGORIA_CLIENTE_DEFAULT])
 
 
+def normalize_categoria_operateur(value, default=CATEGORIA_OPERATEUR_DEFAULT):
+    if value in CATEGORIAS_OPERATEUR:
+        return value
+    return default
+
+
+def categoria_operateur_label(value):
+    return CATEGORIA_OPERATEUR_LABELS.get(value, CATEGORIA_OPERATEUR_LABELS[CATEGORIA_OPERATEUR_DEFAULT])
+
+
+@app.context_processor
+def inject_operateur_categoria_labels():
+    return {
+        'CATEGORIAS_OPERATEUR': CATEGORIAS_OPERATEUR,
+        'CATEGORIA_OPERATEUR_LABELS': CATEGORIA_OPERATEUR_LABELS,
+        'categoria_operateur_label': categoria_operateur_label,
+        'MATERIAL_TIPO_LABELS': MATERIAL_TIPO_LABELS,
+        'SALIDA_ESTADO_LABELS': SALIDA_ESTADO_LABELS,
+    }
+
+
 class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
@@ -278,6 +318,7 @@ class Operateur(UserMixin, db.Model):
     id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=False, default=1)
     id_agencia = db.Column(db.Integer, db.ForeignKey('agencia.id'), nullable=False, default=1)
     role = db.Column(db.String(20), nullable=False, default='usuario')
+    categoria = db.Column(db.String(20), nullable=False, default=CATEGORIA_OPERATEUR_DEFAULT, index=True)
     avatar_url = db.Column(db.String(500), nullable=True)
     actif = db.Column(db.Boolean, nullable=False, default=True)
     cree_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
@@ -440,6 +481,62 @@ class IncidentNotification(db.Model):
     auteur = db.relationship('Operateur', foreign_keys=[id_auteur])
 
 
+class Material(db.Model):
+    __tablename__ = 'material'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(120), nullable=False)
+    tipo = db.Column(db.String(30), nullable=False, index=True)
+    activo = db.Column(db.Boolean, nullable=False, default=True)
+    creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    lineas = db.relationship('MaterialSalidaLinea', backref='material', lazy=True)
+
+    __table_args__ = (
+        db.UniqueConstraint('nombre', 'tipo', name='uq_material_nombre_tipo'),
+    )
+
+    def __repr__(self):
+        return f'<Material {self.nombre}>'
+
+
+class MaterialSalida(db.Model):
+    __tablename__ = 'material_salida'
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, nullable=False, index=True)
+    id_tecnico = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False, index=True)
+    id_client = db.Column(db.Integer, db.ForeignKey('client.id'), nullable=True, index=True)
+    estado = db.Column(db.String(20), nullable=False, default='registrada')
+    id_operateur_registro = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
+    fecha_registro = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    id_operateur_modificacion = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
+    fecha_modificacion = db.Column(db.DateTime, nullable=True)
+
+    tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico], backref=db.backref('salidas_tecnico', lazy=True))
+    client = db.relationship('Client', backref=db.backref('salidas_material', lazy=True))
+    registrado_por = db.relationship('Operateur', foreign_keys=[id_operateur_registro])
+    modificado_por = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
+    lineas = db.relationship(
+        'MaterialSalidaLinea',
+        backref='salida',
+        lazy=True,
+        cascade='all, delete-orphan',
+    )
+
+    def __repr__(self):
+        return f'<MaterialSalida {self.id}>'
+
+
+class MaterialSalidaLinea(db.Model):
+    __tablename__ = 'material_salida_linea'
+    id = db.Column(db.Integer, primary_key=True)
+    id_salida = db.Column(db.Integer, db.ForeignKey('material_salida.id', ondelete='CASCADE'), nullable=False, index=True)
+    id_material = db.Column(db.Integer, db.ForeignKey('material.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<MaterialSalidaLinea salida={self.id_salida} material={self.id_material}>'
+
+
 class AuditLog(db.Model):
     __tablename__ = 'audit_log'
     id = db.Column(db.Integer, primary_key=True)
@@ -511,6 +608,44 @@ def ensure_client_categoria_column():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar/crear la columna client.categoria')
+
+
+def ensure_operateur_categoria_column():
+    """Añade operateur.categoria si falta la columna."""
+    if getattr(ensure_operateur_categoria_column, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('operateur'):
+            ensure_operateur_categoria_column._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('operateur')}
+        if 'categoria' not in columns:
+            with db.engine.begin() as conn:
+                conn.execute(text(
+                    "ALTER TABLE operateur ADD COLUMN categoria VARCHAR(20) NOT NULL DEFAULT 'atencion_cliente'"
+                ))
+                try:
+                    conn.execute(text('CREATE INDEX ix_operateur_categoria ON operateur (categoria)'))
+                except Exception:
+                    pass
+        ensure_operateur_categoria_column._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear la columna operateur.categoria')
+
+
+def ensure_materiales_tables():
+    """Crea tablas de materiales si la aplicacion arranca sin migracion."""
+    if getattr(ensure_materiales_tables, '_done', False):
+        return
+    try:
+        for model in (Material, MaterialSalida, MaterialSalidaLinea):
+            if not inspect(db.engine).has_table(model.__tablename__):
+                model.__table__.create(db.engine)
+        ensure_materiales_tables._done = True
+    except Exception:
+        app.logger.exception('No se pudo verificar/crear tablas de materiales')
 
 
 def build_comment_notification_message(actor_name, client_name):
@@ -697,6 +832,7 @@ class Etat(db.Model):
 
 # Importar las rutas de los informes IA
 from core.routes import etats_routes
+from core.routes import materiales_routes
 
 # Configurar filtros personalizados para templates
 from core.utils import setup_template_filters
@@ -750,6 +886,8 @@ def acceso_denegado(_e):
 @app.before_request
 def require_authentication():
     ensure_client_categoria_column()
+    ensure_operateur_categoria_column()
+    ensure_materiales_tables()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -910,6 +1048,7 @@ def nuevo_usuario():
         id_ciudad = request.form.get('id_ciudad', type=int)
         id_agencia = request.form.get('id_agencia', type=int)
         role = (request.form.get('role') or 'usuario').strip()
+        categoria = normalize_categoria_operateur(request.form.get('categoria'))
         if role not in ('usuario', 'admin'):
             role = 'usuario'
         if not nom or not telephone or not id_ciudad or not id_agencia:
@@ -933,6 +1072,7 @@ def nuevo_usuario():
                     id_ciudad=id_ciudad,
                     id_agencia=id_agencia,
                     role=role,
+                    categoria=categoria,
                     actif=True,
                     cree_le=datetime.now(),
                 )
@@ -958,6 +1098,7 @@ def editar_usuario(user_id):
         id_ciudad = request.form.get('id_ciudad', type=int)
         id_agencia = request.form.get('id_agencia', type=int)
         role = (request.form.get('role') or 'usuario').strip()
+        categoria = normalize_categoria_operateur(request.form.get('categoria'))
         if role not in ('usuario', 'admin'):
             role = 'usuario'
         if not nom or not telephone or not id_ciudad or not id_agencia:
@@ -981,6 +1122,9 @@ def editar_usuario(user_id):
                         u.id_ciudad = id_ciudad
                         u.id_agencia = id_agencia
                         u.role = role
+                        u.categoria = normalize_categoria_operateur(
+                            request.form.get('categoria'), default=u.categoria
+                        )
                         u.modifie_le = datetime.now()
                         if password.strip():
                             u.mot_de_passe_hash = generate_password_hash(password)
@@ -1458,7 +1602,17 @@ def fiche_client(id):
     client = Client.query.get_or_404(id)
     incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
     return_url = _resolve_next_url()
-    return render_template('fiche_client.html', client=client, incidents=incidents, return_url=return_url)
+    from core.services.materiales_service import get_client_material_rows
+
+    agencia_id = None if current_user.is_admin() else current_user.id_agencia
+    material_rows = get_client_material_rows(id, agencia_id)
+    return render_template(
+        'fiche_client.html',
+        client=client,
+        incidents=incidents,
+        material_rows=material_rows,
+        return_url=return_url,
+    )
 
 # Nouvelle route pour imprimer la fiche client en PDF
 @app.route('/clients/<int:id>/imprimer')

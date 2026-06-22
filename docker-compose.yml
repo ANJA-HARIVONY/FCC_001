@@ -3,6 +3,7 @@
 # Déploiement complet avec MariaDB et l'application Flask
 # =============================================================================
 # Usage: docker compose up -d
+# Test local (Ubuntu / poste dev) : définir FLASK_ENV=development dans .env
 # Avec Nginx: docker compose --profile with-nginx up -d
 # =============================================================================
 
@@ -60,10 +61,10 @@ services:
     environment:
       # Time zone
       TZ: Africa/Malabo
-      # Configuration Flask
-      FLASK_ENV: production
+      # Configuration Flask (lire .env : development en local, production au déploiement)
+      FLASK_ENV: ${FLASK_ENV:-production}
       FLASK_APP: core/app.py
-      SECRET_KEY: ${SECRET_KEY:-your-super-secret-key-change-in-production}
+      SECRET_KEY: ${SECRET_KEY}
       
       # Configuration Base de données
       DB_HOST: mariadb
