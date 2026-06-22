@@ -13,6 +13,14 @@
         <h1 class="h2 text-dark mb-0">Salida #{{ salida.id }}</h1>
         <div>
             <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary btn-sm">Volver</a>
+            <button type="button" class="btn btn-outline-success btn-sm"
+                    data-cliente="{{ salida.client.nom if salida.client else 'Uso general' }}"
+                    data-tecnico="{{ salida.tecnico.nom if salida.tecnico else '' }}"
+                    data-lineas="{% for linea in salida.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}|{% endif %}{% endfor %}"
+                    onclick="copierSalida(this)"
+                    title="Copiar información">
+                <i class="fas fa-copy me-1"></i>Copiar información
+            </button>
             <a href="{{ url_for('materiales_salida_modificar', salida_id=salida.id) }}" class="btn btn-primary btn-sm">Modificar</a>
         </div>
     </div>
@@ -63,4 +71,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
 {% endblock %}

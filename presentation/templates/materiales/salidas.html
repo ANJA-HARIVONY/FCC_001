@@ -93,14 +93,8 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-outline-success"
-                                            data-salida-id="{{ s.id }}"
-                                            data-fecha="{{ s.fecha.strftime('%d/%m/%Y') }}"
-                                            data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
                                             data-cliente="{{ s.client.nom if s.client else 'Uso general' }}"
-                                            data-cliente-telefono="{{ s.client.telephone if s.client and s.client.telephone else '' }}"
-                                            data-cliente-adresse="{{ s.client.adresse if s.client and s.client.adresse else '' }}"
-                                            data-cliente-ville="{{ s.client.ville if s.client and s.client.ville else '' }}"
-                                            data-estado="{{ estado_labels.get(s.estado, s.estado) }}"
+                                            data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
                                             data-lineas="{% for linea in s.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}|{% endif %}{% endfor %}"
                                             onclick="copierSalida(this)"
                                             title="Copiar información">
@@ -137,69 +131,5 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
-<script>
-function copierSalida(button) {
-    const cliente = button.getAttribute('data-cliente') || '';
-    const salidaId = button.getAttribute('data-salida-id') || '';
-    const fecha = button.getAttribute('data-fecha') || '';
-    const tecnico = button.getAttribute('data-tecnico') || '';
-    const estado = button.getAttribute('data-estado') || '';
-    const lineasRaw = button.getAttribute('data-lineas') || '';
-    const lineas = lineasRaw
-        ? lineasRaw.split('|').map(function(item) { return '- ' + item.trim(); }).join('\n')
-        : '';
-    const clienteTelefono = button.getAttribute('data-cliente-telefono') || '';
-    const clienteAdresse = button.getAttribute('data-cliente-adresse') || '';
-    const clienteVille = button.getAttribute('data-cliente-ville') || '';
-
-    let texteSalida = `${cliente}
-Salida de material #${salidaId}
-Fecha: ${fecha}
-Técnico: ${tecnico}
-Estado: ${estado}
-Materiales:
-${lineas}`;
-
-    if (cliente !== 'Uso general' && (clienteTelefono || clienteAdresse || clienteVille)) {
-        if (clienteTelefono) {
-            texteSalida += `\nContacto: ${clienteTelefono}`;
-        }
-        const ubicacion = [clienteAdresse, clienteVille].filter(Boolean).join(', ');
-        if (ubicacion) {
-            texteSalida += `\nUbicación: ${ubicacion}`;
-        }
-    }
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(texteSalida).then(function() {
-            afficherToast('Información de la salida copiada al portapapeles');
-        }).catch(function() {
-            fallbackCopySalida(texteSalida);
-        });
-    } else {
-        fallbackCopySalida(texteSalida);
-    }
-}
-
-function fallbackCopySalida(texteSalida) {
-    try {
-        const textArea = document.createElement('textarea');
-        textArea.value = texteSalida;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-9999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        const successful = document.execCommand('copy');
-        document.body.removeChild(textArea);
-        if (successful) {
-            afficherToast('Información de la salida copiada al portapapeles');
-        } else {
-            afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
-        }
-    } catch (err) {
-        afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
-    }
-}
-</script>
+<script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
 {% endblock %}
