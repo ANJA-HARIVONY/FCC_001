@@ -18,12 +18,20 @@
             <div class="card content-card">
                 <div class="card-header"><h5 class="mb-0">Nuevo material</h5></div>
                 <div class="card-body">
-                    <form method="POST">
+                    <form method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="action" value="create">
                         <div class="mb-3">
                             <label class="form-label">Nombre <span class="text-danger">*</span></label>
                             <input type="text" name="nombre" class="form-control" required maxlength="120">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" name="modelo" class="form-control" maxlength="100" placeholder="Referencia o modelo">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3" maxlength="2000" placeholder="Características, uso…"></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Tipo <span class="text-danger">*</span></label>
@@ -32,6 +40,11 @@
                                 <option value="{{ t }}">{{ tipo_labels[t] }}</option>
                                 {% endfor %}
                             </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Foto</label>
+                            <input type="file" name="foto" class="form-control" accept="image/jpeg,image/png,image/webp">
+                            <div class="form-text">JPG, PNG o WEBP — máx. 2 Mo</div>
                         </div>
                         <div class="form-check mb-3">
                             <input class="form-check-input" type="checkbox" name="activo" id="activo_new" checked>
@@ -60,7 +73,9 @@
                         <table class="table table-hover mb-0 align-middle">
                             <thead>
                                 <tr>
+                                    <th class="text-white" style="width:52px">Foto</th>
                                     <th class="text-white">Nombre</th>
+                                    <th class="text-white">Modelo</th>
                                     <th class="text-white">Tipo</th>
                                     <th class="text-white">Activo</th>
                                     <th class="text-white text-end">Acciones</th>
@@ -69,7 +84,20 @@
                             <tbody>
                                 {% for m in materiales %}
                                 <tr class="{% if not m.activo %}table-secondary{% endif %}">
-                                    <td>{{ m.nombre }}</td>
+                                    <td>
+                                        {% if m.foto %}
+                                        <img src="{{ m.foto }}" alt="" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                                        {% else %}
+                                        <span class="text-muted"><i class="fas fa-image"></i></span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ m.nombre }}</div>
+                                        {% if m.descripcion %}
+                                        <small class="text-muted d-block text-truncate" style="max-width:220px" title="{{ m.descripcion }}">{{ m.descripcion }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="small">{{ m.modelo or '—' }}</td>
                                     <td><span class="badge bg-secondary">{{ tipo_labels.get(m.tipo, m.tipo) }}</span></td>
                                     <td>{% if m.activo %}<span class="text-success">Sí</span>{% else %}<span class="text-muted">No</span>{% endif %}</td>
                                     <td class="text-end">
@@ -77,15 +105,19 @@
                                     </td>
                                 </tr>
                                 <tr class="collapse" id="edit-{{ m.id }}">
-                                    <td colspan="4" class="bg-light">
-                                        <form method="POST" class="p-3">
+                                    <td colspan="6" class="bg-light">
+                                        <form method="POST" enctype="multipart/form-data" class="p-3">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <input type="hidden" name="action" value="update">
                                             <input type="hidden" name="material_id" value="{{ m.id }}">
-                                            <div class="row g-2 align-items-end">
+                                            <div class="row g-2">
                                                 <div class="col-md-4">
                                                     <label class="form-label small">Nombre</label>
                                                     <input type="text" name="nombre" class="form-control form-control-sm" value="{{ m.nombre }}" required>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="form-label small">Modelo</label>
+                                                    <input type="text" name="modelo" class="form-control form-control-sm" value="{{ m.modelo or '' }}">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label class="form-label small">Tipo</label>
@@ -96,12 +128,26 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <div class="form-check">
+                                                    <div class="form-check mt-4">
                                                         <input class="form-check-input" type="checkbox" name="activo" id="activo-{{ m.id }}" {% if m.activo %}checked{% endif %}>
                                                         <label class="form-check-label small" for="activo-{{ m.id }}">Activo</label>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-3 text-end">
+                                                <div class="col-12">
+                                                    <label class="form-label small">Descripción</label>
+                                                    <textarea name="descripcion" class="form-control form-control-sm" rows="2">{{ m.descripcion or '' }}</textarea>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label small">Foto</label>
+                                                    <input type="file" name="foto" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp">
+                                                    {% if m.foto %}
+                                                    <div class="mt-2 d-flex align-items-center gap-2">
+                                                        <img src="{{ m.foto }}" alt="" class="rounded" style="width:48px;height:48px;object-fit:cover;">
+                                                        <small class="text-muted">Subir otra imagen para reemplazar</small>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="col-md-6 text-end align-self-end">
                                                     <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
                                                 </div>
                                             </div>
@@ -109,7 +155,7 @@
                                     </td>
                                 </tr>
                                 {% else %}
-                                <tr><td colspan="4" class="text-center text-muted py-4">No hay materiales. Añada el primero con el formulario.</td></tr>
+                                <tr><td colspan="6" class="text-center text-muted py-4">No hay materiales. Añada el primero con el formulario.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>

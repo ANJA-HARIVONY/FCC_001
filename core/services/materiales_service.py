@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 """Lógica de negocio — trazabilidad de materiales."""
 
+import glob
+import os
 from datetime import datetime
 
 from sqlalchemy import desc
 from sqlalchemy.orm import joinedload
+from werkzeug.utils import secure_filename
 
 MATERIAL_TIPO_LABELS = {
     'outillage': 'Herramientas',
@@ -20,6 +23,48 @@ SALIDA_ESTADO_LABELS = {
 
 class MaterialesValidationError(ValueError):
     """Error de validación con mensaje en español para flash."""
+
+
+ALLOWED_MATERIAL_FOTO_EXTENSIONS = ('jpg', 'jpeg', 'png', 'webp')
+MAX_MATERIAL_FOTO_BYTES = 2 * 1024 * 1024
+
+
+def _allowed_material_foto(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_MATERIAL_FOTO_EXTENSIONS
+
+
+def _material_foto_dir():
+    from core.app import app
+
+    foto_dir = os.path.join(app.static_folder, 'materiales')
+    os.makedirs(foto_dir, exist_ok=True)
+    return foto_dir
+
+
+def _remove_material_foto_files(material_id):
+    for path in glob.glob(os.path.join(_material_foto_dir(), f'material_{material_id}.*')):
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
+def save_material_foto(material, file_storage):
+    """Guarda la foto de un material y actualiza material.foto."""
+    if not file_storage or not file_storage.filename:
+        return
+    if not _allowed_material_foto(file_storage.filename):
+        raise MaterialesValidationError('Formato de foto no válido (JPG, PNG, WEBP).')
+    data = file_storage.read()
+    if len(data) > MAX_MATERIAL_FOTO_BYTES:
+        raise MaterialesValidationError('La foto es demasiado grande (máx. 2 Mo).')
+    ext = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
+    _remove_material_foto_files(material.id)
+    fname = f'material_{material.id}.{ext}'
+    path = os.path.join(_material_foto_dir(), fname)
+    with open(path, 'wb') as out:
+        out.write(data)
+    material.foto = f'/static/materiales/{fname}'
 
 
 def parse_lineas_form(form):
@@ -286,11 +331,13 @@ def build_informe_rows(date_from, date_to, agencia_id=None):
     ).all()
 
 
-def create_material(form, current_user):
+def create_material(form, current_user, foto_file=None):
     from core.app import Material, MATERIAL_TIPOS, db, write_audit
 
     nombre = (form.get('nombre') or '').strip()
     tipo = (form.get('tipo') or '').strip()
+    descripcion = (form.get('descripcion') or '').strip() or None
+    modelo = (form.get('modelo') or '').strip() or None
     activo = form.get('activo') == 'on' or form.get('activo') == '1'
     if not nombre:
         raise MaterialesValidationError('El nombre es obligatorio.')
@@ -299,19 +346,32 @@ def create_material(form, current_user):
     if Material.query.filter_by(nombre=nombre, tipo=tipo).first():
         raise MaterialesValidationError('Ya existe un material con este nombre y tipo.')
 
-    material = Material(nombre=nombre, tipo=tipo, activo=activo, creado_le=datetime.now())
+    material = Material(
+        nombre=nombre,
+        descripcion=descripcion,
+        modelo=modelo,
+        tipo=tipo,
+        activo=activo,
+        creado_le=datetime.now(),
+    )
     db.session.add(material)
+    db.session.flush()
+    if foto_file and foto_file.filename:
+        save_material_foto(material, foto_file)
+        material.modificado_le = datetime.now()
     db.session.commit()
     write_audit('CREATE_MATERIAL', id_operateur=current_user.id, detail=f'material_id={material.id}')
     return material
 
 
-def update_material(material_id, form, current_user):
+def update_material(material_id, form, current_user, foto_file=None):
     from core.app import Material, MATERIAL_TIPOS, db, write_audit
 
     material = Material.query.get_or_404(material_id)
     nombre = (form.get('nombre') or '').strip()
     tipo = (form.get('tipo') or '').strip()
+    descripcion = (form.get('descripcion') or '').strip() or None
+    modelo = (form.get('modelo') or '').strip() or None
     activo = form.get('activo') == 'on' or form.get('activo') == '1'
     if not nombre:
         raise MaterialesValidationError('El nombre es obligatorio.')
@@ -327,8 +387,13 @@ def update_material(material_id, form, current_user):
         raise MaterialesValidationError('Ya existe un material con este nombre y tipo.')
 
     material.nombre = nombre
+    material.descripcion = descripcion
+    material.modelo = modelo
     material.tipo = tipo
     material.activo = activo
+    if foto_file and foto_file.filename:
+        save_material_foto(material, foto_file)
+    material.modificado_le = datetime.now()
     db.session.commit()
     write_audit('UPDATE_MATERIAL', id_operateur=current_user.id, detail=f'material_id={material.id}')
     return material

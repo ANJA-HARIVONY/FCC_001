@@ -485,9 +485,13 @@ class Material(db.Model):
     __tablename__ = 'material'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(120), nullable=False)
+    descripcion = db.Column(db.Text, nullable=True)
+    modelo = db.Column(db.String(100), nullable=True)
+    foto = db.Column(db.String(255), nullable=True)
     tipo = db.Column(db.String(30), nullable=False, index=True)
     activo = db.Column(db.Boolean, nullable=False, default=True)
     creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    modificado_le = db.Column(db.DateTime, nullable=True)
 
     lineas = db.relationship('MaterialSalidaLinea', backref='material', lazy=True)
 
@@ -646,6 +650,35 @@ def ensure_materiales_tables():
         ensure_materiales_tables._done = True
     except Exception:
         app.logger.exception('No se pudo verificar/crear tablas de materiales')
+
+
+def ensure_material_detail_columns():
+    """Añade descripcion, modelo, foto y modificado_le si faltan en material."""
+    if getattr(ensure_material_detail_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('material'):
+            ensure_material_detail_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('material')}
+        alters = []
+        if 'descripcion' not in columns:
+            alters.append('ADD COLUMN descripcion TEXT NULL')
+        if 'modelo' not in columns:
+            alters.append('ADD COLUMN modelo VARCHAR(100) NULL')
+        if 'foto' not in columns:
+            alters.append('ADD COLUMN foto VARCHAR(255) NULL')
+        if 'modificado_le' not in columns:
+            alters.append('ADD COLUMN modificado_le DATETIME NULL')
+        if alters:
+            with db.engine.begin() as conn:
+                for clause in alters:
+                    conn.execute(text(f'ALTER TABLE material {clause}'))
+        ensure_material_detail_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas de detalle en material')
 
 
 def build_comment_notification_message(actor_name, client_name):
@@ -888,6 +921,7 @@ def require_authentication():
     ensure_client_categoria_column()
     ensure_operateur_categoria_column()
     ensure_materiales_tables()
+    ensure_material_detail_columns()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):

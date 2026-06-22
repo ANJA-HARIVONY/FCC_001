@@ -14,6 +14,7 @@ from core.app import (
     admin_required,
     Material,
     Operateur,
+    db,
     MATERIAL_TIPOS,
     MATERIAL_TIPO_LABELS,
     SALIDA_ESTADOS,
@@ -68,19 +69,21 @@ def materiales_catalogo():
 
     if request.method == 'POST':
         action = (request.form.get('action') or '').strip()
+        foto = request.files.get('foto')
         try:
             if action == 'create':
-                create_material(request.form, current_user)
+                create_material(request.form, current_user, foto_file=foto)
                 flash('Material creado.', 'success')
             elif action == 'update':
                 mid = request.form.get('material_id', type=int)
                 if not mid:
                     raise MaterialesValidationError('Material no indicado.')
-                update_material(mid, request.form, current_user)
+                update_material(mid, request.form, current_user, foto_file=foto)
                 flash('Material actualizado.', 'success')
             else:
                 flash('Acción no válida.', 'error')
         except MaterialesValidationError as exc:
+            db.session.rollback()
             flash(str(exc), 'error')
         return redirect(url_for('materiales_catalogo', tipo=tipo_filter or None))
 
