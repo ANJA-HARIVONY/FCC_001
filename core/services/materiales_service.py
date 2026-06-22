@@ -164,12 +164,12 @@ def update_salida(salida_id, form, current_user):
 
 
 def salidas_base_query(agencia_id=None):
-    from core.app import MaterialSalida, Operateur
+    from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = MaterialSalida.query.options(
         joinedload(MaterialSalida.tecnico),
         joinedload(MaterialSalida.client),
-        joinedload(MaterialSalida.lineas).joinedload('material'),
+        joinedload(MaterialSalida.lineas).joinedload(MaterialSalidaLinea.material),
         joinedload(MaterialSalida.registrado_por),
         joinedload(MaterialSalida.modificado_por),
     ).join(Operateur, MaterialSalida.id_tecnico == Operateur.id)
@@ -248,11 +248,11 @@ def get_tecnico_material_rows(tecnico_id, agencia_id=None):
 
 
 def db_session_query_lineas():
-    from core.app import MaterialSalidaLinea
+    from core.app import MaterialSalida, MaterialSalidaLinea
 
     return MaterialSalidaLinea.query.options(
-        joinedload(MaterialSalidaLinea.salida).joinedload('tecnico'),
-        joinedload(MaterialSalidaLinea.salida).joinedload('client'),
+        joinedload(MaterialSalidaLinea.salida).joinedload(MaterialSalida.tecnico),
+        joinedload(MaterialSalidaLinea.salida).joinedload(MaterialSalida.client),
         joinedload(MaterialSalidaLinea.material),
     )
 
