@@ -141,6 +141,11 @@ def parse_fecha_form(value):
         raise MaterialesValidationError('Formato de fecha inválido.')
 
 
+def parse_observaciones_form(form):
+    value = (form.get('observaciones') or '').strip()
+    return value or None
+
+
 def create_salida(form, current_user):
     from core.app import MaterialSalida, MaterialSalidaLinea, db, write_audit
 
@@ -159,6 +164,7 @@ def create_salida(form, current_user):
         fecha=fecha,
         id_tecnico=tecnico_id,
         id_client=client_id,
+        observaciones=parse_observaciones_form(form),
         estado='registrada',
         id_operateur_registro=current_user.id,
         fecha_registro=datetime.now(),
@@ -195,6 +201,7 @@ def update_salida(salida_id, form, current_user):
     salida.fecha = fecha
     salida.id_tecnico = tecnico_id
     salida.id_client = client_id
+    salida.observaciones = parse_observaciones_form(form)
     salida.estado = 'modificada'
     salida.fecha_modificacion = datetime.now()
     salida.id_operateur_modificacion = current_user.id

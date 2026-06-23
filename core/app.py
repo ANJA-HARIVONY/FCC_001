@@ -514,6 +514,7 @@ class MaterialSalida(db.Model):
     fecha_registro = db.Column(db.DateTime, nullable=False, default=datetime.now)
     id_operateur_modificacion = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
     fecha_modificacion = db.Column(db.DateTime, nullable=True)
+    observaciones = db.Column(db.Text, nullable=True)
 
     tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico], backref=db.backref('salidas_tecnico', lazy=True))
     client = db.relationship('Client', backref=db.backref('salidas_material', lazy=True))
@@ -679,6 +680,25 @@ def ensure_material_detail_columns():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar/crear columnas de detalle en material')
+
+
+def ensure_salida_observaciones_column():
+    """Añade observaciones si falta en material_salida."""
+    if getattr(ensure_salida_observaciones_column, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('material_salida'):
+            ensure_salida_observaciones_column._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('material_salida')}
+        if 'observaciones' not in columns:
+            with db.engine.begin() as conn:
+                conn.execute(text('ALTER TABLE material_salida ADD COLUMN observaciones TEXT NULL'))
+        ensure_salida_observaciones_column._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columna observaciones en material_salida')
 
 
 def build_comment_notification_message(actor_name, client_name):
@@ -922,6 +942,7 @@ def require_authentication():
     ensure_operateur_categoria_column()
     ensure_materiales_tables()
     ensure_material_detail_columns()
+    ensure_salida_observaciones_column()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):

@@ -16,6 +16,7 @@
             <button type="button" class="btn btn-outline-success btn-sm"
                     data-cliente="{{ salida.client.nom if salida.client else 'Uso general' }}"
                     data-tecnico="{{ salida.tecnico.nom if salida.tecnico else '' }}"
+                    data-observaciones="{{ salida.observaciones or '' }}"
                     data-lineas="{% for linea in salida.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}|{% endif %}{% endfor %}"
                     onclick="copierSalida(this)"
                     title="Copiar información">
@@ -33,7 +34,11 @@
                     <p><strong>Fecha:</strong> {{ salida.fecha.strftime('%d/%m/%Y') }}</p>
                     <p><strong>Técnico:</strong> {{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
                     <p><strong>Cliente:</strong> {{ salida.client.nom if salida.client else 'Uso general' }}</p>
-                    <p><strong>Estado:</strong>
+                    {% if salida.observaciones %}
+                    <p><strong>Observaciones:</strong></p>
+                    <p class="text-muted mb-0" style="white-space: pre-wrap;">{{ salida.observaciones }}</p>
+                    {% endif %}
+                    <p class="{% if salida.observaciones %}mt-3{% endif %}"><strong>Estado:</strong>
                         {% if salida.estado == 'modificada' %}
                         <span class="badge bg-warning text-dark">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
                         {% else %}

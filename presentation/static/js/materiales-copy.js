@@ -1,12 +1,13 @@
 function copierSalida(button) {
     const cliente = button.getAttribute('data-cliente') || '';
     const tecnico = button.getAttribute('data-tecnico') || '';
+    const observaciones = button.getAttribute('data-observaciones') || '';
     const lineasRaw = button.getAttribute('data-lineas') || '';
     const materiales = lineasRaw
         ? lineasRaw.split('|').map(function(item) { return item.trim(); }).join(', ')
         : '';
 
-    const texteSalida = [cliente, materiales, tecnico].filter(Boolean).join('\n');
+    const texteSalida = [cliente, materiales, observaciones, tecnico].filter(Boolean).join('\n');
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(texteSalida).then(function() {

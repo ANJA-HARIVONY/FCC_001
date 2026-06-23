@@ -95,6 +95,7 @@
                                     <button type="button" class="btn btn-sm btn-outline-success"
                                             data-cliente="{{ s.client.nom if s.client else 'Uso general' }}"
                                             data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
+                                            data-observaciones="{{ s.observaciones or '' }}"
                                             data-lineas="{% for linea in s.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}|{% endif %}{% endfor %}"
                                             onclick="copierSalida(this)"
                                             title="Copiar información">

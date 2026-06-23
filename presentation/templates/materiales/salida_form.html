@@ -58,6 +58,11 @@
                         </div>
                         <div class="form-text">Vacío = uso general del técnico</div>
                     </div>
+                    <div class="col-12">
+                        <label for="observaciones" class="form-label">Observaciones <span class="text-muted">(opcional)</span></label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3"
+                                  placeholder="Notas adicionales sobre la salida...">{% if salida %}{{ salida.observaciones or '' }}{% endif %}</textarea>
+                    </div>
                 </div>
 
                 <h5 class="mb-3"><i class="fas fa-boxes me-2"></i>Líneas de material</h5>
