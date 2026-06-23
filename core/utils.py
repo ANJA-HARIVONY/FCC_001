@@ -39,4 +39,9 @@ def setup_template_filters(app):
         escaped = escape(str(text)).replace('\r', '')
         return Markup(escaped.replace('\n', '<br>'))
 
+    @app.template_filter('material_foto_url')
+    def material_foto_url_filter(foto_path):
+        from core.services.materiales_service import material_foto_url
+        return material_foto_url(foto_path)
+
     return app

@@ -682,6 +682,20 @@ def ensure_material_detail_columns():
         app.logger.exception('No se pudo verificar/crear columnas de detalle en material')
 
 
+def ensure_material_fotos_storage():
+    """Migre les photos de matériel vers un dossier persistant."""
+    if getattr(ensure_material_fotos_storage, '_done', False):
+        return
+    try:
+        from core.services.materiales_service import migrate_material_fotos_storage
+
+        migrate_material_fotos_storage()
+        ensure_material_fotos_storage._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo migrar fotos de materiales')
+
+
 def ensure_salida_observaciones_column():
     """Añade observaciones si falta en material_salida."""
     if getattr(ensure_salida_observaciones_column, '_done', False):
@@ -942,6 +956,7 @@ def require_authentication():
     ensure_operateur_categoria_column()
     ensure_materiales_tables()
     ensure_material_detail_columns()
+    ensure_material_fotos_storage()
     ensure_salida_observaciones_column()
     if not request.endpoint or request.endpoint == 'static':
         return

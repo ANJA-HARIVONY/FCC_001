@@ -86,7 +86,7 @@
                                 <tr class="{% if not m.activo %}table-secondary{% endif %}">
                                     <td>
                                         {% if m.foto %}
-                                        <img src="{{ m.foto }}" alt="" class="rounded" style="width:40px;height:40px;object-fit:cover;">
+                                        <img src="{{ m.foto | material_foto_url }}" alt="" class="rounded" style="width:40px;height:40px;object-fit:cover;">
                                         {% else %}
                                         <span class="text-muted"><i class="fas fa-image"></i></span>
                                         {% endif %}
@@ -142,7 +142,7 @@
                                                     <input type="file" name="foto" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp">
                                                     {% if m.foto %}
                                                     <div class="mt-2 d-flex align-items-center gap-2">
-                                                        <img src="{{ m.foto }}" alt="" class="rounded" style="width:48px;height:48px;object-fit:cover;">
+                                                        <img src="{{ m.foto | material_foto_url }}" alt="" class="rounded" style="width:48px;height:48px;object-fit:cover;">
                                                         <small class="text-muted">Subir otra imagen para reemplazar</small>
                                                     </div>
                                                     {% endif %}

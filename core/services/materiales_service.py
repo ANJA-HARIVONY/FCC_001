@@ -4,6 +4,7 @@
 
 import glob
 import os
+import shutil
 from datetime import datetime
 
 from sqlalchemy import desc
@@ -33,20 +34,87 @@ def _allowed_material_foto(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_MATERIAL_FOTO_EXTENSIONS
 
 
-def _material_foto_dir():
+def _project_root():
     from core.app import app
 
-    foto_dir = os.path.join(app.static_folder, 'materiales')
+    return os.path.abspath(os.path.join(app.root_path, '..'))
+
+
+def _material_foto_dir():
+    foto_dir = os.path.join(_project_root(), 'instance', 'uploads', 'materiales')
     os.makedirs(foto_dir, exist_ok=True)
     return foto_dir
 
 
+def _legacy_static_foto_dir():
+    from core.app import app
+
+    return os.path.abspath(os.path.join(app.root_path, app.static_folder, 'materiales'))
+
+
+def material_foto_filename(foto_path):
+    if not foto_path:
+        return None
+    return foto_path.rsplit('/', 1)[-1]
+
+
+def material_foto_url(foto_path):
+    """URL publique pour afficher une photo de matériel."""
+    from flask import url_for
+
+    if not foto_path:
+        return None
+    fname = material_foto_filename(foto_path)
+    if not fname:
+        return None
+    if foto_path.startswith('/uploads/materiales/'):
+        return url_for('serve_material_foto', filename=fname)
+    if foto_path.startswith('/static/materiales/'):
+        return url_for('static', filename=f'materiales/{fname}')
+    return foto_path
+
+
+def migrate_material_fotos_storage():
+    """Déplace les photos vers instance/uploads et normalise les chemins en base."""
+    from core.app import Material, db
+
+    upload_dir = _material_foto_dir()
+    legacy_dir = _legacy_static_foto_dir()
+    changed = False
+
+    for material in Material.query.filter(Material.foto.isnot(None)).all():
+        if not material.foto:
+            continue
+        fname = material_foto_filename(material.foto)
+        if not fname:
+            continue
+
+        dst = os.path.join(upload_dir, fname)
+        if not os.path.isfile(dst):
+            for src_dir in (legacy_dir, upload_dir):
+                src = os.path.join(src_dir, fname)
+                if os.path.isfile(src):
+                    if src != dst:
+                        shutil.copy2(src, dst)
+                    break
+
+        new_path = f'/uploads/materiales/{fname}'
+        if material.foto != new_path:
+            material.foto = new_path
+            changed = True
+
+    if changed:
+        db.session.commit()
+
+
 def _remove_material_foto_files(material_id):
-    for path in glob.glob(os.path.join(_material_foto_dir(), f'material_{material_id}.*')):
-        try:
-            os.remove(path)
-        except OSError:
-            pass
+    fname_pattern = f'material_{material_id}.*'
+    for base_dir in (_material_foto_dir(), _legacy_static_foto_dir()):
+        for path in glob.glob(os.path.join(base_dir, fname_pattern)):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
 
 
 def save_material_foto(material, file_storage):
@@ -64,7 +132,7 @@ def save_material_foto(material, file_storage):
     path = os.path.join(_material_foto_dir(), fname)
     with open(path, 'wb') as out:
         out.write(data)
-    material.foto = f'/static/materiales/{fname}'
+    material.foto = f'/uploads/materiales/{fname}'
 
 
 def parse_lineas_form(form):
