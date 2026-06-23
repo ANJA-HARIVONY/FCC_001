@@ -14,7 +14,7 @@
         <div>
             <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary btn-sm">Volver</a>
             <button type="button" class="btn btn-outline-success btn-sm"
-                    data-cliente="{{ salida.client.nom if salida.client else 'Uso general' }}"
+                    data-cliente="{{ salida.client.nom if salida.client else '' }}"
                     data-tecnico="{{ salida.tecnico.nom if salida.tecnico else '' }}"
                     data-observaciones="{{ salida.observaciones or '' }}"
                     data-lineas="{{ salida | salida_lineas_copy }}"

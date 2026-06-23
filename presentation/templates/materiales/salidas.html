@@ -93,7 +93,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-outline-success"
-                                            data-cliente="{{ s.client.nom if s.client else 'Uso general' }}"
+                                            data-cliente="{{ s.client.nom if s.client else '' }}"
                                             data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
                                             data-observaciones="{{ s.observaciones or '' }}"
                                             data-lineas="{{ s | salida_lineas_copy }}"
