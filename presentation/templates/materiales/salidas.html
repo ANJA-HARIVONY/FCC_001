@@ -96,7 +96,7 @@
                                             data-cliente="{{ s.client.nom if s.client else 'Uso general' }}"
                                             data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
                                             data-observaciones="{{ s.observaciones or '' }}"
-                                            data-lineas="{% for linea in s.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}|{% endif %}{% endfor %}"
+                                            data-lineas="{{ s | salida_lineas_copy }}"
                                             onclick="copierSalida(this)"
                                             title="Copiar información">
                                         <i class="fas fa-copy"></i>

@@ -17,7 +17,7 @@
                     data-cliente="{{ salida.client.nom if salida.client else 'Uso general' }}"
                     data-tecnico="{{ salida.tecnico.nom if salida.tecnico else '' }}"
                     data-observaciones="{{ salida.observaciones or '' }}"
-                    data-lineas="{% for linea in salida.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}|{% endif %}{% endfor %}"
+                    data-lineas="{{ salida | salida_lineas_copy }}"
                     onclick="copierSalida(this)"
                     title="Copiar información">
                 <i class="fas fa-copy me-1"></i>Copiar información

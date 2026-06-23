@@ -330,11 +330,22 @@ def apply_salida_list_filters(query, request_args):
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id))
 
 
+def material_linea_copy_label(linea):
+    material = linea.material
+    if not material:
+        return f'? x{linea.cantidad}'
+    label = material.nombre
+    if material.modelo:
+        label = f'{label} ({material.modelo})'
+    return f'{label} x{linea.cantidad}'
+
+
+def salida_lineas_copy_data(salida):
+    return '|'.join(material_linea_copy_label(linea) for linea in salida.lineas)
+
+
 def salida_resumen_lineas(salida):
-    parts = []
-    for linea in salida.lineas:
-        nombre = linea.material.nombre if linea.material else '?'
-        parts.append(f'{nombre} x{linea.cantidad}')
+    parts = [material_linea_copy_label(linea) for linea in salida.lineas]
     return ', '.join(parts) if parts else '—'
 
 

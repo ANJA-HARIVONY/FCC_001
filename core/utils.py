@@ -44,4 +44,9 @@ def setup_template_filters(app):
         from core.services.materiales_service import material_foto_url
         return material_foto_url(foto_path)
 
+    @app.template_filter('salida_lineas_copy')
+    def salida_lineas_copy_filter(salida):
+        from core.services.materiales_service import salida_lineas_copy_data
+        return salida_lineas_copy_data(salida)
+
     return app
