@@ -83,7 +83,7 @@
                                         <select name="material_id[]" class="form-select material-select" required>
                                             <option value="">— Seleccionar —</option>
                                             {% for m in materiales %}
-                                            <option value="{{ m.id }}" data-tipo="{{ m.tipo }}" {% if m.id == linea.id_material %}selected{% endif %}>{{ m.nombre }} ({{ tipo_labels.get(m.tipo, m.tipo) }})</option>
+                                            <option value="{{ m.id }}" {% if m.id == linea.id_material %}selected{% endif %}>{{ m.nombre }}{% if m.modelo %} ({{ m.modelo }}){% endif %}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -97,7 +97,7 @@
                                         <select name="material_id[]" class="form-select material-select" required>
                                             <option value="">— Seleccionar —</option>
                                             {% for m in materiales %}
-                                            <option value="{{ m.id }}" data-tipo="{{ m.tipo }}">{{ m.nombre }} ({{ tipo_labels.get(m.tipo, m.tipo) }})</option>
+                                            <option value="{{ m.id }}">{{ m.nombre }}{% if m.modelo %} ({{ m.modelo }}){% endif %}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -125,7 +125,7 @@
             <select name="material_id[]" class="form-select material-select" required>
                 <option value="">— Seleccionar —</option>
                 {% for m in materiales %}
-                <option value="{{ m.id }}" data-tipo="{{ m.tipo }}">{{ m.nombre }} ({{ tipo_labels.get(m.tipo, m.tipo) }})</option>
+                <option value="{{ m.id }}">{{ m.nombre }}{% if m.modelo %} ({{ m.modelo }}){% endif %}</option>
                 {% endfor %}
             </select>
         </td>
