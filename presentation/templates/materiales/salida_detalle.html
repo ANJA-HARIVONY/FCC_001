@@ -20,7 +20,7 @@
                     data-lineas="{{ salida | salida_lineas_copy }}"
                     onclick="copierSalida(this)"
                     title="Copiar información">
-                <i class="fas fa-copy me-1"></i>Copiar información
+                <i class="fas fa-copy me-1"></i>Copiar informaciónes
             </button>
             <a href="{{ url_for('materiales_salida_modificar', salida_id=salida.id) }}" class="btn btn-primary btn-sm">Modificar</a>
         </div>
@@ -60,12 +60,12 @@
                 <div class="card-header"><h5 class="mb-0">Líneas de material</h5></div>
                 <div class="card-body p-0">
                     <table class="table mb-0">
-                        <thead><tr><th>Material</th><th>Tipo</th><th class="text-end">Cantidad</th></tr></thead>
+                        <thead><tr><th>Material</th><th>Modelo</th><th class="text-end">Cantidad</th></tr></thead>
                         <tbody>
                             {% for linea in salida.lineas %}
                             <tr>
                                 <td>{{ linea.material.nombre if linea.material else '—' }}</td>
-                                <td>{{ tipo_labels.get(linea.material.tipo, linea.material.tipo) if linea.material else '—' }}</td>
+                                <td>{{ linea.material.modelo if linea.material else '—' }}</td>
                                 <td class="text-end">{{ linea.cantidad }}</td>
                             </tr>
                             {% endfor %}

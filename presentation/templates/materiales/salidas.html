@@ -74,7 +74,7 @@
                             <td>{{ s.client.nom if s.client else 'Uso general' }}</td>
                             <td class="small text-muted">
                                 {% for linea in s.lineas %}
-                                {{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
+                                {{ linea.material.nombre if linea.material else '?' }}({{ linea.material.modelo if linea.material else '?' }}) x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
                                 {% endfor %}
                             </td>
                             <td>
