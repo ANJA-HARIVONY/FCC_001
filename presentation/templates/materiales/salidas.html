@@ -38,7 +38,7 @@
                     <select name="tecnico" class="form-select form-select-sm">
                         <option value="">Todos</option>
                         {% for t in tecnicos %}
-                        <option value="{{ t.id }}" {% if filters.get('tecnico', type=int) == t.id %}selected{% endif %}>{{ t.nom }}</option>
+                        <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
                         {% endfor %}
                     </select>
                 </div>

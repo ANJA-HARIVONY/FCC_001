@@ -304,7 +304,7 @@ def apply_salida_list_filters(query, request_args):
 
     estado = (request_args.get('estado') or '').strip()
     if estado in SALIDA_ESTADO_LABELS:
-        query = query.filter_by(estado=estado)
+        query = query.filter(MaterialSalida.estado == estado)
 
     date_from = (request_args.get('date_from') or '').strip()
     date_to = (request_args.get('date_to') or '').strip()
