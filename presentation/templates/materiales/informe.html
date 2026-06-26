@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Informe de salidas{% endblock %}
 {% block content %}
+{% set salida_tipo_badge = {
+    'uso_interno': 'bg-success',
+    'incidencia': 'bg-warning text-dark',
+    'instalacion': 'bg-primary'
+} %}
 <div class="container-fluid">
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
@@ -13,27 +18,111 @@
     <div class="card content-card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-2 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label">Fecha desde <span class="text-danger">*</span></label>
-                    <input type="date" name="date_from" class="form-control" value="{{ date_from }}" required>
+                <div class="col-md-2">
+                    <label class="form-label small">Fecha desde <span class="text-danger">*</span></label>
+                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}" required>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">Fecha hasta <span class="text-danger">*</span></label>
-                    <input type="date" name="date_to" class="form-control" value="{{ date_to }}" required>
+                <div class="col-md-2">
+                    <label class="form-label small">Fecha hasta <span class="text-danger">*</span></label>
+                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}" required>
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-primary">Generar</button>
+                <div class="col-md-2">
+                    <label class="form-label small">Tipo de salida</label>
+                    <select name="tipo_salida" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        {% for t in salida_tipos %}
+                        <option value="{{ t }}" {% if informe_filters.get('tipo_salida') == t %}selected{% endif %}>{{ salida_tipo_labels[t] }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Técnico</label>
+                    <select name="tecnico" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        {% for t in tecnicos %}
+                        <option value="{{ t.id }}" {% if informe_filters.get('tecnico_id') == t.id %}selected{% endif %}>{{ t.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Material</label>
+                    <select name="material" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        {% for m in materiales_filter %}
+                        <option value="{{ m.id }}" {% if informe_filters.get('material_id') == m.id %}selected{% endif %}>{{ m.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-12 col-lg-auto">
+                    <button type="submit" class="btn btn-sm btn-primary me-1">Generar</button>
+                    <a href="{{ url_for('materiales_informe') }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
                 </div>
             </form>
             {% if error %}<div class="alert alert-danger mt-3 mb-0">{{ error }}</div>{% endif %}
         </div>
     </div>
 
-    {% if rows is not none and date_from and date_to and not error %}
+    {% if resumen is not none and date_from and date_to and not error %}
+    <div class="card content-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Resumen</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 mb-4 informe-kpi-row">
+                <div class="col-md-6">
+                    <div class="card informe-kpi-card h-100 border">
+                        <div class="card-body text-center py-3">
+                            <div class="informe-kpi-value">{{ resumen.salidas_count }}</div>
+                            <div class="informe-kpi-label text-muted small">{{ resumen.salidas_count_label }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card informe-kpi-card h-100 border">
+                        <div class="card-body text-center py-3">
+                            <div class="informe-kpi-value">{{ resumen.materiales_distintos }}</div>
+                            <div class="informe-kpi-label text-muted small">Materiales distintos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="mb-3">Totales por material</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Material</th>
+                            <th class="text-end">Cantidad total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in resumen.material_rows %}
+                        <tr>
+                            <td>{{ row.label }}</td>
+                            <td class="text-end fw-semibold">{{ row.cantidad_total }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-center text-muted py-3">No hay datos en este período.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if resumen is not none and date_from and date_to and not error %}
     <div class="card content-card">
-        <div class="card-header d-flex justify-content-between">
-            <h5 class="mb-0">Resultados</h5>
-            {% if pagination %}<small class="text-white-50">{{ pagination.total }} línea{% if pagination.total != 1 %}s{% endif %}</small>{% endif %}
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Detalle</h5>
+            <div class="d-flex align-items-center gap-2">
+                {% if pagination %}<small class="text-white-50">{{ pagination.total }} línea{% if pagination.total != 1 %}s{% endif %}</small>{% endif %}
+                <a href="{{ url_for('materiales_informe_export_xlsx', date_from=date_from, date_to=date_to, **filter_url_kwargs) }}"
+                   class="btn btn-sm btn-success">
+                    <i class="fas fa-file-excel me-1"></i>Exportar en Excel
+                </a>
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -44,28 +133,36 @@
                             <th class="text-white">Técnico</th>
                             <th class="text-white">Cliente</th>
                             <th class="text-white">Material</th>
-                            <th class="text-white">Tipo</th>
+                            <th class="text-white">Tipo material</th>
+                            <th class="text-white">Tipo salida</th>
                             <th class="text-white text-end">Cantidad</th>
-                            <th class="text-white">Estado</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for row in rows %}
+                        {% for row in detail_lineas %}
                         {% set salida = row.salida %}
                         <tr>
                             <td>{{ salida.fecha.strftime('%d/%m/%Y') if salida else '—' }}</td>
                             <td>{{ salida.tecnico.nom if salida and salida.tecnico else '—' }}</td>
-                            <td>{{ salida.client.nom if salida and salida.client else 'Uso general' }}</td>
-                            <td>{{ row.material.nombre if row.material else '—' }}</td>
-                            <td>{{ tipo_labels.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td>
-                            <td class="text-end">{{ row.cantidad }}</td>
                             <td>
-                                {% if salida and salida.estado == 'modificada' %}
-                                <span class="badge bg-warning text-dark">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
+                                {% if salida and salida.client %}
+                                {{ salida.client.nom }}
+                                {% elif salida and salida.tipo_salida == 'uso_interno' %}
+                                <span class="text-muted">Uso interno</span>
                                 {% else %}
-                                <span class="badge bg-success">{{ estado_labels.get(salida.estado if salida else 'registrada', 'Registrada') }}</span>
+                                Uso general
                                 {% endif %}
                             </td>
+                            <td>{{ row.material.nombre if row.material else '—' }}</td>
+                            <td>{{ tipo_labels.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td>
+                            <td>
+                                {% if salida %}
+                                <span class="badge {{ salida_tipo_badge.get(salida.tipo_salida, 'bg-secondary') }}">{{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}</span>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td class="text-end">{{ row.cantidad }}</td>
                         </tr>
                         {% else %}
                         <tr><td colspan="7" class="text-center text-muted py-4">No hay líneas en este período.</td></tr>
@@ -80,10 +177,10 @@
             <nav>
                 <ul class="pagination pagination-sm mb-0">
                     <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('materiales_informe', page=pagination.prev_num, date_from=date_from, date_to=date_to) }}">Anterior</a>
+                        <a class="page-link" href="{{ url_for('materiales_informe', page=pagination.prev_num, date_from=date_from, date_to=date_to, **filter_url_kwargs) }}">Anterior</a>
                     </li>
                     <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('materiales_informe', page=pagination.next_num, date_from=date_from, date_to=date_to) }}">Siguiente</a>
+                        <a class="page-link" href="{{ url_for('materiales_informe', page=pagination.next_num, date_from=date_from, date_to=date_to, **filter_url_kwargs) }}">Siguiente</a>
                     </li>
                 </ul>
             </nav>

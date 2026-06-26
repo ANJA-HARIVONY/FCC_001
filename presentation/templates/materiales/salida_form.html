@@ -13,8 +13,20 @@
 
     <div class="card content-card">
         <div class="card-body">
-            <form method="POST" id="salidaForm" action="{{ form_action }}">
+            <form method="POST" id="salidaForm" action="{{ form_action }}"
+                  data-tipo-salida="{{ tipo_salida }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if not salida %}
+                <input type="hidden" name="tipo_salida" value="{{ tipo_salida }}">
+                {% endif %}
+
+                <div class="alert alert-light border mb-4 py-2">
+                    <strong>Tipo de salida:</strong>
+                    <span class="badge bg-secondary ms-1">{{ salida_tipo_labels.get(tipo_salida, tipo_salida) }}</span>
+                    {% if salida %}
+                    <span class="text-muted small ms-2">(no modificable)</span>
+                    {% endif %}
+                </div>
 
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
@@ -39,8 +51,12 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <label for="client_search" class="form-label">Cliente <span class="text-muted">(opcional)</span></label>
+                    <div class="col-md-4" id="clienteFieldCol">
+                        <label for="client_search" class="form-label">
+                            Cliente
+                            <span class="text-danger cliente-required-mark" style="display: none;">*</span>
+                            <!--<span class="text-muted cliente-optional-mark">(opcional)</span> -->
+                        </label>
                         <div class="position-relative">
                             <input type="text" class="form-control" id="client_search"
                                    placeholder="Buscar cliente por nombre, teléfono o ciudad..."
@@ -56,7 +72,7 @@
                                 <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearClientBtn"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
-                        <div class="form-text">Vacío = uso general del técnico</div>
+                        <!--<div class="form-text cliente-hint">Vacío = uso general del técnico</div> -->
                     </div>
                     <div class="col-12">
                         <label for="observaciones" class="form-label">Observaciones <span class="text-muted">(opcional)</span></label>

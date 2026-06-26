@@ -242,6 +242,19 @@ SALIDA_ESTADO_LABELS = {
     'registrada': 'Registrada',
     'modificada': 'Modificada',
 }
+
+SALIDA_TIPOS = ('uso_interno', 'incidencia', 'instalacion')
+SALIDA_TIPO_LABELS = {
+    'uso_interno': 'Uso interno',
+    'incidencia': 'Incidencia',
+    'instalacion': 'Instalación',
+}
+
+INFORME_GROUP_MODES = ('material', 'tecnico')
+INFORME_GROUP_LABELS = {
+    'material': 'Por material',
+    'tecnico': 'Por técnico',
+}
 CORPORATIVO_NOM_KEYWORDS = (
     'ministerio', 'embajada', 'eglng', 'pnud', 'unrco', 'unge',
     'federacion', 'societe general', 'societe',
@@ -289,6 +302,8 @@ def inject_operateur_categoria_labels():
         'categoria_operateur_label': categoria_operateur_label,
         'MATERIAL_TIPO_LABELS': MATERIAL_TIPO_LABELS,
         'SALIDA_ESTADO_LABELS': SALIDA_ESTADO_LABELS,
+        'SALIDA_TIPO_LABELS': SALIDA_TIPO_LABELS,
+        'INFORME_GROUP_LABELS': INFORME_GROUP_LABELS,
     }
 
 
@@ -515,6 +530,7 @@ class MaterialSalida(db.Model):
     id_operateur_modificacion = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
     fecha_modificacion = db.Column(db.DateTime, nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
+    tipo_salida = db.Column(db.String(20), nullable=False, default='uso_interno', index=True)
 
     tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico], backref=db.backref('salidas_tecnico', lazy=True))
     client = db.relationship('Client', backref=db.backref('salidas_material', lazy=True))
@@ -713,6 +729,42 @@ def ensure_salida_observaciones_column():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar/crear columna observaciones en material_salida')
+
+
+def ensure_salida_tipo_column():
+    """Añade tipo_salida si falta en material_salida (arranque sin migración)."""
+    if getattr(ensure_salida_tipo_column, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('material_salida'):
+            ensure_salida_tipo_column._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('material_salida')}
+        if 'tipo_salida' not in columns:
+            with db.engine.begin() as conn:
+                conn.execute(text(
+                    "ALTER TABLE material_salida ADD COLUMN tipo_salida VARCHAR(20) NOT NULL DEFAULT 'uso_interno'"
+                ))
+                conn.execute(text("""
+                    UPDATE material_salida
+                    SET tipo_salida = 'incidencia'
+                    WHERE id_client IS NOT NULL
+                    AND EXISTS (
+                        SELECT 1 FROM client c
+                        WHERE c.id = material_salida.id_client
+                        AND TRIM(COALESCE(c.nom, '')) != ''
+                        AND LOWER(TRIM(c.nom)) != 'uso general'
+                    )
+                """))
+                try:
+                    conn.execute(text('CREATE INDEX ix_material_salida_tipo_salida ON material_salida (tipo_salida)'))
+                except Exception:
+                    pass
+        ensure_salida_tipo_column._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columna tipo_salida en material_salida')
 
 
 def build_comment_notification_message(actor_name, client_name):
@@ -958,6 +1010,7 @@ def require_authentication():
     ensure_material_detail_columns()
     ensure_material_fotos_storage()
     ensure_salida_observaciones_column()
+    ensure_salida_tipo_column()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):

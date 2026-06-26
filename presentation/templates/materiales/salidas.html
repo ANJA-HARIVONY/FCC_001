@@ -1,136 +1,445 @@
 {% extends "base.html" %}
+
 {% block title %}Salidas de material{% endblock %}
+
 {% block content %}
+
+{% set salida_tipo_badge = {
+    'uso_interno': 'bg-success',
+    'incidencia': 'bg-warning text-dark',
+    'instalacion': 'bg-primary'
+} %}
+
 <div class="container-fluid">
+
     <nav aria-label="breadcrumb" class="mb-3">
+
         <ol class="breadcrumb">
+
             <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+
             <li class="breadcrumb-item active">Salidas</li>
+
         </ol>
+
     </nav>
+
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+
         <h1 class="h2 text-dark mb-0"><i class="fas fa-clipboard-list text-danger me-2"></i>Salidas de material</h1>
-        <a href="{{ url_for('materiales_salida_nueva') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i>Nueva salida</a>
+
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tipoSalidaModal">
+
+            <i class="fas fa-plus me-1"></i>Nueva salida
+
+        </button>
+
     </div>
+
+
 
     <div class="card content-card mb-4">
+
         <div class="card-body">
+
             <form method="GET" class="row g-2 align-items-end">
+
                 <div class="col-md-2">
+
                     <label class="form-label small">Desde</label>
+
                     <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filters.get('date_from', '') }}">
+
                 </div>
+
                 <div class="col-md-2">
+
                     <label class="form-label small">Hasta</label>
+
                     <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filters.get('date_to', '') }}">
+
                 </div>
-                <div class="col-md-2">
+
+                <!--<div class="col-md-2">
+
                     <label class="form-label small">Estado</label>
+
                     <select name="estado" class="form-select form-select-sm">
+
                         <option value="">Todos</option>
+
                         {% for e in salida_estados %}
+
                         <option value="{{ e }}" {% if filters.get('estado') == e %}selected{% endif %}>{{ estado_labels[e] }}</option>
+
                         {% endfor %}
+
                     </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label small">Técnico</label>
-                    <select name="tecnico" class="form-select form-select-sm">
+
+                </div> -->
+
+                <div class="col-md-2">
+
+                    <label class="form-label small">Tipo de salida</label>
+
+                    <select name="tipo_salida" class="form-select form-select-sm">
+
                         <option value="">Todos</option>
-                        {% for t in tecnicos %}
-                        <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
+
+                        {% for t in salida_tipos %}
+
+                        <option value="{{ t }}" {% if filters.get('tipo_salida') == t %}selected{% endif %}>{{ salida_tipo_labels[t] }}</option>
+
                         {% endfor %}
+
                     </select>
+
                 </div>
-                <div class="col-md-3">
+
+                <div class="col-md-2">
+
+                    <label class="form-label small">Técnico</label>
+
+                    <select name="tecnico" class="form-select form-select-sm">
+
+                        <option value="">Todos</option>
+
+                        {% for t in tecnicos %}
+
+                        <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label class="form-label small">Material</label>
+
+                    <select name="material" class="form-select form-select-sm">
+
+                        <option value="">Todos</option>
+
+                        {% for m in materiales_filter %}
+
+                        <option value="{{ m.id }}" {% if filters.get('material') and filters.get('material')|int == m.id %}selected{% endif %}>{{ m.label }}</option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-12 col-lg-auto">
+
                     <button type="submit" class="btn btn-sm btn-outline-primary me-1">Filtrar</button>
+
                     <a href="{{ url_for('materiales_salidas') }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+
                 </div>
+
             </form>
+
         </div>
+
     </div>
+
+
 
     <div class="card content-card">
+
         <div class="card-body p-0">
+
             <div class="table-responsive">
+
                 <table class="table table-hover mb-0 align-middle">
+
                     <thead>
+
                         <tr>
+
                             <th class="text-white">#</th>
+
                             <th class="text-white">Fecha</th>
+
+                            <th class="text-white">Tipo</th>
+
                             <th class="text-white">Técnico</th>
+
                             <th class="text-white">Cliente</th>
+
                             <th class="text-white">Materiales</th>
-                            <th class="text-white">Estado</th>
+
+                            <!--<th class="text-white">Estado</th> -->
+
                             <th class="text-white text-end">Acciones</th>
+
                         </tr>
+
                     </thead>
+
                     <tbody>
+
                         {% for s in salidas %}
+
                         <tr>
+
                             <td>{{ s.id }}</td>
+
                             <td>{{ s.fecha.strftime('%d/%m/%Y') }}</td>
+
+                            <td><span class="badge {{ salida_tipo_badge.get(s.tipo_salida, 'bg-secondary') }}">{{ salida_tipo_labels.get(s.tipo_salida, s.tipo_salida) }}</span></td>
+
                             <td>{{ s.tecnico.nom if s.tecnico else '—' }}</td>
-                            <td>{{ s.client.nom if s.client else 'Uso general' }}</td>
-                            <td class="small text-muted">
-                                {% for linea in s.lineas %}
-                                {{ linea.material.nombre if linea.material else '?' }}({{ linea.material.modelo if linea.material else '?' }}) x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
-                                {% endfor %}
-                            </td>
+
                             <td>
-                                {% if s.estado == 'modificada' %}
-                                <span class="badge bg-warning text-dark">{{ estado_labels.get(s.estado, s.estado) }}</span>
+
+                                {% if s.client %}
+
+                                {{ s.client.nom }}
+
+                                {% elif s.tipo_salida == 'uso_interno' %}
+
+                                <span class="text-muted">Uso interno</span>
+
                                 {% else %}
-                                <span class="badge bg-success">{{ estado_labels.get(s.estado, s.estado) }}</span>
+
+                                Uso general
+
                                 {% endif %}
+
                             </td>
+
+                            <td class="small text-muted">
+
+                                {% for linea in s.lineas %}
+
+                                {{ linea.material.nombre if linea.material else '?' }}({{ linea.material.modelo if linea.material else '?' }}) x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
+
+                                {% endfor %}
+
+                            </td>
+
+                            <!--<td>
+
+                                {% if s.estado == 'modificada' %}
+
+                                <span class="badge bg-warning text-dark">{{ estado_labels.get(s.estado, s.estado) }}</span>
+
+                                {% else %}
+
+                                <span class="badge bg-success">{{ estado_labels.get(s.estado, s.estado) }}</span>
+
+                                {% endif %}
+
+                            </td> -->
+
                             <td class="text-end text-nowrap">
+
                                 <div class="btn-group" role="group">
+
                                     <a href="{{ url_for('materiales_salida_detalle', salida_id=s.id) }}" class="btn btn-sm btn-outline-secondary" title="Ver">
+
                                         <i class="fas fa-eye"></i>
+
                                     </a>
+
                                     <a href="{{ url_for('materiales_salida_modificar', salida_id=s.id) }}" class="btn btn-sm btn-outline-primary" title="Modificar">
+
                                         <i class="fas fa-edit"></i>
+
                                     </a>
+
                                     <button type="button" class="btn btn-sm btn-outline-success"
+
                                             data-cliente="{{ s.client.nom if s.client else '' }}"
+
                                             data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
+
                                             data-observaciones="{{ s.observaciones or '' }}"
+
                                             data-lineas="{{ s | salida_lineas_copy }}"
+
                                             onclick="copierSalida(this)"
+
                                             title="Copiar información">
+
                                         <i class="fas fa-copy"></i>
+
                                     </button>
+
                                 </div>
+
                             </td>
+
                         </tr>
+
                         {% else %}
-                        <tr><td colspan="7" class="text-center text-muted py-4">No hay salidas registradas.</td></tr>
+
+                        <tr><td colspan="8" class="text-center text-muted py-4">No hay salidas registradas.</td></tr>
+
                         {% endfor %}
+
                     </tbody>
+
                 </table>
+
             </div>
+
         </div>
+
         {% if pagination.pages > 1 %}
+
         <div class="card-footer d-flex justify-content-between align-items-center">
+
             <small class="text-muted">Página {{ pagination.page }} / {{ pagination.pages }} ({{ pagination.total }} salidas)</small>
+
             <nav>
+
                 <ul class="pagination pagination-sm mb-0">
+
                     <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.prev_num, date_from=filters.get('date_from', ''), date_to=filters.get('date_to', ''), estado=filters.get('estado', ''), tecnico=filters.get('tecnico', '')) }}">Anterior</a>
+
+                        <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.prev_num, date_from=filters.get('date_from', ''), date_to=filters.get('date_to', ''), estado=filters.get('estado', ''), tipo_salida=filters.get('tipo_salida', ''), tecnico=filters.get('tecnico', ''), material=filters.get('material', '')) }}">Anterior</a>
+
                     </li>
+
                     <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-                        <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.next_num, date_from=filters.get('date_from', ''), date_to=filters.get('date_to', ''), estado=filters.get('estado', ''), tecnico=filters.get('tecnico', '')) }}">Siguiente</a>
+
+                        <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.next_num, date_from=filters.get('date_from', ''), date_to=filters.get('date_to', ''), estado=filters.get('estado', ''), tipo_salida=filters.get('tipo_salida', ''), tecnico=filters.get('tecnico', ''), material=filters.get('material', '')) }}">Siguiente</a>
+
                     </li>
+
                 </ul>
+
             </nav>
+
         </div>
+
         {% endif %}
+
     </div>
+
 </div>
+
+
+
+<div class="modal fade" id="tipoSalidaModal" tabindex="-1" aria-labelledby="tipoSalidaModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title" id="tipoSalidaModalLabel">Tipo de salida</h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <p class="text-muted small mb-3">Seleccione el contexto de la salida antes de continuar.</p>
+
+                {% set salida_tipo_icons = {
+                    'uso_interno': 'fa-building',
+                    'incidencia': 'fa-triangle-exclamation',
+                    'instalacion': 'fa-screwdriver-wrench'
+                } %}
+
+                <div class="row g-3 salida-tipo-radios">
+                    {% for t in salida_tipos %}
+                    <div class="col-4">
+                        <div class="position-relative h-100">
+                            <input class="form-check-input visually-hidden salida-tipo-choice-input"
+                                   type="radio" name="tipo_salida_modal" id="tipo_salida_{{ t }}" value="{{ t }}"
+                                   autocomplete="off">
+                            <label class="salida-tipo-card-label w-100 mb-0" for="tipo_salida_{{ t }}">
+                                <div class="salida-tipo-card h-100 salida-tipo-card--{{ t }}">
+                                    <span class="salida-tipo-icon salida-tipo-icon--{{ t }} mb-2 d-inline-flex" aria-hidden="true">
+                                        <i class="fas {{ salida_tipo_icons.get(t, 'fa-box') }}"></i>
+                                    </span>
+                                    <span class="salida-tipo-label d-block">{{ salida_tipo_labels[t] }}</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+
+                <button type="button" class="btn btn-primary" id="confirmTipoSalidaBtn">Continuar</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock %}
 
+
+
 {% block scripts %}
+
 <script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+
 <script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
+
+<script>
+
+(function () {
+
+    const nuevaBaseUrl = {{ url_for('materiales_salida_nueva') | tojson }};
+
+    const openOnLoad = {{ open_nueva_modal | default(false) | tojson }};
+
+
+
+    document.getElementById('confirmTipoSalidaBtn').addEventListener('click', function () {
+
+        const selected = document.querySelector('input[name="tipo_salida_modal"]:checked');
+
+        if (!selected) {
+
+            alert('Seleccione un tipo de salida.');
+
+            return;
+
+        }
+
+        window.location.href = nuevaBaseUrl + '?tipo=' + encodeURIComponent(selected.value);
+
+    });
+
+
+
+    if (openOnLoad) {
+
+        const modalEl = document.getElementById('tipoSalidaModal');
+
+        if (modalEl && window.bootstrap) {
+
+            new bootstrap.Modal(modalEl).show();
+
+        }
+
+    }
+
+})();
+
+</script>
+
 {% endblock %}
+
+

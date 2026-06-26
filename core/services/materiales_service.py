@@ -21,6 +21,21 @@ SALIDA_ESTADO_LABELS = {
     'modificada': 'Modificada',
 }
 
+SALIDA_TIPO_LABELS = {
+    'uso_interno': 'Uso interno',
+    'incidencia': 'Incidencia',
+    'instalacion': 'Instalación',
+}
+
+INFORME_GROUP_MODES = ('material', 'tecnico')
+
+INFORME_SALIDAS_COUNT_LABELS = {
+    'incidencia': 'Nº incidencias',
+    'instalacion': 'Nº instalaciones',
+    'uso_interno': 'Nº usos internos',
+}
+INFORME_SALIDAS_COUNT_LABEL_DEFAULT = 'Nº salidas'
+
 
 class MaterialesValidationError(ValueError):
     """Error de validación con mensaje en español para flash."""
@@ -214,17 +229,44 @@ def parse_observaciones_form(form):
     return value or None
 
 
+def parse_tipo_salida_form(form, required=True):
+    from core.app import SALIDA_TIPOS
+
+    tipo = (form.get('tipo_salida') or '').strip()
+    if not tipo:
+        if required:
+            raise MaterialesValidationError('Seleccione el tipo de salida.')
+        return None
+    if tipo not in SALIDA_TIPOS:
+        raise MaterialesValidationError('Tipo de salida no válido.')
+    return tipo
+
+
+def _apply_tipo_salida_client_rules(tipo_salida, client_id):
+    """Valida y normaliza id_client según tipo_salida."""
+    if tipo_salida == 'uso_interno':
+        return None
+    if tipo_salida in ('incidencia', 'instalacion'):
+        if not client_id:
+            raise MaterialesValidationError('Seleccione un cliente.')
+        return client_id
+    raise MaterialesValidationError('Tipo de salida no válido.')
+
+
 def create_salida(form, current_user):
     from core.app import MaterialSalida, MaterialSalidaLinea, db, write_audit
 
     fecha = parse_fecha_form(form.get('fecha'))
     tecnico_id = form.get('id_tecnico', type=int)
-    client_id = form.get('id_client', type=int) or None
+    tipo_salida = parse_tipo_salida_form(form, required=True)
+    raw_client_id = form.get('id_client', type=int) or None
     if not tecnico_id:
         raise MaterialesValidationError('Seleccione un técnico.')
 
     _validate_tecnico(tecnico_id)
-    _validate_client(client_id)
+    client_id = _apply_tipo_salida_client_rules(tipo_salida, raw_client_id)
+    if client_id:
+        _validate_client(client_id)
     lineas = parse_lineas_form(form)
     _validate_materials(lineas)
 
@@ -232,6 +274,7 @@ def create_salida(form, current_user):
         fecha=fecha,
         id_tecnico=tecnico_id,
         id_client=client_id,
+        tipo_salida=tipo_salida,
         observaciones=parse_observaciones_form(form),
         estado='registrada',
         id_operateur_registro=current_user.id,
@@ -257,12 +300,17 @@ def update_salida(salida_id, form, current_user):
 
     fecha = parse_fecha_form(form.get('fecha'))
     tecnico_id = form.get('id_tecnico', type=int)
-    client_id = form.get('id_client', type=int) or None
+    raw_client_id = form.get('id_client', type=int) or None
     if not tecnico_id:
         raise MaterialesValidationError('Seleccione un técnico.')
 
     _validate_tecnico(tecnico_id)
-    _validate_client(client_id)
+    client_id = _apply_tipo_salida_client_rules(
+        getattr(salida, 'tipo_salida', None) or 'uso_interno',
+        raw_client_id,
+    )
+    if client_id:
+        _validate_client(client_id)
     lineas = parse_lineas_form(form)
     _validate_materials(lineas, activos_only=False)
 
@@ -300,11 +348,15 @@ def salidas_base_query(agencia_id=None):
 
 
 def apply_salida_list_filters(query, request_args):
-    from core.app import MaterialSalida
+    from core.app import MaterialSalida, SALIDA_TIPOS
 
     estado = (request_args.get('estado') or '').strip()
     if estado in SALIDA_ESTADO_LABELS:
         query = query.filter(MaterialSalida.estado == estado)
+
+    tipo_salida = (request_args.get('tipo_salida') or '').strip()
+    if tipo_salida in SALIDA_TIPOS:
+        query = query.filter(MaterialSalida.tipo_salida == tipo_salida)
 
     date_from = (request_args.get('date_from') or '').strip()
     date_to = (request_args.get('date_to') or '').strip()
@@ -327,7 +379,37 @@ def apply_salida_list_filters(query, request_args):
     if client_id:
         query = query.filter(MaterialSalida.id_client == client_id)
 
+    material_id = request_args.get('material', type=int)
+    if material_id:
+        query = query.filter(MaterialSalida.lineas.any(id_material=material_id))
+
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id))
+
+
+def get_salidas_material_filter_options(agencia_id=None):
+    from core.app import Material, MaterialSalida, MaterialSalidaLinea, Operateur
+
+    query = (
+        Material.query.with_entities(Material.id, Material.nombre, Material.modelo)
+        .join(MaterialSalidaLinea, MaterialSalidaLinea.id_material == Material.id)
+        .join(MaterialSalida, MaterialSalidaLinea.id_salida == MaterialSalida.id)
+        .join(Operateur, MaterialSalida.id_tecnico == Operateur.id)
+    )
+    if agencia_id:
+        query = query.filter(Operateur.id_agencia == agencia_id)
+
+    rows = (
+        query.distinct()
+        .order_by(Material.nombre.asc(), Material.modelo.asc(), Material.id.asc())
+        .all()
+    )
+    options = []
+    for material_id, nombre, modelo in rows:
+        label = nombre or f'Material #{material_id}'
+        if modelo:
+            label = f'{label} - {modelo}'
+        options.append({'id': material_id, 'label': label})
+    return options
 
 
 def material_linea_copy_label(linea):
@@ -388,7 +470,7 @@ def db_session_query_lineas():
     )
 
 
-def build_informe_rows(date_from, date_to, agencia_id=None):
+def build_informe_rows(date_from, date_to, agencia_id=None, filters=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     if not date_from or not date_to:
@@ -401,6 +483,9 @@ def build_informe_rows(date_from, date_to, agencia_id=None):
     if d_from > d_to:
         raise MaterialesValidationError('La fecha "hasta" debe ser posterior a la fecha "desde".')
 
+    filters = filters or {}
+    _validate_informe_filters(filters, agencia_id)
+
     query = (
         db_session_query_lineas()
         .join(MaterialSalida, MaterialSalidaLinea.id_salida == MaterialSalida.id)
@@ -410,11 +495,224 @@ def build_informe_rows(date_from, date_to, agencia_id=None):
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
 
+    query = apply_informe_lineas_filters(query, filters)
+
     return query.order_by(
         desc(MaterialSalida.fecha),
         Operateur.nom.asc(),
         MaterialSalidaLinea.id.asc(),
     ).all()
+
+
+def parse_informe_filters(request_args):
+    """Extrae filtros opcionales del informe desde request.args."""
+    from core.app import SALIDA_TIPOS
+
+    filters = {}
+    tecnico_id = request_args.get('tecnico', type=int)
+    if tecnico_id:
+        filters['tecnico_id'] = tecnico_id
+    material_id = request_args.get('material', type=int)
+    if material_id:
+        filters['material_id'] = material_id
+    tipo_salida = (request_args.get('tipo_salida') or '').strip()
+    if tipo_salida in SALIDA_TIPOS:
+        filters['tipo_salida'] = tipo_salida
+    return filters
+
+
+def _validate_informe_filters(filters, agencia_id=None):
+    from core.app import Operateur, normalize_categoria_operateur
+
+    tecnico_id = filters.get('tecnico_id')
+    if not tecnico_id:
+        return
+    tecnico = Operateur.query.filter_by(id=tecnico_id, actif=True).first()
+    if not tecnico or normalize_categoria_operateur(tecnico.categoria) != 'tecnico':
+        raise MaterialesValidationError('Técnico seleccionado no válido.')
+    if agencia_id and tecnico.id_agencia != agencia_id:
+        raise MaterialesValidationError('Técnico no válido para su agencia.')
+
+
+def apply_informe_lineas_filters(query, filters):
+    from core.app import MaterialSalida, MaterialSalidaLinea
+
+    if filters.get('tecnico_id'):
+        query = query.filter(MaterialSalida.id_tecnico == filters['tecnico_id'])
+    if filters.get('material_id'):
+        query = query.filter(MaterialSalidaLinea.id_material == filters['material_id'])
+    if filters.get('tipo_salida'):
+        query = query.filter(MaterialSalida.tipo_salida == filters['tipo_salida'])
+    return query
+
+
+def get_informe_material_filter_options(date_from, date_to, agencia_id=None):
+    """Materiales con al menos una línea de salida en el período indicado."""
+    from core.app import Material, MaterialSalida, MaterialSalidaLinea, Operateur
+
+    if not date_from or not date_to:
+        return []
+    try:
+        d_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+        d_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+    except ValueError:
+        return []
+
+    query = (
+        Material.query.with_entities(Material.id, Material.nombre, Material.modelo)
+        .join(MaterialSalidaLinea, MaterialSalidaLinea.id_material == Material.id)
+        .join(MaterialSalida, MaterialSalidaLinea.id_salida == MaterialSalida.id)
+        .join(Operateur, MaterialSalida.id_tecnico == Operateur.id)
+        .filter(MaterialSalida.fecha >= d_from, MaterialSalida.fecha <= d_to)
+    )
+    if agencia_id:
+        query = query.filter(Operateur.id_agencia == agencia_id)
+
+    rows = (
+        query.distinct()
+        .order_by(Material.nombre.asc(), Material.modelo.asc(), Material.id.asc())
+        .all()
+    )
+    options = []
+    for material_id, nombre, modelo in rows:
+        label = nombre or f'Material #{material_id}'
+        if modelo:
+            label = f'{label} - {modelo}'
+        options.append({'id': material_id, 'label': label})
+    return options
+
+
+def build_informe_material_aggregates(lineas):
+    """Agrupa cantidades por material (orden alfabético)."""
+    totals = {}
+    for linea in lineas:
+        mid = linea.id_material or 0
+        if mid not in totals:
+            totals[mid] = {
+                'material_id': mid,
+                'label': _informe_group_label_material(linea),
+                'cantidad_total': 0,
+            }
+        totals[mid]['cantidad_total'] += linea.cantidad
+    return sorted(totals.values(), key=lambda row: row['label'].lower())
+
+
+def build_informe_resumen(lineas, filters=None):
+    """Resumen: recuento de salidas, materiales distintos y totales por material."""
+    filters = filters or {}
+    salida_ids = set()
+    material_ids = set()
+    for linea in lineas:
+        if linea.salida:
+            salida_ids.add(linea.salida.id)
+        if linea.id_material:
+            material_ids.add(linea.id_material)
+
+    tipo = filters.get('tipo_salida')
+    return {
+        'salidas_count': len(salida_ids),
+        'salidas_count_label': INFORME_SALIDAS_COUNT_LABELS.get(
+            tipo, INFORME_SALIDAS_COUNT_LABEL_DEFAULT,
+        ),
+        'materiales_distintos': len(material_ids),
+        'material_rows': build_informe_material_aggregates(lineas),
+    }
+
+
+def build_informe_page_data(date_from, date_to, agencia_id=None, filters=None):
+    """Datos de la página informe: líneas de detalle + bloque resumen."""
+    filters = filters or {}
+    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters)
+    resumen = build_informe_resumen(lineas, filters)
+    return lineas, resumen
+
+
+def _informe_group_key_material(linea):
+    return linea.id_material or 0
+
+
+def _informe_group_label_material(linea):
+    material = linea.material
+    if not material:
+        return 'Material desconocido'
+    label = material.nombre or f'Material #{linea.id_material}'
+    if material.modelo:
+        label = f'{label} ({material.modelo})'
+    return label
+
+
+def _informe_group_key_tecnico(linea):
+    salida = linea.salida
+    return salida.id_tecnico if salida else 0
+
+
+def _informe_group_label_tecnico(linea):
+    salida = linea.salida
+    if salida and salida.tecnico:
+        return salida.tecnico.nom
+    return 'Técnico desconocido'
+
+
+def _build_informe_display_items_from_lineas(lineas, group_by='material'):
+    if group_by not in INFORME_GROUP_MODES:
+        group_by = 'material'
+
+    if group_by == 'tecnico':
+        lineas.sort(key=lambda linea: (
+            _informe_group_label_tecnico(linea).lower(),
+            linea.salida.fecha if linea.salida else datetime.min.date(),
+            linea.id,
+        ))
+        group_key = _informe_group_key_tecnico
+        group_label = _informe_group_label_tecnico
+    else:
+        lineas.sort(key=lambda linea: (
+            _informe_group_label_material(linea).lower(),
+            linea.salida.fecha if linea.salida else datetime.min.date(),
+            linea.id,
+        ))
+        group_key = _informe_group_key_material
+        group_label = _informe_group_label_material
+
+    items = []
+    current_key = None
+    current_total = 0
+    current_label = ''
+
+    def flush_subtotal():
+        nonlocal current_total
+        if current_key is not None:
+            items.append({
+                'kind': 'subtotal',
+                'label': current_label,
+                'cantidad': current_total,
+            })
+            current_total = 0
+
+    for linea in lineas:
+        key = group_key(linea)
+        if current_key is not None and key != current_key:
+            flush_subtotal()
+        if key != current_key:
+            current_key = key
+            current_label = group_label(linea)
+        items.append({'kind': 'data', 'linea': linea})
+        current_total += linea.cantidad
+
+    flush_subtotal()
+    return items
+
+
+def build_informe_report(date_from, date_to, agencia_id=None, filters=None, group_by=None):
+    """Compatibilidad: devuelve líneas de detalle y resumen (sin subtotales)."""
+    del group_by  # obsoleto — agrupación solo en bloque resumen por material
+    return build_informe_page_data(date_from, date_to, agencia_id, filters=filters)
+
+
+def build_informe_display_items(date_from, date_to, agencia_id=None, group_by='material', filters=None):
+    """Líneas de detalle planas (sin filas de subtotal)."""
+    lineas, _resumen = build_informe_page_data(date_from, date_to, agencia_id, filters=filters)
+    return [{'kind': 'data', 'linea': linea} for linea in lineas]
 
 
 def create_material(form, current_user, foto_file=None):

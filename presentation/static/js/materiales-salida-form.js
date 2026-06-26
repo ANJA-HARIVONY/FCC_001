@@ -1,5 +1,5 @@
 /**
- * Formulario de salida de material — autocompletado técnico/cliente y líneas dinámicas.
+ * Formulario de salida de material — autocompletado técnico/cliente, líneas dinámicas y tipo de salida.
  */
 (function () {
     let tecnicosData = [];
@@ -112,7 +112,38 @@
         });
     }
 
+    function clearClienteFields() {
+        const hidden = document.getElementById('id_client');
+        const input = document.getElementById('client_search');
+        const selectedBox = document.getElementById('selected_client');
+        if (hidden) hidden.value = '';
+        if (input) input.value = '';
+        if (selectedBox) selectedBox.style.display = 'none';
+    }
+
+    function applyTipoSalidaUI(tipoSalida) {
+        const clienteCol = document.getElementById('clienteFieldCol');
+        const requiredMark = document.querySelector('.cliente-required-mark');
+        const optionalMark = document.querySelector('.cliente-optional-mark');
+        const hint = document.querySelector('.cliente-hint');
+        const isUsoInterno = tipoSalida === 'uso_interno';
+
+        if (clienteCol) {
+            clienteCol.style.display = isUsoInterno ? 'none' : '';
+        }
+        if (requiredMark) requiredMark.style.display = isUsoInterno ? 'none' : 'inline';
+        if (optionalMark) optionalMark.style.display = isUsoInterno ? 'none' : 'inline';
+        if (hint) hint.style.display = isUsoInterno ? 'none' : 'block';
+
+        if (isUsoInterno) {
+            clearClienteFields();
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', async function () {
+        const form = document.getElementById('salidaForm');
+        const tipoSalida = form ? (form.dataset.tipoSalida || '') : '';
+
         await Promise.all([loadTecnicos(), loadClients()]);
 
         setupAutocomplete(
@@ -145,14 +176,22 @@
         );
 
         setupLineas();
+        applyTipoSalidaUI(tipoSalida);
 
-        const form = document.getElementById('salidaForm');
         if (form) {
             form.addEventListener('submit', function (e) {
                 const tecnicoId = document.getElementById('id_tecnico').value;
                 if (!tecnicoId) {
                     e.preventDefault();
                     alert('Seleccione un técnico.');
+                    return;
+                }
+                if (tipoSalida !== 'uso_interno') {
+                    const clientId = document.getElementById('id_client').value;
+                    if (!clientId) {
+                        e.preventDefault();
+                        alert('Seleccione un cliente.');
+                    }
                 }
             });
         }

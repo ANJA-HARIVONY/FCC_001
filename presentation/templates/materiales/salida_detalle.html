@@ -32,8 +32,19 @@
                 <div class="card-header"><h5 class="mb-0">Información general</h5></div>
                 <div class="card-body">
                     <p><strong>Fecha:</strong> {{ salida.fecha.strftime('%d/%m/%Y') }}</p>
+                    <p><strong>Tipo de salida:</strong>
+                        <span class="badge bg-secondary">{{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}</span>
+                    </p>
                     <p><strong>Técnico:</strong> {{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
-                    <p><strong>Cliente:</strong> {{ salida.client.nom if salida.client else 'Uso general' }}</p>
+                    <p><strong>Cliente:</strong>
+                        {% if salida.client %}
+                        {{ salida.client.nom }}
+                        {% elif salida.tipo_salida == 'uso_interno' %}
+                        <span class="text-muted">Uso interno</span>
+                        {% else %}
+                        Uso general
+                        {% endif %}
+                    </p>
                     {% if salida.observaciones %}
                     <p><strong>Observaciones:</strong></p>
                     <p class="text-muted mb-0" style="white-space: pre-wrap;">{{ salida.observaciones }}</p>
