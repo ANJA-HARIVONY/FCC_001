@@ -93,14 +93,14 @@
                     <thead class="table-light">
                         <tr>
                             <th>Material</th>
-                            <th class="text-end">Cantidad total</th>
+                            <th class="text-center">Cantidad total</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in resumen.material_rows %}
                         <tr>
                             <td>{{ row.label }}</td>
-                            <td class="text-end fw-semibold">{{ row.cantidad_total }}</td>
+                            <td class="text-center fw-semibold">{{ row.cantidad_total }}</td>
                         </tr>
                         {% else %}
                         <tr><td colspan="2" class="text-center text-muted py-3">No hay datos en este período.</td></tr>
@@ -133,7 +133,7 @@
                             <th class="text-white">Técnico</th>
                             <th class="text-white">Cliente</th>
                             <th class="text-white">Material</th>
-                            <th class="text-white">Tipo material</th>
+                            <!--<th class="text-white">Tipo material</th> -->
                             <th class="text-white">Tipo salida</th>
                             <th class="text-white text-end">Cantidad</th>
                         </tr>
@@ -153,8 +153,8 @@
                                 Uso general
                                 {% endif %}
                             </td>
-                            <td>{{ row.material.nombre if row.material else '—' }}</td>
-                            <td>{{ tipo_labels.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td>
+                            <td>{{ row.material.nombre if row.material else '—' }} ({{ row.material.modelo if row.material else '—' }})</td>
+                            <!--<td>{{ tipo_labels.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td> -->
                             <td>
                                 {% if salida %}
                                 <span class="badge {{ salida_tipo_badge.get(salida.tipo_salida, 'bg-secondary') }}">{{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}</span>
