@@ -132,4 +132,5 @@ desktop.ini
 # ==== Outils de développement ====
 tools/
 !tools/__init__.py
+!tools/export_database_sql.py
 
