@@ -4,7 +4,7 @@ function copierSalida(button) {
     const observaciones = button.getAttribute('data-observaciones') || '';
     const lineasRaw = button.getAttribute('data-lineas') || '';
     const materiales = lineasRaw
-        ? lineasRaw.split('|').map(function(item) { return item.trim(); }).join(', ')
+        ? lineasRaw.split('|').map(function(item) { return item.trim(); }).join('\n')
         : '';
 
     const texteSalida = [cliente, materiales, observaciones, tecnico].filter(Boolean).join('\n');
