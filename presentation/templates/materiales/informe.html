@@ -89,7 +89,7 @@
 
             <h6 class="mb-3">Totales por material</h6>
             <div class="table-responsive">
-                <table class="table table-sm table-bordered mb-0 align-middle">
+                <table class="table table-hover table-sm table-bordered mb-0 align-middle">
                     <thead class="table-light">
                         <tr>
                             <th>Material</th>
@@ -135,7 +135,7 @@
                             <th class="text-white">Material</th>
                             <!--<th class="text-white">Tipo material</th> -->
                             <th class="text-white">Tipo salida</th>
-                            <th class="text-white text-end">Cantidad</th>
+                            <th class="text-white">Cantidad</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -162,7 +162,7 @@
                                 —
                                 {% endif %}
                             </td>
-                            <td class="text-end">{{ row.cantidad }}</td>
+                            <td class="text-center">{{ row.cantidad }}</td>
                         </tr>
                         {% else %}
                         <tr><td colspan="7" class="text-center text-muted py-4">No hay líneas en este período.</td></tr>
