@@ -1,0 +1,70 @@
+{# Affichage du statut Bitrix (fiche incident ou liste).
+   Variables : incident (requis), bitrix_info (optionnel), compact (bool), auto_load (bool)
+   Contexte global : bitrix_api_enabled #}
+{% if incident.status == 'Bitrix' %}
+    {% set compact = compact|default(false) %}
+    {% set auto_load = auto_load|default(false) and bitrix_api_enabled|default(false) %}
+    {% set suffix = incident.id %}
+    <span class="badge {% if compact %}badge-bitrix{% else %}bg-info{% endif %}">
+        {% if not compact %}<i class="fas fa-share"></i> {% endif %}{{ _('Bitrix') }}
+    </span>
+    {% if incident.ref_bitrix %}
+        <span class="{% if compact %}d-block{% else %}ms-2{% endif %} {% if compact %}mt-1{% endif %} text-muted">
+            <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="text-decoration-none {% if compact %}text-white{% else %}text-primary{% endif %}"
+               title="{{ _('Abrir en nuevo tab') }}">
+                {{ incident.ref_bitrix }} <i class="fas fa-external-link-alt"></i>
+            </a>
+        </span>
+        {% if bitrix_api_enabled|default(false) %}
+        <div id="bitrixInfoBlock-{{ suffix }}"
+             class="bitrix-info-block mt-1{% if compact %} bitrix-info-block--compact{% endif %}"
+             data-bitrix-incident-id="{{ incident.id }}"
+             data-bitrix-url="{{ url_for('api_incident_bitrix_info', id=incident.id) }}"
+             {% if auto_load %}data-bitrix-auto-load="1"{% endif %}>
+            {% if bitrix_info %}
+                {% if bitrix_info.error %}
+                    <div class="small text-warning bitrix-error" id="bitrixError-{{ suffix }}">
+                        <i class="fas fa-exclamation-triangle"></i> {{ bitrix_info.error }}
+                    </div>
+                {% else %}
+                    <div class="bitrix-info-card{% if compact %} bitrix-info-card--compact{% endif %}" id="bitrixDataDiv-{{ suffix }}">
+                        <div class="d-flex align-items-center mb-1">
+                            <span class="bitrix-emoji me-2" id="bitrixEmoji-{{ suffix }}">{{ bitrix_info.status_emoji|default('📋') }}</span>
+                            <div>
+                                <small class="text-uppercase text-muted">{{ _('Estado de la tarea') }}</small>
+                                <div class="fw-semibold {% if compact %}text-white{% else %}text-dark{% endif %}" id="bitrixStatus-{{ suffix }}">{{ bitrix_info.status_label }}</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">🧑‍💻</span>
+                            <div>
+                                <small class="text-uppercase text-muted">{{ _('Responsable') }}</small>
+                                <div id="bitrixResponsable-{{ suffix }}" class="{% if compact %}text-white{% else %}text-dark{% endif %} fw-semibold">{{ bitrix_info.responsible_name }}</div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% elif auto_load %}
+                <div class="small text-muted bitrix-loading" id="bitrixLoading-{{ suffix }}">
+                    <i class="fas fa-spinner fa-spin"></i> {{ _('Cargando estado Bitrix…') }}
+                </div>
+            {% endif %}
+            {% if not compact and incident.ref_bitrix and (bitrix_info is not none or auto_load) %}
+            <button type="button"
+                    class="btn btn-sm btn-outline-info mt-1 btn-refresh-bitrix"
+                    data-bitrix-incident-id="{{ incident.id }}"
+                    title="{{ _('Actualizar información de Bitrix') }}">
+                <i class="fas fa-sync-alt"></i> {{ _('Actualizar') }}
+            </button>
+            {% endif %}
+        </div>
+        {% elif not compact %}
+        <div class="small text-muted mt-1">
+            <i class="fas fa-unlink"></i> {{ _('Estado Bitrix no consultable desde este servidor (sin acceso a Bitrix24). Abra el enlace de la tarea.') }}
+        </div>
+        {% endif %}
+    {% endif %}
+{% endif %}

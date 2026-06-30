@@ -65,47 +65,7 @@
                             {% elif incident.status == 'Pendiente' %}
                                 <span class="badge bg-warning"><i class="fas fa-hourglass-half"></i> {{ _('Pendientes') }}</span>
                             {% elif incident.status == 'Bitrix' %}
-                                <span class="badge bg-info"><i class="fas fa-share"></i> {{ _('Bitrix') }}</span>
-                                {% if incident.ref_bitrix %}
-                                    <span class="ms-2 text-muted"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></span>
-                                {% endif %}
-                                {% if incident.ref_bitrix %}
-                                    <div id="bitrixInfoBlock" class="mt-2">
-                                        {% if bitrix_info %}
-                                            {% if bitrix_info.error %}
-                                                <div class="small text-warning" id="bitrixError">
-                                                    <i class="fas fa-exclamation-triangle"></i> {{ bitrix_info.error }}
-                                                </div>
-                                            {% else %}
-                                                <div class="bitrix-info-card" id="bitrixDataDiv">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <span class="bitrix-emoji me-2" id="bitrixEmoji">{{ bitrix_info.status_emoji|default('📋') }}</span>
-                                                        <div>
-                                                            <small class="text-uppercase text-muted">{{ _('Estado de la tarea') }}</small>
-                                                            <div class="fw-semibold text-dark" id="bitrixStatus">{{ bitrix_info.status_label }}</div>
-                                                        </div>
-                                                    </div>
-                                                    <div class="d-flex align-items-center">
-                                                        <span class="me-2">🧑‍💻</span>
-                                                        <div>
-                                                            <small class="text-uppercase text-muted">{{ _('Responsable') }}</small>
-                                                            <div id="bitrixResponsable" class="text-dark fw-semibold">{{ bitrix_info.responsible_name }}</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            {% endif %}
-                                        {% else %}
-                                            <div class="small text-muted" id="bitrixNoConfig">
-                                                <i class="fas fa-cog"></i> {{ _('API Bitrix no configurada en .env') }}
-                                            </div>
-                                        {% endif %}
-                                        {% if bitrix_info is not none %}
-                                        <button type="button" class="btn btn-sm btn-outline-info mt-1" id="btnRefreshBitrix" onclick="refreshBitrixInfo()" title="{{ _('Actualizar información de Bitrix') }}">
-                                            <i class="fas fa-sync-alt" id="iconRefreshBitrix"></i> {{ _('Actualizar') }}
-                                        </button>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
+                                {% include '_bitrix_status.html' %}
                             {% endif %}
                         </div>
                     </div>
@@ -463,8 +423,6 @@ document.addEventListener('DOMContentLoaded', function () {
 const CLIENT_ID = {{ incident.client.id }};
 const INCIDENT_ID = {{ incident.id }};
 const VERIFICAR_URL = "{{ url_for('verificar_cliente', id=incident.client.id) }}";
-const BITRIX_INFO_URL = "{{ url_for('api_incident_bitrix_info', id=incident.id) }}";
-
 function renderCard(data, type) {
     const r = data;
     const isSuccess = r.success;
@@ -654,68 +612,11 @@ function verificarCliente() {
         });
 }
 
-function refreshBitrixInfo() {
-    const btn = document.getElementById('btnRefreshBitrix');
-    const icon = document.getElementById('iconRefreshBitrix');
-    if (!btn || !icon) return;
-    btn.disabled = true;
-    icon.className = 'fas fa-spinner fa-spin';
-    fetch(BITRIX_INFO_URL, { headers: { 'Accept': 'application/json' } })
-        .then(res => res.json())
-        .then(data => {
-            btn.disabled = false;
-            icon.className = 'fas fa-sync-alt';
-            const block = document.getElementById('bitrixInfoBlock');
-            if (!block) return;
-            const errEl = document.getElementById('bitrixError');
-            const dataDiv = document.getElementById('bitrixDataDiv');
-            const statusEl = document.getElementById('bitrixStatus');
-            const respEl = document.getElementById('bitrixResponsable');
-            const noConfigEl = document.getElementById('bitrixNoConfig');
-            if (data.ok && data.data) {
-                if (errEl) errEl.style.display = 'none';
-                if (noConfigEl) noConfigEl.style.display = 'none';
-                if (dataDiv) {
-                    dataDiv.style.display = '';
-                    if (statusEl) statusEl.textContent = data.data.status_label;
-                    if (respEl) respEl.textContent = data.data.responsible_name;
-                    const emojiEl = document.getElementById('bitrixEmoji');
-                    if (emojiEl && data.data.status_emoji) emojiEl.textContent = data.data.status_emoji;
-                } else {
-                    const emoji = data.data.status_emoji || '📋';
-                    const div = document.createElement('div');
-                    div.className = 'bitrix-info-card p-2 rounded bg-light border border-info';
-                    div.id = 'bitrixDataDiv';
-                    div.innerHTML = '<div class="d-flex align-items-center mb-2"><span class="bitrix-emoji me-2">' + emoji + '</span><div><small class="text-muted text-uppercase">Estado de la tarea</small><div class="fw-semibold text-dark" id="bitrixStatus">' + data.data.status_label + '</div></div></div><div class="d-flex align-items-center"><span class="me-2">👤</span><div><small class="text-muted text-uppercase">Responsable</small><div id="bitrixResponsable">' + data.data.responsible_name + '</div></div></div>';
-                    block.insertBefore(div, btn);
-                }
-            } else {
-                if (noConfigEl) noConfigEl.style.display = 'none';
-                if (statusEl && statusEl.parentElement) statusEl.parentElement.style.display = 'none';
-                if (errEl) {
-                    errEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (data.error || 'Error');
-                    errEl.style.display = 'block';
-                } else {
-                    const div = document.createElement('div');
-                    div.className = 'small text-warning';
-                    div.id = 'bitrixError';
-                    div.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + (data.error || 'Error');
-                    block.insertBefore(div, btn);
-                }
-            }
-        })
-        .catch(err => {
-            btn.disabled = false;
-            icon.className = 'fas fa-sync-alt';
-            alert('Error: ' + err.message);
-        });
-}
 </script>
+<script src="{{ url_for('static', filename='js/bitrix-info.js') }}"></script>
 <style>
 .border-left-danger { border-left: 5px solid #dc3545; }
 .border-left-warning { border-left: 5px solid #ffc107; }
 .border-left-success { border-left: 5px solid #28a745; }
-.bitrix-emoji { font-size: 1.5rem; line-height: 1; }
-.bitrix-info-card { max-width: 280px; }
 </style>
 {% endblock %}

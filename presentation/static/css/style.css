@@ -494,6 +494,28 @@ main.page-enter {
     background-color: var(--primary-blue);
 }
 
+.bitrix-emoji {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.bitrix-info-card {
+    max-width: 280px;
+}
+
+.bitrix-info-card--compact {
+    max-width: 220px;
+    font-size: 0.8rem;
+}
+
+.bitrix-info-card--compact .bitrix-emoji {
+    font-size: 1.1rem;
+}
+
+.bitrix-info-block--compact .text-muted {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
 /* Tableaux du dashboard - hover premium et separateurs plus doux */
 .content-card .table tbody tr {
     transition: background-color var(--anim-fast) var(--anim-ease),

@@ -193,7 +193,8 @@ def inject_conf_vars():
         'app_name': app.config.get('APP_NAME', 'FCC_001'),
         'app_version': app.config.get('APP_VERSION', '1.0.0'),
         'SESSION_IDLE_TIMEOUT_SECONDS': idle_timeout_seconds,
-        'SESSION_WARNING_BEFORE_SECONDS': warning_before_seconds
+        'SESSION_WARNING_BEFORE_SECONDS': warning_before_seconds,
+        'bitrix_api_enabled': bitrix_api_enabled(),
     }
 
 # Modèles de données
@@ -840,12 +841,81 @@ BITRIX_STATUS_LABELS = {
     '6': ('Aplazada', '⏸️'),
 }
 
+BITRIX_ERROR_DNS = (
+    'No se puede contactar con Bitrix24: el servidor no resuelve el nombre de dominio. '
+    'Compruebe la conexión a Internet del servidor y la variable BITRIX24_API en .env.'
+)
+BITRIX_ERROR_NETWORK = (
+    'No se puede contactar con Bitrix24 desde el servidor. '
+    'Compruebe la conexión de red y la URL del webhook en BITRIX24_API.'
+)
+BITRIX_ERROR_TIMEOUT = 'Tiempo de espera agotado al contactar con Bitrix24. Inténtelo de nuevo.'
+BITRIX_ERROR_DISABLED = (
+    'Consulta de estado Bitrix desactivada en este servidor '
+    '(sin acceso a Internet hacia Bitrix24). Use el enlace para abrir la tarea.'
+)
+
+
+def bitrix_api_enabled():
+    """True si les appels API Bitrix24 sont autorisés (URL configurée et non désactivée)."""
+    flag = os.environ.get('BITRIX24_ENABLED', '').strip().lower()
+    if flag in ('0', 'false', 'no', 'off'):
+        return False
+    return bool(os.environ.get('BITRIX24_API', '').strip())
+
+
+def fetch_bitrix_info_for_incident(incident):
+    if not bitrix_api_enabled():
+        return None
+    if incident.status != 'Bitrix' or not incident.ref_bitrix or not str(incident.ref_bitrix).strip():
+        return None
+    api_url = os.environ.get('BITRIX24_API', '').strip()
+    return _get_bitrix_task_info(api_url, str(incident.ref_bitrix).strip())
+
+
+def _format_bitrix_connection_error(exc):
+    """Traduit les erreurs réseau/DNS urllib en message lisible pour l'utilisateur."""
+    import socket
+    from urllib.error import HTTPError, URLError
+
+    if isinstance(exc, HTTPError):
+        return None
+
+    reason = getattr(exc, 'reason', exc) if isinstance(exc, URLError) else exc
+    if isinstance(reason, socket.gaierror):
+        return BITRIX_ERROR_DNS
+    if isinstance(reason, (TimeoutError, socket.timeout)):
+        return BITRIX_ERROR_TIMEOUT
+    if isinstance(reason, ConnectionRefusedError):
+        return BITRIX_ERROR_NETWORK
+
+    msg = str(exc).lower()
+    if 'name resolution' in msg or 'getaddrinfo failed' in msg or 'errno -3' in msg or 'errno -2' in msg:
+        return BITRIX_ERROR_DNS
+    if 'timed out' in msg or 'timeout' in msg:
+        return BITRIX_ERROR_TIMEOUT
+    if 'connection refused' in msg or 'network is unreachable' in msg:
+        return BITRIX_ERROR_NETWORK
+    return None
+
 
 def _get_bitrix_task_info(api_base_url, task_id):
     """
     Appelle l'API Bitrix24 tasks.task.get.
     Retourne dict avec status_label, responsible_name, title ou {'error': msg}.
     """
+    from urllib.parse import urlparse
+
+    api_base_url = (api_base_url or '').strip()
+    parsed = urlparse(api_base_url)
+    if not parsed.scheme or not parsed.netloc:
+        return {
+            'error': (
+                'URL BITRIX24_API inválida en .env '
+                '(ejemplo: https://su-dominio.bitrix24.es/rest/1/xxxxx/)'
+            )
+        }
+
     try:
         import urllib.request
         import json
@@ -883,6 +953,11 @@ def _get_bitrix_task_info(api_base_url, task_id):
             'title': task_data.get('title', task_data.get('TITLE', '')),
         }
     except Exception as e:
+        friendly = _format_bitrix_connection_error(e)
+        if friendly:
+            logging.warning('Bitrix24 API: %s', e)
+            return {'error': friendly}
+
         err_msg = str(e)
         # Capturer le corps de la réponse pour les erreurs HTTP (ex: 401)
         try:
@@ -2089,11 +2164,7 @@ def fiche_incident(id):
     )
     abrir_comentario = request.args.get('abrir_comentario') == '1'
     can_modify_incident = user_can_modify_incident(incident)
-    bitrix_info = None
-    if incident.status == 'Bitrix' and incident.ref_bitrix and str(incident.ref_bitrix).strip():
-        api_url = os.environ.get('BITRIX24_API', '').strip()
-        if api_url:
-            bitrix_info = _get_bitrix_task_info(api_url, incident.ref_bitrix.strip())
+    bitrix_info = fetch_bitrix_info_for_incident(incident)
     return render_template(
         'fiche_incident.html',
         incident=incident,
@@ -2137,6 +2208,8 @@ def api_incident_bitrix_info(id):
         abort(403)
     if incident.status != 'Bitrix' or not incident.ref_bitrix or not str(incident.ref_bitrix).strip():
         return jsonify({'ok': False, 'error': 'Incident non Bitrix ou sans ref_bitrix'}), 400
+    if not bitrix_api_enabled():
+        return jsonify({'ok': False, 'error': BITRIX_ERROR_DISABLED}), 200
     api_url = os.environ.get('BITRIX24_API', '').strip()
     if not api_url:
         return jsonify({'ok': False, 'error': 'BITRIX24_API non configurée'}), 500

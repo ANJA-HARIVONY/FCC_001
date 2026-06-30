@@ -90,6 +90,10 @@ services:
       PORT: 5001
       WORKERS: ${WORKERS:-4}
       TIMEOUT: ${TIMEOUT:-120}
+
+      # Bitrix24 (optionnel — nécessite accès Internet du conteneur vers *.bitrix24.es)
+      BITRIX24_API: ${BITRIX24_API:-}
+      BITRIX24_ENABLED: ${BITRIX24_ENABLED:-true}
     volumes:
       # Persistance des données
       - app_logs:/app/logs
