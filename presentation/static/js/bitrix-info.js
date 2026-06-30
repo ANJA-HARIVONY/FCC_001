@@ -26,6 +26,10 @@
         if (loading) loading.style.display = 'none';
     }
 
+    function isIconOnly(block) {
+        return block.getAttribute('data-bitrix-icon-only') === '1';
+    }
+
     function isCompact(block) {
         return block.classList.contains('bitrix-info-block--compact');
     }
@@ -47,6 +51,7 @@
     function renderBitrixData(block, data) {
         const incidentId = block.getAttribute('data-bitrix-incident-id');
         const compact = isCompact(block);
+        const iconOnly = isIconOnly(block);
         hideLoading(block);
 
         const errEl = document.getElementById('bitrixError-' + incidentId);
@@ -59,6 +64,20 @@
         if (noConfigEl) noConfigEl.style.display = 'none';
 
         const emoji = data.status_emoji || '📋';
+
+        if (iconOnly) {
+            let emojiEl = document.getElementById('bitrixEmoji-' + incidentId);
+            if (!emojiEl) {
+                emojiEl = document.createElement('span');
+                emojiEl.className = 'bitrix-emoji-inline';
+                emojiEl.id = 'bitrixEmoji-' + incidentId;
+                block.appendChild(emojiEl);
+            }
+            emojiEl.textContent = emoji;
+            emojiEl.title = data.status_label || '';
+            return;
+        }
+
         const statusClass = compact ? 'text-white' : 'text-dark';
         const respClass = compact ? 'text-white' : 'text-dark';
 
@@ -75,14 +94,16 @@
         const div = document.createElement('div');
         div.className = cardClass;
         div.id = 'bitrixDataDiv-' + incidentId;
-        div.innerHTML =
+        let innerHtml =
             '<div class="d-flex align-items-center mb-1">' +
                 '<span class="bitrix-emoji me-2" id="bitrixEmoji-' + incidentId + '">' + emoji + '</span>' +
                 '<div>' +
                     '<small class="text-uppercase text-muted">Estado de la tarea</small>' +
                     '<div class="fw-semibold ' + statusClass + '" id="bitrixStatus-' + incidentId + '">' + escapeHtml(data.status_label) + '</div>' +
                 '</div>' +
-            '</div>' +
+            '</div>';
+        if (!compact) {
+            innerHtml +=
             '<div class="d-flex align-items-center">' +
                 '<span class="me-2">🧑‍💻</span>' +
                 '<div>' +
@@ -90,6 +111,8 @@
                     '<div id="bitrixResponsable-' + incidentId + '" class="' + respClass + ' fw-semibold">' + escapeHtml(data.responsible_name) + '</div>' +
                 '</div>' +
             '</div>';
+        }
+        div.innerHTML = innerHtml;
 
         const refreshBtn = block.querySelector('.btn-refresh-bitrix');
         if (refreshBtn) {
@@ -102,6 +125,19 @@
     function renderBitrixError(block, message) {
         const incidentId = block.getAttribute('data-bitrix-incident-id');
         hideLoading(block);
+
+        if (isIconOnly(block)) {
+            let emojiEl = document.getElementById('bitrixEmoji-' + incidentId);
+            if (!emojiEl) {
+                emojiEl = document.createElement('span');
+                emojiEl.className = 'bitrix-emoji-inline text-white-50';
+                emojiEl.id = 'bitrixEmoji-' + incidentId;
+                block.appendChild(emojiEl);
+            }
+            emojiEl.textContent = '⚠️';
+            emojiEl.title = formatErrorMessage(message, block);
+            return;
+        }
 
         const dataDiv = document.getElementById('bitrixDataDiv-' + incidentId);
         const noConfigEl = block.querySelector('.bitrix-no-config');

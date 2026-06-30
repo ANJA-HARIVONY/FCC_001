@@ -516,6 +516,17 @@ main.page-enter {
     color: rgba(255, 255, 255, 0.75) !important;
 }
 
+.bitrix-emoji-inline {
+    font-size: 1.1rem;
+    line-height: 1;
+    vertical-align: middle;
+    cursor: default;
+}
+
+.bitrix-info-block--icon-only {
+    vertical-align: middle;
+}
+
 /* Tableaux du dashboard - hover premium et separateurs plus doux */
 .content-card .table tbody tr {
     transition: background-color var(--anim-fast) var(--anim-ease),

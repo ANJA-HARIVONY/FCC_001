@@ -281,7 +281,7 @@
                                         {% elif incident.status == 'Pendiente' %}
                                             <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            {% with compact=true, auto_load=true %}
+                                            {% with compact=true, auto_load=true, icon_only=true %}
                                             {% include '_bitrix_status.html' %}
                                             {% endwith %}
                                         {% endif %}
