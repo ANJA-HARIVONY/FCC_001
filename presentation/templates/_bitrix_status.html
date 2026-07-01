@@ -8,9 +8,7 @@
     {% set suffix = incident.id %}
     <span class="badge {% if compact %}badge-bitrix{% else %}bg-info{% endif %}">
         {% if not compact %}<i class="fas fa-share"></i> {% endif %}{{ _('Bitrix') }}
-    </span>
-    {% if incident.ref_bitrix %}
-        <span class="{% if compact %}d-inline{% else %}ms-2{% endif %}{% if compact and not icon_only %} d-block mt-1{% endif %} text-muted">
+            <span class="{% if compact %}d-inline{% else %}ms-2{% endif %}{% if compact and not icon_only %} d-block mt-1{% endif %} text-muted">
             <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/"
                target="_blank"
                rel="noopener noreferrer"
@@ -19,6 +17,9 @@
                 {{ incident.ref_bitrix }} <i class="fas fa-external-link-alt"></i>
             </a>
         </span>
+    </span>
+    {% if incident.ref_bitrix %}
+
         {% if bitrix_api_enabled|default(false) %}
         <div id="bitrixInfoBlock-{{ suffix }}"
              class="bitrix-info-block{% if not icon_only %} mt-1{% endif %}{% if compact %} bitrix-info-block--compact{% endif %}{% if icon_only %} bitrix-info-block--icon-only d-inline ms-1{% endif %}"
