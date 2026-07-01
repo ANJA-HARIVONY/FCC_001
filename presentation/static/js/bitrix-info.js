@@ -171,9 +171,12 @@
         return div.innerHTML;
     }
 
-    function fetchBitrixInfo(block) {
-        const url = block.getAttribute('data-bitrix-url');
+    function fetchBitrixInfo(block, force) {
+        let url = block.getAttribute('data-bitrix-url');
         if (!url) return Promise.resolve();
+        if (force) {
+            url += (url.indexOf('?') >= 0 ? '&' : '?') + 'force=1';
+        }
 
         if (bitrixNetworkFailed && isCompact(block)) {
             renderBitrixError(block, BITRIX_LIST_UNAVAILABLE);
@@ -210,7 +213,7 @@
         if (btn) btn.disabled = true;
         if (icon) icon.className = 'fas fa-spinner fa-spin';
 
-        fetchBitrixInfo(block).finally(function () {
+        fetchBitrixInfo(block, true).finally(function () {
             if (btn) btn.disabled = false;
             if (icon) icon.className = 'fas fa-sync-alt';
         });

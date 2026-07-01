@@ -281,7 +281,8 @@
                                         {% elif incident.status == 'Pendiente' %}
                                             <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            {% with compact=true, auto_load=true, icon_only=true %}
+                                            {% set bx = bitrix_list_info.get(incident.id, {}) %}
+                                            {% with compact=true, auto_load=bx.auto_load|default(false), icon_only=true, bitrix_info=bx.info %}
                                             {% include '_bitrix_status.html' %}
                                             {% endwith %}
                                         {% endif %}

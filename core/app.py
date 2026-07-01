@@ -455,6 +455,12 @@ class Incident(db.Model):
     observations = db.Column(db.Text)
     status = db.Column(db.String(20), nullable=False, default='Pendiente')  # Résolut, En atente, Bitrix
     ref_bitrix = db.Column(db.String(10), nullable=True)  # Ref Bitrix (5 chiffres) - visible si status=Bitrix
+    bitrix_task_status = db.Column(db.String(2), nullable=True)
+    bitrix_status_label = db.Column(db.String(80), nullable=True)
+    bitrix_status_emoji = db.Column(db.String(10), nullable=True)
+    bitrix_responsible = db.Column(db.String(120), nullable=True)
+    bitrix_fetched_at = db.Column(db.DateTime, nullable=True)
+    bitrix_fetch_locked = db.Column(db.Boolean, nullable=False, default=False)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
     date_heure = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
@@ -768,6 +774,38 @@ def ensure_salida_tipo_column():
         app.logger.exception('No se pudo verificar/crear columna tipo_salida en material_salida')
 
 
+def ensure_incident_bitrix_cache_columns():
+    """Añade columnas de cache Bitrix en incident si faltan (arranque sin migración)."""
+    if getattr(ensure_incident_bitrix_cache_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('incident'):
+            ensure_incident_bitrix_cache_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('incident')}
+        alters = []
+        if 'bitrix_task_status' not in columns:
+            alters.append('ADD COLUMN bitrix_task_status VARCHAR(2) NULL')
+        if 'bitrix_status_label' not in columns:
+            alters.append('ADD COLUMN bitrix_status_label VARCHAR(80) NULL')
+        if 'bitrix_status_emoji' not in columns:
+            alters.append('ADD COLUMN bitrix_status_emoji VARCHAR(10) NULL')
+        if 'bitrix_responsible' not in columns:
+            alters.append('ADD COLUMN bitrix_responsible VARCHAR(120) NULL')
+        if 'bitrix_fetched_at' not in columns:
+            alters.append('ADD COLUMN bitrix_fetched_at DATETIME NULL')
+        if 'bitrix_fetch_locked' not in columns:
+            alters.append('ADD COLUMN bitrix_fetch_locked TINYINT(1) NOT NULL DEFAULT 0')
+        if alters:
+            with db.engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE incident {', '.join(alters)}"))
+        ensure_incident_bitrix_cache_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas cache Bitrix en incident')
+
+
 def build_comment_notification_message(actor_name, client_name):
     return f"El usuario {actor_name} ha comentado su incidencia del cliente {client_name}."
 
@@ -864,13 +902,25 @@ def bitrix_api_enabled():
     return bool(os.environ.get('BITRIX24_API', '').strip())
 
 
-def fetch_bitrix_info_for_incident(incident):
+def fetch_bitrix_info_for_incident(incident, force=False):
+    from core.services.bitrix_cache_service import fetch_and_cache_bitrix_info
+
     if not bitrix_api_enabled():
         return None
     if incident.status != 'Bitrix' or not incident.ref_bitrix or not str(incident.ref_bitrix).strip():
         return None
     api_url = os.environ.get('BITRIX24_API', '').strip()
-    return _get_bitrix_task_info(api_url, str(incident.ref_bitrix).strip())
+
+    def _fetch(task_id):
+        return _get_bitrix_task_info(api_url, task_id)
+
+    info = fetch_and_cache_bitrix_info(incident, _fetch, force=force)
+    if info and 'error' not in info:
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+    return info
 
 
 def _format_bitrix_connection_error(exc):
@@ -947,6 +997,7 @@ def _get_bitrix_task_info(api_base_url, task_id):
         if not responsible_name and responsible_id:
             responsible_name = f"ID: {responsible_id}"
         return {
+            'task_status': status,
             'status_label': status_label,
             'status_emoji': status_emoji,
             'responsible_name': responsible_name or '(no definido)',
@@ -1086,6 +1137,7 @@ def require_authentication():
     ensure_material_fotos_storage()
     ensure_salida_observaciones_column()
     ensure_salida_tipo_column()
+    ensure_incident_bitrix_cache_columns()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -2061,6 +2113,8 @@ def _paginated_incidents_from_request():
         get_incidents_list_params,
     )
 
+    from core.services.bitrix_cache_service import build_bitrix_list_context
+
     params = get_incidents_list_params(request)
     for message, category in params.get('flash_messages', []):
         flash(message, category)
@@ -2094,6 +2148,7 @@ def _paginated_incidents_from_request():
         'sort_order': params['sort_order'],
         'incidents_corporativo_count': incidents_corporativo_count,
         'incidents_particular_count': incidents_particular_count,
+        'bitrix_list_info': build_bitrix_list_context(incidents_paginated.items),
     }
 
 
@@ -2210,13 +2265,20 @@ def api_incident_bitrix_info(id):
         return jsonify({'ok': False, 'error': 'Incident non Bitrix ou sans ref_bitrix'}), 400
     if not bitrix_api_enabled():
         return jsonify({'ok': False, 'error': BITRIX_ERROR_DISABLED}), 200
-    api_url = os.environ.get('BITRIX24_API', '').strip()
-    if not api_url:
+
+    force = request.args.get('force', '').strip() in ('1', 'true', 'yes')
+    info = fetch_bitrix_info_for_incident(incident, force=force)
+    if not info:
         return jsonify({'ok': False, 'error': 'BITRIX24_API non configurée'}), 500
-    info = _get_bitrix_task_info(api_url, incident.ref_bitrix.strip())
     if 'error' in info:
         return jsonify({'ok': False, 'error': info['error']}), 200
-    return jsonify({'ok': True, 'data': info}), 200
+
+    payload = {k: v for k, v in info.items() if k not in ('from_cache', 'task_status')}
+    return jsonify({
+        'ok': True,
+        'data': payload,
+        'cached': bool(info.get('from_cache')),
+    }), 200
 
 
 @app.route('/incidents/<int:id>/modifier', methods=['GET', 'POST'])
@@ -2227,6 +2289,10 @@ def modifier_incident(id):
     next_url = request.args.get('next', url_for('incidents'))
     
     if request.method == 'POST':
+        from core.services.bitrix_cache_service import clear_bitrix_cache
+
+        old_status = incident.status
+        old_ref = incident.ref_bitrix
         incident.id_client = request.form['id_client']
         incident.intitule = request.form['intitule']
         incident.observations = request.form['observations']
@@ -2239,6 +2305,8 @@ def modifier_incident(id):
             incident.ref_bitrix = ref or None
         else:
             incident.ref_bitrix = None
+        if incident.status != 'Bitrix' or incident.ref_bitrix != old_ref or old_status != incident.status:
+            clear_bitrix_cache(incident)
         db.session.commit()
         write_audit('UPDATE_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={incident.id}')
         flash(gettext('Incidencia modificada con éxito!'), 'success')
