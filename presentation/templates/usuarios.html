@@ -62,6 +62,8 @@
                             <a href="{{ url_for('editar_usuario', user_id=u.id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
                             {% if u.categoria == 'tecnico' %}
                             <a href="{{ url_for('tecnico_ficha', tecnico_id=u.id) }}" class="btn btn-sm btn-outline-info">Ficha</a>
+                            {% elif u.categoria == 'atencion_cliente' %}
+                            <a href="{{ url_for('atencion_cliente_ficha', user_id=u.id) }}" class="btn btn-sm btn-outline-info">Ficha</a>
                             {% endif %}
                             {% if u.id != current_user.id %}
                             <form method="POST" action="{{ url_for('desactivar_usuario', user_id=u.id) }}" class="d-inline" onsubmit="return confirm('¿Cambiar el estado de este usuario?');">

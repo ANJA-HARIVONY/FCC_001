@@ -70,6 +70,8 @@
                         </div>
                         {% if user.categoria == 'tecnico' %}
                         <p class="mb-3"><a href="{{ url_for('tecnico_ficha', tecnico_id=user.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-toolbox me-1"></i>Ficha de materiales</a></p>
+                        {% elif user.categoria == 'atencion_cliente' %}
+                        <p class="mb-3"><a href="{{ url_for('atencion_cliente_ficha', user_id=user.id) }}" class="btn btn-sm btn-outline-info"><i class="fas fa-clock me-1"></i>Ficha de retrasos</a></p>
                         {% endif %}
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('usuarios') }}" class="btn btn-secondary">Volver</a>

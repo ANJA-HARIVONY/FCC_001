@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Ficha — {{ usuario.nom }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
+            <li class="breadcrumb-item active">Ficha — {{ usuario.nom }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-3">
+            <img
+                src="{{ usuario.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                alt="Avatar de {{ usuario.nom }}"
+                class="rounded-circle"
+                width="56"
+                height="56"
+                onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
+            >
+            <div>
+                <h1 class="h2 text-dark mb-0"><i class="fas fa-clock text-danger me-2"></i>{{ usuario.nom }}</h1>
+                <p class="text-muted mb-0">
+                    Retrasos en cambio de estado (&gt; {{ filters.umbral }} min)
+                    — <span class="badge bg-info text-dark">{{ categoria_label }}</span>
+                    {% if usuario.actif %}<span class="badge bg-success">Activo</span>{% else %}<span class="badge bg-secondary">Inactivo</span>{% endif %}
+                </p>
+            </div>
+        </div>
+        <a href="{{ url_for('usuarios') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Volver a Usuarios</a>
+    </div>
+
+    <div class="card content-card mb-4">
+        <div class="card-header"><h5 class="mb-0">Datos del usuario</h5></div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-md-3"><strong>Teléfono:</strong> {{ usuario.telephone }}</div>
+                <div class="col-md-3"><strong>Correo:</strong> {{ usuario.email or '—' }}</div>
+                <div class="col-md-3"><strong>Ciudad:</strong> {{ usuario.ciudad.nombre if usuario.ciudad else '—' }}</div>
+                <div class="col-md-3"><strong>Agencia:</strong> {{ usuario.agencia.nombre if usuario.agencia else '—' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card content-card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small">Fecha desde</label>
+                    <input type="date" name="date_from" class="form-control form-control-sm"
+                           value="{{ filters.date_from.strftime('%Y-%m-%d') if filters.date_from else '' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Fecha hasta</label>
+                    <input type="date" name="date_to" class="form-control form-control-sm"
+                           value="{{ filters.date_to.strftime('%Y-%m-%d') if filters.date_to else '' }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Estado destino</label>
+                    <select name="estado_destino" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        {% for s in target_statuses %}
+                        <option value="{{ s }}" {% if filters.estado_destino == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Umbral (min)</label>
+                    <input type="number" name="umbral" class="form-control form-control-sm"
+                           min="1" max="1440" value="{{ filters.umbral }}">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-filter me-1"></i>Aplicar</button>
+                    <a href="{{ url_for('atencion_cliente_ficha_export', user_id=usuario.id, date_from=filters.date_from.strftime('%Y-%m-%d') if filters.date_from else '', date_to=filters.date_to.strftime('%Y-%m-%d') if filters.date_to else '', estado_destino=filters.estado_destino, umbral=filters.umbral) }}"
+                       class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-file-excel me-1"></i>Exportar Excel
+                    </a>
+                </div>
+            </form>
+            <p class="small text-muted mb-0 mt-2">
+                Los datos de retraso están disponibles a partir del despliegue del historial de estados.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md">
+            <div class="card content-card h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small">Total con retraso</div>
+                    <div class="fs-3 fw-semibold">{{ kpis.total }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card content-card h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small">Retraso medio</div>
+                    <div class="fs-3 fw-semibold">{{ kpis.retraso_medio }} <small class="fs-6 text-muted">min</small></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card content-card h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small">Retraso máximo</div>
+                    <div class="fs-3 fw-semibold">{{ kpis.retraso_max }} <small class="fs-6 text-muted">min</small></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card content-card h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small">% Bitrix</div>
+                    <div class="fs-3 fw-semibold">{{ kpis.pct_bitrix }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md">
+            <div class="card content-card h-100">
+                <div class="card-body text-center">
+                    <div class="text-muted small">% Solucionadas</div>
+                    <div class="fs-3 fw-semibold">{{ kpis.pct_solucionadas }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card content-card">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Detalle incidencias (&gt; {{ filters.umbral }} min)</h5>
+            <small class="text-white-50">{{ pagination.total }} resultado{% if pagination.total != 1 %}s{% endif %}</small>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="text-white">ID</th>
+                            <th class="text-white">Cliente</th>
+                            <th class="text-white">Asunto</th>
+                            <th class="text-white">Estado</th>
+                            <th class="text-white">Fechas</th>
+                            <th class="text-white text-end">Retraso</th>
+                            <th class="text-white">Ref. Bitrix</th>
+                            <th class="text-white">Comentarios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('fiche_incident', id=row.incident_id) }}">#{{ row.incident_id }}</a>
+                            </td>
+                            <td>
+                                <div>{{ row.cliente }}</div>
+                                <small class="text-muted">{{ row.ciudad or row.cliente_ville }}</small>
+                            </td>
+                            <td>
+                                <span title="{{ row.asunto }}">{{ row.asunto[:60] }}{% if row.asunto|length > 60 %}…{% endif %}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ row.estado_inicial }}</span>
+                                <i class="fas fa-arrow-right mx-1 small text-muted"></i>
+                                <span class="badge {% if row.estado_destino == 'Bitrix' %}bg-primary{% else %}bg-success{% endif %}">{{ row.estado_destino }}</span>
+                            </td>
+                            <td>
+                                <small>
+                                    Creación: {{ row.fecha_creacion.strftime('%d/%m/%Y %H:%M') if row.fecha_creacion else '—' }}<br>
+                                    Cambio: {{ row.fecha_cambio.strftime('%d/%m/%Y %H:%M') if row.fecha_cambio else '—' }}
+                                </small>
+                            </td>
+                            <td class="text-end">
+                                <strong>{{ row.retraso_label }}</strong>
+                            </td>
+                            <td>{{ row.ref_bitrix or '—' }}</td>
+                            <td>
+                                <span>{{ row.comentarios_count }}</span>
+                                {% if row.ultimo_comentario %}
+                                <br><small class="text-muted" title="{{ row.ultimo_comentario }}">{{ row.ultimo_comentario[:80] }}{% if row.ultimo_comentario|length > 80 %}…{% endif %}</small>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No hay incidencias con retraso en este período.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% if pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination pagination-sm mb-0 justify-content-end">
+                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('atencion_cliente_ficha', user_id=usuario.id, page=pagination.prev_num, date_from=filters.date_from.strftime('%Y-%m-%d') if filters.date_from else '', date_to=filters.date_to.strftime('%Y-%m-%d') if filters.date_to else '', estado_destino=filters.estado_destino, umbral=filters.umbral) }}">Anterior</a>
+                    </li>
+                    <li class="page-item disabled"><span class="page-link">{{ pagination.page }} / {{ pagination.pages }}</span></li>
+                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('atencion_cliente_ficha', user_id=usuario.id, page=pagination.next_num, date_from=filters.date_from.strftime('%Y-%m-%d') if filters.date_from else '', date_to=filters.date_to.strftime('%Y-%m-%d') if filters.date_to else '', estado_destino=filters.estado_destino, umbral=filters.umbral) }}">Siguiente</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

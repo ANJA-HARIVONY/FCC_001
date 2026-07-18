@@ -487,6 +487,44 @@ class IncidentComentario(db.Model):
     operateur = db.relationship('Operateur', backref=db.backref('incident_comentarios', lazy=True))
 
 
+class IncidentEstadoHistorial(db.Model):
+    """Historique horodaté des changements de statut FCC d'une incidencia."""
+    __tablename__ = 'incident_estado_historial'
+    id = db.Column(db.Integer, primary_key=True)
+    id_incident = db.Column(db.Integer, db.ForeignKey('incident.id', ondelete='CASCADE'), nullable=False, index=True)
+    estado_anterior = db.Column(db.String(20), nullable=True)
+    estado_nuevo = db.Column(db.String(20), nullable=False)
+    id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True, index=True)
+    cambiado_en = db.Column(db.DateTime, nullable=False, default=datetime.now, index=True)
+    ref_bitrix = db.Column(db.String(10), nullable=True)
+
+    incident = db.relationship('Incident', backref=db.backref('estado_historial', lazy=True, cascade='all, delete-orphan'))
+    operateur = db.relationship('Operateur', backref=db.backref('estado_cambios', lazy=True))
+
+
+def record_incident_estado_change(
+    incident,
+    estado_anterior,
+    estado_nuevo,
+    id_operateur=None,
+    ref_bitrix=None,
+    cambiado_en=None,
+):
+    """Ajoute une ligne d'historique de statut (à committer avec la transaction courante)."""
+    if not incident or not estado_nuevo:
+        return None
+    row = IncidentEstadoHistorial(
+        id_incident=incident.id,
+        estado_anterior=estado_anterior,
+        estado_nuevo=estado_nuevo,
+        id_operateur=id_operateur,
+        cambiado_en=cambiado_en or datetime.now(),
+        ref_bitrix=(ref_bitrix or None),
+    )
+    db.session.add(row)
+    return row
+
+
 class IncidentNotification(db.Model):
     __tablename__ = 'incident_notification'
     id = db.Column(db.Integer, primary_key=True)
@@ -603,6 +641,18 @@ def ensure_incident_notification_table():
         ensure_incident_notification_table._done = True
     except Exception:
         app.logger.exception('No se pudo verificar/crear la tabla incident_notification')
+
+
+def ensure_incident_estado_historial_table():
+    """Crea la tabla de historial de estados si la aplicacion arranca sin migracion."""
+    if getattr(ensure_incident_estado_historial_table, '_done', False):
+        return
+    try:
+        if not inspect(db.engine).has_table(IncidentEstadoHistorial.__tablename__):
+            IncidentEstadoHistorial.__table__.create(db.engine)
+        ensure_incident_estado_historial_table._done = True
+    except Exception:
+        app.logger.exception('No se pudo verificar/crear la tabla incident_estado_historial')
 
 
 def ensure_client_categoria_column():
@@ -1078,6 +1128,7 @@ class Etat(db.Model):
 # Importar las rutas de los informes IA
 from core.routes import etats_routes
 from core.routes import materiales_routes
+from core.routes import atencion_cliente_routes
 
 # Configurar filtros personalizados para templates
 from core.utils import setup_template_filters
@@ -1138,6 +1189,7 @@ def require_authentication():
     ensure_salida_observaciones_column()
     ensure_salida_tipo_column()
     ensure_incident_bitrix_cache_columns()
+    ensure_incident_estado_historial_table()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -2195,8 +2247,21 @@ def nouveau_incident():
                 ref = _extract_ref_bitrix(request.form.get('observations'))
             incident.ref_bitrix = ref or None
         db.session.add(incident)
+        db.session.flush()
+        record_incident_estado_change(
+            incident,
+            estado_anterior=None,
+            estado_nuevo=incident.status,
+            id_operateur=current_user.id,
+            ref_bitrix=incident.ref_bitrix,
+            cambiado_en=incident.date_heure or datetime.now(),
+        )
         db.session.commit()
-        write_audit('CREATE_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={incident.id}')
+        write_audit(
+            'CREATE_INCIDENT',
+            id_operateur=current_user.id,
+            detail=f'incident_id={incident.id},status={incident.status}',
+        )
         flash(gettext('Incidencia creada con éxito!'), 'success')
         return redirect(url_for('incidents'))
 
@@ -2307,8 +2372,20 @@ def modifier_incident(id):
             incident.ref_bitrix = None
         if incident.status != 'Bitrix' or incident.ref_bitrix != old_ref or old_status != incident.status:
             clear_bitrix_cache(incident)
+        status_changed = old_status != incident.status
+        if status_changed:
+            record_incident_estado_change(
+                incident,
+                estado_anterior=old_status,
+                estado_nuevo=incident.status,
+                id_operateur=current_user.id,
+                ref_bitrix=incident.ref_bitrix,
+            )
         db.session.commit()
-        write_audit('UPDATE_INCIDENT', id_operateur=current_user.id, detail=f'incident_id={incident.id}')
+        audit_detail = f'incident_id={incident.id}'
+        if status_changed:
+            audit_detail = f'incident_id={incident.id},{old_status}→{incident.status}'
+        write_audit('UPDATE_INCIDENT', id_operateur=current_user.id, detail=audit_detail)
         flash(gettext('Incidencia modificada con éxito!'), 'success')
         return redirect(next_url)
 
