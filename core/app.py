@@ -1333,9 +1333,94 @@ def api_agencias_por_ciudad(id_ciudad):
 @app.route('/usuarios')
 @admin_required
 def usuarios():
-    users = Operateur.query.order_by(Operateur.nom).all()
+    search_query = (request.args.get('search') or '').strip()
+    role_filter = (request.args.get('role') or '').strip()
+    categoria_filter = (request.args.get('categoria') or '').strip()
+    actif_filter = (request.args.get('actif') or '').strip()
+    ciudad_filter = (request.args.get('ciudad') or '').strip()
+    agencia_filter = (request.args.get('agencia') or '').strip()
+
+    if role_filter not in ('', 'admin', 'usuario'):
+        role_filter = ''
+    if categoria_filter and categoria_filter not in CATEGORIAS_OPERATEUR:
+        categoria_filter = ''
+    if actif_filter not in ('', '1', '0'):
+        actif_filter = ''
+
+    ciudad_id = None
+    if ciudad_filter:
+        try:
+            ciudad_id = int(ciudad_filter)
+            if not db.session.get(Ciudad, ciudad_id):
+                ciudad_id = None
+                ciudad_filter = ''
+        except (TypeError, ValueError):
+            ciudad_id = None
+            ciudad_filter = ''
+
+    agencia_id = None
+    if agencia_filter:
+        try:
+            agencia_id = int(agencia_filter)
+            ag = db.session.get(Agencia, agencia_id)
+            if not ag:
+                agencia_id = None
+                agencia_filter = ''
+            elif ciudad_id and ag.id_ciudad != ciudad_id:
+                agencia_id = None
+                agencia_filter = ''
+        except (TypeError, ValueError):
+            agencia_id = None
+            agencia_filter = ''
+
+    query = Operateur.query.options(
+        joinedload(Operateur.ciudad),
+        joinedload(Operateur.agencia),
+    )
+    if search_query:
+        query = query.filter(
+            db.or_(
+                Operateur.nom.contains(search_query),
+                Operateur.telephone.contains(search_query),
+                Operateur.email.contains(search_query),
+            )
+        )
+    if role_filter:
+        query = query.filter(Operateur.role == role_filter)
+    if categoria_filter:
+        query = query.filter(Operateur.categoria == categoria_filter)
+    if actif_filter == '1':
+        query = query.filter(Operateur.actif.is_(True))
+    elif actif_filter == '0':
+        query = query.filter(Operateur.actif.is_(False))
+    if ciudad_id:
+        query = query.filter(Operateur.id_ciudad == ciudad_id)
+    if agencia_id:
+        query = query.filter(Operateur.id_agencia == agencia_id)
+
+    users = query.order_by(Operateur.nom).all()
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
-    return render_template('usuarios.html', users=users, ciudades=ciudades)
+    if ciudad_id:
+        agencias = Agencia.query.filter_by(id_ciudad=ciudad_id).order_by(Agencia.nombre).all()
+    else:
+        agencias = Agencia.query.order_by(Agencia.nombre).all()
+
+    filters_active = bool(
+        search_query or role_filter or categoria_filter or actif_filter or ciudad_filter or agencia_filter
+    )
+    return render_template(
+        'usuarios.html',
+        users=users,
+        ciudades=ciudades,
+        agencias=agencias,
+        search_query=search_query,
+        role_filter=role_filter,
+        categoria_filter=categoria_filter,
+        actif_filter=actif_filter,
+        ciudad_filter=ciudad_filter,
+        agencia_filter=agencia_filter,
+        filters_active=filters_active,
+    )
 
 
 @app.route('/usuarios/nuevo', methods=['GET', 'POST'])

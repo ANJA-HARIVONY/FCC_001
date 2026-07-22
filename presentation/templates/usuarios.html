@@ -9,15 +9,113 @@
         </div>
         <a href="{{ url_for('nuevo_usuario') }}" class="btn btn-primary"><i class="fas fa-user-plus me-1"></i>Nuevo usuario</a>
     </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 content-card">
+                <div class="card-header d-flex align-items-center flex-wrap gap-2 py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtros de búsqueda
+                    </h5>
+                    {% if filters_active %}
+                    <span class="badge bg-light text-dark" id="filtrosActivos">Filtros activos</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <form method="GET" id="formFiltrosUsuarios" action="{{ url_for('usuarios') }}">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-search me-1"></i>Buscar
+                                </label>
+                                <input type="text" class="form-control form-control-sm" id="search" name="search"
+                                       value="{{ search_query }}" placeholder="Nombre, correo, teléfono...">
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="role" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-user-shield me-1"></i>Rol
+                                </label>
+                                <select class="form-select form-select-sm" id="role" name="role">
+                                    <option value="">Todos</option>
+                                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                                    <option value="usuario" {% if role_filter == 'usuario' %}selected{% endif %}>Usuario</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="categoria" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-tags me-1"></i>Categoría
+                                </label>
+                                <select class="form-select form-select-sm" id="categoria" name="categoria">
+                                    <option value="">Todas</option>
+                                    {% for cat in CATEGORIAS_OPERATEUR %}
+                                    <option value="{{ cat }}" {% if categoria_filter == cat %}selected{% endif %}>{{ CATEGORIA_OPERATEUR_LABELS[cat] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="actif" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-toggle-on me-1"></i>Estado
+                                </label>
+                                <select class="form-select form-select-sm" id="actif" name="actif">
+                                    <option value="">Todos</option>
+                                    <option value="1" {% if actif_filter == '1' %}selected{% endif %}>Activo</option>
+                                    <option value="0" {% if actif_filter == '0' %}selected{% endif %}>Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-city me-1"></i>Ciudad
+                                </label>
+                                <select class="form-select form-select-sm" id="ciudad" name="ciudad">
+                                    <option value="">Todas las ciudades</option>
+                                    {% for c in ciudades|default([]) %}
+                                    <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="agencia" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-building me-1"></i>Agencia
+                                </label>
+                                <select class="form-select form-select-sm" id="agencia" name="agencia">
+                                    <option value="">Todas las agencias</option>
+                                    {% for a in agencias|default([]) %}
+                                    <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
+                                <div class="form-check ms-2">
+                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
+                                    <label class="form-check-label small text-muted" for="remember-filters-toggle">
+                                        Memorizar filtros
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn">
+                                    <i class="fas fa-undo-alt"></i> Reiniciar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="filters-feedback" class="small text-success mt-2 d-none">
+                        <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card shadow-sm border-0 content-card stagger-in">
         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
             <h5 class="mb-0">
                 <i class="fas fa-list me-2"></i>
                 Lista de usuarios
             </h5>
-            {% if users %}
             <small class="text-white-50">{{ users|length }} usuario{% if users|length != 1 %}s{% endif %}</small>
-            {% endif %}
         </div>
         <div class="card-body p-0">
         <div class="table-responsive">
@@ -57,7 +155,13 @@
                         </td>
                         <td><span class="badge bg-{{ 'danger' if u.is_admin() else 'secondary' }}">{{ u.role }}</span></td>
                         <td><span class="badge bg-info text-dark">{{ categoria_operateur_label(u.categoria) }}</span></td>
-                        <td>{% if u.actif %}<span class="text-success">Sí</span>{% else %}<span class="text-muted">No</span>{% endif %}</td>
+                        <td>
+                            {% if u.actif %}
+                            <span class="badge bg-success">Sí</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
                         <td class="text-end text-nowrap">
                             <a href="{{ url_for('editar_usuario', user_id=u.id) }}" class="btn btn-sm btn-outline-primary">Editar</a>
                             {% if u.categoria == 'tecnico' %}
@@ -73,6 +177,20 @@
                             {% endif %}
                         </td>
                     </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="fas fa-user-slash fa-2x mb-2 d-block"></i>
+                            No se encontraron usuarios con estos filtros.
+                            {% if filters_active %}
+                            <div class="mt-3">
+                                <a href="{{ url_for('usuarios') }}" class="btn btn-sm btn-outline-secondary" id="limpiar-filtros-empty">
+                                    <i class="fas fa-times me-1"></i>Limpiar filtros
+                                </a>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -80,4 +198,202 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('formFiltrosUsuarios');
+    if (!form) {
+        return;
+    }
+
+    const rememberToggle = document.getElementById('remember-filters-toggle');
+    const resetButton = document.getElementById('reset-filters-btn');
+    const feedback = document.getElementById('filters-feedback');
+    const cookieName = 'usuarios_filters_v1';
+    const cookieMaxAge = 30 * 24 * 60 * 60;
+    const cookieScope = 'usuarios_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
+    const trackedParams = ['search', 'role', 'categoria', 'actif', 'ciudad', 'agencia'];
+
+    function setCookie(name, value, maxAgeSeconds) {
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split('; ') : [];
+        for (const cookie of cookies) {
+            const index = cookie.indexOf('=');
+            const key = index >= 0 ? cookie.slice(0, index) : cookie;
+            if (key === name) {
+                return decodeURIComponent(index >= 0 ? cookie.slice(index + 1) : '');
+            }
+        }
+        return null;
+    }
+
+    function clearCookie(name) {
+        document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+    }
+
+    function getCurrentFilters() {
+        return {
+            search: document.getElementById('search').value || '',
+            role: document.getElementById('role').value || '',
+            categoria: document.getElementById('categoria').value || '',
+            actif: document.getElementById('actif').value || '',
+            ciudad: document.getElementById('ciudad').value || '',
+            agencia: document.getElementById('agencia').value || ''
+        };
+    }
+
+    function saveFilters() {
+        if (!rememberToggle.checked) {
+            return;
+        }
+        const payload = {
+            scope: cookieScope,
+            enabled: true,
+            filters: getCurrentFilters()
+        };
+        setCookie(cookieName, JSON.stringify(payload), cookieMaxAge);
+    }
+
+    function loadSavedFilters() {
+        const raw = getCookie(cookieName);
+        if (!raw) {
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed.scope !== cookieScope) {
+                return null;
+            }
+            return parsed;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function hasUrlFilters() {
+        const params = new URLSearchParams(window.location.search);
+        return trackedParams.some(param => params.has(param));
+    }
+
+    function applyFilters(filters) {
+        document.getElementById('search').value = filters.search || '';
+        document.getElementById('role').value = filters.role || '';
+        document.getElementById('categoria').value = filters.categoria || '';
+        document.getElementById('actif').value = filters.actif || '';
+        document.getElementById('ciudad').value = filters.ciudad || '';
+        document.getElementById('agencia').value = filters.agencia || '';
+    }
+
+    function showFeedback() {
+        if (!feedback) {
+            return;
+        }
+        feedback.classList.remove('d-none');
+        setTimeout(() => feedback.classList.add('d-none'), 3000);
+    }
+
+    const ciudadSelect = document.getElementById('ciudad');
+    const agenciaSelect = document.getElementById('agencia');
+    const selectedAgencia = agenciaSelect.value;
+    const initialAgenciaOptions = agenciaSelect.innerHTML;
+
+    async function loadAgencias(idCiudad, keepSelection) {
+        if (!idCiudad) {
+            agenciaSelect.innerHTML = initialAgenciaOptions;
+            agenciaSelect.value = '';
+            return;
+        }
+        agenciaSelect.innerHTML = '<option value="">Todas las agencias</option>';
+        try {
+            const response = await fetch('/api/agencias/' + idCiudad);
+            if (!response.ok) {
+                return;
+            }
+            const agencias = await response.json();
+            agencias.forEach(function (agencia) {
+                const option = document.createElement('option');
+                option.value = agencia.id;
+                option.textContent = agencia.nombre;
+                if (keepSelection && String(agencia.id) === String(selectedAgencia)) {
+                    option.selected = true;
+                }
+                agenciaSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al cargar agencias:', error);
+        }
+    }
+
+    ciudadSelect.addEventListener('change', function () {
+        const previousAgencia = agenciaSelect.value;
+        loadAgencias(this.value, false).then(function () {
+            if (previousAgencia && Array.from(agenciaSelect.options).some(function (option) {
+                return option.value === previousAgencia;
+            })) {
+                agenciaSelect.value = previousAgencia;
+            }
+        });
+    });
+
+    if (ciudadSelect.value) {
+        loadAgencias(ciudadSelect.value, true);
+    }
+
+    const saved = loadSavedFilters();
+    if (saved && saved.enabled === false) {
+        rememberToggle.checked = false;
+    }
+
+    const shouldRestore = !hasUrlFilters() && saved && saved.enabled !== false && saved.filters;
+    if (shouldRestore) {
+        applyFilters(saved.filters);
+        if (saved.filters.ciudad) {
+            loadAgencias(saved.filters.ciudad, true).then(function () {
+                if (saved.filters.agencia) {
+                    agenciaSelect.value = saved.filters.agencia;
+                }
+                showFeedback();
+                form.submit();
+            });
+        } else {
+            showFeedback();
+            form.submit();
+        }
+        return;
+    }
+
+    if (saved && rememberToggle.checked) {
+        saveFilters();
+    }
+
+    rememberToggle.addEventListener('change', function () {
+        if (this.checked) {
+            saveFilters();
+        } else {
+            clearCookie(cookieName);
+        }
+    });
+
+    resetButton.addEventListener('click', function () {
+        clearCookie(cookieName);
+        window.location.href = '{{ url_for("usuarios") }}';
+    });
+
+    const emptyClean = document.getElementById('limpiar-filtros-empty');
+    if (emptyClean) {
+        emptyClean.addEventListener('click', function () {
+            clearCookie(cookieName);
+        });
+    }
+
+    form.addEventListener('submit', function () {
+        saveFilters();
+    });
+});
+</script>
 {% endblock %}
