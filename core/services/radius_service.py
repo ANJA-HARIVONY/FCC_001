@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
 import logging
 import os
+import platform
 import re
+import subprocess
 from datetime import datetime
 from typing import Any, Optional
 from urllib.error import HTTPError, URLError
@@ -17,6 +20,8 @@ logger = logging.getLogger(__name__)
 DEFAULT_CACHE_TTL = 300
 DEFAULT_TIMEOUT = 8
 DEFAULT_CODE_MIN_DIGITS = 4
+DEFAULT_PING_COUNT = 4
+DEFAULT_PING_TIMEOUT_MS = 1000
 
 
 def radius_enabled() -> bool:
@@ -165,14 +170,170 @@ def _days_remaining(expiry_raw: Any) -> Optional[int]:
     return (expiry_dt.date() - datetime.now().date()).days
 
 
+def get_ping_count() -> int:
+    raw = os.environ.get('RADIUS_PING_COUNT', '').strip()
+    if not raw:
+        return DEFAULT_PING_COUNT
+    try:
+        return max(1, min(10, int(raw)))
+    except ValueError:
+        return DEFAULT_PING_COUNT
+
+
+def _safe_ipv4(ip: str) -> Optional[str]:
+    """Valida IPv4 (bloquea inyección en subprocess ping)."""
+    text = (ip or '').strip()
+    if not text:
+        return None
+    try:
+        addr = ipaddress.ip_address(text)
+    except ValueError:
+        return None
+    if addr.version != 4:
+        return None
+    return str(addr)
+
+
+def ping_host(ip: str, count: Optional[int] = None) -> dict[str, Any]:
+    """
+    Lanza N pings ICMP. online=True si al menos 1 respuesta.
+    Compatible Windows / Linux (Docker).
+    """
+    safe_ip = _safe_ipv4(ip)
+    n = count if count is not None else get_ping_count()
+    if not safe_ip:
+        return {
+            'ok': False,
+            'online': False,
+            'ip': (ip or '').strip(),
+            'sent': 0,
+            'received': 0,
+            'error': 'IP CPE inválida o ausente',
+        }
+
+    is_windows = platform.system().lower().startswith('win')
+    timeout_ms = DEFAULT_PING_TIMEOUT_MS
+    if is_windows:
+        cmd = ['ping', '-n', str(n), '-w', str(timeout_ms), safe_ip]
+        run_timeout = n * (timeout_ms / 1000.0) + 5
+    else:
+        # -c count, -W timeout segundos por respuesta, -w deadline total
+        timeout_s = max(1, timeout_ms // 1000)
+        deadline = max(timeout_s * n + 1, n + 1)
+        cmd = ['ping', '-c', str(n), '-W', str(timeout_s), '-w', str(deadline), safe_ip]
+        run_timeout = float(deadline + 2)
+
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=run_timeout,
+            check=False,
+        )
+        out = (proc.stdout or '') + '\n' + (proc.stderr or '')
+    except FileNotFoundError:
+        logger.warning('ping no disponible en el sistema')
+        return {
+            'ok': False,
+            'online': False,
+            'ip': safe_ip,
+            'sent': n,
+            'received': 0,
+            'error': 'Comando ping no disponible',
+        }
+    except subprocess.TimeoutExpired:
+        return {
+            'ok': False,
+            'online': False,
+            'ip': safe_ip,
+            'sent': n,
+            'received': 0,
+            'error': 'Timeout ping',
+        }
+    except OSError as exc:
+        logger.warning('Error al ejecutar ping (%s): %s', safe_ip, exc)
+        return {
+            'ok': False,
+            'online': False,
+            'ip': safe_ip,
+            'sent': n,
+            'received': 0,
+            'error': 'No se pudo ejecutar ping',
+        }
+
+    received = _parse_ping_received(out, is_windows=is_windows)
+    # Fallback: código de salida 0 suele indicar al menos 1 respuesta
+    if received is None:
+        received = n if proc.returncode == 0 else 0
+
+    online = received > 0
+    return {
+        'ok': True,
+        'online': online,
+        'ip': safe_ip,
+        'sent': n,
+        'received': received,
+        'error': '',
+    }
+
+
+def _parse_ping_received(output: str, is_windows: bool) -> Optional[int]:
+    text = output or ''
+    if is_windows:
+        # "Recibidos = 4" / "Received = 4"
+        m = re.search(r'(?:Recibidos|Received)\s*=\s*(\d+)', text, re.IGNORECASE)
+        if m:
+            return int(m.group(1))
+        return None
+    # Linux: "4 received" o "4 packets received"
+    m = re.search(r'(\d+)\s+(?:packets?\s+)?received', text, re.IGNORECASE)
+    if m:
+        return int(m.group(1))
+    return None
+
+
+def apply_cpe_ping_status(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Connection status = resultado de 4 pings a la IP CPE (SysAPI).
+    IP: cpeipaddress (sesión) o staticipcpe.
+    """
+    out = dict(data)
+    cpe = (
+        str(out.get('cpeipaddress') or '').strip()
+        or str(out.get('staticipcpe') or '').strip()
+    )
+    if cpe and not out.get('cpeipaddress'):
+        out['cpeipaddress'] = cpe
+
+    result = ping_host(cpe)
+    out['ping'] = {
+        'ip': result.get('ip') or cpe,
+        'sent': result.get('sent', 0),
+        'received': result.get('received', 0),
+        'error': result.get('error') or '',
+    }
+    online = bool(result.get('online'))
+    out['online'] = online
+    out['connection_status'] = 'online' if online else 'offline'
+    out['connection_status_label'] = (
+        'Online / En línea' if online else 'Offline / Desconectado'
+    )
+    out['connection_probe'] = 'ping_cpe'
+    return out
+
+
 def _refresh_days_remaining(payload: dict[str, Any]) -> dict[str, Any]:
-    """Recalcula days_remaining en data (siempre respecto a hoy)."""
+    """Recalcula days_remaining y estado online vía ping CPE."""
     data = payload.get('data')
-    if isinstance(data, dict) and data.get('expiry'):
-        data = dict(data)
+    if not isinstance(data, dict):
+        return payload
+    data = dict(data)
+    if data.get('expiry'):
         data['days_remaining'] = _days_remaining(data.get('expiry'))
-        payload = dict(payload)
-        payload['data'] = data
+    data = apply_cpe_ping_status(data)
+    payload = dict(payload)
+    payload['data'] = data
     return payload
 
 
@@ -886,8 +1047,42 @@ def read_cache(client) -> Optional[dict[str, Any]]:
     return payload
 
 
+def sync_client_from_radius(client, data: dict[str, Any]) -> list[dict[str, str]]:
+    """
+    Alinea campos FCC con datos RADIUS cuando difieren.
+    - ip_router ← cpeipaddress / staticipcpe
+    Devuelve lista de cambios {field, old, new}.
+    """
+    changes: list[dict[str, str]] = []
+    if client is None or not isinstance(data, dict):
+        return changes
+
+    cpe = (
+        str(data.get('cpeipaddress') or '').strip()
+        or str(data.get('staticipcpe') or '').strip()
+    )
+    safe_cpe = _safe_ipv4(cpe)
+    if safe_cpe:
+        old_router = (getattr(client, 'ip_router', None) or '').strip()
+        if old_router != safe_cpe:
+            changes.append({
+                'field': 'ip_router',
+                'old': old_router,
+                'new': safe_cpe,
+            })
+            client.ip_router = safe_cpe
+            logger.info(
+                'FCC sync RADIUS: client_id=%s ip_router %r → %r',
+                getattr(client, 'id', None),
+                old_router,
+                safe_cpe,
+            )
+
+    return changes
+
+
 def write_cache(client, payload: dict[str, Any]) -> None:
-    to_store = {k: v for k, v in payload.items() if k not in ('from_cache', 'cache_age_seconds', 'cache_age_minutes')}
+    to_store = {k: v for k, v in payload.items() if k not in ('from_cache', 'cache_age_seconds', 'cache_age_minutes', 'fcc_updated')}
     client.radius_cache_json = json.dumps(to_store, ensure_ascii=False)
     client.radius_cache_at = datetime.now()
 
@@ -911,7 +1106,12 @@ def get_client_radius_info(client, force: bool = False) -> dict[str, Any]:
             if cached_for is None and isinstance(cached.get('data'), dict):
                 cached_for = (cached['data'].get('username') or '').strip()
             if (cached_for or '') == current_username:
-                return _refresh_days_remaining(cached)
+                result = _refresh_days_remaining(cached)
+                if result.get('status') == 'ok' and isinstance(result.get('data'), dict):
+                    updated = sync_client_from_radius(client, result['data'])
+                    if updated:
+                        result['fcc_updated'] = updated
+                return result
 
     result = resolve_radius_for_client(client)
     result['cached_for_username'] = current_username
@@ -921,4 +1121,9 @@ def get_client_radius_info(client, force: bool = False) -> dict[str, Any]:
     result['cache_age_minutes'] = 0
     if not result.get('fetched_at'):
         result['fetched_at'] = datetime.now().isoformat(timespec='seconds')
-    return _refresh_days_remaining(result)
+    result = _refresh_days_remaining(result)
+    if result.get('status') == 'ok' and isinstance(result.get('data'), dict):
+        updated = sync_client_from_radius(client, result['data'])
+        if updated:
+            result['fcc_updated'] = updated
+    return result
