@@ -316,8 +316,11 @@ class Client(db.Model):
     ville = db.Column(db.String(100), nullable=False)
     ip_router = db.Column(db.String(50), nullable=True)
     ip_antea = db.Column(db.String(50), nullable=True)
+    username_radius = db.Column(db.String(100), nullable=True, index=True)
     id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=True)
     categoria = db.Column(db.String(20), nullable=False, default=CATEGORIA_CLIENTE_DEFAULT, index=True)
+    radius_cache_json = db.Column(db.Text, nullable=True)
+    radius_cache_at = db.Column(db.DateTime, nullable=True)
     ciudad_row = db.relationship('Ciudad', backref=db.backref('clients', lazy=True))
     incidents = db.relationship('Incident', backref='client', lazy=True)
 
@@ -856,6 +859,32 @@ def ensure_incident_bitrix_cache_columns():
         app.logger.exception('No se pudo verificar/crear columnas cache Bitrix en incident')
 
 
+def ensure_client_radius_cache_columns():
+    """Añade columnas RADIUS en client si faltan (arranque sin migración)."""
+    if getattr(ensure_client_radius_cache_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('client'):
+            ensure_client_radius_cache_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('client')}
+        alters = []
+        if 'username_radius' not in columns:
+            alters.append('ADD COLUMN username_radius VARCHAR(100) NULL')
+        if 'radius_cache_json' not in columns:
+            alters.append('ADD COLUMN radius_cache_json TEXT NULL')
+        if 'radius_cache_at' not in columns:
+            alters.append('ADD COLUMN radius_cache_at DATETIME NULL')
+        if alters:
+            with db.engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE client {', '.join(alters)}"))
+        ensure_client_radius_cache_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas RADIUS en client')
+
+
 def build_comment_notification_message(actor_name, client_name):
     return f"El usuario {actor_name} ha comentado su incidencia del cliente {client_name}."
 
@@ -1189,6 +1218,7 @@ def require_authentication():
     ensure_salida_observaciones_column()
     ensure_salida_tipo_column()
     ensure_incident_bitrix_cache_columns()
+    ensure_client_radius_cache_columns()
     ensure_incident_estado_historial_table()
     if not request.endpoint or request.endpoint == 'static':
         return
@@ -1906,6 +1936,7 @@ def nouveau_client():
             ville=request.form['ville'],
             ip_router=request.form['ip_router'],
             ip_antea=request.form['ip_antea'],
+            username_radius=(request.form.get('username_radius') or '').strip() or None,
             id_ciudad=id_ciudad,
             categoria=categoria,
         )
@@ -1935,12 +1966,14 @@ def modifier_client(id):
     default_ciudad_id = client.id_ciudad or current_user.id_ciudad or (ciudades[0].id if ciudades else None)
 
     if request.method == 'POST':
+        old_username_radius = (client.username_radius or '').strip()
         client.nom = request.form['nom']
         client.telephone = request.form['telephone']
         client.adresse = request.form['adresse']
         client.ville = request.form['ville']
         client.ip_router = request.form['ip_router']
         client.ip_antea = request.form['ip_antea']
+        client.username_radius = (request.form.get('username_radius') or '').strip() or None
         client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
         client.categoria = normalize_categoria_cliente(request.form.get('categoria'), default=client.categoria)
         if not client.id_ciudad:
@@ -1954,6 +1987,10 @@ def modifier_client(id):
                 categorias_cliente=CATEGORIAS_CLIENTE,
                 categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
             )
+        # Si cambia el username RADIUS, invalidar cache
+        if old_username_radius != (client.username_radius or '').strip():
+            client.radius_cache_json = None
+            client.radius_cache_at = None
         db.session.commit()
         write_audit(
             'UPDATE_CLIENT',
@@ -1990,16 +2027,60 @@ def fiche_client(id):
     incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
     return_url = _resolve_next_url()
     from core.services.materiales_service import get_client_material_rows
+    from core.services.radius_service import get_client_radius_info, radius_enabled
 
     agencia_id = None if current_user.is_admin() else current_user.id_agencia
     material_rows = get_client_material_rows(id, agencia_id)
+
+    radius_info = None
+    if radius_enabled():
+        try:
+            force = request.args.get('radius_refresh', '').strip() in ('1', 'true', 'yes')
+            radius_info = get_client_radius_info(client, force=force)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            app.logger.exception('Error al consultar RADIUS para client_id=%s', id)
+            radius_info = {
+                'status': 'error',
+                'message': 'RADIUS no disponible temporalmente.',
+                'from_cache': False,
+            }
+
     return render_template(
         'fiche_client.html',
         client=client,
         incidents=incidents,
         material_rows=material_rows,
         return_url=return_url,
+        radius_info=radius_info,
+        radius_enabled=radius_enabled(),
     )
+
+
+@app.route('/api/clients/<int:id>/radius')
+def api_client_radius_info(id):
+    """API AJAX: datos RADIUS del cliente (cache 5 min, force=1 para refrescar)."""
+    from core.services.radius_service import get_client_radius_info, radius_enabled
+
+    client = Client.query.get_or_404(id)
+    if not radius_enabled():
+        return jsonify({'ok': False, 'error': 'Integración RADIUS desactivada.'}), 200
+
+    force = request.args.get('force', '').strip() in ('1', 'true', 'yes')
+    try:
+        info = get_client_radius_info(client, force=force)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('Error API RADIUS client_id=%s', id)
+        return jsonify({'ok': False, 'error': 'RADIUS no disponible temporalmente.'}), 200
+
+    return jsonify({
+        'ok': info.get('status') == 'ok',
+        'data': info,
+        'cached': bool(info.get('from_cache')),
+    }), 200
 
 # Nouvelle route pour imprimer la fiche client en PDF
 @app.route('/clients/<int:id>/imprimer')

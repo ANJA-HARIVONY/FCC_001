@@ -84,8 +84,15 @@
                                 <label for="ip_antea" class="form-label">IP Antena</label>
                                 <input type="text" class="form-control" id="ip_antea" name="ip_antea" 
                                        value="{{ client.ip_antea or '' }}" placeholder="192.168.1.2">
-                                <div class="form-text">Format: xxx.xxx.xxx.xxx (optionnel)</div>
+                                <div class="form-text">Format: xxx.xxx.xxx.xxx (opcional)</div>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username_radius" class="form-label">Username RADIUS</label>
+                            <input type="text" class="form-control" id="username_radius" name="username_radius"
+                                   value="{{ client.username_radius or '' }}"
+                                   placeholder="ej. vatsy_r2i" autocomplete="off">
+                            <div class="form-text">Login RADIUS (SysAPI get_userdata). Obligatorio para consultar RADIUS.</div>
                         </div>
                         
                         <div class="d-flex justify-content-between mt-4">

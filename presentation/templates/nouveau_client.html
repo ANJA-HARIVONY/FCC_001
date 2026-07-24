@@ -91,6 +91,12 @@
                                 <div class="form-text">Format: xxx.xxx.xxx.xxx (opcional)</div>
                             </div>
                         </div>
+                        <div class="mb-3">
+                            <label for="username_radius" class="form-label">Username RADIUS</label>
+                            <input type="text" class="form-control" id="username_radius" name="username_radius"
+                                   placeholder="ej. vatsy_r2i" autocomplete="off">
+                            <div class="form-text">Login RADIUS (SysAPI get_userdata). Obligatorio para consultar RADIUS.</div>
+                        </div>
                         
                         <div class="d-flex justify-content-between mt-4">
                             <a href="{{ url_for('clients') }}" class="btn btn-secondary">

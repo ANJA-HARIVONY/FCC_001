@@ -1,0 +1,25 @@
+BASE=http://10.26.0.4/radiusmanager/api
+APIUSER_SET=True
+PASS_SET=True
+---
+USERNAME='014000'
+SAFE_URL=http://10.26.0.4/radiusmanager/api/sysapi.php?apiuser=api&apipass=***&q=get_userdata&username=014000
+HTTP_OK content_type=text/html; charset=UTF-8 len=21
+RAW_HEAD='[1,"User not found!"]'
+JSON_TYPE=list
+LIST_LEN=2 HEAD=[1, 'User not found!']
+---
+USERNAME='014000 YOSYP'
+SAFE_URL=http://10.26.0.4/radiusmanager/api/sysapi.php?apiuser=api&apipass=***&q=get_userdata&username=014000+YOSYP
+HTTP_OK content_type=text/html; charset=UTF-8 len=21
+RAW_HEAD='[1,"User not found!"]'
+JSON_TYPE=list
+LIST_LEN=2 HEAD=[1, 'User not found!']
+---
+USERNAME='vatsy_r2i'
+SAFE_URL=http://10.26.0.4/radiusmanager/api/sysapi.php?apiuser=api&apipass=***&q=get_userdata&username=vatsy_r2i
+HTTP_OK content_type=text/html; charset=UTF-8 len=851
+RAW_HEAD='{"0":0,"1":{"enableuser":"0","srvid":"40","usemacauth":"0","mac":"48:8f:5a:ad:c7:99","maccm":"","groupid":"16","custattr":"","owner":"admin","staticipcm":"","staticipcpe":"102.164.254.95","ipmodecm":"0","ipmodecpe":"2","poolidcm":"0","poolidcpe":"0","credits":"0.00","contractid":"","contractvalid":"2024-11-23","cnic":"","firstname":"008910 VATSY R2I","lastname":"","company":"","address":"","city":"BATA","zip":"","country":"Equatorial Guinea","state":"","phone":"","mobile":"","email":"","comment":"","taxid":"","gpslong":"0.00000000000000","gpslat":"0.00000000000000","lang":"English","alertemail'
+JSON_TYPE=dict
+KEYS=['0', '1', 'simuse', 'dlbytes', 'ulbytes', 'totalbytes', 'onlinetime', 'expiry']
+code=None firstname=None enableuser=None expiry='2024-11-23 00:00:00'
