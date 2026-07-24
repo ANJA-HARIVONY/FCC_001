@@ -869,16 +869,28 @@ def ensure_client_radius_cache_columns():
             ensure_client_radius_cache_columns._done = True
             return
         columns = {col['name'] for col in inspector.get_columns('client')}
-        alters = []
+        # Una columna por ALTER: más fiable en MariaDB / permisos parciales
+        statements = []
         if 'username_radius' not in columns:
-            alters.append('ADD COLUMN username_radius VARCHAR(100) NULL')
+            statements.append('ALTER TABLE client ADD COLUMN username_radius VARCHAR(100) NULL')
         if 'radius_cache_json' not in columns:
-            alters.append('ADD COLUMN radius_cache_json TEXT NULL')
+            statements.append('ALTER TABLE client ADD COLUMN radius_cache_json TEXT NULL')
         if 'radius_cache_at' not in columns:
-            alters.append('ADD COLUMN radius_cache_at DATETIME NULL')
-        if alters:
+            statements.append('ALTER TABLE client ADD COLUMN radius_cache_at DATETIME NULL')
+        if statements:
             with db.engine.begin() as conn:
-                conn.execute(text(f"ALTER TABLE client {', '.join(alters)}"))
+                for sql in statements:
+                    conn.execute(text(sql))
+                    app.logger.info('RADIUS schema: %s', sql)
+            # Index si la columna acaba de crearse
+            if 'username_radius' not in columns:
+                try:
+                    with db.engine.begin() as conn:
+                        conn.execute(text(
+                            'CREATE INDEX ix_client_username_radius ON client (username_radius)'
+                        ))
+                except Exception:
+                    db.session.rollback()
         ensure_client_radius_cache_columns._done = True
     except Exception:
         db.session.rollback()

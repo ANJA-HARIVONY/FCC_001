@@ -901,12 +901,20 @@ def get_client_radius_info(client, force: bool = False) -> dict[str, Any]:
             'from_cache': False,
         }
 
+    current_username = (getattr(client, 'username_radius', None) or '').strip()
+
     if cache_is_fresh(client, force=force):
         cached = read_cache(client)
         if cached:
-            return _refresh_days_remaining(cached)
+            # Si username_radius cambió en BDD, invalidar cache (edición directa SQL, etc.)
+            cached_for = cached.get('cached_for_username')
+            if cached_for is None and isinstance(cached.get('data'), dict):
+                cached_for = (cached['data'].get('username') or '').strip()
+            if (cached_for or '') == current_username:
+                return _refresh_days_remaining(cached)
 
     result = resolve_radius_for_client(client)
+    result['cached_for_username'] = current_username
     write_cache(client, result)
     result['from_cache'] = False
     result['cache_age_seconds'] = 0

@@ -129,13 +129,20 @@ sys.path.insert(0, '/app')
 # Configurer l'environnement
 os.environ['FLASK_APP'] = 'core/app.py'
 
-from core.app import app, db, create_sample_data, ensure_client_categoria_column
+from core.app import (
+    app,
+    db,
+    create_sample_data,
+    ensure_client_categoria_column,
+    ensure_client_radius_cache_columns,
+)
 
 with app.app_context():
     try:
         # Créer toutes les tables
         db.create_all()
         ensure_client_categoria_column()
+        ensure_client_radius_cache_columns()
         print('Tables créées avec succès')
         
         # Vérifier si des données existent déjà et INIT_SAMPLE_DATA
