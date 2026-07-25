@@ -30,20 +30,20 @@
                         <i class="fas fa-filter me-2"></i>
                         Filtros de búsqueda
                     </h5>
-                    {% if search_query or ville_filter or ciudad_filter or categoria_filter %}
-                    <span class="badge bg-light text-dark ms-0 ms-md-2" id="filtrosActivos">
+                    <span class="badge bg-light text-dark ms-0 ms-md-2{% if not (search_query or ville_filter or ciudad_filter or categoria_filter) %} d-none{% endif %}" id="filtrosActivos">
                         Filtros activos
                     </span>
-                    {% endif %}
                 </div>
                 <div class="card-body">
                     <form method="GET" class="row g-3" id="formFiltrosClients">
                         <div class="col-md-3">
                             <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
                                 <i class="fas fa-search me-1"></i>Buscar
+                                <span id="search-live-spinner" class="spinner-border spinner-border-sm text-primary ms-1 d-none" role="status" aria-hidden="true"></span>
                             </label>
-                            <input type="text" class="form-control" id="search" name="search" 
-                                   value="{{ search_query }}" placeholder="Buscar en nombre, teléfono, dirección, IP...">
+                            <input type="text" class="form-control" id="search" name="search"
+                                   value="{{ search_query }}" placeholder="Buscar en nombre, teléfono, dirección, IP..."
+                                   autocomplete="off">
                         </div>
                         <div class="col-md-2">
                             <label for="ville" class="form-label small text-dark text-uppercase fw-semibold">
@@ -117,7 +117,7 @@
         </div>
     </div>
     <!-- Liste des clients -->
-    <div class="row">
+    <div class="row" id="clients-results">
         <div class="col-12">
             <div class="card content-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
@@ -583,6 +583,129 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function() {
         saveFilters();
     });
+
+    // Recherche live : mise a jour de la liste pendant la saisie (debounce)
+    const searchInput = document.getElementById('search');
+    const searchSpinner = document.getElementById('search-live-spinner');
+    const liveSearchDebounceMs = 400;
+    let liveSearchTimer = null;
+    let liveSearchAbort = null;
+    let lastLiveSearchValue = searchInput ? searchInput.value : '';
+
+    function updateFiltrosActivosBadge() {
+        const badge = document.getElementById('filtrosActivos');
+        if (!badge) {
+            return;
+        }
+        const hasFilters = ['search', 'ville', 'ciudad', 'categoria'].some(function(id) {
+            const el = document.getElementById(id);
+            return el && (el.value || '').trim() !== '';
+        });
+        badge.classList.toggle('d-none', !hasFilters);
+    }
+
+    function setLiveSearchLoading(isLoading) {
+        if (searchSpinner) {
+            searchSpinner.classList.toggle('d-none', !isLoading);
+        }
+        if (searchInput) {
+            searchInput.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+        }
+    }
+
+    function buildClientsQueryParams(options) {
+        const params = new URLSearchParams();
+        const filters = getCurrentFilters();
+        Object.keys(filters).forEach(function(key) {
+            if (filters[key]) {
+                params.set(key, filters[key]);
+            }
+        });
+        const urlParams = new URLSearchParams(window.location.search);
+        const sort = urlParams.get('sort');
+        const order = urlParams.get('order');
+        if (sort) {
+            params.set('sort', sort);
+        }
+        if (order) {
+            params.set('order', order);
+        }
+        if (options && options.page) {
+            params.set('page', String(options.page));
+        }
+        return params;
+    }
+
+    async function runLiveSearch() {
+        if (!searchInput || !form) {
+            return;
+        }
+        const currentValue = searchInput.value;
+        if (currentValue === lastLiveSearchValue) {
+            return;
+        }
+        lastLiveSearchValue = currentValue;
+
+        saveFilters();
+        updateFiltrosActivosBadge();
+        setLiveSearchLoading(true);
+
+        if (liveSearchAbort) {
+            liveSearchAbort.abort();
+        }
+        liveSearchAbort = new AbortController();
+
+        const params = buildClientsQueryParams({ page: 1 });
+        const url = '{{ url_for("clients") }}' + (params.toString() ? ('?' + params.toString()) : '');
+        const cursorPos = searchInput.selectionStart;
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                signal: liveSearchAbort.signal,
+                credentials: 'same-origin'
+            });
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            const html = await response.text();
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newResults = doc.getElementById('clients-results');
+            const currentResults = document.getElementById('clients-results');
+            if (newResults && currentResults) {
+                currentResults.replaceWith(newResults);
+            }
+            history.replaceState(null, '', url);
+            updateFiltrosActivosBadge();
+            setLiveSearchLoading(false);
+        } catch (error) {
+            if (error && error.name === 'AbortError') {
+                return;
+            }
+            console.error('Error en busqueda live de clientes:', error);
+            setLiveSearchLoading(false);
+            form.submit();
+            return;
+        }
+
+        searchInput.focus();
+        try {
+            const pos = typeof cursorPos === 'number' ? cursorPos : searchInput.value.length;
+            searchInput.setSelectionRange(pos, pos);
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            if (liveSearchTimer) {
+                clearTimeout(liveSearchTimer);
+            }
+            liveSearchTimer = setTimeout(runLiveSearch, liveSearchDebounceMs);
+        });
+    }
 });
 </script>
 {% endblock %} 

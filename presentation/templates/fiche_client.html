@@ -186,25 +186,25 @@
                         {% set acct = d.get('account_status') %}
                         {% set conn_on = d.get('online') or d.get('connection_status') == 'online' %}
                         <div class="row">
-                            <div class="col-sm-4"><strong>Account status:</strong></div>
+                            <div class="col-sm-4"><strong>Status de la cuenta:</strong></div>
                             <div class="col-sm-8">
                                 {% if acct == 'expired' %}
-                                <span class="badge bg-danger">Expired</span>
+                                <span class="badge bg-danger">Expirada</span>
                                 {% elif acct == 'enabled' %}
-                                <span class="badge bg-success">{{ d.get('account_status_label') or 'Enabled / Activo' }}</span>
+                                <span class="badge bg-success">{{ d.get('account_status_label') or 'Activa' }}</span>
                                 {% else %}
-                                <span class="badge bg-secondary">{{ d.get('account_status_label') or 'Disabled / Inactivo' }}</span>
+                                <span class="badge bg-secondary">{{ d.get('account_status_label') or 'Inactiva' }}</span>
                                 {% endif %}
                             </div>
                         </div>
                         <hr>
                         <div class="row">
-                            <div class="col-sm-4"><strong>Connection status:</strong></div>
+                            <div class="col-sm-4"><strong>Status de la conexión:</strong></div>
                             <div class="col-sm-8">
                                 {% if conn_on %}
-                                <span class="badge bg-success">{{ d.get('connection_status_label') or 'Online / En línea' }}</span>
+                                <span class="badge bg-success">{{ d.get('connection_status_label') or 'En línea' }}</span>
                                 {% else %}
-                                <span class="badge bg-warning text-dark">{{ d.get('connection_status_label') or 'Offline / Desconectado' }}</span>
+                                <span class="badge bg-warning text-dark">{{ d.get('connection_status_label') or 'Desconectada' }}</span>
                                 {% endif %}
                             </div>
                         </div>
