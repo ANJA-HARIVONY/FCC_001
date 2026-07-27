@@ -268,7 +268,13 @@ document.querySelector('form').addEventListener('submit', function(e) {
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', async function() {
     await loadClientsData();
-    document.getElementById('client_search').focus();
+    const preselectedClientId = {{ preselected_client_id|default('null') }};
+    if (preselectedClientId) {
+        selectClient(preselectedClientId);
+        document.getElementById('intitule').focus();
+    } else {
+        document.getElementById('client_search').focus();
+    }
 });
 document.getElementById('status').addEventListener('change', function() {
     var group = document.getElementById('ref_bitrix_group');

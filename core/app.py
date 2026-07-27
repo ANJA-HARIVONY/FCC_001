@@ -2444,7 +2444,14 @@ def nouveau_incident():
         return redirect(url_for('incidents'))
 
     clients = Client.query.all()
-    return render_template('nouveau_incident.html', clients=clients)
+    preselected_client_id = request.args.get('client', type=int) or request.args.get('id_client', type=int)
+    if preselected_client_id and not db.session.get(Client, preselected_client_id):
+        preselected_client_id = None
+    return render_template(
+        'nouveau_incident.html',
+        clients=clients,
+        preselected_client_id=preselected_client_id,
+    )
 
 @app.route('/incidents/<int:id>/fiche_incident')
 def fiche_incident(id):

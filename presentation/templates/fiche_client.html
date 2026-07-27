@@ -21,8 +21,8 @@
             <i class="fas fa-user-tie"></i> {{ _('Ficha del Cliente') }} - {{ client.nom }}
         </h1>
         <div>
-            <a href="{{ return_url }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> {{ _('Volver') }}
+            <a href="{{ url_for('nouveau_incident', client=client.id) }}" class="btn btn-success">
+                <i class="fas fa-plus-circle"></i> {{ _('Crear incidencia') }}
             </a>
             <a href="{{ url_for('modifier_client', id=client.id, next=return_url) }}" class="btn btn-warning">
                 <i class="fas fa-edit"></i> {{ _('Modificar') }}
@@ -88,7 +88,7 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-sm-4"><strong>Username RADIUS:</strong></div>
+                        <div class="col-sm-4"><strong>Cuenta PPPoE:</strong></div>
                         <div class="col-sm-8">
                             {% if client.username_radius %}
                             <code>{{ client.username_radius }}</code>
