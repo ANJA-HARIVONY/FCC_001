@@ -99,7 +99,37 @@ main.page-enter {
 
 .navbar-nav .nav-link,
 .dropdown-item {
-    transition: background-color var(--anim-fast) var(--anim-ease);
+    transition: background-color var(--anim-fast) var(--anim-ease),
+                color var(--anim-fast) var(--anim-ease),
+                border-color var(--anim-fast) var(--anim-ease);
+}
+
+.navbar.app-shell-nav .navbar-nav .nav-link {
+    position: relative;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 500;
+    padding-bottom: 0.55rem;
+    border-bottom: 2px solid transparent;
+}
+
+.navbar.app-shell-nav .navbar-nav .nav-link.active,
+.navbar.app-shell-nav .navbar-nav .nav-link[aria-current="page"] {
+    color: #fff !important;
+    font-weight: 600;
+    border-bottom-color: var(--primary-red);
+}
+
+.navbar.app-shell-nav .dropdown-toggle.active {
+    border-color: var(--primary-red) !important;
+    color: #fff !important;
+    box-shadow: inset 0 0 0 1px rgba(220, 53, 69, 0.35);
+}
+
+.navbar.app-shell-nav .dropdown-menu .dropdown-item.active,
+.navbar.app-shell-nav .dropdown-menu .dropdown-item[aria-current="page"] {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--primary-red);
+    font-weight: 600;
 }
 
 .notification-bell-btn {

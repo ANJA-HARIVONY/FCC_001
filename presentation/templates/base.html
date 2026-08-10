@@ -29,30 +29,49 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                {% set ep = request.endpoint or '' %}
+                {% set nav_incidents = ['incidents', 'nouveau_incident', 'fiche_incident', 'modifier_incident'] %}
+                {% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print'] %}
+                {% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
+                {% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+                {% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
+                {% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
+                {% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
+                {% set nav_user_menu_active = ep in (['perfil', 'aide'] + nav_usuarios + nav_audit + nav_bdd) %}
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        <a class="nav-link{% if ep == 'dashboard' %} active{% endif %}"
+                           href="{{ url_for('dashboard') }}"
+                           {% if ep == 'dashboard' %}aria-current="page"{% endif %}>
                             <i class="fas fa-tachometer-alt me-1"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('incidents') }}">
+                        <a class="nav-link{% if ep in nav_incidents %} active{% endif %}"
+                           href="{{ url_for('incidents') }}"
+                           {% if ep in nav_incidents %}aria-current="page"{% endif %}>
                             <i class="fa fa-ticket me-1"></i>Incidencias
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('clients') }}">
+                        <a class="nav-link{% if ep in nav_clients %} active{% endif %}"
+                           href="{{ url_for('clients') }}"
+                           {% if ep in nav_clients %}aria-current="page"{% endif %}>
                             <i class="fa fa-user me-1"></i>Clientes
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('etats') }}">
+                        <a class="nav-link{% if ep in nav_etats %} active{% endif %}"
+                           href="{{ url_for('etats') }}"
+                           {% if ep in nav_etats %}aria-current="page"{% endif %}>
                             <i class="fas fa-chart-bar me-1"></i>Informes
                         </a>
                     </li>
                     {% if current_user.is_admin() %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('materiales_hub') }}">
+                        <a class="nav-link{% if ep in nav_materiales %} active{% endif %}"
+                           href="{{ url_for('materiales_hub') }}"
+                           {% if ep in nav_materiales %}aria-current="page"{% endif %}>
                             <i class="fas fa-toolbox me-1"></i>Materiales
                         </a>
                     </li>
@@ -76,13 +95,15 @@
                     </div>
                 </div>
                 <div class="dropdown me-3">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2{% if nav_user_menu_active %} active{% endif %}" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <img src="{{ av }}" alt="" class="rounded-circle border border-secondary" width="32" height="32" style="object-fit:cover;">
                         <span class="small d-none d-md-inline">{{ current_user.nom }}</span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('perfil') }}">
+                            <a class="dropdown-item{% if ep == 'perfil' %} active{% endif %}"
+                               href="{{ url_for('perfil') }}"
+                               {% if ep == 'perfil' %}aria-current="page"{% endif %}>
                                 <i class="fas fa-user-cog me-2"></i>Perfil
                             </a>
                         </li>
@@ -90,24 +111,32 @@
                         <li><h6 class="dropdown-header"><i class="fas fa-shield-alt me-2"></i>Administracion</h6></li>
                         {% if current_user.is_admin() %}
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('usuarios') }}">
+                            <a class="dropdown-item{% if ep in nav_usuarios %} active{% endif %}"
+                               href="{{ url_for('usuarios') }}"
+                               {% if ep in nav_usuarios %}aria-current="page"{% endif %}>
                                 <i class="fas fa-users me-2"></i>Usuarios
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('audit_log') }}">
+                            <a class="dropdown-item{% if ep in nav_audit %} active{% endif %}"
+                               href="{{ url_for('audit_log') }}"
+                               {% if ep in nav_audit %}aria-current="page"{% endif %}>
                                 <i class="fas fa-clipboard-list me-2"></i>Trazabilidad
                             </a>
                         </li>
                         {% endif %}
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('base_de_datos') }}">
+                            <a class="dropdown-item{% if ep in nav_bdd %} active{% endif %}"
+                               href="{{ url_for('base_de_datos') }}"
+                               {% if ep in nav_bdd %}aria-current="page"{% endif %}>
                                 <i class="fas fa-database me-2"></i>Base de datos
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a class="dropdown-item" href="{{ url_for('aide') }}">
+                            <a class="dropdown-item{% if ep == 'aide' %} active{% endif %}"
+                               href="{{ url_for('aide') }}"
+                               {% if ep == 'aide' %}aria-current="page"{% endif %}>
                                 <i class="fas fa-question-circle me-2"></i>Ayuda
                             </a>
                         </li>
