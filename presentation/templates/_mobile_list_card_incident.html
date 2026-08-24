@@ -1,0 +1,106 @@
+{# Carte mobile d'une incidencia.
+   Variables : incident (requis), next_url (optionnel), actions ('full'|'edit'|'none', defaut 'full') #}
+{% set next_url = next_url|default(request.url) %}
+{% set actions = actions|default('full') %}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="mobile-list-card__id">#{{ incident.id }}</span>
+            {% if incident.status == 'Solucionadas' %}
+                <span class="badge badge-resolut">{{ incident.status }} ✅</span>
+            {% elif incident.status == 'Pendiente' %}
+                <span class="badge badge-attente">{{ incident.status }} ⏳</span>
+            {% else %}
+                <span class="badge badge-bitrix">Bitrix 🔗</span>
+                {% if incident.ref_bitrix %}
+                <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/"
+                   target="_blank" rel="noopener noreferrer"
+                   class="badge bg-light text-dark text-decoration-none">
+                    {{ incident.ref_bitrix }} <i class="fas fa-external-link-alt"></i>
+                </a>
+                {% endif %}
+            {% endif %}
+            {% with client=incident.client %}
+            {% include '_cliente_corporativo_icon.html' %}
+            {% endwith %}
+        </div>
+        {% if actions != 'none' %}
+        <div class="dropdown mobile-list-card__menu">
+            <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
+                    data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
+                    aria-label="Acciones">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                {% if actions == 'edit' %}
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('modifier_incident', id=incident.id) }}">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                </li>
+                {% else %}
+                {% if current_user.is_admin() or incident.id_operateur == current_user.id %}
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('modifier_incident', id=incident.id, next=next_url) }}">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                </li>
+                {% endif %}
+                <li>
+                    <button type="button" class="dropdown-item"
+                            data-incident-id="{{ incident.id }}"
+                            data-incident-intitule="{{ incident.intitule|e }}"
+                            data-incident-observations="{{ (incident.observations or '')|e }}"
+                            data-incident-status="{{ incident.status|e }}"
+                            data-incident-date="{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}"
+                            data-client-nom="{{ incident.client.nom|e }}"
+                            data-client-telephone="{{ incident.client.telephone|e }}"
+                            data-client-adresse="{{ incident.client.adresse|e }}"
+                            data-client-ville="{{ incident.client.ville|e }}"
+                            data-client-ip-router="{{ incident.client.ip_router|e }}"
+                            data-client-ip-antea="{{ incident.client.ip_antea|e }}"
+                            data-operateur-nom="{{ incident.operateur.nom|e }}"
+                            onclick="copierIncident(this)">
+                        <i class="fas fa-copy me-2"></i>Copiar información
+                    </button>
+                </li>
+                {% if current_user.is_admin() or incident.id_operateur == current_user.id %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button type="button" class="dropdown-item text-danger"
+                            data-incident-id="{{ incident.id }}"
+                            data-incident-intitule="{{ incident.intitule }}"
+                            onclick="confirmerSuppression(this)">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </li>
+                {% endif %}
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    <a class="mobile-list-card__title" href="{{ url_for('fiche_incident', id=incident.id, next=next_url) }}">
+        {{ incident.client.nom }}
+    </a>
+    {% if incident.client.adresse %}
+    <p class="mobile-list-card__subtitle">{{ incident.client.adresse }}</p>
+    {% endif %}
+    {% if incident.intitule %}
+    <p class="mobile-list-card__asunto" title="{{ incident.intitule }}">{{ incident.intitule }}</p>
+    {% endif %}
+    <div class="mobile-list-card__badges">
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--user">
+            <img src="{{ incident.operateur.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                 alt=""
+                 class="rounded-circle"
+                 width="18"
+                 height="18"
+                 onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';">
+            {{ incident.operateur.nom }}
+        </span>
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-clock me-1"></i>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}
+        </span>
+    </div>
+</article>

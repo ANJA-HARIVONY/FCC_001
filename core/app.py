@@ -2660,7 +2660,8 @@ def dashboard_data():
             'client_categoria': incident.client.categoria,
             'operateur_nom': incident.operateur.nom,
             'operateur_avatar_url': incident.operateur.avatar_url,
-            'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M')
+            'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M'),
+            'ref_bitrix': incident.ref_bitrix or '',
         })
     
     # Données par opérateur pour la période

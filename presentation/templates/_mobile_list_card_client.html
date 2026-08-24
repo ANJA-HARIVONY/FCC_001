@@ -1,0 +1,111 @@
+{# Carte mobile d'un cliente (liste).
+   Variables : client (requis), next_url (optionnel), variant ('list'|'recurrent'), rank (recurrent) #}
+{% set next_url = next_url|default(request.url) %}
+{% set variant = variant|default('list') %}
+{% if variant == 'recurrent' %}
+    {% set incidents_count = client.incidents %}
+{% else %}
+    {% set incidents_count = client.incidents|length %}
+{% endif %}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            {% if variant == 'recurrent' and rank is defined %}
+            <span class="mobile-list-card__id">#{{ rank }}</span>
+            {% else %}
+            <span class="mobile-list-card__id">#{{ client.id }}</span>
+            {% endif %}
+            {% include '_cliente_corporativo_icon.html' %}
+            {% if client.categoria == 'corporativo' %}
+                <span class="badge bg-dark">Corporativo</span>
+            {% elif variant != 'recurrent' %}
+                <span class="badge bg-light text-dark">{{ categoria_cliente_labels.get(client.categoria, 'Particular') if categoria_cliente_labels is defined else 'Particular' }}</span>
+            {% endif %}
+            <span class="badge bg-secondary">{{ incidents_count }} incidencias</span>
+        </div>
+        {% if variant == 'list' %}
+        <div class="dropdown mobile-list-card__menu">
+            <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
+                    data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
+                    aria-label="Acciones">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('fiche_client', id=client.id, next=next_url) }}">
+                        <i class="fas fa-file-alt me-2"></i>{{ _('Ver la ficha') }}
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('modifier_client', id=client.id, next=next_url) }}">
+                        <i class="fas fa-edit me-2"></i>{{ _('Editar') }}
+                    </a>
+                </li>
+                <li>
+                    <button type="button" class="dropdown-item"
+                            data-client-id="{{ client.id }}"
+                            data-client-nom="{{ client.nom }}"
+                            data-client-telephone="{{ client.telephone }}"
+                            data-client-adresse="{{ client.adresse }}"
+                            data-client-ville="{{ client.ville }}"
+                            data-client-ip-router="{{ client.ip_router }}"
+                            data-client-ip-antea="{{ client.ip_antea }}"
+                            onclick="copierClient(this)">
+                        <i class="fas fa-copy me-2"></i>{{ _('Copiar información') }}
+                    </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button type="button" class="dropdown-item text-danger"
+                            data-client-id="{{ client.id }}"
+                            data-client-nom="{{ client.nom }}"
+                            onclick="confirmerSuppression(this)">
+                        <i class="fas fa-trash me-2"></i>{{ _('Eliminar') }}
+                    </button>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+    <a class="mobile-list-card__title" href="{% if variant == 'list' %}{{ url_for('fiche_client', id=client.id, next=next_url) }}{% else %}{{ url_for('fiche_client', id=client.id) }}{% endif %}">
+        {{ client.nom }}
+    </a>
+    {% if client.adresse %}
+    <p class="mobile-list-card__subtitle">{{ client.adresse }}</p>
+    {% endif %}
+    <div class="mobile-list-card__badges">
+        {% if variant == 'list' and client.telephone %}
+        <a class="badge rounded-pill mobile-list-card__chip text-decoration-none"
+           href="https://wa.me/+240{{ client.telephone }}" target="_blank" rel="noopener noreferrer">
+            <i class="fab fa-whatsapp me-1"></i>{{ client.telephone }}
+        </a>
+        {% endif %}
+        {% if variant == 'list' and client.ville %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-map-marker-alt me-1"></i>{{ client.ville }}
+        </span>
+        {% endif %}
+        {% if variant == 'list' %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-city me-1"></i>{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}
+        </span>
+        {% endif %}
+        {% if variant == 'list' and client.ip_router %}
+        <a class="badge rounded-pill mobile-list-card__chip text-decoration-none"
+           href="http://{{ client.ip_router }}" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-network-wired me-1"></i>{{ client.ip_router }}
+        </a>
+        {% endif %}
+        {% if variant == 'list' and client.ip_antea %}
+        <a class="badge rounded-pill mobile-list-card__chip text-decoration-none"
+           href="http://{{ client.ip_antea }}" target="_blank" rel="noopener noreferrer">
+            <i class="fas fa-server me-1"></i>{{ client.ip_antea }}
+        </a>
+        {% endif %}
+        {% if variant == 'recurrent' and client.intitule %}
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--asunto" title="{{ client.intitule }}">
+            {{ client.intitule }}
+        </span>
+        {% endif %}
+    </div>
+</article>
