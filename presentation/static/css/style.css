@@ -2722,6 +2722,18 @@ body.login-page {
     min-width: 0;
 }
 
+.mobile-list-card__meta .badge-bitrix {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+}
+
+.mobile-list-card__meta .bitrix-info-block--icon-only {
+    display: inline-flex;
+    align-items: center;
+}
+
 .mobile-list-card__id {
     font-weight: 700;
     color: var(--dark-gray);

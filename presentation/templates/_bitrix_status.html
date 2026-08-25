@@ -12,7 +12,7 @@
 
     {% set auto_load = auto_load|default(false) and bitrix_api_enabled|default(false) %}
 
-    {% set suffix = incident.id %}
+    {% set suffix = suffix|default(incident.id) %}
 
     <span class="badge {% if compact %}badge-bitrix{% else %}bg-info{% endif %}">
 

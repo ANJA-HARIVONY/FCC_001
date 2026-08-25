@@ -11,14 +11,10 @@
             {% elif incident.status == 'Pendiente' %}
                 <span class="badge badge-attente">{{ incident.status }} ⏳</span>
             {% else %}
-                <span class="badge badge-bitrix">Bitrix 🔗</span>
-                {% if incident.ref_bitrix %}
-                <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/"
-                   target="_blank" rel="noopener noreferrer"
-                   class="badge bg-light text-dark text-decoration-none">
-                    {{ incident.ref_bitrix }} <i class="fas fa-external-link-alt"></i>
-                </a>
-                {% endif %}
+                {% set bx = bitrix_list_info.get(incident.id, {}) if bitrix_list_info is defined else {} %}
+                {% with compact=true, auto_load=bx.auto_load|default(false), icon_only=true, bitrix_info=bx.info, suffix=incident.id ~ '-card' %}
+                {% include '_bitrix_status.html' %}
+                {% endwith %}
             {% endif %}
             {% with client=incident.client %}
             {% include '_cliente_corporativo_icon.html' %}
