@@ -286,10 +286,10 @@
                 <i class="fas fa-exclamation-triangle"></i> {{ _('Historial de las Incidencias') }}
             </h6>
         </div>
-        <div class="card-body">
+        <div class="card-body p-0">
             {% if incidents %}
-                <div class="table-responsive">
-                    <table class="table table-bordered" width="100%" cellspacing="0">
+                <div class="table-responsive d-none d-lg-block d-print-block p-3">
+                    <table class="table table-bordered mb-0" width="100%" cellspacing="0">
                         <thead>
                             <tr>
                                 <th>{{ _('Fecha/Hora') }}</th>
@@ -331,8 +331,55 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="mobile-list d-lg-none d-print-none" id="historial-incidencias-mobile">
+                    {% for incident in incidents %}
+                    <article class="mobile-list-card">
+                        <div class="mobile-list-card__head">
+                            <div class="mobile-list-card__meta">
+                                {% if incident.status == 'Solucionadas' %}
+                                    <span class="badge badge-resolut">{{ _('Solucionadas') }} ✅</span>
+                                {% elif incident.status == 'Pendiente' %}
+                                    <span class="badge badge-attente">{{ _('Pendientes') }} ⏳</span>
+                                {% elif incident.status == 'Bitrix' %}
+                                    <span class="badge badge-bitrix">{{ _('Bitrix') }} 🔗</span>
+                                    {% if incident.ref_bitrix %}
+                                    <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="badge bg-light text-dark text-decoration-none">
+                                        {{ incident.ref_bitrix }} <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <a class="mobile-list-card__title" href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}">
+                            {{ incident.intitule }}
+                        </a>
+                        <div class="mobile-list-card__badges">
+                            <span class="badge rounded-pill mobile-list-card__chip">
+                                <i class="fas fa-clock me-1"></i>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}
+                            </span>
+                            <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--user">
+                                <img src="{{ incident.operateur.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                                     alt=""
+                                     class="rounded-circle"
+                                     width="18"
+                                     height="18"
+                                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';">
+                                {{ incident.operateur.nom }}
+                            </span>
+                            {% if incident.observations %}
+                            <span class="badge rounded-pill mobile-list-card__chip" title="{{ incident.observations }}">
+                                <i class="fas fa-comment me-1"></i>{{ incident.observations }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
             {% else %}
-                <div class="text-center py-4">
+                <div class="text-center py-4 px-3">
                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                     <p class="text-muted">{{ _('No hay incidentes registrados para este cliente.') }}</p>
                 </div>
