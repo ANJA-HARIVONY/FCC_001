@@ -81,7 +81,6 @@ instance/*.db
 
 # ==== Documentation et fichiers non essentiels ====
 docs/guide/
-UNUSEFILE/
 *.md
 !README.md
 !docs/DEPLOYMENT.md
@@ -100,9 +99,7 @@ Dockerfile*
 
 # ==== Fichiers de configuration de développement ====
 config/env/test.env
-automation/check_data/
-automation/script_automatisation/*.py
-automation/utils/
+automation/scripts/
 
 # ==== Fichiers de sauvegarde ====
 *.bak

@@ -11,14 +11,17 @@ python start_app.py
 ```
 FCC_001/
 ├── core/           # 🎯 Application principale
-├── data/           # 🗄️ Base de données
 ├── presentation/   # 🎨 Interface utilisateur
 ├── i18n/           # 🌐 Internationalisation
-├── automation/     # 🔧 Scripts et utilitaires
-├── monitoring/     # 📊 Surveillance
-├── docs/           # 📚 Documentation complète
-├── config/         # ⚙️ Configuration
-└── tools/          # 🛠️ Outils de développement
+├── config/         # ⚙️ Requirements, gunicorn
+├── config.py       # ⚙️ Configuration multi-environnement
+├── migrations/     # 🗄️ Migrations schéma
+├── data/init/      # 🗄️ Init MariaDB Docker
+├── docs/           # 📚 Documentation
+├── automation/scripts/  # 🔧 Scripts locaux (hors Docker)
+├── tools/          # 🛠️ Outils ponctuels (export, hash, santé DB)
+├── monitoring/     # 📊 Logs / backups
+└── Docker*         # Déploiement conteneur
 ```
 
 ## Fonctionnalités

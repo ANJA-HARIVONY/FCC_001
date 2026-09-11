@@ -108,21 +108,28 @@
     <div class="row mb-4">
         <div class="col-lg-8 mb-3">
             <div class="chart-container">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-line text-danger me-2"></i>
                         Evolucion de las incidencias
                     </h5>
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-danger active" onclick="changeChartView('date')" id="btn-date">
-                            Por dia
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        {% if current_user.is_authenticated and current_user.is_admin() %}
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-apreciacion-dia" title="Añadir o editar la nota del día">
+                            <i class="fas fa-comment-alt me-1"></i>Apreciación del día
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('month')" id="btn-month">
-                            Por mes
-                        </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('year')" id="btn-year">
-                            Por año
-                        </button>
+                        {% endif %}
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-danger active" onclick="changeChartView('date')" id="btn-date">
+                                Por dia
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('month')" id="btn-month">
+                                Por mes
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('year')" id="btn-year">
+                                Por año
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="chart-canvas-wrap">
@@ -296,6 +303,48 @@
         </div>
     </div>
 </div>
+
+{% if current_user.is_authenticated and current_user.is_admin() %}
+<div class="modal fade" id="modalApreciacionDia" tabindex="-1" aria-labelledby="modalApreciacionDiaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalApreciacionDiaLabel">
+                    <i class="fas fa-comment-alt me-2"></i>Apreciación del día
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="apreciacion-feedback" class="alert d-none mb-3" role="alert"></div>
+                <div class="mb-3">
+                    <label for="apreciacion-fecha" class="form-label">Fecha</label>
+                    <input type="date" class="form-control" id="apreciacion-fecha" required>
+                </div>
+                <div class="mb-0">
+                    <label for="apreciacion-texto" class="form-label">Apreciación</label>
+                    <input type="text" class="form-control" id="apreciacion-texto" list="apreciacion-sugerencias" maxlength="120" placeholder="Ej. Día normal" required>
+                    <datalist id="apreciacion-sugerencias">
+                        <option value="Día normal"></option>
+                        <option value="Caída de sector"></option>
+                        <option value="Problema con Gitge"></option>
+                        <option value="Mucho viento"></option>
+                    </datalist>
+                    <div class="form-text">Máximo 120 caracteres. Se muestra al pasar el cursor sobre el gráfico (vista por día).</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger me-auto d-none" id="btn-eliminar-apreciacion">
+                    <i class="fas fa-trash me-1"></i>Eliminar
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-guardar-apreciacion">
+                    <i class="fas fa-save me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
@@ -306,6 +355,11 @@ let refreshInterval;
 let countdownInterval;
 let nextRefreshTime;
 let currentPeriod = 'current_week'; // Période par défaut
+let chartFechas = [];
+let chartApreciaciones = {};
+let apreciacionModal = null;
+const apreciacionTextoMax = 120;
+const canEditApreciacion = {{ 'true' if current_user.is_authenticated and current_user.is_admin() else 'false' }};
 const defaultPeriod = 'current_week';
 const defaultViewType = 'date';
 const filterCookieMaxAgeSeconds = 30 * 24 * 60 * 60; // 30 jours
@@ -409,6 +463,7 @@ function restartAutoRefresh() {
 // Ajouter un gestionnaire pour permettre de cliquer sur l'indicateur pour forcer un refresh
 document.addEventListener('DOMContentLoaded', function() {
     initializeFilterPersistence();
+    initApreciacionModal();
 
     const refreshStatus = document.getElementById('refresh-status');
     if (refreshStatus) {
@@ -512,6 +567,24 @@ function initIncidentsChart() {
             animation: {
                 duration: 800
             },
+            onClick: function(evt) {
+                if (!canEditApreciacion || currentViewType !== 'date' || !incidentsChart) {
+                    return;
+                }
+                const points = incidentsChart.getElementsAtEventForMode(
+                    evt,
+                    'nearest',
+                    { axis: 'x', intersect: false },
+                    true
+                );
+                if (!points.length) {
+                    return;
+                }
+                const fecha = chartFechas[points[0].index];
+                if (fecha) {
+                    openApreciacionModal(fecha);
+                }
+            },
             plugins: {
                 legend: {
                     display: true,
@@ -520,6 +593,39 @@ function initIncidentsChart() {
                 tooltip: {
                     mode: 'index',
                     intersect: false,
+                    callbacks: {
+                        footer: function(items) {
+                            if (currentViewType !== 'date' || !items.length) {
+                                return '';
+                            }
+                            const fecha = chartFechas[items[0].dataIndex];
+                            const texto = fecha ? chartApreciaciones[fecha] : '';
+                            if (!texto) {
+                                return '';
+                            }
+                            const maxLen = 42;
+                            if (texto.length <= maxLen) {
+                                return texto;
+                            }
+                            const lines = [];
+                            let line = '';
+                            texto.split(/\s+/).forEach(function(word) {
+                                const next = line ? (line + ' ' + word) : word;
+                                if (next.length > maxLen) {
+                                    if (line) {
+                                        lines.push(line);
+                                    }
+                                    line = word;
+                                } else {
+                                    line = next;
+                                }
+                            });
+                            if (line) {
+                                lines.push(line);
+                            }
+                            return lines;
+                        }
+                    }
                 }
             },
             scales: {
@@ -550,6 +656,21 @@ function initIncidentsChart() {
     });
 }
 
+function applyApreciacionPointStyles(data, viewType) {
+    if (!incidentsChart) {
+        return;
+    }
+    const hasNote = data.map(item => viewType === 'date' && !!item.apreciacion);
+    const baseColors = ['#0d6efd', '#198754'];
+    incidentsChart.data.datasets.forEach((dataset, index) => {
+        dataset.pointBackgroundColor = baseColors[index];
+        dataset.pointRadius = hasNote.map(flag => flag ? 5 : 3);
+        dataset.pointHoverRadius = hasNote.map(flag => flag ? 7 : 5);
+        dataset.pointBorderWidth = hasNote.map(flag => flag ? 3 : 2);
+        dataset.pointBorderColor = hasNote.map(flag => flag ? '#fd7e14' : '#fff');
+    });
+}
+
 // Fonction pour mettre à jour les données du graphique
 function updateIncidentsChart(viewType = 'date') {
     currentViewType = viewType;
@@ -558,20 +679,210 @@ function updateIncidentsChart(viewType = 'date') {
         .then(response => response.json())
         .then(data => {
             if (incidentsChart) {
-                // Mettre à jour les données
+                chartFechas = data.map(item => item.fecha || '');
+                chartApreciaciones = {};
+                data.forEach(item => {
+                    if (item.fecha && item.apreciacion) {
+                        chartApreciaciones[item.fecha] = item.apreciacion;
+                    }
+                });
+
                 incidentsChart.data.labels = data.map(item => item.date);
                 incidentsChart.data.datasets[0].data = data.map(item => item.bitrix || 0);
                 incidentsChart.data.datasets[1].data = data.map(item => item.solucionadas || 0);
+                applyApreciacionPointStyles(data, viewType);
                 
-                // Mettre à jour le titre de l'axe X
                 incidentsChart.options.scales.x.title.text = viewType === 'date' ? 'Fecha' : 'Fecha y Hora';
+                const canvas = document.getElementById('incidentsChart');
+                if (canvas) {
+                    canvas.style.cursor = (canEditApreciacion && viewType === 'date') ? 'pointer' : 'default';
+                }
                 
-                // Redessiner le graphique
                 incidentsChart.update('active');
             }
         })
         .catch(error => {
             console.error('Erreur lors du chargement des données:', error);
+        });
+}
+
+function todayIsoDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function setApreciacionFeedback(message, type) {
+    const el = document.getElementById('apreciacion-feedback');
+    if (!el) {
+        return;
+    }
+    if (!message) {
+        el.className = 'alert d-none mb-3';
+        el.textContent = '';
+        return;
+    }
+    el.className = `alert alert-${type} mb-3`;
+    el.textContent = message;
+}
+
+function setApreciacionDeleteVisible(visible) {
+    const btn = document.getElementById('btn-eliminar-apreciacion');
+    if (!btn) {
+        return;
+    }
+    btn.classList.toggle('d-none', !visible);
+}
+
+function loadApreciacionForFecha(fecha) {
+    setApreciacionFeedback('', '');
+    const textoInput = document.getElementById('apreciacion-texto');
+    if (!fecha) {
+        if (textoInput) {
+            textoInput.value = '';
+        }
+        setApreciacionDeleteVisible(false);
+        return;
+    }
+    fetch(`/api/apreciaciones?fecha=${encodeURIComponent(fecha)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (textoInput) {
+                textoInput.value = data.texto || '';
+            }
+            setApreciacionDeleteVisible(!!data.texto);
+        })
+        .catch(() => {
+            if (textoInput) {
+                textoInput.value = '';
+            }
+            setApreciacionDeleteVisible(false);
+            setApreciacionFeedback('No se pudo cargar la apreciación.', 'danger');
+        });
+}
+
+function openApreciacionModal(fecha) {
+    if (!canEditApreciacion) {
+        return;
+    }
+    const fechaInput = document.getElementById('apreciacion-fecha');
+    const selected = fecha || (fechaInput && fechaInput.value) || todayIsoDate();
+    if (fechaInput) {
+        fechaInput.value = selected;
+    }
+    loadApreciacionForFecha(selected);
+    if (apreciacionModal) {
+        apreciacionModal.show();
+    }
+}
+
+function initApreciacionModal() {
+    if (!canEditApreciacion) {
+        return;
+    }
+    const modalEl = document.getElementById('modalApreciacionDia');
+    if (modalEl && window.bootstrap) {
+        apreciacionModal = new bootstrap.Modal(modalEl);
+    }
+
+    const openBtn = document.getElementById('btn-apreciacion-dia');
+    if (openBtn) {
+        openBtn.addEventListener('click', function() {
+            openApreciacionModal(todayIsoDate());
+        });
+    }
+
+    const fechaInput = document.getElementById('apreciacion-fecha');
+    if (fechaInput) {
+        fechaInput.addEventListener('change', function() {
+            loadApreciacionForFecha(fechaInput.value);
+        });
+    }
+
+    const saveBtn = document.getElementById('btn-guardar-apreciacion');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveApreciacionDia);
+    }
+
+    const deleteBtn = document.getElementById('btn-eliminar-apreciacion');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', deleteApreciacionDia);
+    }
+}
+
+function saveApreciacionDia() {
+    const fecha = (document.getElementById('apreciacion-fecha') || {}).value;
+    const texto = ((document.getElementById('apreciacion-texto') || {}).value || '').trim();
+    if (!fecha) {
+        setApreciacionFeedback('Seleccione una fecha.', 'warning');
+        return;
+    }
+    if (!texto) {
+        setApreciacionFeedback('Escriba una apreciación.', 'warning');
+        return;
+    }
+    if (texto.length > apreciacionTextoMax) {
+        setApreciacionFeedback(`La apreciación no puede superar ${apreciacionTextoMax} caracteres.`, 'warning');
+        return;
+    }
+
+    fetch('/api/apreciaciones', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ fecha: fecha, texto: texto })
+    })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) {
+                setApreciacionFeedback(data.error || 'No se pudo guardar.', 'danger');
+                return;
+            }
+            if (apreciacionModal) {
+                apreciacionModal.hide();
+            }
+            updateIncidentsChart(currentViewType);
+        })
+        .catch(() => {
+            setApreciacionFeedback('No se pudo guardar la apreciación.', 'danger');
+        });
+}
+
+function deleteApreciacionDia() {
+    const fecha = (document.getElementById('apreciacion-fecha') || {}).value;
+    if (!fecha) {
+        setApreciacionFeedback('Seleccione una fecha.', 'warning');
+        return;
+    }
+    if (!confirm('¿Eliminar la apreciación de esta fecha?')) {
+        return;
+    }
+
+    fetch(`/api/apreciaciones?fecha=${encodeURIComponent(fecha)}`, {
+        method: 'DELETE',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(({ ok, data }) => {
+            if (!ok) {
+                setApreciacionFeedback(data.error || 'No se pudo eliminar.', 'danger');
+                return;
+            }
+            if (apreciacionModal) {
+                apreciacionModal.hide();
+            }
+            updateIncidentsChart(currentViewType);
+        })
+        .catch(() => {
+            setApreciacionFeedback('No se pudo eliminar la apreciación.', 'danger');
         });
 }
 

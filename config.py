@@ -5,6 +5,42 @@
 
 import os
 from datetime import timedelta
+from urllib.parse import quote_plus
+
+
+def build_sqlalchemy_database_uri(default_host=None):
+    """URI MariaDB depuis DATABASE_URL / DEV_DATABASE_URL / DB_* . None = pas de MySQL configuré."""
+    explicit = os.environ.get('DATABASE_URL') or os.environ.get('DEV_DATABASE_URL')
+    if explicit:
+        return explicit
+    host = os.environ.get('DB_HOST') or default_host
+    if not host:
+        return None
+    user = quote_plus(os.environ.get('DB_USER', 'fcc_user'))
+    password = quote_plus(os.environ.get('DB_PASSWORD', ''))
+    port = os.environ.get('DB_PORT', '3306')
+    name = os.environ.get('DB_NAME', 'fcc_001_db')
+    return f'mysql+pymysql://{user}:{password}@{host}:{port}/{name}?charset=utf8mb4'
+
+
+def _load_project_dotenv():
+    """Charge .env avant la validation de ProductionConfig.
+
+    Une SECRET_KEY vide (souvent injectée par docker-compose quand
+    ${SECRET_KEY} n'est pas interpolé) est traitée comme absente pour
+    laisser le fichier .env la remplir.
+    """
+    if not os.environ.get('SECRET_KEY', '').strip():
+        os.environ.pop('SECRET_KEY', None)
+    env_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), '.env')
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_path, override=False)
+    except ImportError:
+        pass
+
+
+_load_project_dotenv()
 
 
 class Config:
@@ -71,10 +107,11 @@ class DevelopmentConfig(Config):
     DEBUG = True
     TESTING = False
 
-    # Base de données locale SQLite
+    # MariaDB si DB_HOST / DATABASE_URL / DEV_DATABASE_URL ; sinon SQLite de secours
     _instance_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'instance')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
+    SQLALCHEMY_DATABASE_URI = build_sqlalchemy_database_uri() or (
         'sqlite:///' + os.path.join(_instance_path, 'fcc_001.db')
+    )
 
     # Logs détaillés
     LOG_LEVEL = 'DEBUG'
@@ -82,6 +119,11 @@ class DevelopmentConfig(Config):
 
     # WeasyPrint (optionnel en dev)
     WEASYPRINT_AVAILABLE = os.environ.get('WEASYPRINT_AVAILABLE', 'True').lower() == 'true'
+
+    # HTTP local (localhost) : un cookie Secure n'est pas envoyé par le navigateur,
+    # la session CSRF se perd et le login affiche un 403.
+    SESSION_COOKIE_SECURE = False
+    REMEMBER_COOKIE_SECURE = False
 
 
 _WEAK_SECRET_KEYS = {
@@ -129,13 +171,7 @@ class ProductionConfig(Config):
     SECRET_KEY = _raw_secret
 
     # Base de données production (MariaDB) - variables d'environnement Docker
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or (
-        f"mysql+pymysql://{os.environ.get('DB_USER', 'fcc_user')}:"
-        f"{os.environ.get('DB_PASSWORD', 'fcc_password')}@"
-        f"{os.environ.get('DB_HOST', 'mariadb')}:"
-        f"{os.environ.get('DB_PORT', '3306')}/"
-        f"{os.environ.get('DB_NAME', 'fcc_001_db')}?charset=utf8mb4"
-    )
+    SQLALCHEMY_DATABASE_URI = build_sqlalchemy_database_uri(default_host='mariadb')
 
     # Sécurité renforcée (pilotable par variable d'environnement)
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'true').lower() == 'true'

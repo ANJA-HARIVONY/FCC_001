@@ -3,12 +3,12 @@ from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, UserMixin, AnonymousUserMixin, login_user, logout_user, login_required, current_user
 from flask_babel import Babel, gettext, ngettext, lazy_gettext, get_locale
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import os
 import re
 import time
@@ -99,14 +99,14 @@ def setup_database_config():
             return  # Garder la configuration MySQL
             
         except Exception as e:
-            # En production, on refuse de basculer silencieusement vers SQLite :
-            # cela masquerait l'incident et pourrait provoquer une perte de
-            # donnees (ecriture dans une base parallele).
-            if config_name == 'production':
-                logger.error('Echec de connexion MariaDB en production: %s', e)
+            # Ne pas basculer vers SQLite si MariaDB est explicitement configuré :
+            # cela masquerait l'incident et pourrait écrire dans une base parallèle.
+            mariadb_configured = bool(os.environ.get('DB_HOST') or os.environ.get('DATABASE_URL') or os.environ.get('DEV_DATABASE_URL'))
+            if config_name == 'production' or mariadb_configured:
+                logger.error('Echec de connexion MariaDB: %s', e)
                 raise RuntimeError(
-                    "Connexion MariaDB impossible en production. "
-                    "Verifier DB_HOST/DB_USER/DB_PASSWORD."
+                    "Connexion MariaDB impossible. "
+                    "Verifier DB_HOST, DB_PORT, DB_USER et DB_PASSWORD dans .env."
                 ) from e
             logger.warning('Erreur de connexion a MariaDB: %s', e)
             logger.warning('Basculement vers SQLite (mode demonstration)')
@@ -162,7 +162,10 @@ def handle_csrf_error(e):
     )
     if wants_json:
         return jsonify({'ok': False, 'error': 'CSRF token missing or invalid'}), 400
-    return render_template('403.html'), 400
+    flash(gettext('La sesión de seguridad ha expirado. Vuelva a iniciar sesión.'), 'error')
+    if current_user.is_authenticated:
+        return redirect(request.referrer or url_for('dashboard'))
+    return redirect(url_for('login'))
 
 login_manager = LoginManager()
 
@@ -360,8 +363,16 @@ class Operateur(UserMixin, db.Model):
         return f'<Operateur {self.nom}>'
 
 
+class AnonymousOperateur(AnonymousUserMixin):
+    """Utilisateur non connecté : mêmes méthodes que Operateur pour les templates."""
+
+    def is_admin(self):
+        return False
+
+
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.anonymous_user = AnonymousOperateur
 
 
 @login_manager.user_loader
@@ -618,6 +629,26 @@ class AuditLog(db.Model):
     operateur = db.relationship('Operateur', backref=db.backref('audit_logs', lazy=True))
 
 
+APRECIACION_TEXTO_MAX = 120
+
+
+class ApreciacionDia(db.Model):
+    """Nota operativa compartida para un día calendario (dashboard)."""
+    __tablename__ = 'apreciacion_dia'
+
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.Date, nullable=False, unique=True, index=True)
+    texto = db.Column(db.String(APRECIACION_TEXTO_MAX), nullable=False)
+    id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True, index=True)
+    creado_en = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    modificado_en = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
+
+    operateur = db.relationship('Operateur', backref=db.backref('apreciaciones_dia', lazy=True))
+
+    def __repr__(self):
+        return f'<ApreciacionDia {self.fecha}>'
+
+
 def write_audit(action, id_operateur=None, detail=None):
     """Enregistre une ligne dans audit_log (best-effort, ne lève pas vers l'utilisateur)."""
     try:
@@ -656,6 +687,18 @@ def ensure_incident_estado_historial_table():
         ensure_incident_estado_historial_table._done = True
     except Exception:
         app.logger.exception('No se pudo verificar/crear la tabla incident_estado_historial')
+
+
+def ensure_apreciacion_dia_table():
+    """Crea la tabla de apreciaciones diarias si la aplicacion arranca sin migracion."""
+    if getattr(ensure_apreciacion_dia_table, '_done', False):
+        return
+    try:
+        if not inspect(db.engine).has_table(ApreciacionDia.__tablename__):
+            ApreciacionDia.__table__.create(db.engine)
+        ensure_apreciacion_dia_table._done = True
+    except Exception:
+        app.logger.exception('No se pudo verificar/crear la tabla apreciacion_dia')
 
 
 def ensure_client_categoria_column():
@@ -837,22 +880,25 @@ def ensure_incident_bitrix_cache_columns():
             ensure_incident_bitrix_cache_columns._done = True
             return
         columns = {col['name'] for col in inspector.get_columns('incident')}
-        alters = []
+        # Une colonne par ALTER : SQLite n'accepte pas plusieurs ADD COLUMN.
+        # INTEGER au lieu de TINYINT(1) pour rester compatible SQLite / MariaDB.
+        statements = []
         if 'bitrix_task_status' not in columns:
-            alters.append('ADD COLUMN bitrix_task_status VARCHAR(2) NULL')
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_task_status VARCHAR(2) NULL')
         if 'bitrix_status_label' not in columns:
-            alters.append('ADD COLUMN bitrix_status_label VARCHAR(80) NULL')
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_status_label VARCHAR(80) NULL')
         if 'bitrix_status_emoji' not in columns:
-            alters.append('ADD COLUMN bitrix_status_emoji VARCHAR(10) NULL')
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_status_emoji VARCHAR(10) NULL')
         if 'bitrix_responsible' not in columns:
-            alters.append('ADD COLUMN bitrix_responsible VARCHAR(120) NULL')
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_responsible VARCHAR(120) NULL')
         if 'bitrix_fetched_at' not in columns:
-            alters.append('ADD COLUMN bitrix_fetched_at DATETIME NULL')
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_fetched_at DATETIME NULL')
         if 'bitrix_fetch_locked' not in columns:
-            alters.append('ADD COLUMN bitrix_fetch_locked TINYINT(1) NOT NULL DEFAULT 0')
-        if alters:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_fetch_locked INTEGER NOT NULL DEFAULT 0')
+        if statements:
             with db.engine.begin() as conn:
-                conn.execute(text(f"ALTER TABLE incident {', '.join(alters)}"))
+                for sql in statements:
+                    conn.execute(text(sql))
         ensure_incident_bitrix_cache_columns._done = True
     except Exception:
         db.session.rollback()
@@ -1170,6 +1216,7 @@ class Etat(db.Model):
 from core.routes import etats_routes
 from core.routes import materiales_routes
 from core.routes import atencion_cliente_routes
+from core.routes import apreciaciones_routes
 
 # Configurar filtros personalizados para templates
 from core.utils import setup_template_filters
@@ -1232,6 +1279,7 @@ def require_authentication():
     ensure_incident_bitrix_cache_columns()
     ensure_client_radius_cache_columns()
     ensure_incident_estado_historial_table()
+    ensure_apreciacion_dia_table()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -2820,6 +2868,15 @@ def api_comment_notifications():
         }), 500
 
 
+def _coerce_chart_date(value):
+    """Normalise la clé DATE renvoyée par MariaDB/SQLAlchemy en datetime.date."""
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    return datetime.strptime(str(value)[:10], '%Y-%m-%d').date()
+
+
 # API pour les données des graphiques
 @app.route('/api/incidents-par-date')
 @login_required
@@ -2898,13 +2955,21 @@ def api_incidents_par_date():
             query = query.filter(*base_filter)
         
         incidents = query.group_by(func.date(Incident.date_heure)).order_by(func.date(Incident.date_heure)).all()
-        
+
+        date_keys = [_coerce_chart_date(date_obj) for date_obj, *_rest in incidents]
+        notes = {}
+        if date_keys:
+            for row in ApreciacionDia.query.filter(ApreciacionDia.fecha.in_(date_keys)).all():
+                notes[row.fecha] = row.texto
+
         return jsonify([{
-            'date': date_obj.strftime('%d/%m'),
+            'date': fecha.strftime('%d/%m'),
+            'fecha': fecha.isoformat(),
             'count': count,
             'solucionadas': int(solucionadas or 0),
             'bitrix': int(bitrix or 0),
-        } for date_obj, count, solucionadas, bitrix in incidents])
+            'apreciacion': notes.get(fecha),
+        } for (date_obj, count, solucionadas, bitrix), fecha in zip(incidents, date_keys)])
 
 def get_date_range_for_period(period):
     """Retourne les dates de début et fin selon la période sélectionnée"""

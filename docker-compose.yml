@@ -64,7 +64,7 @@ services:
       # Configuration Flask (lire .env : development en local, production au déploiement)
       FLASK_ENV: ${FLASK_ENV:-production}
       FLASK_APP: core/app.py
-      SECRET_KEY: ${SECRET_KEY}
+      SECRET_KEY: ${SECRET_KEY:?Definir SECRET_KEY dans .env (openssl rand -hex 32)}
       
       # Configuration Base de données
       DB_HOST: mariadb
