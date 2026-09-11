@@ -116,7 +116,7 @@
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         {% if current_user.is_authenticated and current_user.is_admin() %}
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-apreciacion-dia" title="Añadir o editar la nota del día">
-                            <i class="fas fa-comment-alt me-1"></i>Apreciación del día
+                            <i class="fas fa-comment-alt me-1"></i>Nota del día
                         </button>
                         {% endif %}
                         <div class="btn-group" role="group">
@@ -310,7 +310,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalApreciacionDiaLabel">
-                    <i class="fas fa-comment-alt me-2"></i>Apreciación del día
+                    <i class="fas fa-comment-alt me-2"></i>Nota del día
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
@@ -321,13 +321,14 @@
                     <input type="date" class="form-control" id="apreciacion-fecha" required>
                 </div>
                 <div class="mb-0">
-                    <label for="apreciacion-texto" class="form-label">Apreciación</label>
+                    <label for="apreciacion-texto" class="form-label">Nota</label>
                     <input type="text" class="form-control" id="apreciacion-texto" list="apreciacion-sugerencias" maxlength="120" placeholder="Ej. Día normal" required>
                     <datalist id="apreciacion-sugerencias">
                         <option value="Día normal"></option>
                         <option value="Caída de sector"></option>
                         <option value="Problema con Gitge"></option>
                         <option value="Mucho viento"></option>
+                        <option value="Problema de luz - Getesa"></option>
                     </datalist>
                     <div class="form-text">Máximo 120 caracteres. Se muestra al pasar el cursor sobre el gráfico (vista por día).</div>
                 </div>
