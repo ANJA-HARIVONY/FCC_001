@@ -321,16 +321,17 @@ class NotificationSystem {
         const isRecent = this.isRecentNotification(incident.tiempo_transcurrido);
         const ficheUrl = this.incidentFicheUrl(incident.id);
         const cliente = this.escapeHtml(incident.client_nom);
+        const asunto = this.escapeHtml(incident.intitule);
         const operador = this.escapeHtml(incident.operateur_nom);
+        const ariaParts = [incident.client_nom, incident.intitule, incident.operateur_nom]
+            .filter(Boolean)
+            .join(', ');
 
         notification.className = isRecent ? 'notification-toast notification-recent' : 'notification-toast';
         notification.setAttribute('data-incident-id', incident.id);
         notification.setAttribute('role', 'link');
         notification.setAttribute('tabindex', '0');
-        notification.setAttribute(
-            'aria-label',
-            `${incident.client_nom || ''}, incidencia pendiente${incident.operateur_nom ? `, ${incident.operateur_nom}` : ''}`
-        );
+        notification.setAttribute('aria-label', ariaParts);
         notification._incident = incident;
 
         notification.innerHTML = `
@@ -338,8 +339,8 @@ class NotificationSystem {
                 <i class="fas fa-exclamation-triangle notification-icon"></i>
             </span>
             <div class="notification-content">
-                <div class="notification-title">${cliente}</div>
-                <div class="notification-subtitle">Incidencia pendiente</div>
+                ${cliente ? `<div class="notification-title">${cliente}</div>` : ''}
+                ${asunto ? `<div class="notification-subtitle">${asunto}</div>` : ''}
                 ${operador ? `<div class="notification-operador">${operador}</div>` : ''}
             </div>
             <button type="button" class="notification-close" aria-label="Cerrar">
