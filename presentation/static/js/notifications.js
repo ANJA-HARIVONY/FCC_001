@@ -320,35 +320,31 @@ class NotificationSystem {
         const notification = document.createElement('div');
         const isRecent = this.isRecentNotification(incident.tiempo_transcurrido);
         const ficheUrl = this.incidentFicheUrl(incident.id);
-        const operador = this.escapeHtml(incident.operateur_nom);
         const cliente = this.escapeHtml(incident.client_nom);
-        const asunto = this.escapeHtml(incident.intitule);
-        const tiempo = this.escapeHtml(incident.tiempo_transcurrido);
-        const incidentId = this.escapeHtml(incident.id);
+        const operador = this.escapeHtml(incident.operateur_nom);
 
         notification.className = isRecent ? 'notification-toast notification-recent' : 'notification-toast';
         notification.setAttribute('data-incident-id', incident.id);
         notification.setAttribute('role', 'link');
         notification.setAttribute('tabindex', '0');
+        notification.setAttribute(
+            'aria-label',
+            `${incident.client_nom || ''}, incidencia pendiente${incident.operateur_nom ? `, ${incident.operateur_nom}` : ''}`
+        );
         notification._incident = incident;
 
         notification.innerHTML = `
-            <div class="notification-header">
-                <div class="notification-header-main">
-                    <i class="fas fa-exclamation-triangle notification-icon" aria-hidden="true"></i>
-                    <span class="notification-title">Incidencia Pendiente</span>
-                </div>
-                <button type="button" class="notification-close" aria-label="Cerrar">
-                    <i class="fas fa-times" aria-hidden="true"></i>
-                </button>
+            <span class="notification-icon-wrap" aria-hidden="true">
+                <i class="fas fa-exclamation-triangle notification-icon"></i>
+            </span>
+            <div class="notification-content">
+                <div class="notification-title">${cliente}</div>
+                <div class="notification-subtitle">Incidencia pendiente</div>
+                ${operador ? `<div class="notification-operador">${operador}</div>` : ''}
             </div>
-            <div class="notification-body">
-                <div><strong>Operador:</strong> <span class="notification-operador">${operador}</span></div>
-                <div><strong>Tarea nº:</strong> <span class="notification-client"><a href="${this.escapeAttribute(ficheUrl)}">#${incidentId}</a></span></div>
-                <div><strong>Cliente:</strong> <span class="notification-client">${cliente}</span></div>
-                <div class="notification-asunto"><strong>Asunto:</strong> ${asunto}</div>
-                <div class="notification-tiempo">Tiempo transcurrido: ${tiempo}</div>
-            </div>
+            <button type="button" class="notification-close" aria-label="Cerrar">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
         `;
 
         const closeBtn = notification.querySelector('.notification-close');
