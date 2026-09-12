@@ -1,7 +1,7 @@
 /**
  * Sistema de Notificaciones para Incidencias Pendientes
  * Verifica cada 30 minutos si hay incidencias pendientes > 30 minutos
- * Muestra notificaciones toast amarillas en la esquina superior derecha
+ * Muestra notificaciones toast amarillas (desktop: abajo derecha; mobile: arriba)
  */
 
 class NotificationSystem {
@@ -10,6 +10,11 @@ class NotificationSystem {
         this.checkInterval = 30 * 60 * 1000; // 30 minutos en milisegundos
         this.commentCheckInterval = 30 * 1000; // contador de comentarios mas reactivo
         this.notificationDuration = 5 * 1000; // 5 segundos en milisegundos
+        this.hideAnimationMs = 300;
+        this.maxVisibleMobile = 2;
+        this.mobileMediaQuery = window.matchMedia('(max-width: 767.98px)');
+        this.mobileQueue = [];
+        this.hideTimeouts = new Map();
         this.isActive = true;
         this.shownNotifications = new Set(); // Para evitar duplicados
         this.commentCountEl = document.getElementById('comment-notification-count');
@@ -26,6 +31,9 @@ class NotificationSystem {
     }
     
     init() {
+        this.syncNavbarOffset();
+        this.bindViewportListeners();
+
         // Verificar inmediatamente al cargar la página
         this.checkPendingIncidents();
         this.checkCommentNotifications();
@@ -46,6 +54,67 @@ class NotificationSystem {
         // Debloquer le contexte audio au premier geste utilisateur
         // (les navigateurs bloquent l'autoplay tant qu'il n'y a pas eu d'interaction)
         this.setupAudioUnlock();
+    }
+
+    bindViewportListeners() {
+        const onViewportChange = () => this.handleViewportChange();
+        if (this.mobileMediaQuery.addEventListener) {
+            this.mobileMediaQuery.addEventListener('change', onViewportChange);
+        } else if (this.mobileMediaQuery.addListener) {
+            this.mobileMediaQuery.addListener(onViewportChange);
+        }
+
+        window.addEventListener('resize', () => this.syncNavbarOffset());
+
+        const navCollapse = document.getElementById('navbarNav');
+        if (navCollapse) {
+            navCollapse.addEventListener('shown.bs.collapse', () => this.syncNavbarOffset());
+            navCollapse.addEventListener('hidden.bs.collapse', () => this.syncNavbarOffset());
+        }
+    }
+
+    isMobileViewport() {
+        return this.mobileMediaQuery.matches;
+    }
+
+    prefersReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    syncNavbarOffset() {
+        const nav = document.querySelector('.navbar.app-shell-nav');
+        if (!nav) {
+            document.documentElement.style.setProperty('--app-navbar-height', '96px');
+            return;
+        }
+
+        const collapse = nav.querySelector('.navbar-collapse');
+        let extra = 0;
+        if (collapse && collapse.classList.contains('show')) {
+            extra = collapse.getBoundingClientRect().height;
+        }
+        const height = Math.max(72, Math.ceil(nav.getBoundingClientRect().height - extra));
+        document.documentElement.style.setProperty('--app-navbar-height', `${height}px`);
+    }
+
+    handleViewportChange() {
+        this.syncNavbarOffset();
+        if (this.isMobileViewport()) {
+            this.limitVisibleToastsForMobile();
+        } else {
+            this.flushMobileQueue();
+        }
+    }
+
+    visibleToastCount() {
+        if (!this.container) {
+            return 0;
+        }
+        return this.container.querySelectorAll('.notification-toast:not(.hiding)').length;
+    }
+
+    incidentFicheUrl(incidentId) {
+        return `/incidents/${incidentId}/fiche_incident`;
     }
 
     setupAudioUnlock() {
@@ -236,63 +305,157 @@ class NotificationSystem {
     }
     
     showNotification(incident) {
-        // Crear elemento de notificación
+        if (this.isMobileViewport() && this.visibleToastCount() >= this.maxVisibleMobile) {
+            this.mobileQueue.push(incident);
+            return;
+        }
+        this.renderNotification(incident);
+    }
+
+    renderNotification(incident) {
+        if (!this.container || !incident) {
+            return;
+        }
+
         const notification = document.createElement('div');
-        
-        // Determinar si es una notificación reciente (≤ 2h) o antigua (> 2h)
         const isRecent = this.isRecentNotification(incident.tiempo_transcurrido);
+        const ficheUrl = this.incidentFicheUrl(incident.id);
+        const operador = this.escapeHtml(incident.operateur_nom);
+        const cliente = this.escapeHtml(incident.client_nom);
+        const asunto = this.escapeHtml(incident.intitule);
+        const tiempo = this.escapeHtml(incident.tiempo_transcurrido);
+        const incidentId = this.escapeHtml(incident.id);
+
         notification.className = isRecent ? 'notification-toast notification-recent' : 'notification-toast';
         notification.setAttribute('data-incident-id', incident.id);
-        
+        notification.setAttribute('role', 'link');
+        notification.setAttribute('tabindex', '0');
+        notification._incident = incident;
+
         notification.innerHTML = `
             <div class="notification-header">
-                <div style="display: flex; align-items: center;">
-                    <i class="fas fa-exclamation-triangle notification-icon"></i>
+                <div class="notification-header-main">
+                    <i class="fas fa-exclamation-triangle notification-icon" aria-hidden="true"></i>
                     <span class="notification-title">Incidencia Pendiente</span>
                 </div>
-                <button class="notification-close" onclick="notificationSystem.closeNotification(this.closest('.notification-toast'))">
-                    <i class="fas fa-times"></i>
+                <button type="button" class="notification-close" aria-label="Cerrar">
+                    <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
             <div class="notification-body">
-                <div><strong>Operador:</strong> <span class="notification-operador">${incident.operateur_nom}</span></div>
-                <div><strong>Tarea nº:</strong> <span class="notification-client"><a href="/incidents/${incident.id}/fiche_incident">#${incident.id}</a></span></div>
-                <div><strong>Cliente:</strong> <span class="notification-client">${incident.client_nom}</span></div>
-                <div><strong>Asunto:</strong> ${incident.intitule}</div>
-                <div class="notification-tiempo">⏰ Tiempo transcurrido: ${incident.tiempo_transcurrido}</div>
+                <div><strong>Operador:</strong> <span class="notification-operador">${operador}</span></div>
+                <div><strong>Tarea nº:</strong> <span class="notification-client"><a href="${this.escapeAttribute(ficheUrl)}">#${incidentId}</a></span></div>
+                <div><strong>Cliente:</strong> <span class="notification-client">${cliente}</span></div>
+                <div class="notification-asunto"><strong>Asunto:</strong> ${asunto}</div>
+                <div class="notification-tiempo">Tiempo transcurrido: ${tiempo}</div>
             </div>
         `;
-        
-        // Agregar al contenedor
+
+        const closeBtn = notification.querySelector('.notification-close');
+        closeBtn.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            this.closeNotification(notification);
+        });
+
+        notification.addEventListener('click', (event) => {
+            if (event.target.closest('.notification-close') || event.target.closest('a')) {
+                return;
+            }
+            window.location.href = ficheUrl;
+        });
+        notification.addEventListener('keydown', (event) => {
+            if (event.target.closest('.notification-close')) {
+                return;
+            }
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                window.location.href = ficheUrl;
+            }
+        });
+
         this.container.appendChild(notification);
-        
-        // Auto-cerrar después de 15 segundos
-        setTimeout(() => {
+
+        const timeoutId = setTimeout(() => {
             this.closeNotification(notification);
         }, this.notificationDuration);
+        this.hideTimeouts.set(notification, timeoutId);
+    }
+
+    flushMobileQueue() {
+        while (this.mobileQueue.length) {
+            this.renderNotification(this.mobileQueue.shift());
+        }
+    }
+
+    limitVisibleToastsForMobile() {
+        const toasts = Array.from(this.container.querySelectorAll('.notification-toast:not(.hiding)'));
+        if (toasts.length <= this.maxVisibleMobile) {
+            return;
+        }
+
+        const overflow = toasts.slice(0, toasts.length - this.maxVisibleMobile);
+        overflow.reverse().forEach((toast) => {
+            if (toast._incident) {
+                this.mobileQueue.unshift(toast._incident);
+            }
+            this.clearHideTimeout(toast);
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        });
+    }
+
+    dequeueIfNeeded() {
+        if (!this.isMobileViewport()) {
+            return;
+        }
+        while (this.mobileQueue.length && this.visibleToastCount() < this.maxVisibleMobile) {
+            this.renderNotification(this.mobileQueue.shift());
+        }
+    }
+
+    clearHideTimeout(notification) {
+        const timeoutId = this.hideTimeouts.get(notification);
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+            this.hideTimeouts.delete(notification);
+        }
     }
     
     isRecentNotification(tiempoTranscurrido) {
         // Parser le temps pour déterminer si ≤ 2h
         // Format attendu: "2h 15m" ou "1h 30m" ou "45m" ou "3h"
-        const hoursMatch = tiempoTranscurrido.match(/(\d+)h/);
-        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+        if (!tiempoTranscurrido) {
+            return true;
+        }
+        const hoursMatch = String(tiempoTranscurrido).match(/(\d+)h/);
+        const hours = hoursMatch ? parseInt(hoursMatch[1], 10) : 0;
         
         return hours <= 2;
     }
     
     closeNotification(notification) {
-        if (notification && notification.parentNode) {
-            // Agregar clase de animación de salida
-            notification.classList.add('hiding');
-            
-            // Remover del DOM después de la animación
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300); // Duración de la animación de salida
+        if (!notification || notification.classList.contains('hiding')) {
+            return;
         }
+
+        this.clearHideTimeout(notification);
+
+        if (!notification.parentNode) {
+            this.dequeueIfNeeded();
+            return;
+        }
+
+        const delay = this.prefersReducedMotion() ? 0 : this.hideAnimationMs;
+        notification.classList.add('hiding');
+
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+            this.dequeueIfNeeded();
+        }, delay);
     }
     
     // Método para pausar/reanudar el sistema
@@ -302,6 +465,7 @@ class NotificationSystem {
     
     // Método para limpiar todas las notificaciones
     clearAllNotifications() {
+        this.mobileQueue = [];
         const notifications = this.container.querySelectorAll('.notification-toast');
         notifications.forEach(notification => {
             this.closeNotification(notification);
@@ -360,6 +524,22 @@ window.debugNotifications = {
                 fecha_creacion: '08/01/2025 10:30'
             };
             window.notificationSystem.showNotification(testIncident);
+        }
+    },
+
+    testMany: (count = 4) => {
+        if (!window.notificationSystem) {
+            return;
+        }
+        for (let i = 0; i < count; i += 1) {
+            window.notificationSystem.showNotification({
+                id: 900 + i,
+                intitule: `Problema de conectividad - PRUEBA ${i + 1} con un asunto bastante largo para verificar el recorte`,
+                client_nom: `Cliente de Prueba ${i + 1}`,
+                operateur_nom: `Operador Test ${i + 1}`,
+                tiempo_transcurrido: `${i}h 15m`,
+                fecha_creacion: '12/09/2026 10:30'
+            });
         }
     },
 

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Registro de Atención al cliente{% endblock %}</title>
     
@@ -204,7 +204,7 @@
     </nav>
 
     <!-- Contenedor de Notificaciones Toast -->
-    <div id="notification-container" class="notification-container"></div>
+    <div id="notification-container" class="notification-container" role="region" aria-live="polite" aria-label="Notificaciones de incidencias pendientes"></div>
 
     <!-- Messages Flash -->
     {% with messages = get_flashed_messages(with_categories=true) %}
