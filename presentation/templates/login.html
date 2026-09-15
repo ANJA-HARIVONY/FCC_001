@@ -2,67 +2,108 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Iniciar sesión — Registro de Atención al cliente</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
-<body class="login-page d-flex align-items-center min-vh-100">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5 col-lg-4">
-                <div class="login-welcome">
-                    <h2>Portal de Atención al cliente</h2>
-                    <p>Acceso seguro para usuarios autorizados</p>
+<body class="login-page">
+    <div class="login-layout">
+        {# Panneau marque — pattern ArchitectUI (colonne gauche) #}
+        <aside class="login-aside" aria-hidden="false">
+            <div class="login-aside__inner">
+                <div class="login-aside__brand">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="login-aside__logo">
+                    <p class="login-aside__tagline">Registro de Atención al cliente</p>
                 </div>
-                <div class="card login-card shadow border-0">
-                    <div class="card-body p-4">
-                        <div class="text-center mb-4">
-                            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Conexxia" class="login-logo mb-3">
-                            <h1 class="h4 login-title">Iniciar sesión</h1>
-                            <p class="login-subtitle mb-0">Ingresa con tu correo o teléfono y contraseña</p>
-                        </div>
-                        {% with messages = get_flashed_messages(with_categories=true) %}
-                            {% if messages %}
-                                {% for category, message in messages %}
-                                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show small" role="alert">
-                                        {% if category == 'error' %}
-                                        <i class="fas fa-circle-exclamation me-1" aria-hidden="true"></i>
-                                        {% endif %}
-                                        {{ message }}
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                                    </div>
-                                {% endfor %}
-                            {% endif %}
-                        {% endwith %}
-                        <form method="POST" action="{{ url_for('login') }}" novalidate>
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            {% if request.args.get('next') %}
-                            <input type="hidden" name="next" value="{{ request.args.get('next') }}">
-                            {% endif %}
-                            <div class="mb-3">
-                                <label for="identifiant" class="form-label">Correo o teléfono</label>
-                                <input type="text" class="form-control" id="identifiant" name="identifiant" required autocomplete="username" placeholder="usuario@correo.com o +240..." aria-describedby="identifiant-help">
-                                <div id="identifiant-help" class="form-text">Utiliza tu correo o teléfono registrado.</div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Contraseña</label>
-                                <input type="password" class="form-control" id="password" name="password" required autocomplete="current-password" placeholder="Tu contraseña">
-                            </div>
-                            <div class="mb-4 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
-                                <label class="form-check-label" for="remember">Recordarme</label>
-                            </div>
-                            <button type="submit" class="btn btn-danger w-100 login-submit-btn">
-                                <i class="fas fa-sign-in-alt me-1"></i> Entrar
-                            </button>
-                        </form>
-                    </div>
-                </div>
-                <p class="text-center login-footer-note mt-3 mb-0">&copy; 2026 CONNEXIA</p>
+                <ul class="login-aside__points">
+                    <li><i class="fas fa-shield-alt" aria-hidden="true"></i> Acceso seguro para usuarios autorizados</li>
+                    <li><i class="fas fa-headset" aria-hidden="true"></i> Gestión de incidencias y clientes</li>
+                    <li><i class="fas fa-chart-line" aria-hidden="true"></i> Informes y seguimiento operativo</li>
+                </ul>
+                <p class="login-aside__copy">&copy; 2026 CONNEXIA</p>
             </div>
-        </div>
+        </aside>
+
+        {# Zone formulaire — pattern ArchitectUI app-login-box #}
+        <main class="login-main">
+            <div class="app-login-box">
+                <div class="app-login-box__mobile-brand d-lg-none text-center mb-4">
+                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="login-aside__logo login-aside__logo--sm">
+                </div>
+
+                <div class="app-login-box__header mb-4">
+                    <h1 class="app-login-box__title">Iniciar sesión</h1>
+                    <p class="app-login-box__subtitle mb-0">Bienvenido. Ingresa con tu correo o teléfono y contraseña.</p>
+                </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show small" role="alert">
+                                {% if category == 'error' %}
+                                <i class="fas fa-circle-exclamation me-1" aria-hidden="true"></i>
+                                {% endif %}
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <form method="POST" action="{{ url_for('login') }}" novalidate class="app-login-box__form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    {% if request.args.get('next') %}
+                    <input type="hidden" name="next" value="{{ request.args.get('next') }}">
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="identifiant" class="form-label">Correo o teléfono</label>
+                        <div class="input-group login-input-group">
+                            <span class="input-group-text" aria-hidden="true"><i class="fas fa-user"></i></span>
+                            <input type="text"
+                                   class="form-control"
+                                   id="identifiant"
+                                   name="identifiant"
+                                   required
+                                   autocomplete="username"
+                                   placeholder="usuario@correo.com o +240..."
+                                   aria-describedby="identifiant-help">
+                        </div>
+                        <div id="identifiant-help" class="form-text">Utiliza tu correo o teléfono registrado.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <div class="input-group login-input-group">
+                            <span class="input-group-text" aria-hidden="true"><i class="fas fa-lock"></i></span>
+                            <input type="password"
+                                   class="form-control"
+                                   id="password"
+                                   name="password"
+                                   required
+                                   autocomplete="current-password"
+                                   placeholder="Tu contraseña">
+                        </div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
+                        <label class="form-check-label" for="remember">Recordarme</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger w-100 btn-lg login-submit-btn">
+                        <i class="fas fa-sign-in-alt me-2" aria-hidden="true"></i>Entrar
+                    </button>
+                </form>
+
+                <p class="app-login-box__footer text-center mt-4 mb-0 d-lg-none">&copy; 2026 CONNEXIA</p>
+            </div>
+        </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

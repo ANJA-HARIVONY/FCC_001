@@ -2,25 +2,17 @@
 
 {% block title %}Clients - Atencion al cliente{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                    <h1 class="h2 text-dark mb-0">
-                        <i class="fas fa-users text-danger me-2"></i>
-                        Gestión de Clientes 
-                    </h1>
-                    <p class="text-muted">Lista y gestión de clientes</p>
-                </div>
-                <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>Nuevo Cliente
-                </a>
-            </div>
-        </div>
-    </div>
+{% block page_icon %}<i class="fas fa-users" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Gestion de Clientes{% endblock %}
+{% block page_subtitle %}Lista y gestion de clientes{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('nouveau_client') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>Nuevo Cliente
+</a>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
     <!-- Filtres et recherche -->
     <div class="row mb-4">
         <div class="col-12">
@@ -35,78 +27,77 @@
                     </span>
                 </div>
                 <div class="card-body">
-                    <form method="GET" class="row g-3" id="formFiltrosClients">
-                        <div class="col-md-3">
-                            <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
-                                <i class="fas fa-search me-1"></i>Buscar
-                                <span id="search-live-spinner" class="spinner-border spinner-border-sm text-primary ms-1 d-none" role="status" aria-hidden="true"></span>
-                            </label>
-                            <input type="text" class="form-control" id="search" name="search"
-                                   value="{{ search_query }}" placeholder="Buscar en nombre, teléfono, dirección, IP..."
-                                   autocomplete="off">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="ville" class="form-label small text-dark text-uppercase fw-semibold">
-                                <i class="fas fa-map-marker-alt me-1"></i>Filtrar por barrio
-                            </label>
-                            <select class="form-select" id="ville" name="ville">
-                                <option value="">Todos los barrios</option>
-                                {% for ville in villes_list %}
-                                <option value="{{ ville }}" {% if ville_filter == ville %}selected{% endif %}>{{ ville }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
-                                <i class="fas fa-city me-1"></i>Ciudad
-                            </label>
-                            <select class="form-select" id="ciudad" name="ciudad">
-                                <option value="">Todas las ciudades</option>
-                                {% for c in ciudades|default([]) %}
-                                <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="categoria" class="form-label small text-dark text-uppercase fw-semibold">
-                                <i class="fas fa-tags me-1"></i>Categoría
-                            </label>
-                            <select class="form-select" id="categoria" name="categoria">
-                                <option value="">Todas las categorías</option>
-                                {% for cat in categorias_cliente|default([]) %}
-                                <option value="{{ cat }}" {% if categoria_filter == cat %}selected{% endif %}>
-                                    {{ categoria_cliente_labels.get(cat, cat) }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-1">
-                            <label for="per_page" class="form-label small text-dark text-uppercase fw-semibold">
-                                <i class="fas fa-list me-1"></i>Por página
-                            </label>
-                            <select class="form-select" id="per_page" name="per_page">
-                                <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                                <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                                <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
-                                <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end gap-2 flex-wrap">
-                            <!--<a href="{{ url_for('clients') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i> Limpiar
-                            </a>-->
-                            <div class="form-check ms-2">
-                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
-                                <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
-                                    Memorizar filtros
+                    <form method="GET" id="formFiltrosClients">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-search me-1"></i>Buscar
+                                    <span id="search-live-spinner" class="spinner-border spinner-border-sm text-primary ms-1 d-none" role="status" aria-hidden="true"></span>
                                 </label>
+                                <input type="text" class="form-control form-control-sm" id="search" name="search"
+                                       value="{{ search_query }}" placeholder="Buscar en nombre, teléfono, dirección, IP..."
+                                       autocomplete="off">
                             </div>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i> Buscar
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" id="reset-filters-btn-clients">
-                                <i class="fas fa-undo-alt"></i> Reiniciar
-                            </button>
+                            <div class="col-6 col-md-3 col-lg-2">
+                                <label for="ville" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Filtrar por barrio
+                                </label>
+                                <select class="form-select form-select-sm" id="ville" name="ville">
+                                    <option value="">Todos los barrios</option>
+                                    {% for ville in villes_list %}
+                                    <option value="{{ ville }}" {% if ville_filter == ville %}selected{% endif %}>{{ ville }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3 col-lg-2">
+                                <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-city me-1"></i>Ciudad
+                                </label>
+                                <select class="form-select form-select-sm" id="ciudad" name="ciudad">
+                                    <option value="">Todas las ciudades</option>
+                                    {% for c in ciudades|default([]) %}
+                                    <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="categoria" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-tags me-1"></i>Categoría
+                                </label>
+                                <select class="form-select form-select-sm" id="categoria" name="categoria">
+                                    <option value="">Todas las categorías</option>
+                                    {% for cat in categorias_cliente|default([]) %}
+                                    <option value="{{ cat }}" {% if categoria_filter == cat %}selected{% endif %}>
+                                        {{ categoria_cliente_labels.get(cat, cat) }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="per_page" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-list me-1"></i>Por página
+                                </label>
+                                <select class="form-select form-select-sm" id="per_page" name="per_page">
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
+                                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+                                </select>
+                            </div>
+                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-center">
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
+                                    <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
+                                        Memorizar filtros
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search me-1"></i>Buscar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-clients">
+                                    <i class="fas fa-undo-alt me-1"></i>Reiniciar
+                                </button>
+                            </div>
                         </div>
                     </form>
                     <div id="filters-feedback-clients" class="small text-success mt-2 d-none">

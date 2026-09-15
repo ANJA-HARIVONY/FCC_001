@@ -41,6 +41,7 @@
         if (!input || !hidden || !dropdown) return;
 
         function showResults(results) {
+            dropdown.classList.add('app-autocomplete-menu', 'show');
             if (!results.length) {
                 dropdown.innerHTML = '<div class="dropdown-item-text text-muted">No se encontraron resultados</div>';
             } else {
@@ -73,11 +74,13 @@
             if (selectedInfo) selectedInfo.textContent = onSelect(item);
             if (selectedBox) selectedBox.style.display = 'block';
             dropdown.style.display = 'none';
+            dropdown.classList.remove('show');
         });
 
         document.addEventListener('click', function (e) {
             if (!input.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = 'none';
+                dropdown.classList.remove('show');
             }
         });
 

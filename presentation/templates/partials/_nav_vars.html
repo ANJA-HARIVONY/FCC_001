@@ -1,0 +1,11 @@
+{% set ep = request.endpoint or '' %}
+{% set nav_incidents = ['incidents', 'nouveau_incident', 'fiche_incident', 'modifier_incident'] %}
+{% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print'] %}
+{% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
+{% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+{% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
+{% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
+{% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
+{% set nav_operateurs = ['operateurs', 'nouveau_operateur', 'modifier_operateur'] %}
+{% set nav_cuenta = ['perfil', 'aide'] %}
+{% set nav_admin = nav_usuarios + nav_audit + nav_bdd + nav_operateurs %}

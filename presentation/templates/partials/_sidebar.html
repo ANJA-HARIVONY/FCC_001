@@ -1,0 +1,123 @@
+{% if current_user.is_authenticated %}
+{# Variables locales obligatoires : un {% include %} ne propage pas les {% set %} vers le parent Jinja2 #}
+{% set ep = request.endpoint or '' %}
+{% set nav_incidents = ['incidents', 'nouveau_incident', 'fiche_incident', 'modifier_incident'] %}
+{% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print'] %}
+{% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
+{% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+{% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
+{% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
+{% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
+{% set nav_operateurs = ['operateurs', 'nouveau_operateur', 'modifier_operateur'] %}
+<aside class="app-sidebar sidebar-shadow" id="app-sidebar" aria-label="Navegacion principal">
+    <div class="scrollbar-sidebar">
+        <div class="app-sidebar__inner">
+            <ul class="vertical-nav-menu">
+                <li class="app-sidebar__heading">Principal</li>
+                <li class="{% if ep == 'dashboard' %}mm-active{% endif %}">
+                    <a href="{{ url_for('dashboard') }}"
+                       class="{% if ep == 'dashboard' %}mm-active active{% endif %}"
+                       {% if ep == 'dashboard' %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-tachometer-alt" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Dashboard</span>
+                    </a>
+                </li>
+                <li class="{% if ep in nav_incidents %}mm-active{% endif %}">
+                    <a href="{{ url_for('incidents') }}"
+                       class="{% if ep in nav_incidents %}mm-active active{% endif %}"
+                       {% if ep in nav_incidents %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fa fa-ticket" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Incidencias</span>
+                    </a>
+                </li>
+                <li class="{% if ep in nav_clients %}mm-active{% endif %}">
+                    <a href="{{ url_for('clients') }}"
+                       class="{% if ep in nav_clients %}mm-active active{% endif %}"
+                       {% if ep in nav_clients %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fa fa-user" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Clientes</span>
+                    </a>
+                </li>
+                <li class="{% if ep in nav_etats %}mm-active{% endif %}">
+                    <a href="{{ url_for('etats') }}"
+                       class="{% if ep in nav_etats %}mm-active active{% endif %}"
+                       {% if ep in nav_etats %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-chart-bar" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Informes</span>
+                    </a>
+                </li>
+
+                {% if current_user.is_admin() %}
+                <li class="app-sidebar__heading">Materiales</li>
+                <li class="{% if ep in nav_materiales %}mm-active{% endif %}">
+                    <a href="{{ url_for('materiales_hub') }}"
+                       class="{% if ep in nav_materiales %}mm-active active{% endif %}"
+                       {% if ep in nav_materiales %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-toolbox" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Materiales</span>
+                    </a>
+                </li>
+
+                <li class="app-sidebar__heading">Administracion</li>
+                <li class="{% if ep in nav_usuarios %}mm-active{% endif %}">
+                    <a href="{{ url_for('usuarios') }}"
+                       class="{% if ep in nav_usuarios %}mm-active active{% endif %}"
+                       {% if ep in nav_usuarios %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-users" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Usuarios</span>
+                    </a>
+                </li>
+                <li class="{% if ep in nav_audit %}mm-active{% endif %}">
+                    <a href="{{ url_for('audit_log') }}"
+                       class="{% if ep in nav_audit %}mm-active active{% endif %}"
+                       {% if ep in nav_audit %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-clipboard-list" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Trazabilidad</span>
+                    </a>
+                </li>
+                <li class="{% if ep in nav_bdd %}mm-active{% endif %}">
+                    <a href="{{ url_for('base_de_datos') }}"
+                       class="{% if ep in nav_bdd %}mm-active active{% endif %}"
+                       {% if ep in nav_bdd %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-database" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Base de datos</span>
+                    </a>
+                </li>
+                <!--<li class="{% if ep in nav_operateurs %}mm-active{% endif %}">
+                    <a href="{{ url_for('operateurs') }}"
+                       class="{% if ep in nav_operateurs %}mm-active active{% endif %}"
+                       {% if ep in nav_operateurs %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-headset" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Operadores</span>
+                    </a>
+                </li>-->
+                {% endif %}
+
+                <li class="app-sidebar__heading">Cuenta</li>
+                <li class="{% if ep == 'perfil' %}mm-active{% endif %}">
+                    <a href="{{ url_for('perfil') }}"
+                       class="{% if ep == 'perfil' %}mm-active active{% endif %}"
+                       {% if ep == 'perfil' %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-user-cog" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Perfil</span>
+                    </a>
+                </li>
+                <li class="{% if ep == 'aide' %}mm-active{% endif %}">
+                    <a href="{{ url_for('aide') }}"
+                       class="{% if ep == 'aide' %}mm-active active{% endif %}"
+                       {% if ep == 'aide' %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-question-circle" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Ayuda</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('logout') }}" class="app-sidebar__logout">
+                        <i class="nav-menu-icon fas fa-sign-out-alt" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Salir</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</aside>
+{% endif %}

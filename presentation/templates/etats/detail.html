@@ -2,83 +2,45 @@
 
 {% block title %}{{ etat.titre }} - Informes{% endblock %}
 
-{% block content %}
-<div class="container-fluid etats-page py-4">
-    <!-- En-tête -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="etats-header-row align-items-start">
-                <div class="flex-grow-1 min-w-0">
-                    <div class="d-flex flex-wrap align-items-start gap-3">
-                        {% if etat.statut == 'generated' %}
-                        <div class="rounded-circle bg-success bg-opacity-10 p-3 flex-shrink-0">
-                            <i class="fas fa-file-lines text-success fs-4"></i>
-                        </div>
-                        {% elif etat.statut == 'generating' %}
-                        <div class="rounded-circle bg-warning bg-opacity-10 p-3 flex-shrink-0">
-                            <i class="fas fa-spinner fa-spin text-warning fs-4"></i>
-                        </div>
-                        {% elif etat.statut == 'error' %}
-                        <div class="rounded-circle bg-danger bg-opacity-10 p-3 flex-shrink-0">
-                            <i class="fas fa-exclamation-triangle text-danger fs-4"></i>
-                        </div>
-                        {% else %}
-                        <div class="rounded-circle bg-secondary bg-opacity-10 p-3 flex-shrink-0">
-                            <i class="fas fa-question-circle text-secondary fs-4"></i>
-                        </div>
-                        {% endif %}
-                        <div class="min-w-0 flex-grow-1">
-                            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                                <a href="{{ url_for('etats') }}" class="btn btn-outline-secondary btn-sm etats-print-hide flex-shrink-0">
-                                    <i class="fas fa-arrow-left"></i>
-                                </a>
-                                <h1 class="h3 fw-bold mb-0 text-dark text-break">{{ etat.titre }}</h1>
-                                {% if etat.statut == 'generated' %}
-                                    <span class="badge bg-success">Generado</span>
-                                {% elif etat.statut == 'generating' %}
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-spinner fa-spin me-1"></i>En progreso...
-                                    </span>
-                                {% elif etat.statut == 'error' %}
-                                    <span class="badge bg-danger">Error</span>
-                                {% endif %}
-                            </div>
-                            <div class="text-muted">
-                                <small>
-                                    <i class="fas fa-calendar me-1"></i>
-                                    Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
-                                    {% if etat.periode_debut %}
-                                        | Período: {{ etat.periode_debut.strftime('%d/%m/%Y') }}
-                                        {% if etat.periode_fin %}
-                                            - {{ etat.periode_fin.strftime('%d/%m/%Y') }}
-                                        {% endif %}
-                                    {% endif %}
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="etats-detail-actions d-flex gap-2 flex-wrap justify-content-lg-end flex-shrink-0 mt-3 mt-lg-0 align-items-start">
-                    {% if etat.statut == 'generated' %}
-                        <form method="post" action="{{ url_for('etats_regenerer', id=etat.id) }}"
-                              class="d-inline flex-grow-1 flex-sm-grow-0" onsubmit="return confirm('¿Regenerar este informe?')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-outline-warning">
-                                <i class="fas fa-sync me-1"></i>Regenerar
-                            </button>
-                        </form>
-                        <a href="{{ url_for('api_etats_export_xlsx', id=etat.id) }}" class="btn btn-outline-success etats-print-hide">
-                            <i class="fas fa-file-excel me-1"></i>Exportar Excel
-                        </a>
-                    {% endif %}
-                    <button onclick="window.print()" type="button" class="btn btn-outline-primary">
-                        <i class="fas fa-print me-1"></i>Imprimir
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block page_icon %}
+{% if etat.statut == 'generated' %}<i class="fas fa-file-lines" aria-hidden="true"></i>
+{% elif etat.statut == 'generating' %}<i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+{% elif etat.statut == 'error' %}<i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+{% else %}<i class="fas fa-question-circle" aria-hidden="true"></i>{% endif %}
+{% endblock %}
+{% block page_title %}{{ etat.titre }}{% endblock %}
+{% block page_subtitle %}
+Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
+{% if etat.periode_debut %}
+| Período: {{ etat.periode_debut.strftime('%d/%m/%Y') }}{% if etat.periode_fin %} - {{ etat.periode_fin.strftime('%d/%m/%Y') }}{% endif %}
+{% endif %}
+{% if etat.statut == 'generated' %}<span class="badge bg-success ms-1">Generado</span>
+{% elif etat.statut == 'generating' %}<span class="badge bg-warning text-dark ms-1"><i class="fas fa-spinner fa-spin me-1"></i>En progreso...</span>
+{% elif etat.statut == 'error' %}<span class="badge bg-danger ms-1">Error</span>{% endif %}
+{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('etats') }}" class="btn btn-outline-secondary btn-sm etats-print-hide">
+    <i class="fas fa-arrow-left me-1"></i>Volver
+</a>
+{% if etat.statut == 'generated' %}
+<form method="post" action="{{ url_for('etats_regenerer', id=etat.id) }}"
+      class="d-inline" onsubmit="return confirm('¿Regenerar este informe?')">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-outline-warning btn-sm">
+        <i class="fas fa-sync me-1"></i>Regenerar
+    </button>
+</form>
+<a href="{{ url_for('api_etats_export_xlsx', id=etat.id) }}" class="btn btn-outline-success btn-sm etats-print-hide">
+    <i class="fas fa-file-excel me-1"></i>Exportar Excel
+</a>
+{% endif %}
+<button onclick="window.print()" type="button" class="btn btn-outline-primary btn-sm">
+    <i class="fas fa-print me-1"></i>Imprimir
+</button>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0 etats-page">
     {% if etat.statut == 'generating' %}
     <div class="row">
         <div class="col-12">

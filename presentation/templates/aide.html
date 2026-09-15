@@ -2,6 +2,8 @@
 
 {% block title %}Ayuda - Centro de Ayuda{% endblock %}
 
+{# Hero dédié : pas de page_title shell (bloc vide = masqué) #}
+
 {% block content %}
 <div class="aide-page">
 
@@ -174,13 +176,13 @@
                 </section>
 
                 <!-- NAVEGACION -->
-                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu barra superior dashboard incidencias clientes informes perfil ayuda administracion notificaciones">
+                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes informes perfil ayuda administracion notificaciones tema">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-compass"></i></span>
                             <div>
                                 <h2 class="aide-section-title">Navegación</h2>
-                                <p class="aide-section-lead">Encuentra cualquier pantalla en pocos clics.</p>
+                                <p class="aide-section-lead">Menú lateral fijo y cabecera: encuentra cualquier pantalla en pocos clics.</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
@@ -188,22 +190,22 @@
                                 <div class="aide-feature">
                                     <i class="fas fa-bars"></i>
                                     <div>
-                                        <strong>Menú principal (izquierda)</strong>
-                                        <p>Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}, Materiales{% endif %}.</p>
+                                        <strong>Barra lateral (izquierda)</strong>
+                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales y Administración (Usuarios, Trazabilidad, Base de datos, Operadores) para admin{% endif %}. Cuenta: Perfil, Ayuda y Salir.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
-                                    <i class="fas fa-user-circle"></i>
+                                    <i class="fas fa-window-maximize"></i>
                                     <div>
-                                        <strong>Menú de usuario (derecha)</strong>
-                                        <p>Perfil, Administración (admin), Ayuda y Salir.</p>
+                                        <strong>Cabecera (arriba)</strong>
+                                        <p>Botón menú (móvil / replegar), cambio de tema claro/oscuro, campana de notificaciones y menú de usuario.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
                                     <i class="fas fa-bell"></i>
                                     <div>
                                         <strong>Campana de notificaciones</strong>
-                                        <p>Acceso rápido a las novedades sin leer.</p>
+                                        <p>Acceso rápido a las novedades sin leer desde la cabecera.</p>
                                     </div>
                                 </div>
                             </div>
@@ -444,7 +446,7 @@
                                     </h3>
                                     <div id="faq-6" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Abre el menú de usuario (avatar arriba a la derecha), pulsa <em>Perfil</em> y dirígete a la sección <strong>Cambiar contraseña</strong>. Introduce la contraseña actual y la nueva dos veces para confirmar.
+                                            Abre el menú de usuario (avatar en la cabecera), pulsa <em>Perfil</em> (también disponible en la barra lateral → Cuenta) y dirígete a la sección <strong>Cambiar contraseña</strong>. Introduce la nueva contraseña dos veces para confirmar.
                                         </div>
                                     </div>
                                 </div>
@@ -457,7 +459,7 @@
                                     </h3>
                                     <div id="faq-7" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            La campana en la barra superior muestra un <span class="badge bg-danger">badge rojo</span> con el número de notificaciones sin leer. Pulsa la campana para abrir el desplegable y acceder directamente a la incidencia o cliente correspondiente.
+                                            La campana en la <strong>cabecera</strong> muestra un <span class="badge bg-danger">badge rojo</span> con el número de notificaciones sin leer. Pulsa la campana para abrir el desplegable y acceder directamente a la incidencia o cliente correspondiente.
                                         </div>
                                     </div>
                                 </div>
@@ -470,7 +472,7 @@
                                     </h3>
                                     <div id="faq-8" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Algunas opciones (Usuarios, Trazabilidad) son exclusivas de los administradores. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
+                                            Algunas opciones (Materiales, Usuarios, Trazabilidad, Base de datos, Operadores) solo aparecen en la barra lateral para administradores. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
                                         </div>
                                     </div>
                                 </div>
@@ -530,6 +532,7 @@
                                     <i class="fas fa-microchip me-2"></i>Información técnica
                                 </h3>
                                 <ul class="aide-tech-list">
+                                    <li><span class="aide-tech-key">Aplicación</span><span class="aide-tech-value">Versión <code>{{ app_version }}</code></span></li>
                                     <li><span class="aide-tech-key">Framework</span><span class="aide-tech-value">Flask + SQLAlchemy</span></li>
                                     <li><span class="aide-tech-key">Base de datos</span><span class="aide-tech-value">MariaDB - Versión: <code>{{ mariadb_version }}</code></span></li>
                                     <li><span class="aide-tech-key">Interfaz</span><span class="aide-tech-value">Bootstrap 5</span></li>

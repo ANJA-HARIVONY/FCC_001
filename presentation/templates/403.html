@@ -1,9 +1,25 @@
 {% extends "base.html" %}
 {% block title %}Acceso denegado{% endblock %}
+
+{% block page_icon %}<i class="fas fa-ban" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Acceso denegado{% endblock %}
+{% block page_subtitle %}No tiene permiso para acceder a esta página{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-home me-1"></i>Volver al inicio
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5 text-center">
-    <h1 class="display-4 text-danger"><i class="fas fa-ban"></i> 403</h1>
-    <p class="lead">No tiene permiso para acceder a esta página.</p>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Volver al inicio</a>
+<div class="container-fluid px-0">
+    <div class="card content-card error-page-card text-center py-5">
+        <div class="card-body">
+            <div class="error-page-code text-danger mb-2">403</div>
+            <p class="lead mb-4">Esta sección está reservada o su cuenta no tiene los permisos necesarios.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-danger">
+                <i class="fas fa-arrow-left me-1"></i>Ir al Dashboard
+            </a>
+        </div>
+    </div>
 </div>
 {% endblock %}

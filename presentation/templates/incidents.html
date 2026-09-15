@@ -2,25 +2,17 @@
 
 {% block title %}Incidencias - Atencion al cliente{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                    <h1 class="h2 text-dark mb-0">
-                        <i class="fas fa-ticket text-danger me-2"></i>
-                        Incidencias
-                    </h1>
-                    <p class="text-muted">Lista y gestion de las incidencias</p>
-                </div>
-                <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>Nueva Incidencia
-                </a>
-            </div>
-        </div>
-    </div>
+{% block page_icon %}<i class="fas fa-ticket" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Incidencias{% endblock %}
+{% block page_subtitle %}Lista y gestion de las incidencias{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>Nueva Incidencia
+</a>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
     <!-- Zone Filtres -->
     <div class="row mb-4">
         <div class="col-12">
@@ -169,7 +161,7 @@
                                 ({{ incidents.total }} total{% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %} — {{ incidents.items|length }} en esta página{% endif %})
                             {% endif %}
                         </h5>
-                        <div class="small text-white-50 mt-1 d-flex flex-wrap align-items-center gap-3">
+                        <div class="small text-muted mt-1 d-flex flex-wrap align-items-center gap-3 card-header-meta">
                             <span class="d-inline-flex align-items-center gap-1">
                                 <img src="{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}"
                                      alt=""
@@ -177,10 +169,10 @@
                                      width="18"
                                      height="18"
                                      aria-hidden="true">
-                                <strong class="text-white">{{ incidents_corporativo_count|default(0) }}</strong> Corporativo
+                                <strong class="card-header-meta__value">{{ incidents_corporativo_count|default(0) }}</strong> Corporativo
                             </span>
                             <span>
-                                <strong class="text-white">{{ incidents_particular_count|default(0) }}</strong> Particular
+                                <strong class="card-header-meta__value">{{ incidents_particular_count|default(0) }}</strong> Particular
                             </span>
                         </div>
                     </div>
@@ -203,10 +195,10 @@
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-white">ID</th>
-                                    <th class="text-white text-center col-categoria-icon" title="Cliente corporativo"></th>
+                                    <th>ID</th>
+                                    <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Client
                                             {% if sort_by|default('') == 'client' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -216,7 +208,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Asunto
                                             {% if sort_by|default('') == 'asunto' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -225,9 +217,9 @@
                                             {% endif %}
                                         </a>
                                     </th>
-                                    <th class="text-white">Status</th>
+                                    <th>Status</th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Usuario
                                             {% if sort_by|default('') == 'operador' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -237,7 +229,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="text-white text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Fecha/Hora
                                             {% if sort_by|default('') == 'fecha' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -246,7 +238,7 @@
                                             {% endif %}
                                         </a>
                                     </th>
-                                    <th class="text-white">Acciones</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>

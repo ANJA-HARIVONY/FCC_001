@@ -2,31 +2,26 @@
 
 {% block title %}{{ _('Fiche Incident') }} #{{ incident.id }}{% endblock %}
 
-{% block content %}
-<div class="container-md min-vh-100">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-exclamation-circle"></i> {{ _('Incidencia :') }} #{{ incident.id }}
-        </h1>
-        <div>
-            <a href="{{ url_for('incidents') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> {{ _('Volver') }}
-            </a>
-            <button type="button" class="btn btn-success" id="btnVerificar" onclick="verificarCliente()">
-                <i class="fas fa-check" id="iconVerificar"></i>
-                <span id="textVerificar">{{ _('Ping') }}</span>
-            </button>
-            {% if can_modify_incident %}
-            <a href="{{ url_for('modifier_incident', id=incident.id) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> {{ _('Modificar') }}
-            </a>
-            {% endif %}
-            <!--<button onclick="window.print()" class="btn btn-primary">
-                <i class="fas fa-print"></i> {{ _('Imprimir') }}
-            </button> -->
-        </div>
-    </div>
+{% block page_icon %}<i class="fas fa-exclamation-circle" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}{{ _('Incidencia') }} #{{ incident.id }}{% endblock %}
+{% block page_subtitle %}{{ incident.intitule }}{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('incidents') }}" class="btn btn-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>{{ _('Volver') }}
+</a>
+<button type="button" class="btn btn-success btn-sm" id="btnVerificar" onclick="verificarCliente()">
+    <i class="fas fa-check" id="iconVerificar"></i>
+    <span id="textVerificar">{{ _('Ping') }}</span>
+</button>
+{% if can_modify_incident %}
+<a href="{{ url_for('modifier_incident', id=incident.id) }}" class="btn btn-warning btn-sm">
+    <i class="fas fa-edit me-1"></i>{{ _('Modificar') }}
+</a>
+{% endif %}
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
     <div class="row">
         <!-- Informations de l'incident -->
         <div class="col-lg-8">

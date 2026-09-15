@@ -2,6 +2,15 @@
 
 {% block title %}Salidas de material{% endblock %}
 
+{% block page_icon %}<i class="fas fa-clipboard-list" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Salidas de material{% endblock %}
+{% block page_subtitle %}Registro de asignaciones a técnicos{% endblock %}
+{% block page_actions %}
+<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#tipoSalidaModal">
+    <i class="fas fa-plus me-1"></i>Nueva salida
+</button>
+{% endblock %}
+
 {% block content %}
 
 {% set salida_tipo_badge = {
@@ -10,33 +19,14 @@
     'instalacion': 'bg-primary'
 } %}
 
-<div class="container-fluid">
+<div class="container-fluid px-0">
 
-    <nav aria-label="breadcrumb" class="mb-3">
-
-        <ol class="breadcrumb">
-
+    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
+        <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
-
-            <li class="breadcrumb-item active">Salidas</li>
-
+            <li class="breadcrumb-item active" aria-current="page">Salidas</li>
         </ol>
-
     </nav>
-
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-
-        <h1 class="h2 text-dark mb-0"><i class="fas fa-clipboard-list text-danger me-2"></i>Salidas de material</h1>
-
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tipoSalidaModal">
-
-            <i class="fas fa-plus me-1"></i>Nueva salida
-
-        </button>
-
-    </div>
-
-
 
     <div class="card content-card mb-4">
 
@@ -324,32 +314,23 @@
 
 </div>
 
+{% endblock %}
 
-
+{% block modals %}
 <div class="modal fade" id="tipoSalidaModal" tabindex="-1" aria-labelledby="tipoSalidaModalLabel" aria-hidden="true">
-
     <div class="modal-dialog modal-dialog-centered modal-lg">
-
         <div class="modal-content">
-
             <div class="modal-header">
-
                 <h5 class="modal-title" id="tipoSalidaModalLabel">Tipo de salida</h5>
-
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-
             </div>
-
             <div class="modal-body">
-
                 <p class="text-muted small mb-3">Seleccione el contexto de la salida antes de continuar.</p>
-
                 {% set salida_tipo_icons = {
                     'uso_interno': 'fa-building',
                     'incidencia': 'fa-triangle-exclamation',
                     'instalacion': 'fa-screwdriver-wrench'
                 } %}
-
                 <div class="row g-3 salida-tipo-radios">
                     {% for t in salida_tipos %}
                     <div class="col-4">
@@ -369,77 +350,42 @@
                     </div>
                     {% endfor %}
                 </div>
-
             </div>
-
             <div class="modal-footer">
-
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-
                 <button type="button" class="btn btn-primary" id="confirmTipoSalidaBtn">Continuar</button>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
-
 {% endblock %}
 
-
-
 {% block scripts %}
-
 <script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
-
 <script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
-
 <script>
-
 (function () {
-
     const nuevaBaseUrl = {{ url_for('materiales_salida_nueva') | tojson }};
-
     const openOnLoad = {{ open_nueva_modal | default(false) | tojson }};
+    const modalEl = document.getElementById('tipoSalidaModal');
 
-
-
-    document.getElementById('confirmTipoSalidaBtn').addEventListener('click', function () {
-
-        const selected = document.querySelector('input[name="tipo_salida_modal"]:checked');
-
-        if (!selected) {
-
-            alert('Seleccione un tipo de salida.');
-
-            return;
-
-        }
-
-        window.location.href = nuevaBaseUrl + '?tipo=' + encodeURIComponent(selected.value);
-
-    });
-
-
-
-    if (openOnLoad) {
-
-        const modalEl = document.getElementById('tipoSalidaModal');
-
-        if (modalEl && window.bootstrap) {
-
-            new bootstrap.Modal(modalEl).show();
-
-        }
-
+    const confirmBtn = document.getElementById('confirmTipoSalidaBtn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function () {
+            const selected = document.querySelector('input[name="tipo_salida_modal"]:checked');
+            if (!selected) {
+                alert('Seleccione un tipo de salida.');
+                return;
+            }
+            window.location.href = nuevaBaseUrl + '?tipo=' + encodeURIComponent(selected.value);
+        });
     }
 
+    if (openOnLoad && modalEl && window.bootstrap) {
+        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
 })();
-
 </script>
-
 {% endblock %}
 
 

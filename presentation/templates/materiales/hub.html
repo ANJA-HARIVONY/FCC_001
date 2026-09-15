@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Materiales{% endblock %}
+
+{% block page_icon %}<i class="fas fa-toolbox" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Materiales{% endblock %}
+{% block page_subtitle %}Trazabilidad de herramientas y materiales de cliente{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 text-dark mb-0"><i class="fas fa-toolbox text-danger me-2"></i>Materiales</h1>
-            <p class="text-muted mb-0">Trazabilidad de herramientas y materiales de cliente</p>
-        </div>
-    </div>
+<div class="container-fluid px-0">
     <div class="row g-4">
         <div class="col-md-6 col-lg-3">
             <div class="card content-card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-list me-2 text-primary"></i>Catálogo</h5>
+                    <h5 class="card-title"><i class="fas fa-list me-2"></i>Catálogo</h5>
                     <p class="card-text text-muted small">{{ total_materiales }} material{% if total_materiales != 1 %}es{% endif %} en el referencial</p>
                     <a href="{{ url_for('materiales_catalogo') }}" class="btn btn-outline-primary btn-sm">Gestionar</a>
                 </div>
@@ -21,7 +20,7 @@
         <div class="col-md-6 col-lg-3">
             <div class="card content-card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-plus-circle me-2 text-success"></i>Nueva salida</h5>
+                    <h5 class="card-title"><i class="fas fa-plus-circle me-2"></i>Nueva salida</h5>
                     <p class="card-text text-muted small">Registrar una asignación a un técnico</p>
                     <a href="{{ url_for('materiales_salidas', nueva=1) }}" class="btn btn-primary btn-sm">Crear salida</a>
                 </div>
@@ -30,7 +29,7 @@
         <div class="col-md-6 col-lg-3">
             <div class="card content-card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-clipboard-list me-2 text-info"></i>Salidas</h5>
+                    <h5 class="card-title"><i class="fas fa-clipboard-list me-2"></i>Salidas</h5>
                     <p class="card-text text-muted small">{{ total_salidas }} salida{% if total_salidas != 1 %}s{% endif %} registrada{% if total_salidas != 1 %}s{% endif %}</p>
                     <a href="{{ url_for('materiales_salidas') }}" class="btn btn-outline-info btn-sm">Ver lista</a>
                 </div>
@@ -39,7 +38,7 @@
         <div class="col-md-6 col-lg-3">
             <div class="card content-card h-100">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-chart-bar me-2 text-warning"></i>Informe</h5>
+                    <h5 class="card-title"><i class="fas fa-chart-bar me-2"></i>Informe</h5>
                     <p class="card-text text-muted small">Estado global por período</p>
                     <a href="{{ url_for('materiales_informe') }}" class="btn btn-outline-warning btn-sm">Consultar</a>
                 </div>

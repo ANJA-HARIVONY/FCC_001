@@ -2,39 +2,26 @@
 
 {% block title %}Informes - {{ super() }}{% endblock %}
 
-{% block content %}
-<div class="container-fluid etats-page py-4">
-    <!-- En-tête -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="etats-header-row align-items-center flex-wrap flex-lg-nowrap">
-                <div class="d-flex align-items-center gap-3 flex-grow-1">
-                    <div class="rounded-circle bg-danger bg-opacity-10 p-3 flex-shrink-0">
-                        <i class="fas fa-chart-bar text-danger fs-4"></i>
-                    </div>
-                    <div class="min-w-0">
-                        <h1 class="h3 fw-bold mb-0 text-dark">Informes</h1>
-                        <p class="text-muted mb-0 small">Análisis e informes del servicio</p>
-                    </div>
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2 mt-3 mt-lg-0 justify-content-lg-end">
-                    <span class="badge bg-primary">{{ total_etats }} informes</span>
-                    <span class="badge bg-success">{{ etats_aujourd_hui }} hoy</span>
-                    <a href="{{ url_for('etats_generer') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-1"></i>Nuevo Informe
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block page_icon %}<i class="fas fa-chart-bar" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Informes{% endblock %}
+{% block page_subtitle %}Análisis e informes del servicio{% endblock %}
+{% block page_actions %}
+<span class="badge bg-primary">{{ total_etats }} informes</span>
+<span class="badge bg-success">{{ etats_aujourd_hui }} hoy</span>
+<a href="{{ url_for('etats_generer') }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>Nuevo Informe
+</a>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0 etats-page">
     <!-- Tipos de informes disponibles -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card mb-0 etats-section-card etats-section-card--dark-header">
+            <div class="card mb-0 etats-section-card">
                 <div class="card-header d-flex align-items-center flex-wrap gap-2 py-3">
                     <h5 class="mb-0 fw-semibold">
-                        <i class="fas fa-layer-group me-2 opacity-75"></i>Tipos de Informes Disponibles
+                        <i class="fas fa-layer-group me-2"></i>Tipos de Informes Disponibles
                     </h5>
                 </div>
                 <div class="card-body">
@@ -64,12 +51,12 @@
     <!-- Lista de informes recientes -->
     <div class="row">
         <div class="col-12">
-            <div class="card mb-0 etats-section-card etats-section-card--dark-header">
+            <div class="card mb-0 etats-section-card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2 py-3">
                     <h5 class="mb-0 fw-semibold">
-                        <i class="fas fa-history me-2 opacity-75"></i>Informes Recientes
+                        <i class="fas fa-history me-2"></i>Informes Recientes
                     </h5>
-                    <small class="text-white-50">Últimos 20 generados</small>
+                    <small class="text-muted">Últimos 20 generados</small>
                 </div>
                 <div class="card-body p-0">
                     {% if etats_recents %}
@@ -77,12 +64,12 @@
                         <table class="table table-hover mb-0 align-middle">
                             <thead>
                                 <tr>
-                                    <th class="text-white etats-table-informe">Informe</th>
-                                    <th class="text-white">Tipo</th>
-                                    <th class="text-white">Período</th>
-                                    <th class="text-white">Estado</th>
-                                    <th class="text-white">Generado</th>
-                                    <th class="text-center text-white etats-table-actions">Acciones</th>
+                                    <th class="etats-table-informe">Informe</th>
+                                    <th>Tipo</th>
+                                    <th>Período</th>
+                                    <th>Estado</th>
+                                    <th>Generado</th>
+                                    <th class="text-center etats-table-actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>

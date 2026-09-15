@@ -2,37 +2,23 @@
 
 {% block title %}{{ _('Fiche Client') }} - {{ client.nom }}{% endblock %}
 
-{% block content %}
-<div class="container-md min-vh-100">
-    <!-- Messages Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-user-tie"></i> {{ _('Ficha del Cliente') }} - {{ client.nom }}
-        </h1>
-        <div>
-            <a href="{{ url_for('nouveau_incident', client=client.id) }}" class="btn btn-success">
-                <i class="fas fa-plus-circle"></i> {{ _('Crear incidencia') }}
-            </a>
-            <a href="{{ url_for('modifier_client', id=client.id, next=return_url) }}" class="btn btn-warning">
-                <i class="fas fa-edit"></i> {{ _('Modificar') }}
-            </a>
-            <a href="{{ url_for('imprimer_fiche_client', id=client.id) }}" class="btn btn-primary" target="_blank">
-                <i class="fas fa-print"></i> {{ _('Imprimir PDF') }}
-            </a>
-        </div>
-    </div>
+{% block page_icon %}<i class="fas fa-user-tie" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}{{ _('Ficha del Cliente') }} — {{ client.nom }}{% endblock %}
+{% block page_subtitle %}Detalle y gestion del cliente{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('nouveau_incident', client=client.id) }}" class="btn btn-success btn-sm">
+    <i class="fas fa-plus-circle me-1"></i>{{ _('Crear incidencia') }}
+</a>
+<a href="{{ url_for('modifier_client', id=client.id, next=return_url) }}" class="btn btn-warning btn-sm">
+    <i class="fas fa-edit me-1"></i>{{ _('Modificar') }}
+</a>
+<a href="{{ url_for('imprimer_fiche_client', id=client.id) }}" class="btn btn-primary btn-sm" target="_blank">
+    <i class="fas fa-print me-1"></i>{{ _('Imprimir PDF') }}
+</a>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
     <div class="row">
         <!-- Informations du client -->
         <div class="col-lg-6">

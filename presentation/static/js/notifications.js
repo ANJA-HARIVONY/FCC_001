@@ -31,7 +31,7 @@ class NotificationSystem {
     }
     
     init() {
-        this.syncNavbarOffset();
+        this.syncHeaderOffset();
         this.bindViewportListeners();
 
         // Verificar inmediatamente al cargar la página
@@ -64,13 +64,7 @@ class NotificationSystem {
             this.mobileMediaQuery.addListener(onViewportChange);
         }
 
-        window.addEventListener('resize', () => this.syncNavbarOffset());
-
-        const navCollapse = document.getElementById('navbarNav');
-        if (navCollapse) {
-            navCollapse.addEventListener('shown.bs.collapse', () => this.syncNavbarOffset());
-            navCollapse.addEventListener('hidden.bs.collapse', () => this.syncNavbarOffset());
-        }
+        window.addEventListener('resize', () => this.syncHeaderOffset());
     }
 
     isMobileViewport() {
@@ -81,24 +75,19 @@ class NotificationSystem {
         return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
 
-    syncNavbarOffset() {
-        const nav = document.querySelector('.navbar.app-shell-nav');
-        if (!nav) {
-            document.documentElement.style.setProperty('--app-navbar-height', '96px');
+    syncHeaderOffset() {
+        const header = document.querySelector('body.app-layout-v2 .app-header')
+            || document.querySelector('.app-header');
+        if (!header) {
+            document.documentElement.style.setProperty('--app-header-height', '80px');
             return;
         }
-
-        const collapse = nav.querySelector('.navbar-collapse');
-        let extra = 0;
-        if (collapse && collapse.classList.contains('show')) {
-            extra = collapse.getBoundingClientRect().height;
-        }
-        const height = Math.max(72, Math.ceil(nav.getBoundingClientRect().height - extra));
-        document.documentElement.style.setProperty('--app-navbar-height', `${height}px`);
+        const height = Math.max(56, Math.ceil(header.getBoundingClientRect().height));
+        document.documentElement.style.setProperty('--app-header-height', `${height}px`);
     }
 
     handleViewportChange() {
-        this.syncNavbarOffset();
+        this.syncHeaderOffset();
         if (this.isMobileViewport()) {
             this.limitVisibleToastsForMobile();
         } else {

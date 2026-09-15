@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% block title %}Mi perfil{% endblock %}
+
+{% block page_icon %}<i class="fas fa-user-circle" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Mi perfil{% endblock %}
+{% block page_subtitle %}Avatar y contraseña de la cuenta{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1 class="h3 mb-4"><i class="fas fa-user-circle text-danger me-2"></i>Mi perfil</h1>
+<div class="container-fluid px-0">
     <div class="row">
         <div class="col-lg-6">
             <div class="card content-card mb-4">

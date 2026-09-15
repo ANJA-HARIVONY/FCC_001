@@ -11,8 +11,8 @@ function afficherToast(message) {
         'border-radius: 8px',
         'box-shadow: 0 4px 12px rgba(0,0,0,0.15)',
         'z-index: 9999',
-        'font-family: "Segoe UI", Arial, sans-serif',
-        'font-size: 14px',
+        'font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        'font-size: 0.88rem',
         'max-width: 320px',
         'word-wrap: break-word',
     ].join(';');
@@ -148,7 +148,8 @@ function buildPrintHtml(options) {
         }
         * { box-sizing: border-box; }
         body {
-            font-family: "Segoe UI", Arial, sans-serif;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+                "Noto Sans", "Liberation Sans", Arial, sans-serif;
             color: var(--ink);
             margin: 24px;
             font-size: 13px;

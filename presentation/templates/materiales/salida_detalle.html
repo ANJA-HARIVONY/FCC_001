@@ -1,30 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Salida #{{ salida.id }}{% endblock %}
+
+{% block page_icon %}<i class="fas fa-dolly" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Salida #{{ salida.id }}{% endblock %}
+{% block page_subtitle %}Detalle de la asignación{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary btn-sm">Volver</a>
+<button type="button" class="btn btn-outline-success btn-sm"
+        data-cliente="{{ salida.client.nom if salida.client else '' }}"
+        data-tecnico="{{ salida.tecnico.nom if salida.tecnico else '' }}"
+        data-observaciones="{{ salida.observaciones or '' }}"
+        data-lineas="{{ salida | salida_lineas_copy }}"
+        onclick="copierSalida(this)"
+        title="Copiar información">
+    <i class="fas fa-copy me-1"></i>Copiar
+</button>
+<a href="{{ url_for('materiales_salida_modificar', salida_id=salida.id) }}" class="btn btn-primary btn-sm">Modificar</a>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb">
+<div class="container-fluid px-0">
+    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
+        <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('materiales_salidas') }}">Salidas</a></li>
-            <li class="breadcrumb-item active">#{{ salida.id }}</li>
+            <li class="breadcrumb-item active" aria-current="page">#{{ salida.id }}</li>
         </ol>
     </nav>
-    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-        <h1 class="h2 text-dark mb-0">Salida #{{ salida.id }}</h1>
-        <div>
-            <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary btn-sm">Volver</a>
-            <button type="button" class="btn btn-outline-success btn-sm"
-                    data-cliente="{{ salida.client.nom if salida.client else '' }}"
-                    data-tecnico="{{ salida.tecnico.nom if salida.tecnico else '' }}"
-                    data-observaciones="{{ salida.observaciones or '' }}"
-                    data-lineas="{{ salida | salida_lineas_copy }}"
-                    onclick="copierSalida(this)"
-                    title="Copiar información">
-                <i class="fas fa-copy me-1"></i>Copiar informaciónes
-            </button>
-            <a href="{{ url_for('materiales_salida_modificar', salida_id=salida.id) }}" class="btn btn-primary btn-sm">Modificar</a>
-        </div>
-    </div>
 
     <div class="row g-4">
         <div class="col-lg-5">

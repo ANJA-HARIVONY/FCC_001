@@ -86,7 +86,7 @@ class Config:
 
     # Application
     APP_NAME = os.environ.get('APP_NAME', 'FCC_001 - Atención al Cliente')
-    APP_VERSION = os.environ.get('APP_VERSION', '1.0.0')
+    APP_VERSION = os.environ.get('APP_VERSION', '2.0.0')
 
     # Pagination
     ITEMS_PER_PAGE_DEFAULT = 10

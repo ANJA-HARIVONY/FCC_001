@@ -1,0 +1,2520 @@
+/*
+ * CONNEXIA app shell — layout ArchitectUI-inspired (L0–L5)
+ * Reference: docs/architectui-html-theme-free (MIT v4.8.0)
+ * Feature flag: body.app-layout-v2
+ * Themes: html[data-sidebar-theme="dark"|"light"] (+ data-app-theme)
+ * Typo : héritée de style.css (stack Bootstrap system-ui, body 0.88rem) — pas de font-family ici
+ */
+
+:root {
+    --app-header-height: 80px;
+    --app-sidebar-width: 280px;
+    --app-sidebar-width-collapsed: 80px;
+    --app-main-bg: #f1f4f6;
+    --app-header-bg: #ffffff;
+    --app-header-border: rgba(15, 20, 28, 0.08);
+    --app-header-shadow: 0 0.46875rem 2.1875rem rgba(4, 9, 20, 0.03),
+        0 0.9375rem 1.40625rem rgba(4, 9, 20, 0.03);
+    --app-sidebar-bg-dark: #181d26;
+    --app-sidebar-text-dark: rgba(255, 255, 255, 0.78);
+    --app-sidebar-heading-dark: #dc3545;
+    --app-sidebar-hover-dark: rgba(255, 255, 255, 0.08);
+    --app-sidebar-active-bg-dark: rgba(220, 53, 69, 0.22);
+    --app-sidebar-bg-light: #ffffff;
+    --app-sidebar-text-light: #495057;
+    --app-sidebar-heading-light: #3f6ad8;
+    --app-sidebar-hover-light: #e0f3ff;
+    --app-sidebar-active-bg-light: rgba(220, 53, 69, 0.12);
+    --app-sidebar-active-color: #dc3545;
+    --app-footer-bg: #ffffff;
+    --app-footer-border: rgba(15, 20, 28, 0.08);
+    /* Z-index : overlay < sidebar < header < modal BS < toast */
+    --app-z-overlay: 12;
+    --app-z-sidebar: 13;
+    --app-z-header: 14;
+    --app-z-modal: 1050;
+    --app-z-toast: 1100;
+}
+
+/* ---------- Base layout ---------- */
+
+body.app-layout-v2 {
+    background: var(--app-main-bg);
+    min-height: 100vh;
+}
+
+body.app-layout-v2 .app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body.app-layout-v2.fixed-header .app-main {
+    padding-top: var(--app-header-height);
+}
+
+body.app-layout-v2 .app-main {
+    display: flex;
+    flex: 1 1 auto;
+    position: relative;
+    /* Pas de z-index : sinon la sidebar (fixe) reste piegee sous l'overlay mobile */
+}
+
+body.app-layout-v2 .app-main__outer {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    position: relative;
+}
+
+body.app-layout-v2.has-sidebar.fixed-sidebar .app-main__outer {
+    padding-left: var(--app-sidebar-width);
+    transition: padding-left 0.2s ease;
+}
+
+body.app-layout-v2 .app-main__inner {
+    flex: 1 1 auto;
+    padding: 1.5rem 1.5rem 0;
+}
+
+body.app-layout-v2 .app-main__content.page-enter {
+    animation: pageFadeIn var(--anim-base, 220ms) var(--anim-ease, cubic-bezier(0.2, 0, 0, 1));
+}
+
+/* ---------- Header ---------- */
+
+body.app-layout-v2 .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--app-header-height);
+    display: flex;
+    align-items: stretch;
+    background: transparent;
+    z-index: var(--app-z-header);
+    padding: 0;
+}
+
+/* Header continu : logo + barre actions (sans couture verticale) */
+body.app-layout-v2.has-sidebar .app-header {
+    background: var(--app-header-bg);
+    border-bottom: 1px solid var(--app-header-border);
+    box-shadow: var(--app-header-shadow);
+}
+
+body.app-layout-v2 .app-header__content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0 1rem 0 0.75rem;
+    background: transparent;
+    border-bottom: none;
+    box-shadow: none;
+    gap: 0.5rem;
+}
+
+/* Logo + titre — coin haut gauche */
+body.app-layout-v2 .app-header__logo {
+    width: var(--app-sidebar-width);
+    min-width: var(--app-sidebar-width);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    transition: width 0.2s ease, min-width 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+body.app-layout-v2 .app-header__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+    min-width: 0;
+    width: 100%;
+    gap: 0.15rem;
+}
+
+body.app-layout-v2 .app-header__logo-img {
+    height: auto;
+    width: auto;
+    max-width: 100%;
+    max-height: 42px;
+    object-fit: contain;
+}
+
+body.app-layout-v2 .app-header__brand-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    width: 100%;
+}
+
+body.app-layout-v2 .app-header__title {
+    font-size: 0.72rem;
+    font-weight: 300;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color 0.2s ease;
+}
+
+body.app-layout-v2 .app-header__meta {
+    font-size: 0.68rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    transition: color 0.2s ease;
+}
+
+body.app-layout-v2 .app-header__toggle {
+    color: #495057;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    border-radius: 0.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+body.app-layout-v2 .app-header__toggle.btn-link {
+    color: #495057;
+    box-shadow: none;
+}
+
+body.app-layout-v2 .app-header-left,
+body.app-layout-v2 .app-header-right {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+
+/* Desktop : hamburger a gauche de la zone actions, puis theme/cloche/avatar a droite */
+body.app-layout-v2 .app-header-right {
+    margin-left: 0;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    justify-content: flex-end;
+}
+
+body.app-layout-v2 .app-header-right .app-header__toggle {
+    margin-right: auto;
+}
+
+body.app-layout-v2 .app-header__toggle:hover,
+body.app-layout-v2 .app-header__toggle:focus {
+    color: var(--primary-red, #dc3545);
+}
+
+body.app-layout-v2 .app-header__theme-btn,
+body.app-layout-v2 .app-header__icon-btn,
+body.app-layout-v2 .app-header__user-btn {
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 999px;
+}
+
+body.app-layout-v2 .app-header__theme-btn {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+body.app-layout-v2 .theme-icon-light,
+body.app-layout-v2 .theme-icon-dark {
+    line-height: 1;
+    font-size: 0.95rem;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .theme-icon-dark,
+html[data-sidebar-theme="light"] body.app-layout-v2 .theme-icon-light {
+    display: none !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .theme-icon-light,
+html[data-sidebar-theme="light"] body.app-layout-v2 .theme-icon-dark {
+    display: inline-block !important;
+}
+
+body.app-layout-v2 .notification-bell-btn.app-header__icon-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+}
+
+/* Hamburger */
+body.app-layout-v2 .hamburger {
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition-property: opacity, filter;
+    transition-duration: 0.15s;
+    transition-timing-function: linear;
+    font: inherit;
+    color: inherit;
+    text-transform: none;
+    background-color: transparent;
+    border: 0;
+    margin: 0;
+    overflow: visible;
+    width: 22px;
+    height: 16px;
+    line-height: 0;
+    vertical-align: middle;
+}
+
+body.app-layout-v2 .hamburger-box {
+    width: 18px;
+    height: 14px;
+    display: block;
+    position: relative;
+    margin: 0 auto;
+}
+
+body.app-layout-v2 .hamburger-inner,
+body.app-layout-v2 .hamburger-inner::before,
+body.app-layout-v2 .hamburger-inner::after {
+    width: 18px;
+    height: 2px;
+    background-color: currentColor;
+    border-radius: 2px;
+    position: absolute;
+    left: 0;
+    transition: transform 0.15s ease;
+}
+
+body.app-layout-v2 .hamburger-inner {
+    top: 50%;
+    transform: translateY(-50%);
+    margin-top: 0;
+}
+
+body.app-layout-v2 .hamburger-inner::before,
+body.app-layout-v2 .hamburger-inner::after {
+    content: "";
+    display: block;
+}
+
+body.app-layout-v2 .hamburger-inner::before {
+    top: -6px;
+}
+
+body.app-layout-v2 .hamburger-inner::after {
+    top: 6px;
+    bottom: auto;
+}
+
+/* ---------- Sidebar ---------- */
+
+body.app-layout-v2 .app-sidebar {
+    width: var(--app-sidebar-width);
+    min-width: var(--app-sidebar-width);
+    flex: 0 0 var(--app-sidebar-width);
+    position: fixed;
+    top: var(--app-header-height);
+    left: 0;
+    height: calc(100vh - var(--app-header-height));
+    margin-top: 0;
+    z-index: var(--app-z-sidebar);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.2s ease, transform 0.2s ease, min-width 0.2s ease;
+    overflow: hidden;
+}
+
+body.app-layout-v2 .app-sidebar.sidebar-shadow {
+    box-shadow: 7px 0 30px rgba(0, 0, 0, 0.08);
+}
+
+body.app-layout-v2 .scrollbar-sidebar {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+body.app-layout-v2 .app-sidebar__inner {
+    padding: 0.25rem 1rem 1.5rem;
+}
+
+body.app-layout-v2 .app-sidebar__heading {
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin: 0.85rem 0 0.35rem;
+    white-space: nowrap;
+}
+
+body.app-layout-v2 .vertical-nav-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+body.app-layout-v2 .vertical-nav-menu li a {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.35rem;
+    padding: 0.35rem 0.75rem 0.35rem 0.65rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    margin: 0.08rem 0;
+    white-space: nowrap;
+}
+
+body.app-layout-v2 .nav-menu-icon {
+    width: 1.25rem;
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+body.app-layout-v2 .nav-menu-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.app-layout-v2 .vertical-nav-menu li a.mm-active,
+body.app-layout-v2 .vertical-nav-menu li a.active,
+body.app-layout-v2 .vertical-nav-menu li.mm-active > a {
+    font-weight: 700;
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.14);
+    box-shadow: inset 3px 0 0 #dc3545;
+}
+
+body.app-layout-v2 .vertical-nav-menu li a.mm-active .nav-menu-icon,
+body.app-layout-v2 .vertical-nav-menu li a.active .nav-menu-icon,
+body.app-layout-v2 .vertical-nav-menu li.mm-active > a .nav-menu-icon {
+    opacity: 1;
+    color: #dc3545;
+}
+
+body.app-layout-v2 .app-sidebar__logout {
+    color: inherit;
+}
+
+/* Sidebar theme: dark (default) — logo aligne sur la barre header (hamburger) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__logo {
+    background: transparent;
+    border-right: none;
+    border-bottom: none;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__title {
+    color: #fff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__meta {
+    color: rgba(255, 255, 255, 0.72);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-sidebar {
+    background: linear-gradient(180deg, var(--app-sidebar-bg-dark) 0%, var(--shell-bottom, #0f141c) 100%);
+    color: var(--app-sidebar-text-dark);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-sidebar__heading {
+    color: var(--app-sidebar-heading-dark);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li a {
+    color: var(--app-sidebar-text-dark);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li a:hover {
+    background: var(--app-sidebar-hover-dark);
+    color: #fff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li a.mm-active,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li a.active,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li.mm-active > a {
+    color: #fff !important;
+    background: rgba(220, 53, 69, 0.28) !important;
+    box-shadow: inset 3px 0 0 #dc3545;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li a.mm-active .nav-menu-icon,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li a.active .nav-menu-icon,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .vertical-nav-menu li.mm-active > a .nav-menu-icon {
+    color: #ff6b7a !important;
+    opacity: 1;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-sidebar__logout:hover {
+    color: #ff8a8a;
+}
+
+/* Sidebar theme: light — logo aligne sur la barre header */
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-header__logo {
+    background: transparent;
+    border-right: none;
+    border-bottom: none;
+    box-shadow: none;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-header__title {
+    color: #343a40;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-header__meta {
+    color: #6c757d;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-sidebar {
+    background: var(--app-sidebar-bg-light);
+    color: var(--app-sidebar-text-light);
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-sidebar__heading {
+    color: var(--app-sidebar-heading-light);
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li a {
+    color: var(--app-sidebar-text-light);
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li a:hover {
+    background: var(--app-sidebar-hover-light);
+    color: #212529;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li a.mm-active,
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li a.active,
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li.mm-active > a {
+    color: #dc3545 !important;
+    background: rgba(220, 53, 69, 0.12) !important;
+    box-shadow: inset 3px 0 0 #dc3545;
+    font-weight: 700;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li a.mm-active .nav-menu-icon,
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li a.active .nav-menu-icon,
+html[data-sidebar-theme="light"] body.app-layout-v2 .vertical-nav-menu li.mm-active > a .nav-menu-icon {
+    color: #dc3545 !important;
+    opacity: 1;
+}
+
+/* ---------- Theme dark : pages coeur (main, header, cartes, tables) ---------- */
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 {
+    /* Hierarchie : canvas sombre < surfaces elevees (cartes / sections) */
+    --app-main-bg: #0f131a;
+    --app-header-bg: #171c27;
+    --app-header-border: rgba(255, 255, 255, 0.08);
+    --app-header-shadow: 0 0.46875rem 2.1875rem rgba(0, 0, 0, 0.25);
+    --app-footer-bg: #171c27;
+    --app-footer-border: rgba(255, 255, 255, 0.08);
+    --app-surface: #1a2232;
+    --app-surface-elevated: #222b3d;
+    --app-surface-border: rgba(255, 255, 255, 0.1);
+    --app-surface-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    --app-text: #e8eaed;
+    --app-text-muted: #9aa3b2;
+    background: var(--app-main-bg);
+    color: var(--app-text);
+}
+
+/* Mode clair : meme tokens (canvas gris / surfaces blanches) */
+html[data-sidebar-theme="light"] body.app-layout-v2,
+html[data-app-theme="light"] body.app-layout-v2 {
+    --app-main-bg: #f1f4f6;
+    --app-header-bg: #ffffff;
+    --app-header-border: rgba(15, 20, 28, 0.08);
+    --app-footer-bg: #ffffff;
+    --app-footer-border: rgba(15, 20, 28, 0.08);
+    --app-surface: #ffffff;
+    --app-surface-elevated: #ffffff;
+    --app-surface-border: rgba(15, 20, 28, 0.08);
+    --app-surface-shadow: 0 6px 16px rgba(15, 20, 28, 0.08);
+    --app-text: #343a40;
+    --app-text-muted: #6c757d;
+    --bs-body-color: #343a40;
+    --bs-heading-color: #343a40;
+    --bs-card-cap-color: #343a40;
+    background: var(--app-main-bg);
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__content {
+    background: transparent;
+    border-bottom: none;
+    box-shadow: none;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__toggle,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__toggle.btn-link {
+    color: #e8eaed !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-header__toggle,
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-header__toggle.btn-link {
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__theme-btn,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__icon-btn,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__user-btn {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: #e8eaed !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__theme-btn:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__icon-btn:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__user-btn:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__toggle:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__toggle:focus {
+    background: rgba(255, 255, 255, 0.14) !important;
+    color: #fff !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .page-title-text {
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .page-title-subheading,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .text-muted,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-label.text-muted,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .small.text-muted {
+    color: var(--app-text-muted) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .text-dark,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .h1,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .h2,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .h3,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .h4,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .h5,
+html[data-sidebar-theme="dark"] body.app-layout-v2 h1,
+html[data-sidebar-theme="dark"] body.app-layout-v2 h2,
+html[data-sidebar-theme="dark"] body.app-layout-v2 h3,
+html[data-sidebar-theme="dark"] body.app-layout-v2 h4,
+html[data-sidebar-theme="dark"] body.app-layout-v2 h5 {
+    color: var(--app-text) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .page-title-icon {
+    background: rgba(220, 53, 69, 0.22);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-footer {
+    background: var(--app-footer-bg);
+    border-top-color: var(--app-footer-border);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-footer__copy {
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-footer__meta {
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-footer__version {
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .chart-container,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-section-card.card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-preview-sticky,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-main__content > .card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-main__content .card:not(.border-success):not(.border-danger):not(.border-info):not(.border-warning) {
+    background: var(--app-surface) !important;
+    background-image: none !important;
+    border-color: var(--app-surface-border) !important;
+    color: var(--app-text);
+    box-shadow: var(--app-surface-shadow);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+/* KPI : legere elevation vs content-card (meme famille de surface) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-card {
+    background: var(--app-surface-elevated) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-card:hover {
+    border-color: rgba(220, 53, 69, 0.35) !important;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .stat-card,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card,
+html[data-sidebar-theme="light"] body.app-layout-v2 .chart-container,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-section-card.card,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-preview-sticky,
+html[data-app-theme="light"] body.app-layout-v2 .stat-card,
+html[data-app-theme="light"] body.app-layout-v2 .content-card,
+html[data-app-theme="light"] body.app-layout-v2 .chart-container {
+    background: var(--app-surface, #fff) !important;
+    background-image: none !important;
+    border-color: var(--app-surface-border, rgba(15, 20, 28, 0.08)) !important;
+    box-shadow: var(--app-surface-shadow, 0 6px 16px rgba(15, 20, 28, 0.08));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-main__content .content-card > .card-header,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-bottom-color: var(--app-surface-border) !important;
+    color: var(--app-text) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header h1,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header h2,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header h3,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header h4,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header h5,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .card-header h6,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h1,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h2,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h3,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h4,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h5,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h6 {
+    color: var(--app-text) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-number,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-card-value {
+    color: var(--app-text);
+}
+
+/*
+ * Tables dark — inspirees ArchitectUI
+ * Ref: themes/default/_variables.scss ($table-head-bg, $table-hover-bg #e0f3ff)
+ *      components/tables/_tables.scss
+ */
+html[data-sidebar-theme="dark"] body.app-layout-v2 {
+    --app-table-bg: transparent;
+    --app-table-head-bg: rgba(255, 255, 255, 0.045);
+    --app-table-head-color: #aab2c0;
+    --app-table-border: rgba(255, 255, 255, 0.08);
+    --app-table-row-border: rgba(255, 255, 255, 0.055);
+    --app-table-striped: rgba(255, 255, 255, 0.028);
+    --app-table-hover: rgba(63, 106, 216, 0.18); /* ArchitectUI #e0f3ff adapte dark */
+    --app-table-hover-accent: rgba(220, 53, 69, 0.1);
+    --app-table-active: rgba(63, 106, 216, 0.24);
+    --app-table-muted-row: rgba(255, 255, 255, 0.04);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table,
+html[data-sidebar-theme="dark"] body.app-layout-v2 table.table {
+    --bs-table-bg: var(--app-table-bg);
+    --bs-table-color: var(--app-text);
+    --bs-table-border-color: var(--app-table-border);
+    --bs-table-striped-bg: var(--app-table-striped);
+    --bs-table-striped-color: var(--app-text);
+    --bs-table-active-bg: var(--app-table-active);
+    --bs-table-active-color: #fff;
+    --bs-table-hover-bg: var(--app-table-hover);
+    --bs-table-hover-color: #fff;
+    --bs-table-accent-bg: transparent;
+    background-color: transparent !important;
+    color: var(--app-text) !important;
+    border-color: var(--app-table-border) !important;
+    box-shadow: none !important;
+    border-radius: 0;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table > :not(caption) > * > * {
+    background-color: var(--bs-table-bg);
+    color: var(--app-text);
+    border-bottom-color: var(--app-table-row-border);
+    box-shadow: inset 0 0 0 9999px var(--bs-table-bg-state, var(--bs-table-bg-type, transparent));
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table thead th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table > thead > tr > th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table thead td {
+    background-color: var(--app-table-head-bg) !important;
+    color: var(--app-table-head-color) !important;
+    border-bottom: 1px solid var(--app-table-border) !important;
+    border-color: var(--app-table-border) !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.78rem;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tbody td,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tbody th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tfoot td,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tfoot th {
+    background-color: transparent !important;
+    color: var(--app-text);
+    border-color: var(--app-table-row-border) !important;
+    vertical-align: middle;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tbody tr {
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    transform: none !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table.table-hover > tbody > tr:hover > *,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tbody tr:hover > *,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table tbody tr:hover {
+    --bs-table-bg-state: var(--app-table-hover);
+    background-color: transparent !important;
+    color: #fff !important;
+    box-shadow: inset 0 0 0 9999px var(--app-table-hover);
+    transform: none !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .table tbody tr:hover {
+    background-color: transparent !important;
+    box-shadow: inset 0 0 0 9999px var(--app-table-hover) !important;
+    transform: none !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .table tbody td,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .content-card .table thead th {
+    border-color: var(--app-table-row-border) !important;
+}
+
+/* Variantes Bootstrap */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-light,
+html[data-sidebar-theme="dark"] body.app-layout-v2 thead.table-light,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table > thead.table-light > tr > th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table > thead.table-light > tr > td {
+    --bs-table-bg: var(--app-table-head-bg);
+    --bs-table-color: var(--app-table-head-color);
+    --bs-table-border-color: var(--app-table-border);
+    background-color: var(--app-table-head-bg) !important;
+    color: var(--app-table-head-color) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-secondary,
+html[data-sidebar-theme="dark"] body.app-layout-v2 tr.table-secondary,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-secondary > th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-secondary > td {
+    --bs-table-bg: var(--app-table-muted-row);
+    --bs-table-color: var(--app-text-muted);
+    background-color: var(--app-table-muted-row) !important;
+    color: var(--app-text-muted) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-striped > tbody > tr:nth-of-type(odd) > * {
+    --bs-table-bg-type: var(--app-table-striped);
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-bordered,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-bordered > :not(caption) > * {
+    border-color: var(--app-table-border) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-bordered > :not(caption) > * > * {
+    border-width: 0 1px;
+    border-color: var(--app-table-border) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-borderless > :not(caption) > * > * {
+    border-color: transparent !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-sm > :not(caption) > * > * {
+    padding: 0.35rem 0.5rem;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table-responsive {
+    border-color: var(--app-table-border);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table a:not(.btn):not(.badge) {
+    color: #8ab4ff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table a:not(.btn):not(.badge):hover {
+    color: #b6d0ff;
+}
+
+/* Clients / densite speciale */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .clients-table thead th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .clients-table tbody td {
+    border-color: var(--app-table-row-border) !important;
+}
+
+/* Informes / etats */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-activity-table thead th,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-evolution-data-table thead th {
+    color: var(--app-table-head-color) !important;
+    border-bottom-color: var(--app-table-border) !important;
+    background-color: var(--app-table-head-bg) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-activity-table tbody td,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-evolution-data-table tbody td {
+    border-bottom-color: var(--app-table-row-border) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-activity-table tbody tr:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .table-responsive table.table tbody tr:hover {
+    box-shadow: inset 0 0 0 9999px var(--app-table-hover) !important;
+}
+
+/*
+ * Tables light — en-tetes unifies (ArchitectUI)
+ * Remplace le contraste sombre de style.css (.table thead th)
+ * et aligne thead / thead.table-light / tables metier.
+ */
+html[data-sidebar-theme="light"] body.app-layout-v2 {
+    --app-table-bg: #ffffff;
+    --app-table-head-bg: #f3f5f9;
+    --app-table-head-color: #6b7280;
+    --app-table-border: rgba(15, 20, 28, 0.1);
+    --app-table-row-border: rgba(15, 20, 28, 0.06);
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .table,
+html[data-sidebar-theme="light"] body.app-layout-v2 table.table {
+    --bs-table-bg: var(--app-table-bg);
+    --bs-table-border-color: var(--app-table-border);
+    background-color: var(--app-table-bg);
+    box-shadow: none;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table > thead > tr > th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead td,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table-light,
+html[data-sidebar-theme="light"] body.app-layout-v2 thead.table-light,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table > thead.table-light > tr > th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table > thead.table-light > tr > td,
+html[data-sidebar-theme="light"] body.app-layout-v2 .clients-table thead th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-activity-table thead th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-evolution-data-table thead th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .table thead th {
+    --bs-table-bg: var(--app-table-head-bg);
+    --bs-table-color: var(--app-table-head-color);
+    --bs-table-border-color: var(--app-table-border);
+    background-color: var(--app-table-head-bg) !important;
+    color: var(--app-table-head-color) !important;
+    border-bottom: 1px solid var(--app-table-border) !important;
+    border-color: var(--app-table-border) !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-size: 0.78rem;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .table tbody td,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table tbody th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .table tbody td {
+    border-color: var(--app-table-row-border) !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-activity-table thead th,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-evolution-data-table thead th {
+    border-bottom-width: 1px !important;
+}
+
+/*
+ * Light : Bootstrap .text-white / .text-white-50 (legacy dark headers)
+ * → invisibles sur thead clair et card-header blanc (Incidencias Corporativo/Particular, tris Client…)
+ */
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead th.text-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead td.text-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead .text-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead a.text-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead a,
+html[data-app-theme="light"] body.app-layout-v2 .table thead th.text-white,
+html[data-app-theme="light"] body.app-layout-v2 .table thead a.text-white,
+html[data-app-theme="light"] body.app-layout-v2 .table thead a {
+    color: var(--app-table-head-color, #6b7280) !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .table thead a:hover,
+html[data-app-theme="light"] body.app-layout-v2 .table thead a:hover {
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header .text-white,
+html[data-app-theme="light"] body.app-layout-v2 .content-card .card-header .text-white {
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header .text-white-50,
+html[data-app-theme="light"] body.app-layout-v2 .content-card .card-header .text-white-50 {
+    color: #6c757d !important;
+}
+
+/* Liens de tri + meta Corporativo/Particular (theme-aware) */
+body.app-layout-v2 .table thead a.table-sort-link,
+body.app-layout-v2 .table thead a.table-sort-link:visited {
+    color: inherit;
+}
+
+body.app-layout-v2 .table thead a.table-sort-link:hover {
+    color: var(--primary-red, #dc3545);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table thead a.table-sort-link,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table thead a.table-sort-link:visited {
+    color: var(--app-table-head-color, #aab2c0);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table thead a.table-sort-link:hover {
+    color: #fff;
+}
+
+body.app-layout-v2 .card-header-meta {
+    color: #6c757d;
+}
+
+body.app-layout-v2 .card-header-meta__value {
+    color: #343a40;
+    font-weight: 700;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header-meta {
+    color: var(--app-text-muted, #9aa3b2) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header-meta__value {
+    color: var(--app-text, #e8eaed) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-activity-kpi__value {
+    color: var(--app-text) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-efficacy-progress {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- Informes (etats) — cartes type + sections en dark ---------- */
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card.card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-preview-sticky {
+    background: var(--app-surface, #1c2333) !important;
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.08)) !important;
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card .card-header {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: var(--app-text, #e8eaed) !important;
+    border-bottom-color: var(--app-surface-border, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header {
+    background: #141922 !important;
+    color: #fff !important;
+    border-bottom: none !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header h5,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header .text-white-50 {
+    color: #fff !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header .text-white-50 {
+    color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* Cartes « Tipos de Informes » : fond sombre (plus de blanc + texte clair) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.03) 100%) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card:hover {
+    border-color: rgba(220, 53, 69, 0.45) !important;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(220, 53, 69, 0.08) 100%) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card h6,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card .card-title,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card .fw-semibold {
+    color: #f1f3f5 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card .etats-type-card-desc,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card .card-text,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-type-card .text-muted {
+    color: #9aa3b2 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-choice-input:checked + .etats-type-card-label .etats-type-card {
+    background: linear-gradient(180deg, rgba(220, 53, 69, 0.2) 0%, rgba(220, 53, 69, 0.08) 100%) !important;
+    border-color: rgba(220, 53, 69, 0.55) !important;
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.45), 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-result-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-result-card__title,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-content-block-title,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-section-label {
+    color: #f1f3f5 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-content-lead,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-activity-kpi__label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card__label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card__hint {
+    color: var(--app-text-muted, #9aa3b2) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card__value {
+    color: #f1f3f5;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-rec-row,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-activity-kpi,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-kpi-item {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .card-header.bg-white {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-primary {
+    color: #8ab4ff;
+    border-color: rgba(63, 106, 216, 0.65);
+    background: rgba(63, 106, 216, 0.12);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-primary:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-primary:focus {
+    color: #fff;
+    background: #3f6ad8;
+    border-color: #3f6ad8;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-secondary {
+    color: #c5cad3;
+    border-color: rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-secondary:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-secondary:focus {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Caption / empty / helpers */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table caption {
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table .text-muted,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .table small.text-muted {
+    color: var(--app-text-muted) !important;
+}
+
+/* Native controls (date picker, selects) follow theme */
+html[data-sidebar-theme="dark"] {
+    color-scheme: dark;
+}
+
+html[data-sidebar-theme="light"] {
+    color-scheme: light;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .col-form-label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-label.small,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-label.text-dark,
+html[data-sidebar-theme="dark"] body.app-layout-v2 label.form-label {
+    color: #d7dbe3 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-text {
+    color: var(--app-text-muted, #9aa3b2) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-select,
+html[data-sidebar-theme="dark"] body.app-layout-v2 textarea.form-control,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input.form-control {
+    background-color: #151a24 !important;
+    border-color: rgba(255, 255, 255, 0.16) !important;
+    color: var(--app-text, #e8eaed) !important;
+    color-scheme: dark;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control:focus,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-select:focus,
+html[data-sidebar-theme="dark"] body.app-layout-v2 textarea.form-control:focus {
+    background-color: #151a24 !important;
+    border-color: var(--primary-red, #dc3545) !important;
+    color: var(--app-text, #e8eaed) !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control::placeholder,
+html[data-sidebar-theme="dark"] body.app-layout-v2 textarea.form-control::placeholder {
+    color: rgba(154, 163, 178, 0.85) !important;
+    opacity: 1;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control:disabled,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-select:disabled,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control[readonly] {
+    background-color: #10141c !important;
+    color: var(--app-text-muted, #9aa3b2) !important;
+    opacity: 1;
+}
+
+/* Date / time — texte et icône calendrier lisibles */
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"],
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="time"],
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="datetime-local"],
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="month"],
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="week"] {
+    color-scheme: dark;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-calendar-picker-indicator,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="time"]::-webkit-calendar-picker-indicator,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="month"]::-webkit-calendar-picker-indicator,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="week"]::-webkit-calendar-picker-indicator {
+    /* brightness(0) → noir, invert(1) → blanc (fiable quel que soit l’icone native) */
+    filter: brightness(0) invert(1);
+    cursor: pointer;
+    opacity: 1;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-datetime-edit,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-datetime-edit-text,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-datetime-edit-month-field,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-datetime-edit-day-field,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="date"]::-webkit-datetime-edit-year-field,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="datetime-local"]::-webkit-datetime-edit,
+html[data-sidebar-theme="dark"] body.app-layout-v2 input[type="time"]::-webkit-datetime-edit {
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-select option,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-select optgroup {
+    background-color: #1c2333;
+    color: #e8eaed;
+}
+
+/* Autofill navigateur (jaune Chrome → dark) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control:-webkit-autofill,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control:-webkit-autofill:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-control:-webkit-autofill:focus {
+    -webkit-text-fill-color: #e8eaed;
+    caret-color: #e8eaed;
+    box-shadow: 0 0 0 1000px #151a24 inset;
+    transition: background-color 99999s ease-out;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .input-group-text {
+    background-color: #1a2030;
+    border-color: rgba(255, 255, 255, 0.16);
+    color: var(--app-text-muted, #9aa3b2);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-check-label {
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-check-input {
+    background-color: #151a24;
+    border-color: rgba(255, 255, 255, 0.28);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-check-input:checked {
+    background-color: var(--primary-red, #dc3545);
+    border-color: var(--primary-red, #dc3545);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Suggestions autocomplete (client / técnico / etc.) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-menu,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .position-relative > .dropdown-menu {
+    --bs-dropdown-bg: #1c2333;
+    --bs-dropdown-color: #e8eaed;
+    --bs-dropdown-link-color: #e8eaed;
+    --bs-dropdown-link-hover-color: #fff;
+    --bs-dropdown-link-hover-bg: rgba(220, 53, 69, 0.2);
+    --bs-dropdown-link-active-color: #fff;
+    --bs-dropdown-link-active-bg: rgba(220, 53, 69, 0.28);
+    --bs-dropdown-border-color: rgba(255, 255, 255, 0.12);
+    --bs-dropdown-divider-bg: rgba(255, 255, 255, 0.1);
+    background-color: #1c2333 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #e8eaed !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    z-index: 1080;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .position-relative > .dropdown-menu .dropdown-item {
+    color: #e8eaed !important;
+    background-color: transparent;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item:focus,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .position-relative > .dropdown-menu .dropdown-item:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .position-relative > .dropdown-menu .dropdown-item:focus {
+    background-color: rgba(220, 53, 69, 0.2) !important;
+    color: #fff !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item strong,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .position-relative > .dropdown-menu .dropdown-item strong {
+    color: #f1f3f5 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item .text-muted,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item small,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item-text,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item-text.text-muted {
+    color: #9aa3b2 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-item .text-primary,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .position-relative > .dropdown-menu .text-primary {
+    color: #8ab4ff !important;
+}
+
+/* Menu suggestions affiché hors Bootstrap Dropdown (display:block) */
+body.app-layout-v2 .app-autocomplete-menu {
+    position: absolute;
+    inset: auto 0 auto 0;
+    top: 100%;
+    margin-top: 0.15rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-autocomplete-menu {
+    background-color: #1c2333 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-header {
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .dropdown-divider {
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Alertes dans formulaires (sélection cliente/técnico, info) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert-light {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--app-text, #e8eaed) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert-info {
+    background-color: rgba(63, 106, 216, 0.18) !important;
+    border-color: rgba(63, 106, 216, 0.35) !important;
+    color: #c5d7ff !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert-secondary {
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    border-color: rgba(255, 255, 255, 0.14) !important;
+    color: #d7dbe3 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert-success {
+    background-color: rgba(40, 167, 69, 0.18) !important;
+    border-color: rgba(40, 167, 69, 0.35) !important;
+    color: #b6f0c4 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert-warning {
+    background-color: rgba(255, 193, 7, 0.16) !important;
+    border-color: rgba(255, 193, 7, 0.35) !important;
+    color: #ffe8a3 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert-danger {
+    background-color: rgba(220, 53, 69, 0.18) !important;
+    border-color: rgba(220, 53, 69, 0.35) !important;
+    color: #ffb0b8 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-danger {
+    color: #ff6b7a;
+    border-color: rgba(220, 53, 69, 0.55);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-danger:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-outline-danger.active {
+    background: var(--primary-red, #dc3545);
+    border-color: var(--primary-red, #dc3545);
+    color: #fff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-light {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: var(--app-text) !important;
+}
+
+/* Badges Bootstrap — lisibles en dark (tables materiales / informe) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-success {
+    background-color: rgba(40, 167, 69, 0.28) !important;
+    color: #8ef0a8 !important;
+    border: 1px solid rgba(40, 167, 69, 0.45);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-primary {
+    background-color: rgba(63, 106, 216, 0.32) !important;
+    color: #b6d0ff !important;
+    border: 1px solid rgba(63, 106, 216, 0.5);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-secondary {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: #d7dbe3 !important;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-warning,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-warning.text-dark {
+    background-color: rgba(255, 193, 7, 0.28) !important;
+    color: #ffd666 !important;
+    border: 1px solid rgba(255, 193, 7, 0.45);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-danger {
+    background-color: rgba(220, 53, 69, 0.3) !important;
+    color: #ffb0b8 !important;
+    border: 1px solid rgba(220, 53, 69, 0.5);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-info {
+    background-color: rgba(13, 202, 240, 0.25) !important;
+    color: #9eecff !important;
+    border: 1px solid rgba(13, 202, 240, 0.45);
+}
+
+/* Modal tipo de salida — cartes en dark */
+html[data-sidebar-theme="dark"] body.app-layout-v2 #tipoSalidaModal .salida-tipo-card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-card {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.03) 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 #tipoSalidaModal .salida-tipo-card:hover,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-card:hover {
+    border-color: rgba(220, 53, 69, 0.45);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09) 0%, rgba(220, 53, 69, 0.08) 100%);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 #tipoSalidaModal .salida-tipo-label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-label {
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-icon--uso_interno {
+    background: rgba(255, 255, 255, 0.1);
+    color: #c5cad3;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-icon--incidencia {
+    background: rgba(255, 193, 7, 0.22);
+    color: #ffd666;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-icon--instalacion {
+    background: rgba(63, 106, 216, 0.28);
+    color: #8ab4ff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-choice-input:checked + .salida-tipo-card-label .salida-tipo-card {
+    background: linear-gradient(180deg, rgba(220, 53, 69, 0.18) 0%, rgba(220, 53, 69, 0.08) 100%);
+    border-color: rgba(220, 53, 69, 0.55);
+    box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.55), 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .salida-tipo-choice-input:checked + .salida-tipo-card-label .salida-tipo-label {
+    color: #ff8a95;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 #tipoSalidaModal .modal-body .text-muted {
+    color: var(--app-text-muted, #9aa3b2) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .pagination .page-link {
+    background-color: var(--app-surface);
+    border-color: var(--app-surface-border);
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .pagination .page-item.active .page-link {
+    background-color: var(--primary-red, #dc3545);
+    border-color: var(--primary-red, #dc3545);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .pagination .page-item.disabled .page-link {
+    background-color: #151a24;
+    border-color: var(--app-surface-border);
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .list-card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 [class*="mobile-list-card"] {
+    background: var(--app-surface) !important;
+    border-color: var(--app-surface-border) !important;
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card__title,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card__id {
+    color: var(--app-text) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card__subtitle,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card__asunto {
+    color: var(--app-text-muted) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .alert {
+    border-color: transparent;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .modal-content {
+    background-color: #1c2333;
+    color: var(--app-text);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .modal-header,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .modal-footer {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .btn-close {
+    filter: invert(1) grayscale(100%);
+}
+
+/* Collapsed sidebar (desktop) */
+body.app-layout-v2.has-sidebar.closed-sidebar.fixed-sidebar .app-main__outer {
+    padding-left: var(--app-sidebar-width-collapsed);
+}
+
+body.app-layout-v2.closed-sidebar .app-header__logo {
+    width: var(--app-sidebar-width-collapsed);
+    min-width: var(--app-sidebar-width-collapsed);
+    padding: 0.35rem 0.25rem;
+}
+
+body.app-layout-v2.closed-sidebar .app-header__brand-copy {
+    display: none;
+}
+
+body.app-layout-v2.closed-sidebar .app-header__logo-img {
+    max-height: 36px;
+}
+
+body.app-layout-v2.closed-sidebar .app-sidebar {
+    width: var(--app-sidebar-width-collapsed);
+    min-width: var(--app-sidebar-width-collapsed);
+}
+
+body.app-layout-v2.closed-sidebar .nav-menu-label,
+body.app-layout-v2.closed-sidebar .app-sidebar__heading {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
+
+body.app-layout-v2.closed-sidebar .vertical-nav-menu li a {
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+body.app-layout-v2.closed-sidebar .nav-menu-icon {
+    margin: 0;
+}
+
+/* Mobile overlay — sous la sidebar et le header */
+body.app-layout-v2 .sidebar-mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(33, 37, 41, 0.55);
+    z-index: var(--app-z-overlay);
+    pointer-events: none;
+}
+
+body.app-layout-v2.sidebar-mobile-open .sidebar-mobile-overlay {
+    display: block;
+    pointer-events: auto;
+}
+
+body.app-layout-v2.sidebar-mobile-open .app-sidebar {
+    z-index: calc(var(--app-z-overlay) + 1);
+    pointer-events: auto;
+}
+
+/* ---------- Page title (L1-ready, hidden when empty) ---------- */
+
+body.app-layout-v2 .app-page-title {
+    margin-bottom: 1.25rem;
+}
+
+body.app-layout-v2 .app-page-title:not(:has(.page-title-text:not(:empty), .page-title-subheading:not(:empty), .page-title-actions:not(:empty), .page-title-icon:not(:empty))) {
+    display: none;
+}
+
+body.app-layout-v2 .page-title-wrapper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+body.app-layout-v2 .page-title-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    min-width: 0;
+}
+
+body.app-layout-v2 .page-title-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.65rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(220, 53, 69, 0.12);
+    color: var(--primary-red, #dc3545);
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+body.app-layout-v2 .page-title-icon:empty {
+    display: none;
+}
+
+/*
+ * Icônes devant les titres de section — rouge CONNEXIA
+ * Référence : Evolucion de las incidencias (text-danger)
+ */
+body.app-layout-v2 .content-card .card-header h5 > i:first-child,
+body.app-layout-v2 .content-card .card-header h6 > i:first-child,
+body.app-layout-v2 .content-card .card-header > i:first-child,
+body.app-layout-v2 .card .card-header h5 > i:first-child,
+body.app-layout-v2 .card .card-header h6 > i:first-child,
+body.app-layout-v2 .card .card-header > i:first-child,
+body.app-layout-v2 .chart-container h5 > i:first-child,
+body.app-layout-v2 .chart-container h4 > i:first-child,
+body.app-layout-v2 .chart-container .d-flex h5 > i:first-child,
+body.app-layout-v2 .etats-section-card .card-header h5 > i:first-child,
+body.app-layout-v2 .etats-section-card .card-header h6 > i:first-child,
+body.app-layout-v2 .etats-preview-head h5 > i:first-child,
+body.app-layout-v2 .etats-result-card__title > i:first-child,
+body.app-layout-v2 .etats-content-block-title > i:first-child,
+body.app-layout-v2 .card-title > i:first-child,
+body.app-layout-v2 .app-main__content h5.mb-3 > i:first-child,
+body.app-layout-v2 .aide-section-title > i:first-child,
+body.app-layout-v2 .aide-hero-title > i:first-child,
+body.app-layout-v2 .modal-title > i:first-child,
+body.app-layout-v2 .etats-report-legend__summary > i:first-child,
+body.app-layout-v2 .aide-accordion .accordion-button > i:first-child {
+    color: var(--primary-red, #dc3545) !important;
+    opacity: 1 !important;
+}
+
+body.app-layout-v2 .page-title-text {
+    font-size: 1.35rem;
+    /* ArchitectUI headings = 400 ; titre de page légèrement plus marqué pour la hiérarchie métier */
+    font-weight: 500;
+    color: #343a40;
+    line-height: 1.2;
+}
+
+body.app-layout-v2 .page-title-subheading {
+    font-size: 0.88rem;
+    color: #6c757d;
+    margin-top: 0.15rem;
+}
+
+body.app-layout-v2 .page-title-subheading:empty {
+    display: none;
+}
+
+body.app-layout-v2 .page-title-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+body.app-layout-v2 .page-title-actions:empty {
+    display: none;
+}
+
+/* ---------- L1 : Dashboard, Incidents, Clients ---------- */
+
+body.app-layout-v2 .app-main__content > .container-fluid.px-0 {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+body.app-layout-v2 .page-title-actions .dashboard-header-controls {
+    justify-content: flex-end;
+    max-width: min(720px, 100%);
+}
+
+body.app-layout-v2 .page-title-actions .dashboard-period-group {
+    min-width: min(280px, 100%);
+}
+
+body.app-layout-v2 .page-title-actions #period-selector {
+    min-width: 200px;
+}
+
+body.app-layout-v2 .page-title-text #period-title {
+    color: var(--primary-red, #dc3545);
+    font-weight: 600;
+}
+
+body.app-layout-v2 .app-main__content .content-card {
+    border: 1px solid var(--app-surface-border, var(--ui-border, rgba(15, 20, 28, 0.08)));
+    border-radius: var(--ui-radius-sm, 12px);
+    box-shadow: var(--app-surface-shadow, var(--ui-shadow-sm, 0 6px 16px rgba(15, 20, 28, 0.08)));
+    background: var(--app-surface, #fff);
+}
+
+body.app-layout-v2 .app-main__content .content-card > .card-header {
+    background: var(--app-surface, #fff);
+    border-bottom: 1px solid rgba(15, 20, 28, 0.06);
+    color: #343a40;
+}
+
+/*
+ * Titres de section — mode clair
+ * En dark, h1–h5 / .text-dark sont forces en clair (!important).
+ * En light, on reset explicitement pour eviter texte invisible sur fond blanc.
+ */
+html[data-sidebar-theme="light"] body.app-layout-v2 .text-dark,
+html[data-sidebar-theme="light"] body.app-layout-v2 .h1,
+html[data-sidebar-theme="light"] body.app-layout-v2 .h2,
+html[data-sidebar-theme="light"] body.app-layout-v2 .h3,
+html[data-sidebar-theme="light"] body.app-layout-v2 .h4,
+html[data-sidebar-theme="light"] body.app-layout-v2 .h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 h1,
+html[data-sidebar-theme="light"] body.app-layout-v2 h2,
+html[data-sidebar-theme="light"] body.app-layout-v2 h3,
+html[data-sidebar-theme="light"] body.app-layout-v2 h4,
+html[data-sidebar-theme="light"] body.app-layout-v2 h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 h6,
+html[data-app-theme="light"] body.app-layout-v2 .text-dark,
+html[data-app-theme="light"] body.app-layout-v2 h1,
+html[data-app-theme="light"] body.app-layout-v2 h2,
+html[data-app-theme="light"] body.app-layout-v2 h3,
+html[data-app-theme="light"] body.app-layout-v2 h4,
+html[data-app-theme="light"] body.app-layout-v2 h5,
+html[data-app-theme="light"] body.app-layout-v2 h6 {
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header,
+html[data-sidebar-theme="light"] body.app-layout-v2 .app-main__content .content-card > .card-header,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card.content-card > .card-header,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header.bg-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header.border-0.bg-white,
+html[data-app-theme="light"] body.app-layout-v2 .content-card .card-header,
+html[data-app-theme="light"] body.app-layout-v2 .card-header.bg-white {
+    background-color: #fff !important;
+    color: #343a40 !important;
+    border-bottom-color: rgba(15, 20, 28, 0.06);
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header h1,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header h2,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header h3,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header h4,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header h6,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header h1,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header h2,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header h3,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header h4,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header h6,
+html[data-sidebar-theme="light"] body.app-layout-v2 .chart-container h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .chart-container h4,
+html[data-sidebar-theme="light"] body.app-layout-v2 .page-title-text,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-title,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-result-card__title,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-section-card .card-header,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-section-card .card-header h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .aide-section-title,
+html[data-app-theme="light"] body.app-layout-v2 .content-card .card-header h5,
+html[data-app-theme="light"] body.app-layout-v2 .chart-container h5,
+html[data-app-theme="light"] body.app-layout-v2 .page-title-text,
+html[data-app-theme="light"] body.app-layout-v2 .card-title {
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .content-card .card-header .text-muted,
+html[data-sidebar-theme="light"] body.app-layout-v2 .card-header .text-muted,
+html[data-sidebar-theme="light"] body.app-layout-v2 .page-title-subheading,
+html[data-sidebar-theme="light"] body.app-layout-v2 .text-muted,
+html[data-app-theme="light"] body.app-layout-v2 .page-title-subheading,
+html[data-app-theme="light"] body.app-layout-v2 .text-muted {
+    color: #6c757d !important;
+}
+
+/*
+ * Informes — titres de sections coherents en mode clair
+ * (meme langage que content-card : fond blanc, titre sombre)
+ */
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-preview-sticky .card-header,
+html[data-app-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header,
+html[data-app-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header {
+    background: #fff !important;
+    color: #343a40 !important;
+    border-bottom: 1px solid rgba(15, 20, 28, 0.06) !important;
+    border-radius: 0 !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header h6,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header h6,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-preview-sticky .card-header h5,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-result-card__title,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-content-block-title,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-report-section-label,
+html[data-app-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header h5,
+html[data-app-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header h5 {
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header .text-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header .text-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header .text-white-50,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .etats-section-card--dark-header .card-header .text-white-50,
+html[data-app-theme="light"] body.app-layout-v2 .etats-page .etats-section-card .card-header .text-white-50 {
+    color: #6c757d !important;
+}
+
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .card-header.bg-white,
+html[data-sidebar-theme="light"] body.app-layout-v2 .etats-page .card-header.border-0.bg-white {
+    background: #fff !important;
+    color: #343a40 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-main__content .content-card > .card-header {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom-color: var(--app-surface-border, rgba(255, 255, 255, 0.08));
+    color: var(--app-text, #e8eaed);
+}
+
+body.app-layout-v2 .app-main__content .chart-container {
+    background: var(--app-surface, #fff);
+    border: 1px solid var(--app-surface-border, var(--ui-border, rgba(15, 20, 28, 0.08)));
+    border-radius: var(--ui-radius-sm, 12px);
+    box-shadow: var(--app-surface-shadow, var(--ui-shadow-sm, 0 6px 16px rgba(15, 20, 28, 0.08)));
+    padding: 1.25rem;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-main__content .chart-container {
+    background: var(--app-surface, #1a2232);
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.1));
+    box-shadow: var(--app-surface-shadow, 0 4px 18px rgba(0, 0, 0, 0.35));
+}
+
+/* ---------- L2 : Fiches, formulaires, recherche ---------- */
+
+body.app-layout-v2 .app-breadcrumb .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+body.app-layout-v2 .app-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: #adb5bd;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-breadcrumb .breadcrumb-item a {
+    color: #8ab4ff;
+    text-decoration: none;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-breadcrumb .breadcrumb-item a:hover {
+    color: #b6d0ff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-breadcrumb .breadcrumb-item.active {
+    color: var(--app-text-muted, #9aa3b2);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-breadcrumb .breadcrumb-item + .breadcrumb-item::before {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .text-primary,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .font-weight-bold.text-primary {
+    color: #7eb6ff !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .text-gray-800 {
+    color: var(--app-text) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 hr {
+    border-color: rgba(255, 255, 255, 0.08);
+    opacity: 1;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 code {
+    color: #ffb4a2;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+}
+
+@media (max-width: 991.98px) {
+    body.app-layout-v2 .page-title-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.app-layout-v2 .page-title-actions,
+    body.app-layout-v2 .page-title-actions .dashboard-header-controls {
+        width: 100%;
+        max-width: none;
+        justify-content: stretch;
+    }
+
+    body.app-layout-v2 .page-title-actions #period-selector {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+/* ---------- Footer ---------- */
+
+body.app-layout-v2 .app-footer {
+    margin-top: 2rem;
+    padding: 1rem 1.5rem 1.25rem;
+    background: var(--app-footer-bg);
+    border-top: 1px solid var(--app-footer-border);
+}
+
+body.app-layout-v2 .app-footer__copy {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+body.app-layout-v2 .app-footer__meta {
+    font-size: 0.78rem;
+    color: #6c757d;
+}
+
+body.app-layout-v2 .app-footer__version {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* ---------- Flash messages ---------- */
+
+body.app-layout-v2 .app-flash-stack {
+    margin-bottom: 1rem;
+}
+
+/* ---------- Notifications offset (shell v2) ---------- */
+
+@media (max-width: 767.98px) {
+    body.app-layout-v2 .notification-container {
+        top: calc(8px + env(safe-area-inset-top, 0px) + var(--app-header-height, 60px));
+    }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 991.98px) {
+    body.app-layout-v2.has-sidebar.fixed-sidebar .app-main__outer {
+        padding-left: 0;
+    }
+
+    body.app-layout-v2 .app-header {
+        background: var(--app-header-bg);
+        border-bottom: 1px solid var(--app-header-border);
+        box-shadow: var(--app-header-shadow);
+    }
+
+    body.app-layout-v2 .app-header__logo {
+        width: auto;
+        min-width: 0;
+        flex: 0 0 auto;
+        max-width: none;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0;
+        padding: 0.2rem 0.35rem 0.2rem 0.65rem;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    body.app-layout-v2 .app-header__brand {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+        gap: 0;
+        width: auto;
+        max-width: 100%;
+        flex: 0 0 auto;
+    }
+
+    /* Mobile : logo seul — pas de titre / agence */
+    body.app-layout-v2 .app-header__brand-copy {
+        display: none !important;
+    }
+
+    body.app-layout-v2 .app-header__logo-img {
+        max-height: 34px;
+        max-width: 110px;
+        flex-shrink: 0;
+    }
+
+    body.app-layout-v2 .app-header__title,
+    body.app-layout-v2 .app-header__meta {
+        display: none !important;
+    }
+
+    body.app-layout-v2 .app-header__content {
+        flex: 1 1 auto;
+        padding: 0 0.65rem 0 0.25rem;
+        gap: 0;
+        background: transparent;
+        border-bottom: none;
+        box-shadow: none;
+        justify-content: flex-end;
+        min-width: 0;
+    }
+
+    /* Droite mobile : hamburger + theme + cloche + avatar — taille et espacement unifiés */
+    body.app-layout-v2 .app-header-right {
+        --header-action-size: 40px;
+        --header-action-gap: 0.4rem;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: var(--header-action-gap);
+        margin-left: 0;
+        padding: 0;
+    }
+
+    body.app-layout-v2 .app-header-right .app-header__toggle {
+        margin-right: 0;
+        width: var(--header-action-size);
+        height: var(--header-action-size);
+        min-width: var(--header-action-size);
+        min-height: var(--header-action-size);
+        border-radius: 50%;
+        border: 1px solid rgba(15, 20, 28, 0.1);
+        background: rgba(15, 20, 28, 0.04);
+        color: #343a40;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        padding: 0 !important;
+        line-height: 0 !important;
+    }
+
+    body.app-layout-v2 .app-header-right .app-header__toggle.btn-link {
+        text-decoration: none;
+    }
+
+    body.app-layout-v2 .app-header-right .app-header__toggle .hamburger {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 14px;
+        margin: 0;
+        padding: 0;
+    }
+
+    body.app-layout-v2 .app-header-right .app-header__toggle .hamburger-box {
+        width: 18px;
+        height: 14px;
+        margin: 0;
+    }
+
+    body.app-layout-v2 .app-header__theme-btn,
+    body.app-layout-v2 .app-header__icon-btn,
+    body.app-layout-v2 .notification-bell-btn.app-header__icon-btn {
+        width: var(--header-action-size) !important;
+        height: var(--header-action-size) !important;
+        min-width: var(--header-action-size);
+        min-height: var(--header-action-size);
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(15, 20, 28, 0.1) !important;
+        background: rgba(15, 20, 28, 0.04) !important;
+        color: #343a40 !important;
+        box-shadow: none !important;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    body.app-layout-v2 .app-header__theme-btn i,
+    body.app-layout-v2 .app-header__icon-btn i {
+        font-size: 0.95rem;
+        line-height: 1;
+    }
+
+    body.app-layout-v2 .app-header__user {
+        flex-shrink: 0;
+    }
+
+    body.app-layout-v2 .app-header__user-btn {
+        width: var(--header-action-size) !important;
+        height: var(--header-action-size) !important;
+        min-width: var(--header-action-size);
+        min-height: var(--header-action-size);
+        padding: 0 !important;
+        border-radius: 50% !important;
+        border: 1px solid rgba(15, 20, 28, 0.1) !important;
+        background: rgba(15, 20, 28, 0.04) !important;
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        gap: 0 !important;
+        box-shadow: none !important;
+        flex-shrink: 0;
+    }
+
+    body.app-layout-v2 .app-header__user-btn img {
+        width: 28px !important;
+        height: 28px !important;
+        border: none !important;
+    }
+
+    /* Masquer le chevron Bootstrap sur mobile pour un rendu circulaire cohérent */
+    body.app-layout-v2 .app-header__user-btn::after,
+    body.app-layout-v2 .app-header__user-btn.dropdown-toggle::after {
+        display: none !important;
+    }
+
+    body.app-layout-v2 .app-header-right .app-header__toggle:hover,
+    body.app-layout-v2 .app-header-right .app-header__toggle:focus,
+    body.app-layout-v2 .app-header__theme-btn:hover,
+    body.app-layout-v2 .app-header__icon-btn:hover,
+    body.app-layout-v2 .app-header__user-btn:hover {
+        background: rgba(15, 20, 28, 0.1) !important;
+        color: var(--primary-red, #dc3545) !important;
+    }
+
+    /* Dark mobile : même langage visuel pour les 4 actions */
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header-right .app-header__toggle,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header-right .app-header__toggle.btn-link,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__theme-btn,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__icon-btn,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .notification-bell-btn.app-header__icon-btn,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__user-btn {
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-color: rgba(255, 255, 255, 0.14) !important;
+        color: #e8eaed !important;
+    }
+
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header-right .app-header__toggle:hover,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header-right .app-header__toggle:focus,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__theme-btn:hover,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__icon-btn:hover,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__user-btn:hover {
+        background: rgba(255, 255, 255, 0.14) !important;
+        color: #fff !important;
+    }
+
+    body.app-layout-v2 .notification-bell-count {
+        top: 2px;
+        right: 2px;
+        font-size: 0.62rem;
+        min-width: 1rem;
+        padding: 0.15em 0.3em;
+    }
+
+    body.app-layout-v2 .app-sidebar {
+        transform: translateX(calc(-1 * var(--app-sidebar-width)));
+    }
+
+    body.app-layout-v2.sidebar-mobile-open .app-sidebar {
+        transform: translateX(0);
+    }
+
+    body.app-layout-v2.closed-sidebar .app-header__logo {
+        width: auto;
+        min-width: 0;
+        max-width: none;
+    }
+
+    body.app-layout-v2.closed-sidebar .app-header__brand-copy {
+        display: none;
+    }
+
+    body.app-layout-v2.closed-sidebar .app-sidebar {
+        width: var(--app-sidebar-width);
+        min-width: var(--app-sidebar-width);
+    }
+
+    body.app-layout-v2.closed-sidebar .nav-menu-label,
+    body.app-layout-v2.closed-sidebar .app-sidebar__heading {
+        opacity: 1;
+        width: auto;
+    }
+
+    body.app-layout-v2.closed-sidebar .vertical-nav-menu li a {
+        justify-content: flex-start;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.app-layout-v2 .app-sidebar,
+    body.app-layout-v2 .app-main__outer,
+    body.app-layout-v2 .app-header,
+    body.app-layout-v2 .hamburger-inner,
+    body.app-layout-v2 .hamburger-inner::before,
+    body.app-layout-v2 .hamburger-inner::after {
+        transition: none !important;
+    }
+}
+
+/* ---------- L4 : Aide, erreurs, polish toasts / modal ---------- */
+
+body.app-layout-v2 .aide-page .aide-hero {
+    margin-left: -1.25rem;
+    margin-right: -1.25rem;
+    margin-top: -0.25rem;
+    border-radius: 0;
+}
+
+@media (min-width: 992px) {
+    body.app-layout-v2 .aide-page .aide-hero {
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+    }
+}
+
+/* ---------- Aide : mode dark (contenu) ---------- */
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page {
+    --aide-border: var(--app-surface-border, rgba(255, 255, 255, 0.08));
+    --aide-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.28);
+    --aide-shadow-md: 0 10px 28px rgba(0, 0, 0, 0.36);
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-card,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-card-admin,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-card-support {
+    background: var(--app-surface, #1c2333) !important;
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.08)) !important;
+    color: var(--app-text, #e8eaed);
+    box-shadow: var(--aide-shadow-sm);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-card-admin {
+    background:
+        linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(40, 167, 69, 0) 55%),
+        var(--app-surface, #1c2333) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-card-support {
+    background:
+        radial-gradient(circle at 80% 0%, rgba(220, 53, 69, 0.18) 0%, transparent 60%),
+        var(--app-surface, #1c2333) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-list li + li {
+    border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link {
+    color: var(--app-text, #e8eaed);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link i {
+    color: var(--app-text-muted, #9aa3b2);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link:hover {
+    background: rgba(220, 53, 69, 0.14);
+    color: #ff8a95;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link:hover i,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link.active,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link.active i {
+    color: #ff8a95;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-link.active {
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.22) 0%, rgba(220, 53, 69, 0) 100%);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-mobile .accordion-button,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-mobile .accordion-item,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-mobile .accordion-body {
+    background: var(--app-surface, #1c2333) !important;
+    color: var(--app-text, #e8eaed) !important;
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-mobile .accordion-button:not(.collapsed) {
+    background: rgba(220, 53, 69, 0.16) !important;
+    color: #ff8a95 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-toc-mobile .accordion-button::after {
+    filter: invert(1) brightness(1.4);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-head {
+    border-bottom-color: var(--app-surface-border, rgba(255, 255, 255, 0.08));
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-title,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-body,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-admin-tech-title,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-tech-value,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-feature strong {
+    color: var(--app-text, #e8eaed) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-lead,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-feature p,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-support-meta,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-tech-key {
+    color: var(--app-text-muted, #9aa3b2) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-icon {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.28) 0%, rgba(220, 53, 69, 0.1) 100%);
+    border-color: rgba(220, 53, 69, 0.35);
+    box-shadow: none;
+    color: #ff8a95;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-icon-faq {
+    background: linear-gradient(135deg, rgba(63, 106, 216, 0.28) 0%, rgba(63, 106, 216, 0.1) 100%);
+    border-color: rgba(63, 106, 216, 0.35);
+    color: #8ab4ff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-icon-admin {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.28) 0%, rgba(40, 167, 69, 0.1) 100%);
+    border-color: rgba(40, 167, 69, 0.35);
+    color: #6ddf8c;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-feature {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.08));
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-feature:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(220, 53, 69, 0.4);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-list li {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-faq .accordion-item {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-faq .accordion-button {
+    background: transparent !important;
+    color: var(--app-text, #e8eaed) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-faq .accordion-button:not(.collapsed) {
+    background: linear-gradient(90deg, rgba(220, 53, 69, 0.2) 0%, rgba(220, 53, 69, 0) 100%) !important;
+    color: #ff8a95 !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-faq .accordion-button::after {
+    filter: invert(1) brightness(1.4);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-faq .accordion-body {
+    background: rgba(0, 0, 0, 0.22) !important;
+    color: var(--app-text-muted, #9aa3b2) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-admin-tech,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-admin-migration {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-admin-migration {
+    background:
+        linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 193, 7, 0) 60%),
+        rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 193, 7, 0.35) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-tech-list li {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-tech-value code {
+    background: rgba(220, 53, 69, 0.2);
+    color: #ff8a95;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-admin-pill {
+    color: #6ddf8c;
+    background: rgba(40, 167, 69, 0.2);
+    border-color: rgba(40, 167, 69, 0.4);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-no-results {
+    background: rgba(255, 193, 7, 0.12) !important;
+    color: #f5e6a8 !important;
+    border-color: rgba(255, 193, 7, 0.35) !important;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-back-to-top {
+    background: var(--app-surface, #1c2333);
+    border-color: var(--app-surface-border, rgba(255, 255, 255, 0.12));
+    color: var(--app-text, #e8eaed);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-back-to-top:hover {
+    background: rgba(220, 53, 69, 0.85);
+    border-color: #dc3545;
+    color: #fff;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page em,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page strong {
+    color: inherit;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-faq .accordion-body strong,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .aide-page .aide-section-body strong {
+    color: #f1f3f5;
+}
+
+body.app-layout-v2 .error-page-code {
+    font-size: clamp(3.5rem, 8vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+}
+
+body.app-layout-v2 .error-page-card {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body.app-layout-v2 .notification-container {
+    z-index: var(--app-z-toast, 1100);
+}
+
+body.app-layout-v2 #session-timeout-modal {
+    z-index: calc(var(--app-z-modal, 1050) + 5);
+}
+
+@media (max-width: 767.98px) {
+    body.app-layout-v2 .notification-container {
+        top: calc(8px + env(safe-area-inset-top, 0px) + var(--app-header-height, 80px));
+    }
+
+    body.app-layout-v2 .app-main__inner {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+    }
+
+    body.app-layout-v2 .page-title-wrapper {
+        gap: 0.75rem;
+    }
+
+    body.app-layout-v2 .page-title-actions {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+    }
+}

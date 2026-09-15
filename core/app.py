@@ -194,7 +194,7 @@ def inject_conf_vars():
         'moment': datetime,
         'current_time': datetime.now().strftime('%d/%m/%Y à %H:%M'),
         'app_name': app.config.get('APP_NAME', 'FCC_001'),
-        'app_version': app.config.get('APP_VERSION', '1.0.0'),
+        'app_version': app.config.get('APP_VERSION', '2.0.0'),
         'SESSION_IDLE_TIMEOUT_SECONDS': idle_timeout_seconds,
         'SESSION_WARNING_BEFORE_SECONDS': warning_before_seconds,
         'bitrix_api_enabled': bitrix_api_enabled(),

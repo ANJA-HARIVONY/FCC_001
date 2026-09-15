@@ -2,68 +2,58 @@
 
 {% block title %}Dashboard - Atencion al cliente{% endblock %}
 
-{% block content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="dashboard-header d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h2 text-dark mb-0">
-                        <i class="fa fa-tachometer text-danger me-2"></i>
-                        Dashboard - <span id="period-title">Semana en curso</span>
-                    </h1>
-                    <p class="text-muted">Vista general de las incidencias y estadísticas</p>
-                </div>
-                <div class="dashboard-header-controls d-flex align-items-center">
-                    <!-- Sélecteur de période -->
-                    <div class="dashboard-period-group me-4">
-                        <label for="period-selector" class="form-label mb-0 me-2 text-muted">Período:</label>
-                        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
-                            <option value="current_month">Mes en curso</option>
-                            <option value="current_week" selected>Semana en curso</option>
-                            <option value="last_week">Semana pasada</option>
-                            <option value="last_3_months">Últimos 3 meses</option>
-                            <option value="last_month">Mes anterior</option>
-                            <option value="last_6_months">Últimos 6 meses</option>
-                            <option value="current_year">Año en curso</option>
-                            <option value="all_data">Todos los datos</option>
-                        </select>
-                        <div class="d-flex align-items-center gap-3 mt-2">
-                            <div class="form-check mb-0">
-                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
-                                <label class="form-check-label small text-muted" for="remember-filters-toggle">
-                                    Memorizar filtros en este panel
-                                </label>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters-btn">
-                                <i class="fas fa-undo-alt me-1"></i>Reiniciar filtros
-                            </button>
-                        </div>
-                        <div id="filters-feedback" class="small text-success mt-1 d-none">
-                            <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
-                        </div>
-                    </div>
-                    <!-- Auto-actualización -->
-                    <div class="text-end">
-                        <div class="small text-muted mb-1">
-                            <i class="fas fa-sync-alt me-1"></i>
-                            Auto-actualización cada 5 min
-                        </div>
-                        <div class="refresh-indicator">
-                            <span class="badge bg-success" id="refresh-status">
-                                <i class="fas fa-circle pulse me-1"></i>
-                                Activo
-                            </span>
-                            <div class="small text-muted mt-1">
-                                Próxima actualización: <span id="next-refresh"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+{% block page_icon %}<i class="fa fa-tachometer-alt" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Dashboard — <span id="period-title">Semana en curso</span>{% endblock %}
+{% block page_subtitle %}Vista general de las incidencias y estadísticas{% endblock %}
+{% block page_actions %}
+<div class="dashboard-header-controls d-flex align-items-center flex-wrap gap-3">
+    <div class="dashboard-period-group">
+        <label for="period-selector" class="form-label mb-0 me-2 text-muted small">Período:</label>
+        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
+            <option value="current_month">Mes en curso</option>
+            <option value="current_week" selected>Semana en curso</option>
+            <option value="last_week">Semana pasada</option>
+            <option value="last_3_months">Últimos 3 meses</option>
+            <option value="last_month">Mes anterior</option>
+            <option value="last_6_months">Últimos 6 meses</option>
+            <option value="current_year">Año en curso</option>
+            <option value="all_data">Todos los datos</option>
+        </select>
+        <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
+            <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
+                <label class="form-check-label small text-muted" for="remember-filters-toggle">
+                    Memorizar filtros en este panel
+                </label>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters-btn">
+                <i class="fas fa-undo-alt me-1"></i>Reiniciar filtros
+            </button>
+        </div>
+        <div id="filters-feedback" class="small text-success mt-1 d-none">
+            <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+        </div>
+    </div>
+    <div class="dashboard-refresh-panel text-md-end">
+        <div class="small text-muted mb-1">
+            <i class="fas fa-sync-alt me-1"></i>
+            Auto-actualización cada 5 min
+        </div>
+        <div class="refresh-indicator">
+            <span class="badge bg-success" id="refresh-status">
+                <i class="fas fa-circle pulse me-1"></i>
+                Activo
+            </span>
+            <div class="small text-muted mt-1">
+                Próxima actualización: <span id="next-refresh"></span>
             </div>
         </div>
     </div>
+</div>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
     <!-- Cartes de statistiques -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
         <div class="col">
@@ -1523,12 +1513,6 @@ function initOperateursChart() {
 }
 
 @media (max-width: 991.98px) {
-    .dashboard-header {
-        flex-direction: column;
-        align-items: stretch !important;
-        gap: 0.75rem;
-    }
-
     .dashboard-header-controls {
         flex-direction: column;
         align-items: stretch !important;
@@ -1537,11 +1521,10 @@ function initOperateursChart() {
     }
 
     .dashboard-period-group {
-        margin-right: 0 !important;
         width: 100%;
     }
 
-    .dashboard-header-controls .text-end {
+    .dashboard-refresh-panel {
         text-align: left !important;
     }
 }

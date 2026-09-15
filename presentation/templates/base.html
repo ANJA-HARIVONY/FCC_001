@@ -1,252 +1,102 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Registro de Atención al cliente{% endblock %}</title>
-    
+
+    <script>
+        (function () {
+            var theme = localStorage.getItem('sidebarTheme') === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-sidebar-theme', theme);
+            document.documentElement.setAttribute('data-app-theme', theme);
+        })();
+    </script>
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16x16.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-    
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/layout-shell.css') }}" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark app-shell-nav">
-        <div class="container">
-            <a class="navbar-brand text-danger fw-bold d-flex flex-column align-items-center" href="{{ url_for('dashboard') }}">
-                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="logo" width="170px" height="60px" >
-                    <span class="text-white fw-lighter" style="font-size: 15px; margin-top: -5px;">Registro de Atencion al cliente{% if current_user.is_authenticated %} - {{ current_user.agencia.nombre if current_user.agencia else 'N/A' }} / {{ current_user.ciudad.nombre if current_user.ciudad else 'N/A' }}{% endif %}</span>
-                    </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                {% set ep = request.endpoint or '' %}
-                {% set nav_incidents = ['incidents', 'nouveau_incident', 'fiche_incident', 'modifier_incident'] %}
-                {% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print'] %}
-                {% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
-                {% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
-                {% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
-                {% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
-                {% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
-                {% set nav_user_menu_active = ep in (['perfil', 'aide'] + nav_usuarios + nav_audit + nav_bdd) %}
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link{% if ep == 'dashboard' %} active{% endif %}"
-                           href="{{ url_for('dashboard') }}"
-                           {% if ep == 'dashboard' %}aria-current="page"{% endif %}>
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link{% if ep in nav_incidents %} active{% endif %}"
-                           href="{{ url_for('incidents') }}"
-                           {% if ep in nav_incidents %}aria-current="page"{% endif %}>
-                            <i class="fa fa-ticket me-1"></i>Incidencias
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link{% if ep in nav_clients %} active{% endif %}"
-                           href="{{ url_for('clients') }}"
-                           {% if ep in nav_clients %}aria-current="page"{% endif %}>
-                            <i class="fa fa-user me-1"></i>Clientes
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link{% if ep in nav_etats %} active{% endif %}"
-                           href="{{ url_for('etats') }}"
-                           {% if ep in nav_etats %}aria-current="page"{% endif %}>
-                            <i class="fas fa-chart-bar me-1"></i>Informes
-                        </a>
-                    </li>
-                    {% if current_user.is_authenticated and current_user.is_admin() %}
-                    <li class="nav-item">
-                        <a class="nav-link{% if ep in nav_materiales %} active{% endif %}"
-                           href="{{ url_for('materiales_hub') }}"
-                           {% if ep in nav_materiales %}aria-current="page"{% endif %}>
-                            <i class="fas fa-toolbox me-1"></i>Materiales
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-                {% if current_user.is_authenticated %}
-                {% set av = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default_avatar.png') %}
-                <div class="dropdown me-2" id="comment-notifications-dropdown">
-                    <button class="btn btn-outline-light btn-sm notification-bell-btn position-relative" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Notificaciones">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-bell-count badge rounded-pill bg-danger d-none" id="comment-notification-count">0</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-end notification-menu" id="comment-notification-menu">
-                        <div class="dropdown-header d-flex align-items-center justify-content-between">
-                            <span>Notificaciones</span>
-                            <span class="badge bg-danger d-none" id="comment-notification-header-count">0</span>
-                        </div>
-                        <div id="comment-notification-list">
-                            <div class="dropdown-item-text small text-muted">No hay notificaciones sin leer.</div>
+<body class="app-layout-v2 app-theme-connexia fixed-sidebar fixed-header{% if current_user.is_authenticated %} has-sidebar{% endif %}">
+    <script>
+        (function () {
+            if (localStorage.getItem('sidebarCollapsed') === '1' && window.matchMedia('(min-width: 992px)').matches) {
+                document.body.classList.add('closed-sidebar');
+            }
+        })();
+    </script>
+    <div class="app-container">
+        {% include 'partials/_header.html' %}
+
+        <div class="app-main">
+            {% include 'partials/_sidebar.html' %}
+
+            <div class="app-main__outer">
+                <div class="app-main__inner">
+                    <div class="app-page-title">
+                        <div class="page-title-wrapper">
+                            <div class="page-title-heading">
+                                <div class="page-title-icon">{% block page_icon %}{% endblock %}</div>
+                                <div class="page-title-copy">
+                                    <div class="page-title-text">{% block page_title %}{% endblock %}</div>
+                                    <div class="page-title-subheading">{% block page_subtitle %}{% endblock %}</div>
+                                </div>
+                            </div>
+                            <div class="page-title-actions">{% block page_actions %}{% endblock %}</div>
                         </div>
                     </div>
-                </div>
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle d-flex align-items-center gap-2{% if nav_user_menu_active %} active{% endif %}" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="{{ av }}" alt="" class="rounded-circle border border-secondary" width="32" height="32" style="object-fit:cover;">
-                        <span class="small d-none d-md-inline">{{ current_user.nom }}</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li>
-                            <a class="dropdown-item{% if ep == 'perfil' %} active{% endif %}"
-                               href="{{ url_for('perfil') }}"
-                               {% if ep == 'perfil' %}aria-current="page"{% endif %}>
-                                <i class="fas fa-user-cog me-2"></i>Perfil
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><h6 class="dropdown-header"><i class="fas fa-shield-alt me-2"></i>Administracion</h6></li>
-                        {% if current_user.is_authenticated and current_user.is_admin() %}
-                        <li>
-                            <a class="dropdown-item{% if ep in nav_usuarios %} active{% endif %}"
-                               href="{{ url_for('usuarios') }}"
-                               {% if ep in nav_usuarios %}aria-current="page"{% endif %}>
-                                <i class="fas fa-users me-2"></i>Usuarios
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item{% if ep in nav_audit %} active{% endif %}"
-                               href="{{ url_for('audit_log') }}"
-                               {% if ep in nav_audit %}aria-current="page"{% endif %}>
-                                <i class="fas fa-clipboard-list me-2"></i>Trazabilidad
-                            </a>
-                        </li>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="app-flash-stack">
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
                         {% endif %}
-                        <li>
-                            <a class="dropdown-item{% if ep in nav_bdd %} active{% endif %}"
-                               href="{{ url_for('base_de_datos') }}"
-                               {% if ep in nav_bdd %}aria-current="page"{% endif %}>
-                                <i class="fas fa-database me-2"></i>Base de datos
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item{% if ep == 'aide' %} active{% endif %}"
-                               href="{{ url_for('aide') }}"
-                               {% if ep == 'aide' %}aria-current="page"{% endif %}>
-                                <i class="fas fa-question-circle me-2"></i>Ayuda
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Salir
-                            </a>
-                        </li>
-                    </ul>
+                    {% endwith %}
+
+                    <main class="app-main__content page-enter">
+                        {% block content %}{% endblock %}
+                    </main>
                 </div>
-                {% endif %}
-                <!-- Sélecteur de langue 
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-globe me-1"></i>
-                        {% if CURRENT_LANGUAGE == 'fr' %}Français
-                        {% elif CURRENT_LANGUAGE == 'es' %}Español
-                        {% elif CURRENT_LANGUAGE == 'en' %}English
-                        {% endif %}
-                    </button>
-                    <ul class="dropdown-menu">
-                        {% for code, name in LANGUAGES.items() %}
-                            <li>
-                                <a class="dropdown-item {% if CURRENT_LANGUAGE == code %}active{% endif %}" 
-                                   href="{{ url_for('set_language', language=code) }}">
-                                    {% if code == 'fr' %}🇫🇷 Français
-                                    {% elif code == 'es' %}🇪🇸 Español
-                                    {% elif code == 'en' %}🇬🇧 English
-                                    {% endif %}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                
-                
-                <form class="d-flex" method="GET" action="{{ url_for('recherche') }}">
-                    <input class="form-control me-2" type="search" name="q" placeholder="{{ _('Buscar un cliente o un incidente...') }}" aria-label="Search">
-                    <button class="btn btn-outline-danger" type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-                -->
-                <!-- Horloge -->
-                <div class="clock">
-                    <span id="clock-hours"></span>:
-                    <span id="clock-minutes"></span>:
-                    <span id="clock-seconds"></span>
-                </div>
-                <script>
-                    function updateClock() {
-                        const now = new Date();
-                        const hours = now.getHours().toString().padStart(2, '0');
-                        const minutes = now.getMinutes().toString().padStart(2, '0');
-                        const seconds = now.getSeconds().toString().padStart(2, '0');
-                        document.getElementById('clock-hours').textContent = hours;
-                        document.getElementById('clock-minutes').textContent = minutes;
-                        document.getElementById('clock-seconds').textContent = seconds;
-                    }
-                    setInterval(updateClock, 1000);
-                </script>
+
+                {% include 'partials/_footer.html' %}
             </div>
         </div>
-    </nav>
+    </div>
 
-    <!-- Contenedor de Notificaciones Toast -->
+    <div class="sidebar-mobile-overlay" aria-hidden="true"></div>
+
     <div id="notification-container" class="notification-container" role="region" aria-live="polite" aria-label="Notificaciones de incidencias pendientes"></div>
 
-    <!-- Messages Flash -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container mt-3">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
-
-    <!-- Contenu principal -->
-    <main class="container-fluid py-4 page-enter">
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Footer -->
-    <footer class="app-shell-footer text-white text-center py-4 mt-5">
-        <div class="container">
-            <p class="mb-2 fw-medium">&copy; 2026 CONNEXIA - Registro de Atención al cliente - Reservados todos los derechos</p>
-            <p class="mb-1 text-footer-muted">Telefono: 222 304 981</p>
-            <p class="mb-0 text-footer-muted">Email: anjaharivoni@gmail.com | jefe.incidencias@conexxiaeg.com</p>
-        </div>
-    </footer>
+    {% block modals %}{% endblock %}
 
     {% if current_user.is_authenticated %}
     <div class="modal fade" id="session-timeout-modal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Session bientôt expirée</h5>
+                    <h5 class="modal-title">Sesión a punto de expirar</h5>
                 </div>
                 <div class="modal-body">
-                    Votre session va expirer dans 2 minutes pour inactivité.
+                    Su sesión expirará en 2 minutos por inactividad.
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="session-logout-now">Se déconnecter</button>
-                    <button type="button" class="btn btn-primary" id="session-stay-connected">Rester connecté</button>
+                    <button type="button" class="btn btn-secondary" id="session-logout-now">Cerrar sesión</button>
+                    <button type="button" class="btn btn-primary" id="session-stay-connected">Seguir conectado</button>
                 </div>
             </div>
         </div>
@@ -262,6 +112,7 @@
     {% endif %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app-shell.js') }}"></script>
     <script src="{{ url_for('static', filename='js/csrf.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
     {% if current_user.is_authenticated %}

@@ -2,25 +2,22 @@
 
 {% block title %}Verificación de Conectividad - {{ client.nom }}{% endblock %}
 
-{% block content %}
-<div class="container-md min-vh-100">
-    <!-- En-tête -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0 text-gray-800">
-            <i class="fas fa-network-wired"></i> Verificación de Conectividad - {{ client.nom }}
-        </h1>
-        <div>
-            <a href="{{ url_for('incident', id=incident.id, client_id=client.id) }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left"></i> Volver
-            </a>
-            <a href="{{ url_for('verificar_cliente', id=client.id) }}" class="btn btn-primary">
-                <i class="fas fa-sync-alt"></i> Verificar de Nuevo
-            </a>
-        </div>
-    </div>
+{% block page_icon %}<i class="fas fa-network-wired" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}Verificación de Conectividad{% endblock %}
+{% block page_subtitle %}{{ client.nom }}{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('fiche_client', id=client.id) }}" class="btn btn-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>Volver
+</a>
+<a href="{{ url_for('verificar_cliente', id=client.id) }}" class="btn btn-primary btn-sm">
+    <i class="fas fa-sync-alt me-1"></i>Verificar de Nuevo
+</a>
+{% endblock %}
 
+{% block content %}
+<div class="container-fluid px-0">
     <!-- Información del Cliente -->
-    <div class="card shadow mb-4">
+    <div class="card shadow mb-4 content-card">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-4">
