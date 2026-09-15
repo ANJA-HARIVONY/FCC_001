@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Clients - Atencion al cliente{% endblock %}
+{% block title %}Clientes - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fas fa-users" aria-hidden="true"></i>{% endblock %}
-{% block page_title %}Gestion de Clientes{% endblock %}
-{% block page_subtitle %}Lista y gestion de clientes{% endblock %}
+{% block page_title %}Gestión de clientes{% endblock %}
+{% block page_subtitle %}Listado y gestión de clientes{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary btn-sm">
     <i class="fas fa-plus me-1"></i>Nuevo Cliente
@@ -88,7 +88,7 @@
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
                                     <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
-                                        Memorizar filtros
+                                        Recordar filtros
                                     </label>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-sm">
@@ -97,6 +97,14 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-clients">
                                     <i class="fas fa-undo-alt me-1"></i>Reiniciar
                                 </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <a href="{{ url_for('api_clients_export_xlsx', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter, categoria=categoria_filter, sort=sort_by, order=sort_order) }}"
+                                   class="btn btn-outline-success btn-sm"
+                                   title="Exportar Excel (página actual)">
+                                    <i class="fas fa-file-excel"></i>
+                                </a>
                             </div>
                         </div>
                     </form>
@@ -114,7 +122,7 @@
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>
-                        Lista de los clientes 
+                        Lista de clientes 
                         {% if clients.items %}
                             ({{ clients.total }} total{% if search_query or ville_filter or ciudad_filter or categoria_filter %} - {{ clients.items|length }} mostrados{% endif %})
                         {% endif %}
@@ -126,6 +134,13 @@
                     {% endif %}
                 </div>
                 <div class="card-body p-0">
+                    <div id="clients-export-meta"
+                         class="d-none"
+                         data-page="{{ clients.page }}"
+                         data-pages="{{ clients.pages or 1 }}"
+                         data-per-page="{{ per_page }}"
+                         data-total="{{ clients.total }}"
+                         aria-hidden="true"></div>
                     {% if clients.items %}
                     <div class="table-responsive d-none d-lg-block d-print-block">
                         <table class="table table-hover mb-0 clients-table">
@@ -182,7 +197,17 @@
                             </thead>
                             <tbody>
                                 {% for client in clients.items %}
-                                <tr>
+                                <tr class="client-export-row"
+                                    data-export-id="#{{ client.id }}"
+                                    data-export-categoria="{{ categoria_cliente_labels.get(client.categoria, client.categoria)|e }}"
+                                    data-export-nombre="{{ client.nom|e }}"
+                                    data-export-telefono="{{ (client.telephone or '')|e }}"
+                                    data-export-direccion="{{ (client.adresse or '')|replace('\n', ' ')|e }}"
+                                    data-export-barrio="{{ (client.ville or '')|e }}"
+                                    data-export-ciudad="{{ (client.ciudad_row.nombre if client.ciudad_row else '')|e }}"
+                                    data-export-ip-router="{{ (client.ip_router or '')|e }}"
+                                    data-export-ip-antea="{{ (client.ip_antea or '')|e }}"
+                                    data-export-incidencias="{{ client.incidents|length }}">
                                     <td><strong>#{{ client.id }}</strong></td>
                                     <td class="col-categoria-icon text-center">
                                         {% include '_cliente_corporativo_icon.html' %}
@@ -242,7 +267,7 @@
                     <!-- Pagination -->
                     {% if clients.pages > 1 %}
                     <div class="card-footer">
-                        <nav aria-label="Pagination des clients">
+                        <nav aria-label="Paginación de clientes">
                             <ul class="pagination justify-content-center mb-0">
                                 <!-- Bouton Précédent -->
                                 {% if clients.has_prev %}
@@ -317,7 +342,7 @@
                             <h5 class="text-muted">No hay clientes registrados</h5>
                             <p class="text-muted">Comience agregando su primer cliente</p>
                             <a href="{{ url_for('nouveau_client') }}" class="btn btn-primary">
-                                <i class="fas fa-plus me-1"></i>Agregar un cliente
+                                <i class="fas fa-plus me-1"></i>Añadir cliente
                             </a>
                         {% endif %}
                     </div>
@@ -337,7 +362,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Está seguro de querer eliminar el cliente <strong id="clientNom"></strong> ?</p>
+                <p>¿Está seguro de que desea eliminar el cliente <strong id="clientNom"></strong> ?</p>
                 <p class="text-danger"><small>Esta acción es irreversible.</small></p>
             </div>
             <div class="modal-footer">
@@ -353,6 +378,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
 <script>
 function confirmerSuppression(button) {
     const clientId = button.getAttribute('data-client-id');

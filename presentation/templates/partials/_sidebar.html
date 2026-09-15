@@ -9,7 +9,7 @@
 {% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
 {% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
 {% set nav_operateurs = ['operateurs', 'nouveau_operateur', 'modifier_operateur'] %}
-<aside class="app-sidebar sidebar-shadow" id="app-sidebar" aria-label="Navegacion principal">
+<aside class="app-sidebar sidebar-shadow" id="app-sidebar" aria-label="Navegación principal">
     <div class="scrollbar-sidebar">
         <div class="app-sidebar__inner">
             <ul class="vertical-nav-menu">
@@ -58,7 +58,7 @@
                     </a>
                 </li>
 
-                <li class="app-sidebar__heading">Administracion</li>
+                <li class="app-sidebar__heading">Administración</li>
                 <li class="{% if ep in nav_usuarios %}mm-active{% endif %}">
                     <a href="{{ url_for('usuarios') }}"
                        class="{% if ep in nav_usuarios %}mm-active active{% endif %}"

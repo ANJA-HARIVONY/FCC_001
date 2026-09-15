@@ -5,7 +5,7 @@
         <a class="app-header__brand" href="{{ url_for('dashboard') }}">
             <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="app-header__logo-img">
             <span class="app-header__brand-copy">
-                <span class="app-header__title">Registro de Atencion al cliente</span>
+                <span class="app-header__title">Registro de Atención al cliente</span>
                 <span class="app-header__meta">
                     {{ current_user.agencia.nombre if current_user.agencia else 'N/A' }}
                     /
@@ -24,7 +24,7 @@
             <button type="button"
                     class="btn btn-link app-header__toggle p-0"
                     id="sidebar-toggle"
-                    aria-label="Alternar menu lateral"
+                    aria-label="Alternar menú lateral"
                     aria-controls="app-sidebar"
                     aria-expanded="false">
                 <span class="hamburger hamburger--elastic" aria-hidden="true">
@@ -37,8 +37,8 @@
             <button type="button"
                     class="btn btn-light btn-sm app-header__theme-btn"
                     id="sidebar-theme-toggle"
-                    aria-label="Cambiar tema de la aplicacion"
-                    title="Cambiar tema de la aplicacion">
+                    aria-label="Cambiar tema de la aplicación"
+                    title="Cambiar tema de la aplicación">
                 <i class="fas fa-sun theme-icon-light" aria-hidden="true"></i>
                 <i class="fas fa-moon theme-icon-dark" aria-hidden="true"></i>
             </button>

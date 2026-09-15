@@ -4,15 +4,15 @@
     <h6 class="etats-report-section-label mb-3">Indicadores clave del período</h6>
     <div class="etats-kpi-grid">
         {% if 'TOTAL_INCIDENTS' in contenu.kpis_cles %}
-        <div class="etats-report-kpi-card" title="Número total de incidentes registrados en el período">
+        <div class="etats-report-kpi-card" title="Número total de incidencias registradas en el período">
             <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.TOTAL_INCIDENTS }}</span>
-            <span class="etats-report-kpi-card__label">Total incidentes</span>
+            <span class="etats-report-kpi-card__label">Total incidencias</span>
             <span class="etats-report-kpi-card__hint">Todos los registros considerados</span>
         </div>
         {% elif 'TOTAL_INCIDENTES' in contenu.kpis_cles %}
-        <div class="etats-report-kpi-card" title="Número total de incidentes registrados en el período">
+        <div class="etats-report-kpi-card" title="Número total de incidencias registradas en el período">
             <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.TOTAL_INCIDENTES }}</span>
-            <span class="etats-report-kpi-card__label">Total incidentes</span>
+            <span class="etats-report-kpi-card__label">Total incidencias</span>
             <span class="etats-report-kpi-card__hint">Todos los registros considerados</span>
         </div>
         {% endif %}
@@ -50,7 +50,7 @@
         </div>
         {% endif %}
         {% if 'TAUX_RESOLUTION' in contenu.kpis_cles %}
-        <div class="etats-report-kpi-card etats-report-kpi-card--accent" title="Porcentaje de incidentes resueltos (Solucionadas) sobre el total">
+        <div class="etats-report-kpi-card etats-report-kpi-card--accent" title="Porcentaje de incidencias resueltas (Solucionadas) sobre el total">
             <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.TAUX_RESOLUTION }}</span>
             <span class="etats-report-kpi-card__label">Tasa de resolución</span>
             <span class="etats-report-kpi-card__hint">Solucionadas / total</span>

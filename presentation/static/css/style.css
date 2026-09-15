@@ -30,11 +30,18 @@
     --ui-shadow-lg: 0 24px 60px rgba(15, 20, 28, 0.18);
     --ui-border: rgba(15, 20, 28, 0.08);
 
-    /* Degrades des pastilles d'icones KPI (alignes sur .aide-section-icon*) */
+    /* Degrades des pastilles d'icones KPI (Informes / aide) */
     --kpi-gradient-registered: linear-gradient(135deg, rgba(220, 53, 69, 0.14) 0%, rgba(220, 53, 69, 0.04) 100%);
     --kpi-gradient-resolved: linear-gradient(135deg, rgba(40, 167, 69, 0.14) 0%, rgba(40, 167, 69, 0.04) 100%);
     --kpi-gradient-pending: linear-gradient(135deg, rgba(255, 193, 7, 0.16) 0%, rgba(255, 193, 7, 0.05) 100%);
     --kpi-gradient-bitrix: linear-gradient(135deg, rgba(13, 110, 253, 0.12) 0%, rgba(13, 110, 253, 0.04) 100%);
+
+    /* Carres d'icone KPI dashboard (widget ArchitectUI : fond uni + icone sombre) */
+    --kpi-icon-fg: #111111;
+    --kpi-icon-registered: #f7b924;
+    --kpi-icon-resolved: #3ac47d;
+    --kpi-icon-pending: #fd7e14;
+    --kpi-icon-bitrix: #3f6ad8;
 
     /* Pastilles grille tipos Informes (memes degrades que les KPI du dashboard, alias traçabilité etats/) */
     --etats-gradient-summary: var(--kpi-gradient-registered);
@@ -141,107 +148,103 @@ main.page-enter {
     background-color: rgba(220, 53, 69, 0.08);
 }
 
-/* Cartes de statistiques - rendu premium aligne sur .aide-section-card */
+/* Cartes KPI dashboard — widget ArchitectUI (icone carree a gauche, libelle + chiffre) */
 .stat-card {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     background-color: var(--white);
-    background: var(--glass-bg);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    border: 1px solid var(--ui-border);
-    border-left: 4px solid var(--primary-red);
-    border-radius: var(--ui-radius);
-    box-shadow: var(--ui-shadow-sm);
+    border: 0;
+    border-radius: 16px;
+    box-shadow: 0 0.46875rem 2.1875rem rgba(4, 9, 20, 0.03),
+                0 0.9375rem 1.40625rem rgba(4, 9, 20, 0.03),
+                0 0.25rem 0.53125rem rgba(4, 9, 20, 0.05),
+                0 0.125rem 0.1875rem rgba(4, 9, 20, 0.03);
     transition: transform var(--anim-base) var(--anim-ease),
-                box-shadow var(--anim-base) var(--anim-ease),
-                border-color var(--anim-base) var(--anim-ease);
+                box-shadow var(--anim-base) var(--anim-ease);
 }
 
 .stat-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--ui-shadow-md);
+    box-shadow: 0 0.56875rem 2.3875rem rgba(4, 9, 20, 0.06),
+                0 1.0375rem 1.60625rem rgba(4, 9, 20, 0.05),
+                0 0.35rem 0.73125rem rgba(4, 9, 20, 0.06);
 }
 
 .stat-card .card-body {
-    padding: 1.5rem;
+    padding: 1.05rem 1.15rem;
+}
+
+.stat-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.95rem;
+    min-width: 0;
+}
+
+.stat-card-copy {
+    min-width: 0;
+    flex: 1 1 auto;
 }
 
 .stat-card:hover .stat-card-icon {
     transform: scale(1.04);
 }
 
+.stat-label {
+    color: #6c757d;
+    font-weight: 400;
+    text-transform: none;
+    font-size: 0.92rem;
+    line-height: 1.25;
+    letter-spacing: 0;
+    margin-bottom: 0.15rem;
+}
+
 .stat-number,
 .stat-card-value {
-    font-size: clamp(2rem, 4vw, 2.75rem);
+    font-size: clamp(1.35rem, 2.4vw, 1.7rem);
     font-weight: 700;
-    line-height: 1.1;
-    color: var(--primary-red);
+    line-height: 1.2;
+    color: #343a40;
     letter-spacing: -0.01em;
+    white-space: nowrap;
 }
 
-.stat-label {
-    color: var(--dark-gray);
-    font-weight: 500;
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 0.02em;
-}
-
-/* Pastille d'icone - meme forme que .aide-section-icon (rounded square 14px) */
+/* Carre d'icone uni (fond sature, icone noire) */
 .stat-card-icon {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    margin-top: 0.75rem;
-    border-radius: 14px;
+    width: 54px;
+    height: 54px;
+    margin: 0;
+    border: 0;
+    border-radius: 12px;
     font-size: 1.45rem;
-    border: 1px solid rgba(15, 20, 28, 0.06);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    color: var(--kpi-icon-fg);
+    box-shadow: none;
     transition: transform var(--anim-fast) var(--anim-ease);
 }
 
 .stat-card-icon--registered {
-    background: var(--kpi-gradient-registered);
-    color: var(--primary-red);
-    border-color: rgba(220, 53, 69, 0.18);
+    background: var(--kpi-icon-registered);
+    color: var(--kpi-icon-fg);
 }
 
 .stat-card-icon--resolved {
-    background: var(--kpi-gradient-resolved);
-    color: #1e8c3a;
-    border-color: rgba(40, 167, 69, 0.22);
+    background: var(--kpi-icon-resolved);
+    color: var(--kpi-icon-fg);
 }
 
 .stat-card-icon--pending {
-    background: var(--kpi-gradient-pending);
-    color: #b7791f;
-    border-color: rgba(255, 193, 7, 0.32);
+    background: var(--kpi-icon-pending);
+    color: var(--kpi-icon-fg);
 }
 
 .stat-card-icon--bitrix {
-    background: var(--kpi-gradient-bitrix);
-    color: var(--primary-blue);
-    border-color: rgba(13, 110, 253, 0.2);
-}
-
-/* Accent lateral coherent avec la teinte du KPI */
-.stat-card--registered {
-    border-left-color: var(--primary-red);
-}
-
-.stat-card--resolved {
-    border-left-color: #28a745;
-}
-
-.stat-card--pending {
-    border-left-color: #ffc107;
-}
-
-.stat-card--bitrix {
-    border-left-color: var(--primary-blue);
+    background: var(--kpi-icon-bitrix);
+    color: #fff;
 }
 
 /* Skeleton loaders (dashboard - cartes KPI, tableaux, graphiques) */
@@ -272,9 +275,9 @@ main.page-enter {
 }
 
 .skeleton-number {
-    height: clamp(2rem, 4vw, 2.75rem);
-    width: 60%;
-    margin: 0.2rem auto 0.5rem;
+    height: clamp(1.35rem, 2.4vw, 1.7rem);
+    width: 48%;
+    margin: 0.15rem 0 0;
 }
 
 .skeleton-chart {
@@ -576,22 +579,20 @@ main.page-enter {
     margin-bottom: 1rem;
 }
 
-.chart-container canvas {
-    max-height: 400px !important;
-    width: 100% !important;
-}
-
 .chart-canvas-wrap {
     position: relative;
     height: 260px;
+    min-height: 260px;
+    width: 100%;
 }
 
 .chart-canvas-wrap--pie {
-    height: 220px;
+    height: 260px;
 }
 
 .chart-canvas-wrap canvas {
     display: block;
+    width: 100% !important;
     height: 100% !important;
 }
 
@@ -640,8 +641,9 @@ main.page-enter {
 
 /* Responsive */
 @media (max-width: 768px) {
-    .stat-number {
-        font-size: 2rem;
+    .stat-number,
+    .stat-card-value {
+        font-size: 1.45rem;
     }
     
     .table-responsive {
@@ -3000,15 +3002,12 @@ a.mobile-list-card__chip:focus {
     }
 
     .chart-canvas-wrap {
-        height: 150px;
+        height: 180px;
+        min-height: 180px;
     }
 
     .chart-canvas-wrap--pie {
-        height: 130px;
-    }
-
-    .chart-container canvas {
-        max-height: 150px !important;
+        height: 180px;
     }
 
     .pagination {
@@ -3071,4 +3070,175 @@ a.mobile-list-card__chip:focus {
 
 .notification-container {
     z-index: 1100;
+}
+
+/* Fil de comentarios (ficha incidencia) — widget chat AdminLTE / ArchitectUI */
+.incident-chat-card .card-header {
+    border-bottom: 1px solid rgba(15, 20, 28, 0.08);
+}
+
+.incident-chat {
+    --chat-own-bg: #e9ecef;
+    --chat-own-fg: #343a40;
+    --chat-other-bg: #e9ecef;
+    --chat-other-fg: #343a40;
+    --chat-avatar: 40px;
+}
+
+.incident-chat__messages {
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 1rem 1.1rem 0.35rem;
+}
+
+.incident-chat__empty {
+    padding: 1.25rem 0.25rem 1.5rem;
+    text-align: center;
+}
+
+.incident-chat-msg {
+    margin-bottom: 1.05rem;
+}
+
+.incident-chat-msg:last-child {
+    margin-bottom: 0.85rem;
+}
+
+.incident-chat-infos {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.incident-chat-msg--own .incident-chat-infos {
+    flex-direction: row-reverse;
+}
+
+.incident-chat-name {
+    font-weight: 700;
+    font-size: 0.88rem;
+    color: #212529;
+    line-height: 1.2;
+}
+
+.incident-chat-time {
+    font-size: 0.78rem;
+    color: #adb5bd;
+    white-space: nowrap;
+}
+
+.incident-chat-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+}
+
+.incident-chat-msg--own .incident-chat-row {
+    flex-direction: row-reverse;
+}
+
+.incident-chat-avatar {
+    width: var(--chat-avatar);
+    height: var(--chat-avatar);
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: #dee2e6;
+}
+
+.incident-chat-bubble {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0.55rem 0.9rem;
+    border-radius: 0.55rem;
+    background: var(--chat-other-bg);
+    color: var(--chat-other-fg);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.incident-chat-bubble::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    right: 100%;
+    border: 6px solid transparent;
+    border-right-color: var(--chat-other-bg);
+}
+
+.incident-chat-msg--own .incident-chat-bubble {
+    background: var(--chat-own-bg);
+    color: var(--chat-own-fg);
+}
+
+.incident-chat-msg--own .incident-chat-bubble::after {
+    right: auto;
+    left: 100%;
+    border-right-color: transparent;
+    border-left-color: var(--chat-own-bg);
+}
+
+.incident-chat__composer {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem 0.95rem;
+    border-top: 1px solid rgba(15, 20, 28, 0.08);
+    background: #fff;
+}
+
+.incident-chat__input {
+    flex: 1 1 auto;
+    min-height: 42px;
+    max-height: 120px;
+    resize: none;
+    border-radius: 0.55rem;
+    padding: 0.55rem 0.85rem;
+}
+
+.incident-chat__send {
+    flex-shrink: 0;
+    min-width: 88px;
+    border-radius: 0.55rem;
+    background: var(--primary-red);
+    border-color: var(--primary-red);
+    color: #fff;
+    font-weight: 600;
+}
+
+.incident-chat__send:hover,
+.incident-chat__send:focus-visible {
+    background: var(--dark-red);
+    border-color: var(--dark-red);
+    color: #fff;
+}
+
+@media (max-width: 575.98px) {
+    .incident-chat {
+        --chat-avatar: 34px;
+    }
+
+    .incident-chat__messages {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .incident-chat-infos,
+    .incident-chat-msg--own .incident-chat-infos {
+        padding-left: 0;
+        padding-right: 0;
+        flex-wrap: wrap;
+    }
+
+    .incident-chat__composer {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
 }

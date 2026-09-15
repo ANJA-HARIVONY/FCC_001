@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ _('Fiche Client') }} - {{ client.nom }}</title>
+    <title>Ficha de cliente - {{ client.nom }}</title>
     <style>
         @page {
             size: A4;
@@ -169,18 +169,18 @@
 
     <!-- Informations du client -->
     <div class="section">
-        <div class="section-title">{{ _('Informacion del Cliente') }}</div>
+        <div class="section-title">{{ _('Información del cliente') }}</div>
         <table class="info-table">
             <tr>
                 <td class="label">{{ _('Nombre') }}:</td>
                 <td>{{ client.nom }}</td>
             </tr>
             <tr>
-                <td class="label">{{ _('Telefono') }}:</td>
+                <td class="label">{{ _('Teléfono') }}:</td>
                 <td>{{ client.telephone }}</td>
             </tr>
             <tr>
-                <td class="label">{{ _('Direccion') }}:</td>
+                <td class="label">{{ _('Dirección') }}:</td>
                 <td>{{ client.adresse }}</td>
             </tr>
             <tr>
@@ -208,7 +208,7 @@
 
     <!-- Statistiques des incidents -->
     <div class="section">
-        <div class="section-title">{{ _('Statistiques de las Incidencias') }}</div>
+        <div class="section-title">{{ _('Estadísticas de las incidencias') }}</div>
         {% set total_incidents = incidents|length %}
         {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Solucionadas')|list|length %}
         {% set incidents_attente = incidents|selectattr('status', 'equalto', 'Pendiente')|list|length %}
@@ -243,7 +243,7 @@
                     <tr>
                         <th style="width: 15%;">{{ _('Fecha/Hora') }}</th>
                         <th style="width: 25%;">{{ _('Asunto') }}</th>
-                        <th style="width: 10%;">{{ _('Status') }}</th>
+                        <th style="width: 10%;">{{ _('Estado') }}</th>
                         <th style="width: 15%;">{{ _('Operador') }}</th>
                         <th style="width: 35%;">{{ _('Observaciones') }}</th>
                     </tr>
@@ -267,7 +267,7 @@
                             {% if incident.observations %}
                                 {{ incident.observations }}
                             {% else %}
-                                <em>{{ _('Ninguna observacion') }}</em>
+                                <em>{{ _('Ninguna observación') }}</em>
                             {% endif %}
                         </td>
                     </tr>
@@ -276,7 +276,7 @@
             </table>
         {% else %}
             <div class="no-incidents">
-                {{ _('No hay incidentes registrados para este cliente.') }}
+                {{ _('No hay incidencias registradas para este cliente.') }}
             </div>
         {% endif %}
     </div>

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Atencion al cliente{% endblock %}
+{% block title %}Dashboard - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fa fa-tachometer-alt" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Dashboard — <span id="period-title">Semana en curso</span>{% endblock %}
@@ -23,7 +23,7 @@
             <div class="form-check mb-0">
                 <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
                 <label class="form-check-label small text-muted" for="remember-filters-toggle">
-                    Memorizar filtros en este panel
+                    Recordar filtros en este panel
                 </label>
             </div>
             <button type="button" class="btn btn-sm btn-outline-secondary" id="reset-filters-btn">
@@ -34,7 +34,7 @@
             <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
         </div>
     </div>
-    <div class="dashboard-refresh-panel text-md-end">
+    <!--<div class="dashboard-refresh-panel text-md-end">
         <div class="small text-muted mb-1">
             <i class="fas fa-sync-alt me-1"></i>
             Auto-actualización cada 5 min
@@ -48,47 +48,71 @@
                 Próxima actualización: <span id="next-refresh"></span>
             </div>
         </div>
-    </div>
+    </div>-->
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Cartes de statistiques -->
+    <!-- Cartes de statistiques — widget ArchitectUI (icone a gauche, libelle + valeur) -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
         <div class="col">
             <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
-                <div class="card-body text-center">
-                    <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
-                    <div class="stat-label">Total de Registrados</div>
-                    <div class="stat-card-icon stat-card-icon--registered mx-auto"><i class="fa fa-ticket"></i></div>
+                <div class="card-body">
+                    <div class="stat-card-inner">
+                        <div class="stat-card-icon stat-card-icon--registered" aria-hidden="true">
+                            <i class="fa fa-ticket"></i>
+                        </div>
+                        <div class="stat-card-copy">
+                            <div class="stat-label">Total de Registrados</div>
+                            <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col">
             <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
-                <div class="card-body text-center">
-                    <div class="stat-number stat-card-value text-success" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
-                    <div class="stat-label">Solucionadas</div>
-                    <div class="stat-card-icon stat-card-icon--resolved mx-auto"><i class="fas fa-check-circle"></i></div>
+                <div class="card-body">
+                    <div class="stat-card-inner">
+                        <div class="stat-card-icon stat-card-icon--resolved" aria-hidden="true">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-card-copy">
+                            <div class="stat-label">Solucionadas <small class="text-italic">(remotamente)</small></div>
+                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col">
             <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
-                <div class="card-body text-center">
-                    <div class="stat-number stat-card-value text-warning" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
-                    <div class="stat-label">Pendientes</div>
-                    <div class="stat-card-icon stat-card-icon--pending mx-auto"><i class="fas fa-clock"></i></div>
+                <div class="card-body">
+                    <div class="stat-card-inner">
+                        <div class="stat-card-icon stat-card-icon--pending" aria-hidden="true">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-card-copy">
+                            <div class="stat-label">Pendientes</div>
+                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col">
             <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
-                <div class="card-body text-center">
-                    <div class="stat-number stat-card-value text-info" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
-                    <div class="stat-label">Bitrix</div>
-                    <div class="stat-card-icon stat-card-icon--bitrix mx-auto"><i class="fas fa-cog"></i></div>
+                <div class="card-body">
+                    <div class="stat-card-inner">
+                        <div class="stat-card-icon stat-card-icon--bitrix" aria-hidden="true">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <div class="stat-card-copy">
+                            <div class="stat-label">Bitrix <small class="text-italic">(localmente)</small></div>
+                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -97,11 +121,11 @@
     <!-- Graphiques -->
     <div class="row mb-4">
         <div class="col-lg-8 mb-3">
-            <div class="chart-container">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="chart-container h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 flex-shrink-0">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-line text-danger me-2"></i>
-                        Evolucion de las incidencias
+                        Evolución de las incidencias
                     </h5>
                     <div class="d-flex align-items-center gap-2 flex-wrap">
                         {% if current_user.is_authenticated and current_user.is_admin() %}
@@ -109,9 +133,9 @@
                             <i class="fas fa-comment-alt me-1"></i>Nota del día
                         </button>
                         {% endif %}
-                        <div class="btn-group" role="group">
+                        <div class="btn-group" role="group" id="incidents-chart-view" aria-label="Vista de evolución">
                             <button type="button" class="btn btn-sm btn-outline-danger active" onclick="changeChartView('date')" id="btn-date">
-                                Por dia
+                                Por día
                             </button>
                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="changeChartView('month')" id="btn-month">
                                 Por mes
@@ -122,18 +146,28 @@
                         </div>
                     </div>
                 </div>
-                <div class="chart-canvas-wrap">
+                <div class="chart-canvas-wrap flex-grow-1">
                     <canvas id="incidentsChart"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-lg-4 mb-3">
-            <div class="chart-container">
-                <h5 class="mb-3">
-                    <i class="fas fa-chart-pie text-danger me-2"></i>
-                    Reparticion por operador
-                </h5>
-                <div class="chart-canvas-wrap chart-canvas-wrap--pie">
+            <div class="chart-container h-100 d-flex flex-column">
+                <div class="d-flex flex-column gap-2 flex-shrink-0">
+                    <h5 class="mb-0">
+                        <i id="operateur-chart-icon" class="fas fa-chart-pie text-danger me-2"></i>
+                        Distribución por operador
+                    </h5>
+                    <div class="btn-group" role="group" id="operateur-chart-type" aria-label="Tipo de gráfico">
+                        <button type="button" class="btn btn-sm btn-outline-danger active" id="btn-operateur-doughnut" onclick="changeOperateurChartType('doughnut')" title="Gráfico circular">
+                            <i class="fas fa-chart-pie me-1"></i>Tarta
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="btn-operateur-bar" onclick="changeOperateurChartType('bar')" title="Gráfico de barras">
+                            <i class="fas fa-chart-bar me-1"></i>Barras
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap chart-canvas-wrap--pie flex-grow-1">
                     <canvas id="operateursChart"></canvas>
                 </div>
             </div>
@@ -147,7 +181,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>
-                        5 Ultimos Registrados
+                        5 últimos registros
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -160,7 +194,7 @@
                                     <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
                                     <th>Cliente</th>
                                     <th>Asuntos</th>
-                                    <th>Status</th>
+                                    <th>Estado</th>
                                     <th>Operador</th>
                                     <th>Fecha</th>
                                     <th>Acciones</th>
@@ -227,7 +261,7 @@
                         <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                         <p class="text-muted">No hay incidencias registradas</p>
                         <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Agregar una incidencia
+                            <i class="fas fa-plus me-1"></i>Añadir incidencia
                         </a>
                     </div>
                     {% endif %}
@@ -252,7 +286,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
-                                <th>Client</th>
+                                <th>Cliente</th>
                                 <th>N° de Incidencias</th>
                                 <th>Asuntos</th>
                                 <!--<th>Fecha</th> -->
@@ -341,7 +375,10 @@
 {% block scripts %}
 <script>
 let incidentsChart = null;
+let operateursChart = null;
 let currentViewType = 'date';
+let currentOperateurChartType = 'doughnut';
+let lastOperateursData = [];
 let refreshInterval;
 let countdownInterval;
 let nextRefreshTime;
@@ -353,6 +390,7 @@ const apreciacionTextoMax = 120;
 const canEditApreciacion = {{ 'true' if current_user.is_authenticated and current_user.is_admin() else 'false' }};
 const defaultPeriod = 'current_week';
 const defaultViewType = 'date';
+const defaultOperateurChartType = 'doughnut';
 const filterCookieMaxAgeSeconds = 30 * 24 * 60 * 60; // 30 jours
 const dashboardFilterCookieName = 'dashboard_filters_v1';
 const rememberedPeriods = new Set([
@@ -366,6 +404,11 @@ const rememberedPeriods = new Set([
     'all_data'
 ]);
 const rememberedViewTypes = new Set(['date', 'month', 'year']);
+const rememberedOperateurChartTypes = new Set(['doughnut', 'bar']);
+const OPERATEUR_CHART_ICONS = {
+    doughnut: 'fa-chart-pie',
+    bar: 'fa-chart-bar'
+};
 const dashboardFilterScope = `dashboard_user_{{ current_user.id if current_user.is_authenticated else 'anonymous' }}`;
 
 // Configuration des titres de période
@@ -389,18 +432,28 @@ function formatTimeRemaining(seconds) {
 
 // Fonction pour mettre à jour le countdown
 function updateCountdown() {
+    const nextRefresh = document.getElementById('next-refresh');
+    if (!nextRefresh) {
+        return;
+    }
     const now = new Date().getTime();
     const timeRemaining = Math.max(0, Math.floor((nextRefreshTime - now) / 1000));
     
     if (timeRemaining > 0) {
-        document.getElementById('next-refresh').textContent = formatTimeRemaining(timeRemaining);
+        nextRefresh.textContent = formatTimeRemaining(timeRemaining);
     } else {
-        document.getElementById('next-refresh').textContent = 'Actualizando...';
+        nextRefresh.textContent = 'Actualizando...';
     }
 }
 
 // Fonction pour démarrer le système d'auto-refresh
 function startAutoRefresh() {
+    const refreshStatus = document.getElementById('refresh-status');
+    const nextRefresh = document.getElementById('next-refresh');
+    if (!refreshStatus || !nextRefresh) {
+        return;
+    }
+
     // Calculer le prochain refresh (5 minutes)
     nextRefreshTime = new Date().getTime() + (5 * 60 * 1000);
     
@@ -410,9 +463,9 @@ function startAutoRefresh() {
     // Programmer le refresh
     refreshInterval = setTimeout(() => {
         // Afficher un indicateur de chargement
-        document.getElementById('refresh-status').innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
-        document.getElementById('refresh-status').classList.remove('bg-success');
-        document.getElementById('refresh-status').classList.add('bg-info');
+        refreshStatus.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Actualizando...';
+        refreshStatus.classList.remove('bg-success');
+        refreshStatus.classList.add('bg-info');
         
         // Recharger la page après un court délai pour afficher l'indicateur
         setTimeout(() => {
@@ -434,21 +487,31 @@ function stopAutoRefresh() {
         clearInterval(countdownInterval);
         countdownInterval = null;
     }
-    
-    document.getElementById('refresh-status').innerHTML = '<i class="fas fa-pause me-1"></i>Pausado';
-    document.getElementById('refresh-status').classList.remove('bg-success', 'bg-info');
-    document.getElementById('refresh-status').classList.add('bg-secondary');
-    document.getElementById('next-refresh').textContent = 'Pausado';
+
+    const refreshStatus = document.getElementById('refresh-status');
+    const nextRefresh = document.getElementById('next-refresh');
+    if (refreshStatus) {
+        refreshStatus.innerHTML = '<i class="fas fa-pause me-1"></i>Pausado';
+        refreshStatus.classList.remove('bg-success', 'bg-info');
+        refreshStatus.classList.add('bg-secondary');
+    }
+    if (nextRefresh) {
+        nextRefresh.textContent = 'Pausado';
+    }
 }
 
 // Fonction pour redémarrer l'auto-refresh manuellement
 function restartAutoRefresh() {
+    const refreshStatus = document.getElementById('refresh-status');
     stopAutoRefresh();
     startAutoRefresh();
+    if (!refreshStatus) {
+        return;
+    }
     
-    document.getElementById('refresh-status').innerHTML = '<i class="fas fa-circle pulse me-1"></i>Activo';
-    document.getElementById('refresh-status').classList.remove('bg-secondary', 'bg-info');
-    document.getElementById('refresh-status').classList.add('bg-success');
+    refreshStatus.innerHTML = '<i class="fas fa-circle pulse me-1"></i>Activo';
+    refreshStatus.classList.remove('bg-secondary', 'bg-info');
+    refreshStatus.classList.add('bg-success');
 }
 
 // Ajouter un gestionnaire pour permettre de cliquer sur l'indicateur pour forcer un refresh
@@ -459,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshStatus = document.getElementById('refresh-status');
     if (refreshStatus) {
         refreshStatus.style.cursor = 'pointer';
-        refreshStatus.title = 'Cliquer para actualizar ahora';
+        refreshStatus.title = 'Haga clic para actualizar ahora';
         refreshStatus.addEventListener('click', function() {
             if (confirm('¿Desea actualizar la página ahora?')) {
                 window.location.reload();
@@ -467,46 +530,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Démarrer l'auto-refresh
-    startAutoRefresh();
-    
-    // Initialiser les graphiques
-    initIncidentsChart();
-    initOperateursChart();
+    try {
+        initIncidentsChart();
+        initOperateursChart();
+    } catch (err) {
+        console.error('Erreur init graphiques:', err);
+    }
     applyInitialFilters();
     updateIncidentsChart(currentViewType);
 
-    animateInitialStatCards();
+    // Démarrer l'auto-refresh seulement si le panneau existe encore dans le DOM
+    startAutoRefresh();
+
+    function resizeDashboardCharts() {
+        if (incidentsChart) {
+            incidentsChart.resize();
+        }
+        if (operateursChart) {
+            operateursChart.resize();
+        }
+    }
+
+    requestAnimationFrame(function() {
+        requestAnimationFrame(resizeDashboardCharts);
+    });
+    window.addEventListener('load', resizeDashboardCharts);
 
     if (window.matchMedia) {
-        window.matchMedia('(max-width: 991.98px)').addEventListener('change', function() {
-            if (incidentsChart) {
-                incidentsChart.resize();
-            }
-            if (operateursChart) {
-                operateursChart.resize();
-            }
-        });
+        window.matchMedia('(max-width: 991.98px)').addEventListener('change', resizeDashboardCharts);
     }
 });
-
-// Rejoue un count-up sur les valeurs KPI rendues par le serveur a partir de 0.
-function animateInitialStatCards() {
-    const prefersReducedMotion = window.matchMedia &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-        return;
-    }
-
-    document.querySelectorAll('.stat-card-value').forEach(el => {
-        const target = el.getAttribute('data-stat-target');
-        if (target === null) {
-            return;
-        }
-        el.textContent = '0';
-        animateCount(el, target, 600);
-    });
-}
 
 // Nettoyer les intervalles quand on quitte la page
 window.addEventListener('beforeunload', function() {
@@ -515,7 +568,11 @@ window.addEventListener('beforeunload', function() {
 
 // Fonction pour initialiser le graphique une seule fois
 function initIncidentsChart() {
-    const ctx = document.getElementById('incidentsChart').getContext('2d');
+    const canvas = document.getElementById('incidentsChart');
+    if (!canvas || typeof Chart === 'undefined') {
+        return;
+    }
+    const ctx = canvas.getContext('2d');
     
     incidentsChart = new Chart(ctx, {
         type: 'line',
@@ -555,6 +612,9 @@ function initIncidentsChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: {
+                padding: { top: 4, right: 12, bottom: 0, left: 4 }
+            },
             animation: {
                 duration: 800
             },
@@ -666,8 +726,13 @@ function applyApreciacionPointStyles(data, viewType) {
 function updateIncidentsChart(viewType = 'date') {
     currentViewType = viewType;
     
-    fetch(`/api/incidents-par-date?type=${viewType}&period=${currentPeriod}`)
-        .then(response => response.json())
+    fetch(`/api/incidents-par-date?type=${encodeURIComponent(viewType)}&period=${encodeURIComponent(currentPeriod)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+        })
         .then(data => {
             if (incidentsChart) {
                 chartFechas = data.map(item => item.fecha || '');
@@ -690,6 +755,7 @@ function updateIncidentsChart(viewType = 'date') {
                 }
                 
                 incidentsChart.update('active');
+                incidentsChart.resize();
             }
         })
         .catch(error => {
@@ -877,26 +943,45 @@ function deleteApreciacionDia() {
         });
 }
 
+function setDangerBtnGroupActive(groupId, activeBtnId) {
+    const group = document.getElementById(groupId);
+    if (!group) {
+        return;
+    }
+    group.querySelectorAll('.btn').forEach(btn => {
+        btn.classList.remove('active', 'btn-danger');
+        btn.classList.add('btn-outline-danger');
+    });
+    const activeBtn = document.getElementById(activeBtnId);
+    if (activeBtn) {
+        activeBtn.classList.add('active', 'btn-danger');
+        activeBtn.classList.remove('btn-outline-danger');
+    }
+}
+
 // Fonction pour changer le type d'affichage
 function changeChartView(viewType) {
     if (!rememberedViewTypes.has(viewType)) {
         return;
     }
 
-    // Mettre à jour les boutons
-    document.querySelectorAll('.btn-group .btn').forEach(btn => {
-        btn.classList.remove('active');
-        btn.classList.add('btn-outline-danger');
-        btn.classList.remove('btn-danger');
-    });
-    
-    const activeBtn = document.getElementById(`btn-${viewType}`);
-    activeBtn.classList.add('active');
-    activeBtn.classList.remove('btn-outline-danger');
-    activeBtn.classList.add('btn-danger');
+    applyChartViewToUI(viewType);
     
     // Mettre à jour le graphique
     updateIncidentsChart(viewType);
+    saveDashboardFilters();
+}
+
+function changeOperateurChartType(chartType) {
+    if (!rememberedOperateurChartTypes.has(chartType)) {
+        return;
+    }
+
+    currentOperateurChartType = chartType;
+    applyOperateurChartTypeToUI(chartType);
+    if (lastOperateursData.length) {
+        createOperateursChart(lastOperateursData);
+    }
     saveDashboardFilters();
 }
 
@@ -961,6 +1046,9 @@ function applyInitialFilters() {
         saved.enabled !== false
     );
 
+    const urlOpChart = urlParams.get('opchart');
+    const hasUrlOpChart = rememberedOperateurChartTypes.has(urlOpChart);
+
     if (hasUrlPeriod) {
         currentPeriod = urlPeriod;
     } else if (canUseSavedFilters && rememberedPeriods.has(saved.period)) {
@@ -977,12 +1065,24 @@ function applyInitialFilters() {
         currentViewType = defaultViewType;
     }
 
+    if (hasUrlOpChart) {
+        currentOperateurChartType = urlOpChart;
+    } else if (canUseSavedFilters && rememberedOperateurChartTypes.has(saved.operatorChartType)) {
+        currentOperateurChartType = saved.operatorChartType;
+    } else {
+        currentOperateurChartType = defaultOperateurChartType;
+    }
+
     applyPeriodToUI(currentPeriod);
     applyChartViewToUI(currentViewType);
+    applyOperateurChartTypeToUI(currentOperateurChartType);
+    if (lastOperateursData.length) {
+        createOperateursChart(lastOperateursData);
+    }
     // Aligner les KPI avec la periode restauree (URL/cookie), pas uniquement avec le rendu serveur initial.
     loadDashboardData(currentPeriod);
 
-    if (!hasUrlPeriod && !hasUrlView && canUseSavedFilters && (saved.period || saved.viewType)) {
+    if (!hasUrlPeriod && !hasUrlView && !hasUrlOpChart && canUseSavedFilters && (saved.period || saved.viewType || saved.operatorChartType)) {
         showFiltersFeedback();
     }
 
@@ -996,17 +1096,14 @@ function applyPeriodToUI(period) {
 }
 
 function applyChartViewToUI(viewType) {
-    document.querySelectorAll('.btn-group .btn').forEach(btn => {
-        btn.classList.remove('active');
-        btn.classList.add('btn-outline-danger');
-        btn.classList.remove('btn-danger');
-    });
+    setDangerBtnGroupActive('incidents-chart-view', `btn-${viewType}`);
+}
 
-    const activeBtn = document.getElementById(`btn-${viewType}`);
-    if (activeBtn) {
-        activeBtn.classList.add('active');
-        activeBtn.classList.remove('btn-outline-danger');
-        activeBtn.classList.add('btn-danger');
+function applyOperateurChartTypeToUI(chartType) {
+    setDangerBtnGroupActive('operateur-chart-type', `btn-operateur-${chartType}`);
+    const icon = document.getElementById('operateur-chart-icon');
+    if (icon) {
+        icon.className = `fas ${OPERATEUR_CHART_ICONS[chartType] || 'fa-chart-pie'} text-danger me-2`;
     }
 }
 
@@ -1020,7 +1117,8 @@ function saveDashboardFilters() {
         scope: dashboardFilterScope,
         enabled: true,
         period: currentPeriod,
-        viewType: currentViewType
+        viewType: currentViewType,
+        operatorChartType: currentOperateurChartType
     };
     setCookie(dashboardFilterCookieName, JSON.stringify(payload), filterCookieMaxAgeSeconds);
 }
@@ -1029,9 +1127,11 @@ function resetDashboardFilters() {
     clearDashboardFiltersCookie();
     currentPeriod = defaultPeriod;
     currentViewType = defaultViewType;
+    currentOperateurChartType = defaultOperateurChartType;
 
     applyPeriodToUI(currentPeriod);
     applyChartViewToUI(currentViewType);
+    applyOperateurChartTypeToUI(currentOperateurChartType);
     loadDashboardData(currentPeriod);
     updateIncidentsChart(currentViewType);
 }
@@ -1127,37 +1227,44 @@ function animateCount(el, targetValue, duration = 500) {
         return;
     }
 
+    if (el._statAnimFrame) {
+        cancelAnimationFrame(el._statAnimFrame);
+        el._statAnimFrame = null;
+    }
+
     const prefersReducedMotion = window.matchMedia &&
         window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const numericTarget = Number.parseFloat(targetValue);
     if (!Number.isFinite(numericTarget)) {
-        el.textContent = targetValue;
         return;
     }
 
     const isInteger = Number.isInteger(numericTarget);
+    const formattedTarget = isInteger ? String(numericTarget) : numericTarget.toString();
 
     if (prefersReducedMotion || duration <= 0) {
-        el.textContent = isInteger ? numericTarget : numericTarget.toString();
+        el.textContent = formattedTarget;
         return;
     }
 
-    const startValue = Number.parseFloat(el.textContent.replace(/[^\d.-]/g, '')) || 0;
+    const startValue = Number.parseFloat(String(el.textContent).replace(/[^\d.-]/g, ''));
+    const fromValue = Number.isFinite(startValue) ? startValue : 0;
     const startTime = performance.now();
 
     function step(now) {
         const elapsed = now - startTime;
         const progress = Math.min(1, Math.max(0, elapsed / duration));
-        const current = startValue + (numericTarget - startValue) * progress;
-        el.textContent = isInteger ? Math.round(current) : current.toFixed(1);
+        const current = fromValue + (numericTarget - fromValue) * progress;
+        el.textContent = isInteger ? String(Math.round(current)) : current.toFixed(1);
         if (progress < 1) {
-            window.requestAnimationFrame(step);
+            el._statAnimFrame = window.requestAnimationFrame(step);
         } else {
-            el.textContent = isInteger ? numericTarget : numericTarget.toString();
+            el._statAnimFrame = null;
+            el.textContent = formattedTarget;
         }
     }
 
-    window.requestAnimationFrame(step);
+    el._statAnimFrame = window.requestAnimationFrame(step);
 }
 
 const CORPORATIVO_ICON_URL = "{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}";
@@ -1299,13 +1406,20 @@ function loadDashboardData(period) {
 
 // Fonction pour mettre à jour les statistiques
 function updateStatistics(data) {
-    const statNumbers = document.querySelectorAll('.stat-number');
-    if (statNumbers.length >= 4) {
-        animateCount(statNumbers[0], data.total_incidents);
-        animateCount(statNumbers[1], data.incidents_resolus);
-        animateCount(statNumbers[2], data.incidents_attente);
-        animateCount(statNumbers[3], data.incidents_bitrix);
-    }
+    const values = [
+        data.total_incidents,
+        data.incidents_resolus,
+        data.incidents_attente,
+        data.incidents_bitrix
+    ];
+    const statNumbers = document.querySelectorAll('.stat-card-value[data-stat-target]');
+    statNumbers.forEach((el, index) => {
+        if (index >= values.length || values[index] == null) {
+            return;
+        }
+        el.setAttribute('data-stat-target', String(values[index]));
+        animateCount(el, values[index]);
+    });
 }
 
 // Fonction pour mettre à jour le tableau des derniers incidents
@@ -1407,61 +1521,152 @@ function updateClientsRecurrents(clients) {
 }
 
 // Fonction pour mettre à jour le graphique des opérateurs
-function updateOperateursChart(data) {
-    if (operateursChart && data && data.length > 0) {
-        operateursChart.data.labels = data.map(item => item[0]);
-        operateursChart.data.datasets[0].data = data.map(item => item[1]);
-        operateursChart.update('active');
-    } else if (data && data.length === 0) {
-        // Pas de données pour cette période
-        const container = document.getElementById('operateursChart').parentElement;
-        container.innerHTML = '<div class="text-center py-4"><p class="text-muted">Sin datos para este período</p></div>';
+const OPERATEURS_CHART_COLORS = [
+    '#dc3545',
+    '#6c757d',
+    '#28a745',
+    '#ffc107',
+    '#17a2b8',
+    '#6f42c1'
+];
+
+function getOperateursChartWrap() {
+    return document.querySelector('.chart-canvas-wrap--pie');
+}
+
+function ensureOperateursCanvas() {
+    let canvas = document.getElementById('operateursChart');
+    if (canvas) {
+        return canvas;
+    }
+    const wrap = getOperateursChartWrap();
+    if (!wrap) {
+        return null;
+    }
+    wrap.innerHTML = '<canvas id="operateursChart"></canvas>';
+    return document.getElementById('operateursChart');
+}
+
+function destroyOperateursChart() {
+    if (operateursChart) {
+        operateursChart.destroy();
+        operateursChart = null;
     }
 }
 
-// Variables globales pour les graphiques
-let operateursChart = null;
+function colorForOperateur(index) {
+    return OPERATEURS_CHART_COLORS[index % OPERATEURS_CHART_COLORS.length];
+}
 
-// Initialiser le graphique des opérateurs
-function initOperateursChart() {
-    const operateursData = {{ incidents_par_operateur | tojson }};
-    if (operateursData && operateursData.length > 0) {
-        const ctx2 = document.getElementById('operateursChart').getContext('2d');
-        operateursChart = new Chart(ctx2, {
-            type: 'doughnut',
+function buildOperateursChartSpec(data) {
+    const labels = data.map(item => item[0]);
+    const values = data.map(item => item[1]);
+    const colors = labels.map((_, index) => colorForOperateur(index));
+    const type = currentOperateurChartType;
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: 4 }
+    };
+    const cartesianScales = {
+        x: {
+            ticks: {
+                autoSkip: false,
+                maxRotation: 40,
+                minRotation: 0,
+                font: { size: 11 }
+            }
+        },
+        y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+            title: {
+                display: true,
+                text: 'Incidencias'
+            }
+        }
+    };
+
+    if (type === 'bar') {
+        return {
+            type: 'bar',
             data: {
-                labels: operateursData.map(item => item[0]),
+                labels,
                 datasets: [{
-                    data: operateursData.map(item => item[1]),
-                    backgroundColor: [
-                        '#dc3545',
-                        '#6c757d',
-                        '#28a745',
-                        '#ffc107',
-                        '#17a2b8',
-                        '#6f42c1'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    label: 'Incidencias',
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: '#fff',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    maxBarThickness: 48
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
+                ...commonOptions,
+                plugins: { legend: { display: false } },
+                scales: cartesianScales
+            }
+        };
+    }
+
+    return {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            ...commonOptions,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        padding: 10,
+                        font: { size: 11 }
                     }
                 }
             }
-        });
-    } else {
-        // Afficher un message si pas de données
-        const ctx2 = document.getElementById('operateursChart');
-        ctx2.style.display = 'none';
-        const container = ctx2.parentElement;
-        container.innerHTML = '<div class="text-center py-4"><p class="text-muted">Aucune donnée disponible</p></div>';
+        }
+    };
+}
+
+function createOperateursChart(data) {
+    const canvas = ensureOperateursCanvas();
+    if (!canvas || typeof Chart === 'undefined' || !data || !data.length) {
+        return;
     }
+    destroyOperateursChart();
+    operateursChart = new Chart(canvas.getContext('2d'), buildOperateursChartSpec(data));
+}
+
+function showOperateursEmptyState(message) {
+    const wrap = getOperateursChartWrap();
+    if (!wrap) {
+        return;
+    }
+    destroyOperateursChart();
+    wrap.innerHTML = `<div class="text-center py-4"><p class="text-muted mb-0">${message}</p></div>`;
+}
+
+function updateOperateursChart(data) {
+    lastOperateursData = Array.isArray(data) ? data.slice() : [];
+    if (!lastOperateursData.length) {
+        showOperateursEmptyState('Sin datos para este período');
+        return;
+    }
+    createOperateursChart(lastOperateursData);
+}
+
+function initOperateursChart() {
+    const operateursData = {{ incidents_par_operateur | tojson }};
+    updateOperateursChart(operateursData);
 }
 </script>
 
@@ -1512,6 +1717,14 @@ function initOperateursChart() {
     min-width: 200px;
 }
 
+#operateur-chart-type {
+    width: 100%;
+}
+
+#operateur-chart-type > .btn {
+    flex: 1 1 0;
+}
+
 @media (max-width: 991.98px) {
     .dashboard-header-controls {
         flex-direction: column;
@@ -1542,6 +1755,12 @@ function initOperateursChart() {
 
     .chart-container .btn-group > .btn {
         flex: 1 1 0;
+    }
+
+    #operateur-chart-type > .btn {
+        font-size: 0.75rem;
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
     }
 }
 

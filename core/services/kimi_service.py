@@ -79,7 +79,7 @@ class KimiService:
                             'model': response_data.get('model', self.model)
                         }
                     else:
-                        return {'success': False, 'error': 'Aucune réponse reçue'}
+                        return {'success': False, 'error': 'No se recibió ninguna respuesta'}
                 else:
                     return {'success': False, 'error': f'HTTP {response.getcode()}'}
                     
@@ -89,7 +89,7 @@ class KimiService:
         except urllib.error.URLError as e:
             return {'success': False, 'error': f'URL Error: {str(e)}'}
         except Exception as e:
-            return {'success': False, 'error': f'Erreur inattendue: {str(e)}'}
+            return {'success': False, 'error': f'Error inesperado: {str(e)}'}
     
     def generate_executive_summary(self, data_context: Dict) -> Dict:
         """

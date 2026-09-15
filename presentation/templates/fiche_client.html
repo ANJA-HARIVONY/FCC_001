@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Fiche Client') }} - {{ client.nom }}{% endblock %}
+{% block title %}Ficha de cliente - {{ client.nom }}{% endblock %}
 
 {% block page_icon %}<i class="fas fa-user-tie" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}{{ _('Ficha del Cliente') }} — {{ client.nom }}{% endblock %}
-{% block page_subtitle %}Detalle y gestion del cliente{% endblock %}
+{% block page_subtitle %}Detalle y gestión del cliente{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('nouveau_incident', client=client.id) }}" class="btn btn-success btn-sm">
     <i class="fas fa-plus-circle me-1"></i>{{ _('Crear incidencia') }}
@@ -25,7 +25,7 @@
             <div class="card shadow mb-4 content-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-info-circle"></i> {{ _('Informacion del Cliente') }}
+                        <i class="fas fa-info-circle"></i> {{ _('Información del cliente') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -35,12 +35,12 @@
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Telefono') }}:</strong></div>
+                        <div class="col-sm-4"><strong>{{ _('Teléfono') }}:</strong></div>
                         <div class="col-sm-8">{{ client.telephone }}</div>
                     </div>
                     <hr>
                     <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Direccion') }}:</strong></div>
+                        <div class="col-sm-4"><strong>{{ _('Dirección') }}:</strong></div>
                         <div class="col-sm-8">{{ client.adresse }}</div>
                     </div>
                     <hr>
@@ -172,7 +172,7 @@
                         {% set acct = d.get('account_status') %}
                         {% set conn_on = d.get('online') or d.get('connection_status') == 'online' %}
                         <div class="row">
-                            <div class="col-sm-4"><strong>Status de la cuenta:</strong></div>
+                            <div class="col-sm-4"><strong>Estado de la cuenta:</strong></div>
                             <div class="col-sm-8">
                                 {% if acct == 'expired' %}
                                 <span class="badge bg-danger">Expirada</span>
@@ -185,7 +185,7 @@
                         </div>
                         <hr>
                         <div class="row">
-                            <div class="col-sm-4"><strong>Status de la conexión:</strong></div>
+                            <div class="col-sm-4"><strong>Estado de la conexión:</strong></div>
                             <div class="col-sm-8">
                                 {% if conn_on %}
                                 <span class="badge bg-success">{{ d.get('connection_status_label') or 'En línea' }}</span>
@@ -280,7 +280,7 @@
                             <tr>
                                 <th>{{ _('Fecha/Hora') }}</th>
                                 <th>{{ _('Asunto') }}</th>
-                                <th>{{ _('Status') }}</th>
+                                <th>{{ _('Estado') }}</th>
                                 <th>{{ _('Operador') }}</th>
                                 <th>{{ _('Observaciones') }}</th>
                             </tr>
@@ -309,7 +309,7 @@
                                             {{ incident.observations }}
                                         </div>
                                     {% else %}
-                                        <em class="text-muted">{{ _('Ninguna observacion') }}</em>
+                                        <em class="text-muted">{{ _('Ninguna observación') }}</em>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -367,7 +367,7 @@
             {% else %}
                 <div class="text-center py-4 px-3">
                     <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">{{ _('No hay incidentes registrados para este cliente.') }}</p>
+                    <p class="text-muted">{{ _('No hay incidencias registradas para este cliente.') }}</p>
                 </div>
             {% endif %}
         </div>

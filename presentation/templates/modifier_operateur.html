@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Modificar Operador - Atencion al cliente{% endblock %}
+{% block title %}Modificar Operador - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fas fa-user-edit" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Modificar Operador{% endblock %}
-{% block page_subtitle %}Modificar las informaciones del operador {{ operateur.nom }}{% endblock %}
+{% block page_subtitle %}Modificar los datos del operador {{ operateur.nom }}{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('operateurs') }}" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1"></i>Volver
@@ -27,7 +27,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-info-circle me-2"></i>
-                        Informaciones del Operador
+                        Datos del Operador
                     </h5>
                 </div>
                 <div class="card-body">
@@ -39,7 +39,7 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="telephone" class="form-label">Telefono <span class="text-danger">*</span></label>
+                            <label for="telephone" class="form-label">Teléfono <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" id="telephone" name="telephone" 
                                    value="{{ operateur.telephone }}" placeholder="+241 XXX XXX XXX" required>
                         </div>

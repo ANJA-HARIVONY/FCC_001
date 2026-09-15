@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Nueva Incidencia - Atencion al cliente{% endblock %}
+{% block title %}Nueva Incidencia - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fas fa-plus-circle" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Nueva Incidencia{% endblock %}
-{% block page_subtitle %}Agregar una nueva incidencia al sistema{% endblock %}
+{% block page_subtitle %}Añadir una nueva incidencia al sistema{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1"></i>Volver
@@ -73,7 +73,7 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <label for="status" class="form-label">Estado <span class="text-danger">*</span></label>
                             <select class="form-select" id="status" name="status" required>
                                 <option value="">Seleccionar un status</option>
                                 <option value="Pendiente">Pendiente</option>

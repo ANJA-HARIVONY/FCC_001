@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Incidencias - Atencion al cliente{% endblock %}
+{% block title %}Incidencias - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fas fa-ticket" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Incidencias{% endblock %}
-{% block page_subtitle %}Lista y gestion de las incidencias{% endblock %}
+{% block page_subtitle %}Listado y gestión de las incidencias{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary btn-sm">
     <i class="fas fa-plus me-1"></i>Nueva Incidencia
@@ -42,7 +42,7 @@
                             <!-- Status -->
                             <div class="col-6 col-md-4 col-lg-2">
                                 <label for="status" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-flag me-1"></i>Status
+                                    <i class="fas fa-flag me-1"></i>Estado
                                 </label>
                                 <select class="form-select form-select-sm" id="status" name="status">
                                     <option value="">Todos 🎯​</option>
@@ -121,7 +121,7 @@
                                 <div class="form-check ms-2">
                                     <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
                                     <label class="form-check-label small text-muted" for="remember-filters-toggle">
-                                        Memorizar filtros
+                                        Recordar filtros
                                     </label>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-sm">
@@ -199,7 +199,7 @@
                                     <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
                                     <th>
                                         <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
-                                            Client
+                                            Cliente
                                             {% if sort_by|default('') == 'client' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
                                             {% else %}
@@ -217,7 +217,7 @@
                                             {% endif %}
                                         </a>
                                     </th>
-                                    <th>Status</th>
+                                    <th>Estado</th>
                                     <th>
                                         <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Usuario
@@ -416,9 +416,9 @@
                             </a>
                         {% else %}
                             <h5 class="text-muted">No hay incidencias registradas</h5>
-                            <p class="text-muted">Comience agregando su primer incidencia</p>
+                            <p class="text-muted">Comience agregando su primera incidencia</p>
                             <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
-                                <i class="fas fa-plus me-1"></i>Agregar una incidencia
+                                <i class="fas fa-plus me-1"></i>Añadir incidencia
                             </a>
                         {% endif %}
                     </div>
@@ -434,11 +434,11 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirmar la eliminacion</h5>
+                <h5 class="modal-title">Confirmar la eliminación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Está seguro de querer eliminar la incidencia <strong id="incidentIntitule"></strong> ?</p>
+                <p>¿Está seguro de que desea eliminar la incidencia <strong id="incidentIntitule"></strong> ?</p>
                 <p class="text-danger"><small>Esta acción es irreversible.</small></p>
             </div>
             <div class="modal-footer">
@@ -493,7 +493,7 @@ IPs: ${clientIpRouter} - ${clientIpAntea}`;
     // Essayer d'abord l'API Clipboard moderne
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(texteIncident).then(function() {
-            afficherToast('Información del incidente copiada al portapapeles');
+            afficherToast('Información de la incidencia copiada al portapapeles');
         }).catch(function(err) {
             console.error('Erreur avec l\'API Clipboard:', err);
             fallbackCopy();
@@ -518,7 +518,7 @@ IPs: ${clientIpRouter} - ${clientIpAntea}`;
             document.body.removeChild(textArea);
             
             if (successful) {
-                afficherToast('Información del incidente copiada al portapapeles');
+                afficherToast('Información de la incidencia copiada al portapapeles');
             } else {
                 afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
             }

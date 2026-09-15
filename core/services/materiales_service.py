@@ -140,7 +140,7 @@ def save_material_foto(material, file_storage):
         raise MaterialesValidationError('Formato de foto no válido (JPG, PNG, WEBP).')
     data = file_storage.read()
     if len(data) > MAX_MATERIAL_FOTO_BYTES:
-        raise MaterialesValidationError('La foto es demasiado grande (máx. 2 Mo).')
+        raise MaterialesValidationError('La foto es demasiado grande (máx. 2 MB).')
     ext = secure_filename(file_storage.filename).rsplit('.', 1)[-1].lower()
     _remove_material_foto_files(material.id)
     fname = f'material_{material.id}.{ext}'

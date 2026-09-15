@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Operadores - Atencion al cliente{% endblock %}
+{% block title %}Operadores - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fas fa-headset" aria-hidden="true"></i>{% endblock %}
-{% block page_title %}Gestión de los Operadores{% endblock %}
-{% block page_subtitle %}Lista y gestión de los operadores{% endblock %}
+{% block page_title %}Gestión de operadores{% endblock %}
+{% block page_subtitle %}Listado y gestión de operadores{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('nouveau_operateur') }}" class="btn btn-primary btn-sm">
     <i class="fas fa-plus me-1"></i>Nuevo Operador
@@ -19,7 +19,7 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>
-                        Lista de los Operadores ({{ operateurs|length }})
+                        Lista de operadores ({{ operateurs|length }})
                     </h5>
                 </div>
                 <div class="card-body p-0">
@@ -30,7 +30,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Nombre</th>
-                                    <th>Telefono</th>
+                                    <th>Teléfono</th>
                                     <th>Incidencias Asignadas</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -50,14 +50,14 @@
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a href="{{ url_for('modifier_operateur', id=operateur.id) }}" 
-                                               class="btn btn-sm btn-outline-primary" title="Modifier">
+                                               class="btn btn-sm btn-outline-primary" title="Modificar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button type="button" class="btn btn-sm btn-outline-danger" 
                                                     data-operateur-id="{{ operateur.id }}" 
                                                     data-operateur-nom="{{ operateur.nom }}"
                                                     onclick="confirmerSuppression(this)" 
-                                                    title="Supprimer">
+                                                    title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -73,7 +73,7 @@
                         <h5 class="text-muted">No hay operadores registrados</h5>
                         <p class="text-muted">Comience agregando su primer operador</p>
                         <a href="{{ url_for('nouveau_operateur') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Agregar un operador
+                            <i class="fas fa-plus me-1"></i>Añadir operador
                         </a>
                     </div>
                     {% endif %}
@@ -88,11 +88,11 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Confirmar la eliminacion</h5>
+                <h5 class="modal-title">Confirmar la eliminación</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Está seguro de querer eliminar el operador <strong id="operateurNom"></strong> ?</p>
+                <p>¿Está seguro de que desea eliminar el operador <strong id="operateurNom"></strong> ?</p>
                 <p class="text-danger"><small>Esta acción es irreversible.</small></p>
             </div>
             <div class="modal-footer">

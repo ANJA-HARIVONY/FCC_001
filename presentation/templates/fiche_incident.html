@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('Fiche Incident') }} #{{ incident.id }}{% endblock %}
+{% block title %}Ficha de incidencia #{{ incident.id }}{% endblock %}
 
 {% block page_icon %}<i class="fas fa-exclamation-circle" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}{{ _('Incidencia') }} #{{ incident.id }}{% endblock %}
@@ -53,7 +53,7 @@
                     </div>
                     <hr>
                     <div class="row mb-3">
-                        <div class="col-sm-3"><strong>{{ _('Status') }}:</strong></div>
+                        <div class="col-sm-3"><strong>{{ _('Estado') }}:</strong></div>
                         <div class="col-sm-9">
                             {% if incident.status == 'Solucionadas' %}
                                 <span class="badge bg-success"><i class="fas fa-check-circle"></i> {{ _('Solucionadas') }}</span>
@@ -79,7 +79,7 @@
                             {% if incident.observations %}
                                 <textarea class="form-control bg-light" rows="3" readonly resize="none">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n') }}</textarea>
                             {% else %}
-                                <em class="text-muted">{{ _('Ninguna observacion') }}</em>
+                                <em class="text-muted">{{ _('Ninguna observación') }}</em>
                             {% endif %}
                         </div>
                     </div>
@@ -87,43 +87,61 @@
             </div>
 
             <!-- Comentarios -->
-            <div class="card shadow mb-4 content-card">
+            <div class="card shadow mb-4 content-card incident-chat-card">
                 <div class="card-header py-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i class="fas fa-comments"></i> {{ _('Comentarios') }}
+                        {% if comentarios %}
+                        <span class="badge bg-secondary ms-1">{{ comentarios|length }}</span>
+                        {% endif %}
                     </h6>
-                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNuevoComentario">
-                        <i class="fas fa-plus"></i> {{ _('Añadir comentario') }}
-                    </button>
                 </div>
-                <div class="card-body">
-                    {% if comentarios %}
-                        {% for c in comentarios %}
-                        <div class="d-flex border-bottom pb-3 mb-3{% if loop.last %} border-bottom-0 pb-0 mb-0{% endif %}">
-                            <div class="flex-shrink-0 me-3">
-                                {% if c.operateur and c.operateur.avatar_url %}
-                                <img src="{{ c.operateur.avatar_url|e }}" class="rounded-circle" width="48" height="48" alt="" referrerpolicy="no-referrer">
-                                {% else %}
-                                <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-semibold" style="width:48px;height:48px;font-size:1.1rem;" aria-hidden="true">
-                                    {{ (c.operateur.nom[0] if c.operateur else '?')|upper }}
+                <div class="incident-chat">
+                    <div class="incident-chat__messages" id="incident-chat-messages">
+                        {% if comentarios %}
+                            {% set default_av = url_for('static', filename='img/default_avatar.png') %}
+                            {% for c in comentarios %}
+                            {% set is_own = current_user.is_authenticated and c.id_operateur == current_user.id %}
+                            {% set author_name = c.operateur.nom if c.operateur else _('Usuario') %}
+                            {% set avatar_src = c.operateur.avatar_url if c.operateur and c.operateur.avatar_url else default_av %}
+                            <article class="incident-chat-msg{% if is_own %} incident-chat-msg--own{% endif %}">
+                                <div class="incident-chat-infos">
+                                    <span class="incident-chat-name">{{ author_name }}</span>
+                                    <time class="incident-chat-time" datetime="{{ c.creado_en.isoformat() }}">{{ c.creado_en.strftime('%d/%m/%Y %H:%M') }}</time>
                                 </div>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow-1 min-w-0">
-                                <div class="d-flex flex-wrap justify-content-between gap-1 align-items-baseline">
-                                    <strong class="text-dark">{{ c.operateur.nom if c.operateur else _('Usuario') }}</strong>
-                                    <small class="text-muted text-nowrap">
-                                        <i class="fas fa-clock"></i>
-                                        {{ c.creado_en.strftime('%d/%m/%Y %H:%M') }}
-                                    </small>
+                                <div class="incident-chat-row">
+                                    <img src="{{ avatar_src|e }}"
+                                         class="incident-chat-avatar"
+                                         width="40"
+                                         height="40"
+                                         alt=""
+                                         referrerpolicy="no-referrer"
+                                         onerror="this.onerror=null;this.src='{{ default_av }}';">
+                                    <p class="incident-chat-bubble">{{ c.contenido }}</p>
                                 </div>
-                                <p class="mb-0 mt-2 text-break" style="white-space: pre-wrap;">{{ c.contenido }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted mb-0"><em>{{ _('No hay comentarios todavía.') }}</em></p>
-                    {% endif %}
+                            </article>
+                            {% endfor %}
+                        {% else %}
+                            <p class="incident-chat__empty text-muted mb-0">
+                                <em>{{ _('No hay comentarios todavía.') }}</em>
+                            </p>
+                        {% endif %}
+                    </div>
+                    <form class="incident-chat__composer" method="POST" action="{{ url_for('agregar_comentario_incident', id=incident.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <label class="visually-hidden" for="contenidoComentario">{{ _('Comentario') }}</label>
+                        <textarea class="form-control incident-chat__input"
+                                  id="contenidoComentario"
+                                  name="contenido"
+                                  rows="1"
+                                  required
+                                  maxlength="1000"
+                                  placeholder="{{ _('Escriba un mensaje…') }}"
+                                  autocomplete="off"></textarea>
+                        <button type="submit" class="btn incident-chat__send">
+                            {{ _('Enviar') }}
+                        </button>
+                    </form>
                 </div>
             </div>
 
@@ -131,7 +149,7 @@
             <div class="card shadow mb-4 content-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-tasks"></i> {{ _('Acciones Rapidas') }}
+                        <i class="fas fa-tasks"></i> {{ _('Acciones rápidas') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -200,14 +218,14 @@
                     
                     <div class="mb-2">
                         <i class="fas fa-phone text-muted"></i> 
-                        <strong>{{ _('Telefono') }}:</strong>
+                        <strong>{{ _('Teléfono') }}:</strong>
                         <br>
                         <span class="ms-4">{{ incident.client.telephone }}</span>
                     </div>
                     
                     <div class="mb-2">
                         <i class="fas fa-map-marker-alt text-muted"></i> 
-                        <strong>{{ _('Direccion') }}:</strong>
+                        <strong>{{ _('Dirección') }}:</strong>
                         <br>
                         <span class="ms-4">{{ incident.client.adresse }}</span>
                     </div>
@@ -256,7 +274,7 @@
             <div class="card shadow mb-4 content-card">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-clock"></i> {{ _('Informacion de Tiempo') }}
+                        <i class="fas fa-clock"></i> {{ _('Información de tiempo') }}
                     </h6>
                 </div>
                 <div class="card-body">
@@ -294,42 +312,19 @@
     </div>
 </div>
 
-<!-- Modal nuevo comentario -->
-<div class="modal fade" id="modalNuevoComentario" tabindex="-1" aria-labelledby="modalNuevoComentarioLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <form method="POST" action="{{ url_for('agregar_comentario_incident', id=incident.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalNuevoComentarioLabel">
-                        <i class="fas fa-comment-dots"></i> {{ _('Nuevo comentario') }}
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="contenidoComentario" class="form-label">{{ _('Comentario') }} <span class="text-danger">*</span></label>
-                    <textarea class="form-control" id="contenidoComentario" name="contenido" rows="5" required maxlength="1000" placeholder="{{ _('Escriba su comentario…') }}"></textarea>
-                    <div class="form-text">{{ _('Máximo 1000 caracteres.') }}</div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-paper-plane"></i> {{ _('Publicar') }}
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <style>
     @media print {
-        .btn, .alert, .card-header .badge {
+        .btn, .alert, .card-header .badge,
+        .incident-chat__composer {
             display: none !important;
         }
         .card {
             border: 1px solid #ddd !important;
             box-shadow: none !important;
+        }
+        .incident-chat__messages {
+            max-height: none !important;
+            overflow: visible !important;
         }
     }
     /* Animation chenille : pointillés verts qui ondulent gauche ↔ droite */
@@ -408,12 +403,25 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    {% if abrir_comentario %}
-    var modalEl = document.getElementById('modalNuevoComentario');
-    if (modalEl && typeof bootstrap !== 'undefined') {
-        bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    var chatBody = document.getElementById('incident-chat-messages');
+    if (chatBody) {
+        chatBody.scrollTop = chatBody.scrollHeight;
     }
-    {% endif %}
+    var input = document.getElementById('contenidoComentario');
+    if (input) {
+        input.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (this.form) {
+                    this.form.requestSubmit();
+                }
+            }
+        });
+        {% if abrir_comentario %}
+        input.focus();
+        input.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        {% endif %}
+    }
 });
 const CLIENT_ID = {{ incident.client.id }};
 const INCIDENT_ID = {{ incident.id }};

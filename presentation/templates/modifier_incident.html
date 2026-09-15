@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Modificar Incidencia - Atencion al cliente{% endblock %}
+{% block title %}Modificar Incidencia - Atención al cliente{% endblock %}
 
 {% block page_icon %}<i class="fas fa-edit" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Modificar Incidencia{% endblock %}
@@ -56,7 +56,7 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <label for="status" class="form-label">Estado <span class="text-danger">*</span></label>
                             <select class="form-select" id="status" name="status" required>
                                 <option value="">Seleccionar un status</option>
                                 <option value="Pendiente" {% if incident.status == 'Pendiente' %}selected{% endif %}>Pendiente</option>

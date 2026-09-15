@@ -707,10 +707,43 @@ html[data-sidebar-theme="dark"] body.app-layout-v2 .card-header h6 {
     color: var(--app-text) !important;
 }
 
-html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-label,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-label {
+    color: var(--app-text-muted);
+}
+
 html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-number,
 html[data-sidebar-theme="dark"] body.app-layout-v2 .stat-card-value {
     color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .incident-chat {
+    --chat-other-bg: rgba(255, 255, 255, 0.08);
+    --chat-other-fg: var(--app-text);
+    --chat-own-bg: rgba(255, 255, 255, 0.08);
+    --chat-own-fg: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .incident-chat-name {
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .incident-chat-time {
+    color: var(--app-text-muted);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .incident-chat__composer {
+    background: var(--app-surface-elevated);
+    border-top-color: var(--app-surface-border);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .incident-chat__input {
+    background: var(--app-surface);
+    border-color: var(--app-surface-border);
+    color: var(--app-text);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .incident-chat__input::placeholder {
+    color: var(--app-text-muted);
 }
 
 /*

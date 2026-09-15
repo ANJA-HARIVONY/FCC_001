@@ -1120,10 +1120,10 @@ def _get_bitrix_task_info(api_base_url, task_id):
         with urllib.request.urlopen(req, timeout=10) as resp:
             result = json.loads(resp.read().decode('utf-8'))
         if 'error' in result:
-            return {'error': result.get('error_description', result.get('error', 'Erreur inconnue'))}
+            return {'error': result.get('error_description', result.get('error', 'Error desconocido'))}
         task_data = result.get('result', {}).get('task', {})
         if not task_data:
-            return {'error': 'Tâche non trouvée ou accès refusé'}
+            return {'error': 'Tarea no encontrada o acceso denegado'}
         status = str(task_data.get('status', task_data.get('realStatus', task_data.get('STATUS', ''))))
         status_data = BITRIX_STATUS_LABELS.get(status, (f'Estado {status}', '📋'))
         status_label = status_data[0] if isinstance(status_data, tuple) else status_data
@@ -1303,7 +1303,7 @@ def require_authentication():
         write_audit('LOGOUT_ABSOLUTE_TIMEOUT', id_operateur=uid)
         session.pop('last_activity_at', None)
         session.pop('session_started_at', None)
-        flash(gettext('Votre session a expiré (durée maximale atteinte). Veuillez vous reconnecter.'), 'error')
+        flash(gettext('Su sesión ha expirado (duración máxima alcanzada). Vuelva a iniciar sesión.'), 'error')
         return redirect(url_for('login'))
     if now_ts - float(last_activity_at) >= idle_timeout_seconds:
         uid = current_user.id
@@ -1311,7 +1311,7 @@ def require_authentication():
         write_audit('LOGOUT_IDLE_TIMEOUT', id_operateur=uid)
         session.pop('last_activity_at', None)
         session.pop('session_started_at', None)
-        flash(gettext('Vous avez été déconnecté après 30 minutes d’inactivité.'), 'error')
+        flash(gettext('Ha sido desconectado tras 30 minutos de inactividad.'), 'error')
         return redirect(url_for('login'))
     session['last_activity_at'] = now_ts
 
@@ -1647,7 +1647,7 @@ def upload_avatar_usuario(user_id):
         return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
     data = f.read()
     if len(data) > 2 * 1024 * 1024:
-        flash(gettext('Archivo demasiado grande (máx. 2 Mo).'), 'error')
+        flash(gettext('Archivo demasiado grande (máx. 2 MB).'), 'error')
         return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
     ext = secure_filename(f.filename).rsplit('.', 1)[-1].lower()
     av_dir = os.path.join(app.static_folder, 'avatars')
@@ -1876,14 +1876,13 @@ def aide():
     return render_template('aide.html', mariadb_version=mariadb_version)
 
 # Routes CRUD pour les clients
-@app.route('/clients')
-def clients():
+def _paginated_clients_from_request():
+    """Lista paginada y metadatos de filtros (lista y export Excel)."""
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 50, type=int)
     sort_by = request.args.get('sort', 'id')
     sort_order = request.args.get('order', 'desc')
-    
-    # Filtres optionnels
+
     search_query = request.args.get('search', '')
     ville_filter = request.args.get('ville', '')
     ciudad_filter = request.args.get('ciudad', '', type=str)
@@ -1901,11 +1900,9 @@ def clients():
         except (ValueError, TypeError):
             ciudad_filter = ''
             ciudad_id = None
-    
-    # Construction de la requête de base
+
     query = Client.query
-    
-    # Appliquer les filtres
+
     if search_query:
         query = query.filter(
             db.or_(
@@ -1917,7 +1914,7 @@ def clients():
                 Client.ip_antea.contains(search_query)
             )
         )
-    
+
     if ville_filter:
         query = query.filter(Client.ville.contains(ville_filter))
 
@@ -1926,8 +1923,7 @@ def clients():
 
     if categoria_value:
         query = query.filter(Client.categoria == categoria_value)
-    
-    # Appliquer le tri
+
     if sort_by == 'id':
         query = query.order_by(
             Client.id.asc() if sort_order == 'asc' else Client.id.desc()
@@ -1941,36 +1937,62 @@ def clients():
             Client.adresse.asc() if sort_order == 'asc' else Client.adresse.desc()
         )
     elif sort_by == 'incidents':
-        # Tri par nombre d'incidents
         query = query.outerjoin(Incident).group_by(Client.id).order_by(
             func.count(Incident.id).asc() if sort_order == 'asc' else func.count(Incident.id).desc()
         )
-    
-    # Pagination
+
     clients_paginated = query.paginate(
-        page=page, 
-        per_page=per_page, 
+        page=page,
+        per_page=per_page,
         error_out=False
     )
-    
-    # Obtenir la liste des villes pour le filtre
+
     villes = db.session.query(Client.ville).distinct().order_by(Client.ville).all()
     villes_list = [ville[0] for ville in villes if ville[0]]
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
-    
-    return render_template('clients.html', 
-                         clients=clients_paginated,
-                         search_query=search_query,
-                         ville_filter=ville_filter,
-                         ciudad_filter=ciudad_filter,
-                         categoria_filter=categoria_filter,
-                         categorias_cliente=CATEGORIAS_CLIENTE,
-                         categoria_cliente_labels=CATEGORIA_CLIENTE_LABELS,
-                         ciudades=ciudades,
-                         villes_list=villes_list,
-                         per_page=per_page,
-                         sort_by=sort_by,
-                         sort_order=sort_order)
+
+    return {
+        'clients': clients_paginated,
+        'search_query': search_query,
+        'ville_filter': ville_filter,
+        'ciudad_filter': ciudad_filter,
+        'categoria_filter': categoria_filter,
+        'categorias_cliente': CATEGORIAS_CLIENTE,
+        'categoria_cliente_labels': CATEGORIA_CLIENTE_LABELS,
+        'ciudades': ciudades,
+        'villes_list': villes_list,
+        'per_page': per_page,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+    }
+
+
+@app.route('/clients')
+def clients():
+    return render_template('clients.html', **_paginated_clients_from_request())
+
+
+@app.route('/api/clients/export.xlsx')
+def api_clients_export_xlsx():
+    """Exportar la página actual de clientes en Excel (.xlsx)."""
+    from core.services.clients_export_service import (
+        build_clients_export_filename,
+        build_clients_list_workbook,
+    )
+
+    try:
+        context = _paginated_clients_from_request()
+        buffer = build_clients_list_workbook(context['clients'].items)
+        filename = build_clients_export_filename()
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename,
+        )
+    except Exception as e:
+        flash(f'Error al exportar los clientes: {str(e)}', 'error')
+        return redirect(url_for('clients', **request.args))
 
 @app.route('/clients/nouveau', methods=['GET', 'POST'])
 def nouveau_client():
@@ -2511,7 +2533,7 @@ def fiche_incident(id):
         db.session.commit()
     comentarios = (
         IncidentComentario.query.filter_by(id_incident=incident.id)
-        .order_by(IncidentComentario.creado_en.desc())
+        .order_by(IncidentComentario.creado_en.asc())
         .options(joinedload(IncidentComentario.operateur))
         .all()
     )
