@@ -44,6 +44,26 @@ services:
       --interactive-timeout=28800
 
   # ===========================================================================
+  # phpMyAdmin — interface web MariaDB
+  # http://localhost:8081  (MariaDB n'a pas de page HTTP sur le port 3307)
+  # ===========================================================================
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: fcc_001_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    networks:
+      - fcc_network
+
+  # ===========================================================================
   # Application Flask FCC_001
   # ===========================================================================
   app:

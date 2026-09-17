@@ -87,6 +87,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     # Utilitaire réseau pour la fonction de ping
     iputils-ping \
+    # Bash requis par docker-entrypoint.sh (shebang #!/bin/bash)
+    bash \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -102,8 +104,9 @@ RUN mkdir -p /app/logs /app/instance /app/monitoring/logs /app/monitoring/backup
     chown -R appuser:appgroup /app
 
 # Copier et configurer le script d'entrée
+# sed retire les \r (CRLF Windows) : sinon exec échoue avec "no such file or directory"
 COPY --chown=appuser:appgroup docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 # Changer vers l'utilisateur non-root
 USER appuser
