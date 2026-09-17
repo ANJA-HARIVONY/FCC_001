@@ -56,6 +56,32 @@
             <span class="etats-report-kpi-card__hint">Solucionadas / total</span>
         </div>
         {% endif %}
+        {% if 'INCIDENTES_CORPORATIVO' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card" title="Incidencias de clientes corporativos">
+            <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.INCIDENTES_CORPORATIVO }}</span>
+            <span class="etats-report-kpi-card__label">Corporativos</span>
+            <span class="etats-report-kpi-card__hint">
+                {% if contenu.clientes_categoria %}
+                    {{ contenu.clientes_categoria.clientes_corporativo or 0 }} cliente(s) único(s)
+                {% else %}
+                    Clientes empresa / institución
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
+        {% if 'INCIDENTES_PARTICULAR' in contenu.kpis_cles %}
+        <div class="etats-report-kpi-card" title="Incidencias de clientes particulares">
+            <span class="etats-report-kpi-card__value">{{ contenu.kpis_cles.INCIDENTES_PARTICULAR }}</span>
+            <span class="etats-report-kpi-card__label">Particulares</span>
+            <span class="etats-report-kpi-card__hint">
+                {% if contenu.clientes_categoria %}
+                    {{ contenu.clientes_categoria.clientes_particular or 0 }} cliente(s) único(s)
+                {% else %}
+                    Clientes residenciales
+                {% endif %}
+            </span>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endif %}

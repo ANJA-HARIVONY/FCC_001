@@ -26,6 +26,8 @@ KPI_LABELS_ES = {
     'PENDIENTES': 'Pendientes',
     'TAUX_RESOLUTION': 'Tasa de resolución',
     'USUARIOS_ACTIVOS': 'Usuarios activos',
+    'INCIDENTES_CORPORATIVO': 'Incidencias corporativos',
+    'INCIDENTES_PARTICULAR': 'Incidencias particulares',
 }
 
 HEADER_FONT = Font(bold=True)
@@ -113,14 +115,22 @@ def _write_summary_datos(ws, contenu):
         ws.cell(row=row, column=1, value='Resumen ejecutivo').font = HEADER_FONT
         row += 1
         ws.cell(row=row, column=1, value=contenu['resume_executif'])
+        row += 2
+    notas = contenu.get('notas_del_dia') or []
+    if notas:
+        ws.cell(row=row, column=1, value='Notas del día').font = HEADER_FONT
         row += 1
+        for nota in notas:
+            ws.cell(row=row, column=1, value=nota.get('fecha', ''))
+            ws.cell(row=row, column=2, value=nota.get('texto', ''))
+            row += 1
     ws.column_dimensions['A'].width = 36
     ws.column_dimensions['B'].width = 24
     ws.freeze_panes = 'A2'
 
 
 def _write_analysis_datos(ws, contenu):
-    headers = ['Fecha', 'Total', 'Solucionadas', 'Bitrix']
+    headers = ['Fecha', 'Total', 'Solucionadas', 'Bitrix', 'Nota del día']
     for col, header in enumerate(headers, start=1):
         ws.cell(row=1, column=col, value=header).font = HEADER_FONT
     evolution = contenu.get('evolution') or []
@@ -129,13 +139,22 @@ def _write_analysis_datos(ws, contenu):
         ws.cell(row=row_idx, column=2, value=point.get('count', 0))
         ws.cell(row=row_idx, column=3, value=point.get('solucionadas', 0))
         ws.cell(row=row_idx, column=4, value=point.get('bitrix', 0))
+        ws.cell(row=row_idx, column=5, value=point.get('apreciacion') or '')
     if contenu.get('tendances_principales'):
         start = len(evolution) + 3
         ws.cell(row=start, column=1, value='Tendencias principales').font = HEADER_FONT
         for i, tendance in enumerate(contenu['tendances_principales'], start=start + 1):
             ws.cell(row=i, column=1, value=str(tendance))
-    for col in range(1, 5):
+    notas = contenu.get('notas_del_dia') or []
+    if notas:
+        start = len(evolution) + len(contenu.get('tendances_principales') or []) + 5
+        ws.cell(row=start, column=1, value='Notas del día').font = HEADER_FONT
+        for i, nota in enumerate(notas, start=start + 1):
+            ws.cell(row=i, column=1, value=nota.get('fecha', ''))
+            ws.cell(row=i, column=2, value=nota.get('texto', ''))
+    for col in range(1, 6):
         ws.column_dimensions[chr(64 + col)].width = 18
+    ws.column_dimensions['E'].width = 36
     ws.freeze_panes = 'A2'
 
 
@@ -170,9 +189,21 @@ def _write_performance_datos(ws, contenu):
 def _write_custom_datos(ws, contenu):
     ws.cell(row=1, column=1, value='Análisis personalizado').font = HEADER_FONT
     text = contenu.get('analyse_personnalisee') or ''
-    for row_idx, line in enumerate(text.splitlines() or [''], start=2):
-        ws.cell(row=row_idx, column=1, value=line)
+    row = 2
+    for line in text.splitlines() or ['']:
+        ws.cell(row=row, column=1, value=line)
+        row += 1
+    notas = contenu.get('notas_del_dia') or []
+    if notas:
+        row += 1
+        ws.cell(row=row, column=1, value='Notas del día').font = HEADER_FONT
+        row += 1
+        for nota in notas:
+            ws.cell(row=row, column=1, value=nota.get('fecha', ''))
+            ws.cell(row=row, column=2, value=nota.get('texto', ''))
+            row += 1
     ws.column_dimensions['A'].width = 80
+    ws.column_dimensions['B'].width = 48
     ws.freeze_panes = 'A2'
 
 

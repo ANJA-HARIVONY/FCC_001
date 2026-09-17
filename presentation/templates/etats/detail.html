@@ -24,7 +24,7 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
 </a>
 {% if etat.statut == 'generated' %}
 <form method="post" action="{{ url_for('etats_regenerer', id=etat.id) }}"
-      class="d-inline" onsubmit="return confirm('¿Regenerar este informe?')">
+      class="d-inline etats-print-hide" onsubmit="return confirm('¿Regenerar este informe?')">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn btn-outline-warning btn-sm">
         <i class="fas fa-sync me-1"></i>Regenerar
@@ -34,7 +34,7 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
     <i class="fas fa-file-excel me-1"></i>Exportar Excel
 </a>
 {% endif %}
-<button onclick="window.print()" type="button" class="btn btn-outline-primary btn-sm">
+<button type="button" class="btn btn-outline-primary btn-sm etats-print-hide" id="etats-print-btn">
     <i class="fas fa-print me-1"></i>Imprimir
 </button>
 {% endblock %}
@@ -64,6 +64,7 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
     </script>
 
     {% elif etat.statut == 'error' %}
+    {% set contenu = etat.contenu_ia|from_json if etat.contenu_ia is string else etat.contenu_ia %}
     <div class="row">
         <div class="col-12">
             <div class="etats-result-card etats-result-card--danger">
@@ -101,259 +102,235 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
     {% elif etat.statut == 'generated' and etat.contenu_ia %}
     {% set contenu = etat.contenu_ia|from_json if etat.contenu_ia is string else etat.contenu_ia %}
 
-    <div class="row mb-3">
-        <div class="col-12">
-            {% include 'etats/_etats_report_context.html' %}
-            {% include 'etats/_etats_report_legend.html' %}
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card etats-section-card">
-                <div class="card-header border-0 bg-white pb-2">
-                    <div class="etats-preview-head">
-                        <span class="etats-section-icon etats-section-icon--accent">
-                            <i class="fas fa-chart-line"></i>
-                        </span>
-                        <h5 class="mb-0 fw-semibold text-dark">Análisis Generado</h5>
-                    </div>
-                </div>
-                <div class="card-body pt-0">
-                    <div id="etats-contenido">
-                        {% if (etat.type_etat == 'summary' or etat.type_etat == 'performance') and contenu.resume_executif %}
-                            {% if etat.type_etat == 'summary' %}
-                            <div class="etats-content-block-title">Estado General</div>
-                            {% include 'etats/_etats_report_kpis.html' %}
-                            {% else %}
-                            <div class="etats-content-block-title">Actividad por Usuario</div>
-                            {% endif %}
-                            <div class="etats-content-lead mb-4">
-                                <p class="lead mb-0">{{ contenu.resume_executif }}</p>
-                            </div>
-
-                            {% if contenu.points_positifs or contenu.points_attention %}
-                            <div class="row mb-4 g-4">
-                                {% if contenu.points_positifs %}
-                                <div class="col-md-6">
-                                    <div class="etats-result-card etats-result-card--success mb-0 h-100">
-                                        <div class="etats-result-card__head">
-                                            <span class="etats-section-icon etats-section-icon--success">
-                                                <i class="fas fa-check"></i>
-                                            </span>
-                                            <h5 class="etats-result-card__title">Puntos Positivos</h5>
-                                        </div>
-                                        <div class="etats-result-card__body">
-                                            <ul class="list-unstyled mb-0">
-                                                {% for point in contenu.points_positifs %}
-                                                <li class="etats-list-point">
-                                                    <i class="fas fa-check-circle text-success me-2"></i>{{ point }}
-                                                </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                                {% if contenu.points_attention %}
-                                <div class="col-md-6">
-                                    <div class="etats-result-card etats-result-card--warning mb-0 h-100">
-                                        <div class="etats-result-card__head">
-                                            <span class="etats-section-icon etats-section-icon--warning">
-                                                <i class="fas fa-exclamation-circle"></i>
-                                            </span>
-                                            <h5 class="etats-result-card__title">Puntos de Atención</h5>
-                                        </div>
-                                        <div class="etats-result-card__body">
-                                            <ul class="list-unstyled mb-0">
-                                                {% for point in contenu.points_attention %}
-                                                <li class="etats-list-point">
-                                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>{{ point }}
-                                                </li>
-                                                {% endfor %}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-
-                            {% if etat.type_etat == 'performance' and contenu.activite_utilisateurs %}
-                            <div class="etats-result-card etats-result-card--accent mb-4">
-                                <div class="etats-result-card__head">
-                                    <span class="etats-section-icon etats-section-icon--performance">
-                                        <i class="fas fa-users"></i>
-                                    </span>
-                                    <h5 class="etats-result-card__title">Actividades por Usuario</h5>
-                                </div>
-                                <div class="etats-result-card__body">
-                                    <p class="text-muted small mb-3">
-                                        Detalle por operador en el período seleccionado.
-                                    </p>
-                                    {% set total_usuarios = contenu.activite_utilisateurs|length %}
-                                    {% set total_incidencias = contenu.activite_utilisateurs|sum(attribute='total') %}
-                                    {% set total_solucionadas = contenu.activite_utilisateurs|sum(attribute='solucionadas') %}
-                                    {% set total_bitrix = contenu.activite_utilisateurs|sum(attribute='bitrix') %}
-                                    <div class="etats-activity-kpis mb-3">
-                                        <div class="etats-activity-kpi">
-                                            <span class="etats-activity-kpi__label">Usuarios activos</span>
-                                            <strong class="etats-activity-kpi__value">{{ total_usuarios }}</strong>
-                                        </div>
-                                        <div class="etats-activity-kpi">
-                                            <span class="etats-activity-kpi__label">Total casos</span>
-                                            <strong class="etats-activity-kpi__value">{{ total_incidencias }}</strong>
-                                        </div>
-                                        <div class="etats-activity-kpi">
-                                            <span class="etats-activity-kpi__label">Solucionados</span>
-                                            <strong class="etats-activity-kpi__value text-success">{{ total_solucionadas }}</strong>
-                                        </div>
-                                        <div class="etats-activity-kpi">
-                                            <span class="etats-activity-kpi__label">Bitrix</span>
-                                            <strong class="etats-activity-kpi__value text-primary">{{ total_bitrix }}</strong>
-                                        </div>
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm align-middle mb-0 etats-activity-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Usuario</th>
-                                                    <th class="text-end">Total</th>
-                                                    <th class="text-end">Solucionadas</th>
-                                                    <th class="text-end">Bitrix</th>
-                                                    <th class="text-end">Eficacia</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% set max_total = (contenu.activite_utilisateurs | map(attribute='total') | max) if contenu.activite_utilisateurs else 0 %}
-                                                {% for row in contenu.activite_utilisateurs %}
-                                                {% set eficacia = ((row.solucionadas / row.total) * 100) if row.total else 0 %}
-                                                <tr>
-                                                    <td>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <span class="etats-user-dot"></span>
-                                                            <span class="fw-semibold">{{ row.usuario }}</span>
-                                                            {% if row.total == max_total and max_total > 0 %}
-                                                            <span class="badge bg-warning text-dark">Top</span>
-                                                            {% endif %}
-                                                        </div>
-                                                    </td>
-                                                    <td class="text-end fw-semibold">{{ row.total }}</td>
-                                                    <td class="text-end text-success">{{ row.solucionadas }}</td>
-                                                    <td class="text-end text-primary">{{ row.bitrix }}</td>
-                                                    <td class="text-end">
-                                                        <div class="d-inline-flex align-items-center gap-2 etats-efficacy-cell">
-                                                            <span class="fw-semibold">{{ eficacia|round(1) }}%</span>
-                                                            <div class="progress etats-efficacy-progress">
-                                                                <div class="progress-bar bg-success" style="width: {{ eficacia }}%;"></div>
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
-
-                            {% if contenu.recommandations %}
-                            <div class="etats-result-card etats-result-card--neutral mb-0">
-                                <div class="etats-result-card__head">
-                                    <span class="etats-section-icon etats-section-icon--neutral">
-                                        <i class="fas fa-lightbulb text-warning"></i>
-                                    </span>
-                                    <h5 class="etats-result-card__title">Recomendaciones Estratégicas</h5>
-                                </div>
-                                <div class="etats-result-card__body">
-                                    {% for rec in contenu.recommandations %}
-                                    <div class="etats-rec-row">
-                                        <i class="fas fa-lightbulb text-warning fs-5 mt-1 flex-shrink-0"></i>
-                                        <p class="mb-0">{{ rec }}</p>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
-
-                        {% elif etat.type_etat == 'analysis' %}
-                            <div class="etats-result-card etats-result-card--accent mb-0">
-                                <div class="etats-result-card__head">
-                                    <span class="etats-section-icon etats-section-icon--analysis">
-                                        <i class="fas fa-chart-line"></i>
-                                    </span>
-                                    <h5 class="etats-result-card__title">Evolución de Registros</h5>
-                                </div>
-                                <div class="etats-result-card__body">
-                                    {% if contenu.evolution %}
-                                        <h6 class="fw-semibold mb-3">Gráfica de evolución</h6>
-                                        <div class="mb-4" style="height: 320px;">
-                                            <canvas id="etats-evolution-chart"></canvas>
-                                        </div>
-                                        <h6 class="fw-semibold mb-3">Datos del gráfico</h6>
-                                        <div class="table-responsive mb-4">
-                                            <table class="table table-sm align-middle mb-0 etats-evolution-data-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th title="Fecha del registro">Fecha</th>
-                                                        <th class="text-end" title="Total de incidencias del día">Total</th>
-                                                        <th class="text-end" title="Resueltos a distancia">Solucionadas</th>
-                                                        <th class="text-end" title="Intervención en terreno">Bitrix</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for point in contenu.evolution %}
-                                                    <tr>
-                                                        <td>{{ point.label }}</td>
-                                                        <td class="text-end fw-semibold">{{ point.count or 0 }}</td>
-                                                        <td class="text-end text-success">{{ point.solucionadas or 0 }}</td>
-                                                        <td class="text-end text-primary">{{ point.bitrix or 0 }}</td>
-                                                    </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    {% endif %}
-                                    {% if contenu.tendances_principales %}
-                                        <h6 class="fw-semibold mb-3">Interpretación de tendencias</h6>
-                                        <ul class="mb-0 ps-3">
-                                            {% for tendance in contenu.tendances_principales %}
-                                            <li class="mb-2">{{ tendance }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                        {% elif etat.type_etat == 'custom' %}
-                            <div class="etats-result-card etats-result-card--accent mb-0">
-                                <div class="etats-result-card__head">
-                                    <span class="etats-section-icon etats-section-icon--custom">
-                                        <i class="fas fa-bullseye"></i>
-                                    </span>
-                                    <h5 class="etats-result-card__title">Análisis Personalizado</h5>
-                                </div>
-                                <div class="etats-result-card__body">
-                                    {% if contenu.analyse_personnalisee %}
-                                        <div class="etats-content-lead border-secondary">
-                                            {{ contenu.analyse_personnalisee|nl2br }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                        {% else %}
-                            <div class="alert alert-info etats-content-alert mb-0">
-                                <div class="fw-semibold mb-2">Contenido del Informe</div>
-                                <pre class="mb-0 small">{{ contenu|tojson(indent=2) if contenu else etat.contenu_ia }}</pre>
-                            </div>
-                        {% endif %}
-                    </div>
+    <article class="etats-report-doc" id="etats-contenido">
+        <header class="etats-report-doc__masthead">
+            <div class="etats-report-doc__brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="etats-report-doc__logo">
+                <div>
+                    <p class="etats-report-doc__kicker">CONNEXIA · Registro de Atención al cliente</p>
+                    <h1 class="etats-report-doc__title">{{ etat.titre }}</h1>
                 </div>
             </div>
+            {% include 'etats/_etats_report_context.html' %}
+        </header>
+
+        {% include 'etats/_etats_report_legend.html' %}
+
+        <div class="etats-report-doc__body">
+            {% if (etat.type_etat == 'summary' or etat.type_etat == 'performance') and contenu.resume_executif %}
+                <section class="etats-report-section">
+                    <h2 class="etats-report-section__title">
+                        {% if etat.type_etat == 'summary' %}Estado General{% else %}Actividad por Usuario{% endif %}
+                    </h2>
+                    {% if etat.type_etat == 'summary' %}
+                    {% include 'etats/_etats_report_kpis.html' %}
+                    {% endif %}
+                    <div class="etats-content-lead mb-0">
+                        <p class="lead mb-0">{{ contenu.resume_executif|unwrap_informe }}</p>
+                    </div>
+                </section>
+
+                {% if contenu.points_positifs or contenu.points_attention %}
+                <section class="etats-report-section">
+                    <div class="row g-3">
+                        {% if contenu.points_positifs %}
+                        <div class="col-md-6">
+                            <div class="etats-result-card etats-result-card--success mb-0 h-100">
+                                <div class="etats-result-card__head">
+                                    <span class="etats-section-icon etats-section-icon--success">
+                                        <i class="fas fa-check"></i>
+                                    </span>
+                                    <h3 class="etats-result-card__title">Puntos Positivos</h3>
+                                </div>
+                                <div class="etats-result-card__body">
+                                    <ul class="list-unstyled mb-0">
+                                        {% for point in contenu.points_positifs %}
+                                        <li class="etats-list-point">
+                                            <i class="fas fa-check-circle text-success me-2"></i>{{ point }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if contenu.points_attention %}
+                        <div class="col-md-6">
+                            <div class="etats-result-card etats-result-card--warning mb-0 h-100">
+                                <div class="etats-result-card__head">
+                                    <span class="etats-section-icon etats-section-icon--warning">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                    </span>
+                                    <h3 class="etats-result-card__title">Puntos de Atención</h3>
+                                </div>
+                                <div class="etats-result-card__body">
+                                    <ul class="list-unstyled mb-0">
+                                        {% for point in contenu.points_attention %}
+                                        <li class="etats-list-point">
+                                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>{{ point }}
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if etat.type_etat == 'performance' and contenu.activite_utilisateurs %}
+                <section class="etats-report-section">
+                    <h2 class="etats-report-section__title">Actividades por Usuario</h2>
+                    <p class="text-muted small mb-3">Detalle por operador en el período seleccionado.</p>
+                    {% set total_usuarios = contenu.activite_utilisateurs|length %}
+                    {% set total_incidencias = contenu.activite_utilisateurs|sum(attribute='total') %}
+                    {% set total_solucionadas = contenu.activite_utilisateurs|sum(attribute='solucionadas') %}
+                    {% set total_bitrix = contenu.activite_utilisateurs|sum(attribute='bitrix') %}
+                    <div class="etats-activity-kpis mb-3">
+                        <div class="etats-activity-kpi">
+                            <span class="etats-activity-kpi__label">Usuarios activos</span>
+                            <strong class="etats-activity-kpi__value">{{ total_usuarios }}</strong>
+                        </div>
+                        <div class="etats-activity-kpi">
+                            <span class="etats-activity-kpi__label">Total casos</span>
+                            <strong class="etats-activity-kpi__value">{{ total_incidencias }}</strong>
+                        </div>
+                        <div class="etats-activity-kpi">
+                            <span class="etats-activity-kpi__label">Solucionados</span>
+                            <strong class="etats-activity-kpi__value text-success">{{ total_solucionadas }}</strong>
+                        </div>
+                        <div class="etats-activity-kpi">
+                            <span class="etats-activity-kpi__label">Bitrix</span>
+                            <strong class="etats-activity-kpi__value text-primary">{{ total_bitrix }}</strong>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0 etats-activity-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Solucionadas</th>
+                                    <th class="text-end">Bitrix</th>
+                                    <th class="text-end">Eficacia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set max_total = (contenu.activite_utilisateurs | map(attribute='total') | max) if contenu.activite_utilisateurs else 0 %}
+                                {% for row in contenu.activite_utilisateurs %}
+                                {% set eficacia = ((row.solucionadas / row.total) * 100) if row.total else 0 %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="etats-user-dot"></span>
+                                            <span class="fw-semibold">{{ row.usuario }}</span>
+                                            {% if row.total == max_total and max_total > 0 %}
+                                            <span class="badge bg-warning text-dark">Top</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="text-end fw-semibold">{{ row.total }}</td>
+                                    <td class="text-end text-success">{{ row.solucionadas }}</td>
+                                    <td class="text-end text-primary">{{ row.bitrix }}</td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex align-items-center gap-2 etats-efficacy-cell">
+                                            <span class="fw-semibold">{{ eficacia|round(1) }}%</span>
+                                            <div class="progress etats-efficacy-progress">
+                                                <div class="progress-bar bg-success" style="width: {{ eficacia }}%;"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                {% endif %}
+
+                {% if contenu.recommandations %}
+                <section class="etats-report-section">
+                    <h2 class="etats-report-section__title">Recomendaciones Estratégicas</h2>
+                    {% for rec in contenu.recommandations %}
+                    <div class="etats-rec-row">
+                        <i class="fas fa-lightbulb text-warning fs-5 mt-1 flex-shrink-0"></i>
+                        <p class="mb-0">{{ rec }}</p>
+                    </div>
+                    {% endfor %}
+                </section>
+                {% endif %}
+
+            {% elif etat.type_etat == 'analysis' %}
+                <section class="etats-report-section">
+                    <h2 class="etats-report-section__title">Evolución de Registros</h2>
+                    {% if contenu.evolution %}
+                    <div class="etats-print-landscape">
+                        <h3 class="etats-report-section__subtitle">Gráfica de evolución</h3>
+                        <p class="etats-print-only small mb-2">{{ etat.titre }} · A4 apaisado</p>
+                        <div class="etats-evolution-chart-wrap">
+                            <canvas id="etats-evolution-chart"></canvas>
+                        </div>
+                    </div>
+                    <h3 class="etats-report-section__subtitle">Datos del gráfico</h3>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm align-middle mb-0 etats-evolution-data-table">
+                            <thead>
+                                <tr>
+                                    <th title="Fecha del registro">Fecha</th>
+                                    <th class="text-end" title="Total de incidencias del día">Total</th>
+                                    <th class="text-end" title="Resueltos a distancia">Solucionadas</th>
+                                    <th class="text-end" title="Intervención en terreno">Bitrix</th>
+                                    <th title="Apreciación operativa del día">Nota del día</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for point in contenu.evolution %}
+                                <tr>
+                                    <td>{{ point.label }}</td>
+                                    <td class="text-end fw-semibold">{{ point.count or 0 }}</td>
+                                    <td class="text-end text-success">{{ point.solucionadas or 0 }}</td>
+                                    <td class="text-end text-primary">{{ point.bitrix or 0 }}</td>
+                                    <td class="text-muted">{{ point.apreciacion or '—' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                    {% if contenu.tendances_principales %}
+                    <h3 class="etats-report-section__subtitle">Interpretación de tendencias</h3>
+                    <ul class="etats-report-list mb-0">
+                        {% for tendance in contenu.tendances_principales %}
+                        <li>{{ tendance }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </section>
+
+            {% elif etat.type_etat == 'custom' %}
+                <section class="etats-report-section">
+                    {% if contenu.analyse_personnalisee %}
+                    <div class="etats-custom-prose">
+                        {{ contenu.analyse_personnalisee|informe_prose }}
+                    </div>
+                    {% endif %}
+                </section>
+
+            {% else %}
+                <div class="alert alert-info etats-content-alert mb-0">
+                    <div class="fw-semibold mb-2">Contenido del Informe</div>
+                    <pre class="mb-0 small">{{ contenu|tojson(indent=2) if contenu else etat.contenu_ia }}</pre>
+                </div>
+            {% endif %}
+            {% include 'etats/_etats_report_notas.html' %}
         </div>
-    </div>
+
+        <footer class="etats-report-doc__colophon">
+            CONNEXIA · Informe de servicio · {{ etat.date_creation.strftime('%d/%m/%Y %H:%M') }}
+            · Formato A4
+        </footer>
+    </article>
 
     {% else %}
     <div class="row">
@@ -369,7 +346,18 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
     </div>
     {% endif %}
 </div>
-{% if etat.statut == 'generated' and etat.type_etat == 'analysis' and contenu and contenu.evolution %}
+<script>
+    (function () {
+        const printBtn = document.getElementById('etats-print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', function () {
+                window.dispatchEvent(new Event('beforeprint'));
+                window.setTimeout(function () { window.print(); }, 180);
+            });
+        }
+    })();
+</script>
+{% if etat.statut == 'generated' and etat.type_etat == 'analysis' and etat.contenu_ia %}
 <script>
     (function() {
         const chartCanvas = document.getElementById('etats-evolution-chart');
@@ -377,33 +365,79 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
             return;
         }
 
-        const evolutionData = {{ contenu.evolution|tojson }};
-        const labels = evolutionData.map((point) => point.label);
-        const bitrixSeries = evolutionData.map((point) => point.bitrix || 0);
-        const solucionadosSeries = evolutionData.map((point) => point.solucionadas || 0);
+        const evolutionData = {{ (contenu.evolution if contenu is defined else [])|tojson }};
+        const labels = evolutionData.map(function (point) { return point.label; });
+        const bitrixSeries = evolutionData.map(function (point) { return point.bitrix || 0; });
+        const solucionadosSeries = evolutionData.map(function (point) { return point.solucionadas || 0; });
 
-        new Chart(chartCanvas, {
+        function isDarkTheme() {
+            return document.documentElement.getAttribute('data-app-theme') === 'dark'
+                && !window.matchMedia('print').matches;
+        }
+
+        function chartColors(forPrint) {
+            const dark = !forPrint && isDarkTheme();
+            return {
+                tick: dark ? '#9aa3b2' : '#495057',
+                grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,20,28,0.08)',
+                legend: dark ? '#e8eaed' : '#343a40',
+                bitrix: '#3f6ad8',
+                solved: '#3ac47d'
+            };
+        }
+
+        function buildOptions(forPrint) {
+            const colors = chartColors(forPrint);
+            return {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: forPrint ? false : { duration: 400 },
+                interaction: { mode: 'index', intersect: false },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Fecha', color: colors.tick },
+                        ticks: { color: colors.tick, maxRotation: forPrint ? 45 : 0 },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cantidad', color: colors.tick },
+                        ticks: { precision: 0, color: colors.tick },
+                        grid: { color: colors.grid }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { color: colors.legend, boxWidth: 14, padding: 16 }
+                    }
+                }
+            };
+        }
+
+        const initialColors = chartColors(false);
+        const chart = new Chart(chartCanvas, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Bitrix (Intervención con los Técnicos)',
+                        label: 'Bitrix (intervención en terreno)',
                         data: bitrixSeries,
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.15)',
-                        borderWidth: 3,
+                        borderColor: initialColors.bitrix,
+                        backgroundColor: 'rgba(63, 106, 216, 0.12)',
+                        borderWidth: 2.5,
                         tension: 0.3,
                         fill: false,
                         pointRadius: 3,
                         pointHoverRadius: 5
                     },
                     {
-                        label: 'Solucionados (Remoto)',
+                        label: 'Solucionadas (remoto)',
                         data: solucionadosSeries,
-                        borderColor: '#198754',
-                        backgroundColor: 'rgba(25, 135, 84, 0.15)',
-                        borderWidth: 3,
+                        borderColor: initialColors.solved,
+                        backgroundColor: 'rgba(58, 196, 125, 0.12)',
+                        borderWidth: 2.5,
                         tension: 0.3,
                         fill: false,
                         pointRadius: 3,
@@ -411,41 +445,30 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
                     }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Fecha'
-                        },
-                        grid: {
-                            display: false
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Cantidad'
-                        },
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        position: 'top'
-                    }
-                }
-            }
+            options: buildOptions(false)
         });
+
+        function refreshChart(forPrint) {
+            const next = buildOptions(forPrint);
+            chart.options.animation = next.animation;
+            chart.options.scales = next.scales;
+            chart.options.plugins = next.plugins;
+            chart.update(forPrint ? 'none' : undefined);
+            chart.resize();
+        }
+
+        window.addEventListener('beforeprint', function () { refreshChart(true); });
+        window.addEventListener('afterprint', function () { refreshChart(false); });
+        if (window.matchMedia) {
+            window.matchMedia('print').addEventListener('change', function (event) {
+                refreshChart(event.matches);
+            });
+        }
+
+        if (window.MutationObserver) {
+            new MutationObserver(function () { refreshChart(false); })
+                .observe(document.documentElement, { attributes: true, attributeFilter: ['data-app-theme', 'data-sidebar-theme'] });
+        }
     })();
 </script>
 {% endif %}

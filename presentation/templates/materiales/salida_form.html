@@ -29,9 +29,14 @@
                 <input type="hidden" name="tipo_salida" value="{{ tipo_salida }}">
                 {% endif %}
 
-                <div class="alert alert-light border mb-4 py-2">
+                <div class="alert alert-light border mb-4 py-2 salida-tipo-banner">
                     <strong>Tipo de salida:</strong>
-                    <span class="badge bg-secondary ms-1">{{ salida_tipo_labels.get(tipo_salida, tipo_salida) }}</span>
+                    {% set salida_tipo_badge = {
+                        'uso_interno': 'bg-success',
+                        'incidencia': 'bg-warning text-dark',
+                        'instalacion': 'bg-primary'
+                    } %}
+                    <span class="badge {{ salida_tipo_badge.get(tipo_salida, 'bg-secondary') }} ms-1">{{ salida_tipo_labels.get(tipo_salida, tipo_salida) }}</span>
                     {% if salida %}
                     <span class="text-muted small ms-2">(no modificable)</span>
                     {% endif %}

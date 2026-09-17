@@ -15,37 +15,33 @@
 
 {% block content %}
 <div class="container-fluid px-0 etats-page">
-    <!-- Tipos de informes disponibles -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card mb-0 etats-section-card">
-                <div class="card-header d-flex align-items-center flex-wrap gap-2 py-3">
-                    <h5 class="mb-0 fw-semibold">
-                        <i class="fas fa-layer-group me-2"></i>Tipos de Informes Disponibles
-                    </h5>
-                </div>
+    <!-- Tipos de informes disponibles — mismo widget que los KPI del dashboard -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <h5 class="mb-0 fw-semibold">
+            <i class="fas fa-layer-group me-2"></i>Tipos de Informes Disponibles
+        </h5>
+        <a href="{{ url_for('etats_generer') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-rocket me-1"></i>Generar un Informe Ahora
+        </a>
+    </div>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
+        {% for type_etat in types_etats %}
+        <div class="col">
+            <div class="card stat-card stat-card--{{ type_etat.kpi }} h-100 stagger-in delay-{{ loop.index }}">
                 <div class="card-body">
-                    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3">
-                        {% for type_etat in types_etats %}
-                        <div class="col">
-                            <div class="etats-type-card h-100">
-                                <span class="etats-section-icon etats-section-icon--{{ type_etat.id }} mx-auto mb-2 d-inline-flex">
-                                    <i class="fas {{ type_etat.icon }}"></i>
-                                </span>
-                                <h6 class="mb-1 fw-semibold">{{ type_etat.nom }}</h6>
-                                <span class="etats-type-card-desc">{{ type_etat.description }}</span>
-                            </div>
+                    <div class="stat-card-inner stat-card-inner--start">
+                        <div class="stat-card-icon stat-card-icon--{{ type_etat.kpi }}" aria-hidden="true">
+                            <i class="fas {{ type_etat.icon }}"></i>
                         </div>
-                        {% endfor %}
-                    </div>
-                    <div class="text-center mt-4">
-                        <a href="{{ url_for('etats_generer') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-rocket me-1"></i>Generar un Informe Ahora
-                        </a>
+                        <div class="stat-card-copy">
+                            <div class="stat-card-title">{{ type_etat.nom }}</div>
+                            <p class="stat-card-desc mb-0">{{ type_etat.description }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+        {% endfor %}
     </div>
 
     <!-- Lista de informes recientes -->

@@ -96,9 +96,24 @@ class Config:
     # Override possible via MAX_CONTENT_LENGTH (en octets).
     MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', 16 * 1024 * 1024))
 
-    # Informes « Inteligentes » : False = contenu déterministe local (sans API Kimi).
-    # Mettre ETATS_USE_AI=true dans l'environnement pour réactiver l'appel IA.
-    ETATS_USE_AI = os.environ.get('ETATS_USE_AI', '').lower() in ('1', 'true', 'yes')
+    # Informes IA (Gemini). Auto-activé si GEMINI_API_KEY est présent.
+    # Forcer : ETATS_USE_AI=true|false.
+    GEMINI_API_KEY = (os.environ.get('GEMINI_API_KEY') or '').strip()
+    GEMINI_MODEL = (os.environ.get('GEMINI_MODEL') or 'gemini-3.6-flash').strip()
+    GEMINI_API_URL = (
+        os.environ.get('GEMINI_API_URL')
+        or 'https://generativelanguage.googleapis.com/v1beta/models'
+    ).rstrip('/')
+    GEMINI_TIMEOUT = int(os.environ.get('GEMINI_TIMEOUT') or 60)
+    GEMINI_MAX_TOKENS = int(os.environ.get('GEMINI_MAX_TOKENS') or 4096)
+
+    _etats_ai_raw = (os.environ.get('ETATS_USE_AI') or '').strip().lower()
+    if _etats_ai_raw in ('0', 'false', 'no', 'off'):
+        ETATS_USE_AI = False
+    elif _etats_ai_raw in ('1', 'true', 'yes', 'on'):
+        ETATS_USE_AI = True
+    else:
+        ETATS_USE_AI = bool(GEMINI_API_KEY)
 
 
 class DevelopmentConfig(Config):

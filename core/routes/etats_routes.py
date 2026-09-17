@@ -11,12 +11,67 @@ import json
 from flask import render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
 from datetime import datetime, timedelta
 from sqlalchemy import desc
+from sqlalchemy.orm import joinedload
 from flask_login import current_user
 
-from core.app import app, db, Etat, Incident, Agencia
+from core.app import app, db, Etat, Incident, Agencia, ApreciacionDia
+from core.utils import parse_informe_json, unwrap_informe_text
 
-# Réactiver l’appel API Kimi : définir ETATS_USE_AI = True dans la config Flask
-# (ex. app.config['ETATS_USE_AI'] = True) ou variable d’environnement gérée côté config.
+# Rédaction IA via Gemini si GEMINI_API_KEY est défini (désactiver : ETATS_USE_AI=false).
+
+
+def get_types_etats():
+    """Catálogo de tipos de informe (hub + formulario de generación)."""
+    return [
+        {
+            'id': 'summary',
+            'nom': 'Estado General',
+            'description': (
+                'Totales del período, desglose por estado (solucionadas, pendientes, Bitrix), '
+                'clientes corporativos y particulares, y notas del día.'
+            ),
+            'icon': 'fa-chart-line',
+            'kpi': 'registered',
+            'color': 'primary',
+            'estimated_tokens': 400,
+        },
+        {
+            'id': 'analysis',
+            'nom': 'Evolución de Registros',
+            'description': (
+                'Serie temporal de incidencias por día, mes o año para detectar picos, '
+                'tendencias y estacionalidad del volumen registrado.'
+            ),
+            'icon': 'fa-chart-area',
+            'kpi': 'bitrix',
+            'color': 'info',
+            'estimated_tokens': 350,
+        },
+        {
+            'id': 'performance',
+            'nom': 'Actividad por Usuario',
+            'description': (
+                'Carga de trabajo por operador: registros creados, casos resueltos '
+                'y distribución de la actividad del equipo en el período.'
+            ),
+            'icon': 'fa-users',
+            'kpi': 'resolved',
+            'color': 'success',
+            'estimated_tokens': 300,
+        },
+        {
+            'id': 'custom',
+            'nom': 'Análisis Personalizado',
+            'description': (
+                'Informe a medida según su consigna: elija el foco analítico, '
+                'el período y los filtros para una lectura específica.'
+            ),
+            'icon': 'fa-cog',
+            'kpi': 'pending',
+            'color': 'warning',
+            'estimated_tokens': 500,
+        },
+    ]
 
 
 @app.route('/etats')
@@ -32,33 +87,7 @@ def etats():
             Etat.date_creation >= datetime.now().date()
         ).count()
         
-        # Tipos de informes disponibles
-        types_etats = [
-            {
-                'id': 'summary',
-                'nom': 'Estado General',
-                'description': 'Conteos globales de registros',
-                'icon': 'fa-chart-line'
-            },
-            {
-                'id': 'analysis',
-                'nom': 'Evolución de Registros',
-                'description': 'Evolución temporal de los registros',
-                'icon': 'fa-trending-up'
-            },
-            {
-                'id': 'performance',
-                'nom': 'Actividad por Usuario',
-                'description': 'Actividad de cada usuario',
-                'icon': 'fa-users'
-            },
-            {
-                'id': 'custom',
-                'nom': 'Análisis Personalizado',
-                'description': 'Análisis basado en su solicitud específica',
-                'icon': 'fa-cog'
-            }
-        ]
+        types_etats = get_types_etats()
         
         return render_template('etats/etats.html',
                              etats_recents=etats_recents,
@@ -78,42 +107,8 @@ def etats():
 @app.route('/etats/generer')
 def etats_generer():
     """Page de génération d'un nouvel état"""
-    # Tipos de informes disponibles con más detalles
-    types_etats = [
-        {
-            'id': 'summary',
-            'nom': 'Estado General',
-            'description': 'Conteos globales de registros y resumen por estado',
-            'icon': 'fa-chart-line',
-            'color': 'primary',
-            'estimated_tokens': 400
-        },
-        {
-            'id': 'analysis',
-            'nom': 'Evolución de Registros',
-            'description': 'Visualización de la evolución temporal de incidentes',
-            'icon': 'fa-trending-up',
-            'color': 'info',
-            'estimated_tokens': 350
-        },
-        {
-            'id': 'performance',
-            'nom': 'Actividad por Usuario',
-            'description': 'Distribución de actividad y resoluciones por usuario',
-            'icon': 'fa-users',
-            'color': 'success',
-            'estimated_tokens': 300
-        },
-        {
-            'id': 'custom',
-            'nom': 'Análisis Personalizado',
-            'description': 'Análisis a medida según su solicitud',
-            'icon': 'fa-cog',
-            'color': 'warning',
-            'estimated_tokens': 500
-        }
-    ]
-    
+    types_etats = get_types_etats()
+
     # Périodes prédéfinies
     periodes = [
         {'id': 'current_week', 'nom': 'Semana actual'},
@@ -359,8 +354,72 @@ def _parse_parametres_dict(etat):
 
 
 def _etats_use_ai():
-    """False par défaut : génération locale sans appel réseau. True = Kimi (si configuré)."""
+    """True si Gemini doit rédiger l'informe (clé présente, sauf ETATS_USE_AI=false)."""
     return bool(current_app.config.get('ETATS_USE_AI', False))
+
+
+def _merge_ai_contenu(local_data, ai_data):
+    """Conserve les séries/KPI locaux et y ajoute la rédaction Gemini."""
+    merged = dict(local_data or {})
+    if not isinstance(ai_data, dict):
+        return merged
+    for key, value in ai_data.items():
+        if value in (None, '', [], {}):
+            continue
+        merged[key] = value
+    if local_data.get('evolution'):
+        merged['evolution'] = local_data['evolution']
+    if local_data.get('activite_utilisateurs'):
+        merged['activite_utilisateurs'] = local_data['activite_utilisateurs']
+    if local_data.get('agence_label'):
+        merged['agence_label'] = local_data['agence_label']
+    if local_data.get('kpis_cles'):
+        merged['kpis_cles'] = local_data['kpis_cles']
+    if local_data.get('notas_del_dia'):
+        merged['notas_del_dia'] = local_data['notas_del_dia']
+    if local_data.get('clientes_categoria'):
+        merged['clientes_categoria'] = local_data['clientes_categoria']
+    for key in ('resume_executif', 'analyse_personnalisee'):
+        value = merged.get(key)
+        if isinstance(value, str):
+            parsed = parse_informe_json(value)
+            if parsed:
+                for parsed_key, parsed_value in parsed.items():
+                    if parsed_value in (None, '', [], {}):
+                        continue
+                    if parsed_key in (
+                        'evolution',
+                        'activite_utilisateurs',
+                        'kpis_cles',
+                        'agence_label',
+                        'notas_del_dia',
+                        'clientes_categoria',
+                    ):
+                        continue
+                    merged[parsed_key] = parsed_value
+            merged[key] = unwrap_informe_text(merged.get(key, value))
+    return merged
+
+
+def _informe_shared_fields(data_context):
+    """Champs communs (notes du jour, catégories client) pour tous les types d'informe."""
+    return {
+        'notas_del_dia': data_context.get('notas_del_dia') or [],
+        'clientes_categoria': data_context.get('clientes_categoria') or {},
+        'agence_label': data_context.get('agence_label'),
+    }
+
+
+def _categoria_counts_text(data_context):
+    cats = data_context.get('clientes_categoria') or {}
+    corp = int(cats.get('incidents_corporativo') or 0)
+    part = int(cats.get('incidents_particular') or 0)
+    return (
+        f'Corporativos: {corp} incidencia(s) '
+        f'({int(cats.get("clientes_corporativo") or 0)} cliente(s)). '
+        f'Particulares: {part} incidencia(s) '
+        f'({int(cats.get("clientes_particular") or 0)} cliente(s)).'
+    )
 
 
 def _build_etat_content_local(etat, data_context):
@@ -385,11 +444,20 @@ def _build_etat_content_local(etat, data_context):
             )
             if data_context.get('agence_label'):
                 tendances.append(f'Agencia considerada: {data_context.get("agence_label")}.')
-        return {
+            cats = data_context.get('clientes_categoria') or {}
+            if cats:
+                tendances.append(_categoria_counts_text(data_context))
+            notas = data_context.get('notas_del_dia') or []
+            if notas:
+                tendances.append(
+                    f'{len(notas)} nota(s) del día en el período (apreciaciones operativas).'
+                )
+        payload = {
             'tendances_principales': tendances,
             'evolution': evolution,
-            'agence_label': data_context.get('agence_label'),
         }
+        payload.update(_informe_shared_fields(data_context))
+        return payload
 
     if etat.type_etat == 'custom':
         params = _parse_parametres_dict(etat)
@@ -408,32 +476,45 @@ def _build_etat_content_local(etat, data_context):
             f"- Bitrix: {int(data_context.get('incidents_bitrix') or 0)}",
             f"- Tasa de resolucion: {tr} %",
             f"- Clientes impactados (unicos): {int(data_context.get('nombre_clients_impactes') or 0)}",
+            f"- {_categoria_counts_text(data_context)}",
             f"- Operadores activos: {int(data_context.get('nombre_operateurs_actifs') or 0)}",
         ]
-        return {'analyse_personnalisee': '\n'.join(lines)}
+        notas = data_context.get('notas_del_dia') or []
+        if notas:
+            lines.extend(['', 'Notas del día:'])
+            lines.extend(f"- {nota.get('fecha')}: {nota.get('texto')}" for nota in notas)
+        payload = {'analyse_personnalisee': '\n'.join(lines)}
+        payload.update(_informe_shared_fields(data_context))
+        return payload
 
     if etat.type_etat == 'performance':
         user_activity = data_context.get('activite_utilisateurs') or []
-        return {
+        cats = data_context.get('clientes_categoria') or {}
+        payload = {
             'resume_executif': (
                 f'Actividad por usuario para {periode}. '
                 f'Total incidentes: {tc}. Solucionadas: {int(data_context.get("incidents_resolus") or 0)}. '
-                f'Bitrix (terreno): {int(data_context.get("incidents_bitrix") or 0)}.'
+                f'Bitrix (terreno): {int(data_context.get("incidents_bitrix") or 0)}. '
+                f'{_categoria_counts_text(data_context)}'
             ),
             'activite_utilisateurs': user_activity,
-            'agence_label': data_context.get('agence_label'),
             'kpis_cles': {
                 'USUARIOS_ACTIVOS': str(int(data_context.get('nombre_operateurs_actifs') or 0)),
                 'TOTAL_INCIDENTES': str(tc),
                 'SOLUCIONADAS': str(int(data_context.get('incidents_resolus') or 0)),
                 'BITRIX_TERRENO': str(int(data_context.get('incidents_bitrix') or 0)),
+                'INCIDENTES_CORPORATIVO': str(int(cats.get('incidents_corporativo') or 0)),
+                'INCIDENTES_PARTICULAR': str(int(cats.get('incidents_particular') or 0)),
             },
         }
+        payload.update(_informe_shared_fields(data_context))
+        return payload
 
     # summary, ou tout autre type : état général en comptages
     resume = (
         f"Período analizado: {periode}. "
-        f"Se registran {tc} incidente(s) con una tasa de resolución de {tr} %."
+        f"Se registran {tc} incidente(s) con una tasa de resolución de {tr} %. "
+        f"{_categoria_counts_text(data_context)}"
     )
     points_pos = []
     points_att = []
@@ -466,6 +547,8 @@ def _build_etat_content_local(etat, data_context):
         'PENDIENTES': str(int(data_context.get('incidents_en_cours') or 0)),
         'BITRIX': str(int(data_context.get('incidents_bitrix') or 0)),
         'SOLUCIONADAS_DISTANCIA': str(int(data_context.get('incidents_resolus') or 0)),
+        'INCIDENTES_CORPORATIVO': str(int((data_context.get('clientes_categoria') or {}).get('incidents_corporativo') or 0)),
+        'INCIDENTES_PARTICULAR': str(int((data_context.get('clientes_categoria') or {}).get('incidents_particular') or 0)),
     }
     recs = [
         'Continuar el seguimiento de incidentes en estado Pendiente.',
@@ -476,18 +559,19 @@ def _build_etat_content_local(etat, data_context):
             'Comparar carga (total) y resoluciones por operador para equilibrar la distribución si es necesario.'
         )
 
-    return {
+    payload = {
         'resume_executif': resume,
         'points_positifs': points_pos,
         'points_attention': points_att,
         'kpis_cles': kpis,
         'recommandations': recs,
-        'agence_label': data_context.get('agence_label'),
     }
+    payload.update(_informe_shared_fields(data_context))
+    return payload
 
 
 def _generate_etat_content(etat):
-    """Génère le contenu d'un informe (mode local par défaut, Kimi si ETATS_USE_AI)."""
+    """Génère le contenu d'un informe (Gemini si clé configurée, sinon local)."""
     try:
         data_context = _collect_data_context(etat)
         if data_context.get('error'):
@@ -501,41 +585,45 @@ def _generate_etat_content(etat):
             etat.date_modification = datetime.utcnow()
             return False
 
-        if _etats_use_ai():
-            from core.services.kimi_service import get_kimi_service
+        local_data = _build_etat_content_local(etat, data_context)
 
-            kimi_service = get_kimi_service()
-            params = _parse_parametres_dict(etat)
-            if etat.type_etat == 'summary':
-                result = kimi_service.generate_executive_summary(data_context)
-            elif etat.type_etat == 'analysis':
-                result = kimi_service.generate_trend_analysis(data_context)
+        if _etats_use_ai():
+            from core.services.gemini_service import get_gemini_service
+
+            gemini_service = get_gemini_service()
+            params = dict(_parse_parametres_dict(etat))
+            if etat.type_etat == 'analysis':
+                result = gemini_service.generate_trend_analysis(data_context)
             elif etat.type_etat == 'custom':
                 prompt = params.get('prompt_personnalise', '')
-                result = kimi_service.generate_custom_analysis(prompt, data_context)
+                result = gemini_service.generate_custom_analysis(prompt, data_context)
+            elif etat.type_etat == 'performance':
+                result = gemini_service.generate_performance_analysis(data_context)
             else:
-                result = kimi_service.generate_executive_summary(data_context)
+                result = gemini_service.generate_executive_summary(data_context)
 
-            if result['success']:
-                etat.contenu_ia = json.dumps(result['data'], ensure_ascii=False)
+            if result.get('success'):
+                merged = _merge_ai_contenu(local_data, result.get('data') or {})
+                etat.contenu_ia = json.dumps(merged, ensure_ascii=False)
                 etat.statut = 'generated'
                 etat.date_modification = datetime.utcnow()
-                if 'usage' in result:
-                    parametres = params if params else _parse_parametres_dict(etat)
-                    parametres = dict(parametres)
-                    parametres['usage'] = result['usage']
-                    etat.parametres = json.dumps(parametres, ensure_ascii=False)
+                params['ia_provider'] = 'gemini'
+                params['ia_model'] = result.get('model')
+                if result.get('usage'):
+                    params['usage'] = result['usage']
+                if result.get('warning'):
+                    params['ia_warning'] = result['warning']
+                etat.parametres = json.dumps(params, ensure_ascii=False)
                 return True
 
             etat.statut = 'error'
             etat.contenu_ia = json.dumps(
-                {'error': result.get('error', 'Error desconocido')},
+                {'error': result.get('error', 'Error desconocido de Gemini')},
                 ensure_ascii=False,
             )
             etat.date_modification = datetime.utcnow()
             return False
 
-        local_data = _build_etat_content_local(etat, data_context)
         etat.contenu_ia = json.dumps(local_data, ensure_ascii=False)
         etat.statut = 'generated'
         etat.date_modification = datetime.utcnow()
@@ -552,7 +640,10 @@ def _collect_data_context(etat):
     """Helper: Collecter le contexte de données pour l'IA"""
     try:
         # Filtrar según el período del informe y por agencia (si aplica)
-        query = Incident.query
+        query = Incident.query.options(
+            joinedload(Incident.client),
+            joinedload(Incident.operateur),
+        )
         params = _parse_parametres_dict(etat)
         agence_id = None
         agence_label = 'Todas las agencias'
@@ -585,11 +676,26 @@ def _collect_data_context(etat):
         
         taux_resolution = round((incidents_resolus / total_incidents * 100) if total_incidents > 0 else 0, 1)
         
-        # Répartition par type d'incident
+        # Répartition par type d'incident et par catégorie de client
         incidents_par_type = {}
+        incidents_corporativo = 0
+        incidents_particular = 0
+        clients_corporativo = set()
+        clients_particular = set()
         for incident in incidents:
             intitule = incident.intitule[:50]  # Limiter la longueur
             incidents_par_type[intitule] = incidents_par_type.get(intitule, 0) + 1
+            categoria = 'particular'
+            if incident.client and getattr(incident.client, 'categoria', None) == 'corporativo':
+                categoria = 'corporativo'
+            if categoria == 'corporativo':
+                incidents_corporativo += 1
+                if incident.id_client:
+                    clients_corporativo.add(incident.id_client)
+            else:
+                incidents_particular += 1
+                if incident.id_client:
+                    clients_particular.add(incident.id_client)
         
         # Performance des opérateurs + activité utilisateur
         operateurs_performance = {}
@@ -621,12 +727,32 @@ def _collect_data_context(etat):
                 evolution_map[day_key]['solucionadas'] += 1
             if incident.status == 'Bitrix':
                 evolution_map[day_key]['bitrix'] += 1
+
+        notas_query = ApreciacionDia.query
+        if etat.periode_debut:
+            notas_query = notas_query.filter(ApreciacionDia.fecha >= etat.periode_debut)
+        if etat.periode_fin:
+            notas_query = notas_query.filter(ApreciacionDia.fecha <= etat.periode_fin)
+        else:
+            notas_query = notas_query.filter(ApreciacionDia.fecha <= datetime.now().date())
+        notas_rows = notas_query.order_by(ApreciacionDia.fecha).all()
+        notas_del_dia = [
+            {
+                'fecha': row.fecha.strftime('%d/%m/%Y'),
+                'fecha_iso': row.fecha.isoformat(),
+                'texto': row.texto,
+            }
+            for row in notas_rows
+        ]
+        notes_by_iso = {nota['fecha_iso']: nota['texto'] for nota in notas_del_dia}
+
         evolution = [
             {
                 'label': day,
                 'count': evolution_map[day]['count'],
                 'solucionadas': evolution_map[day]['solucionadas'],
                 'bitrix': evolution_map[day]['bitrix'],
+                'apreciacion': notes_by_iso.get(day),
             }
             for day in sorted(evolution_map.keys())
         ]
@@ -651,6 +777,13 @@ def _collect_data_context(etat):
             'nombre_operateurs_actifs': len(set(i.id_operateur for i in incidents if i.id_operateur)),
             'agence_id': agence_id,
             'agence_label': agence_label,
+            'clientes_categoria': {
+                'incidents_corporativo': incidents_corporativo,
+                'incidents_particular': incidents_particular,
+                'clientes_corporativo': len(clients_corporativo),
+                'clientes_particular': len(clients_particular),
+            },
+            'notas_del_dia': notas_del_dia,
             'evolution': evolution,
             'activite_utilisateurs': [
                 {

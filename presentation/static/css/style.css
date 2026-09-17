@@ -186,6 +186,26 @@ main.page-enter {
     flex: 1 1 auto;
 }
 
+.stat-card-inner--start {
+    align-items: flex-start;
+}
+
+.stat-card-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.25;
+    color: #343a40;
+    margin-bottom: 0.3rem;
+}
+
+.stat-card-desc {
+    margin: 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: #6c757d;
+    font-weight: 400;
+}
+
 .stat-card:hover .stat-card-icon {
     transform: scale(1.04);
 }
@@ -2408,6 +2428,170 @@ body.login-page {
     margin: 0;
 }
 
+.etats-custom-prose {
+    color: #343a40;
+    font-size: 0.98rem;
+    line-height: 1.55;
+}
+
+.etats-custom-prose__title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: #212529;
+    margin: 0 0 1rem;
+}
+
+.etats-custom-prose__h {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: #212529;
+    margin: 1.25rem 0 0.7rem;
+}
+
+.etats-custom-prose__meta {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0 0 1.1rem;
+}
+
+.etats-custom-prose__meta-row {
+    display: grid;
+    grid-template-columns: minmax(7rem, 10rem) 1fr;
+    gap: 0.5rem 0.85rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.etats-custom-prose__meta dt {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #6c757d;
+    align-self: center;
+}
+
+.etats-custom-prose__meta dd {
+    margin: 0;
+    font-weight: 600;
+    color: #212529;
+}
+
+.etats-custom-prose__list {
+    margin: 0 0 1rem;
+    padding: 0;
+    list-style: none;
+}
+
+.etats-custom-prose__list li {
+    position: relative;
+    margin: 0 0 0.45rem;
+    padding: 0.55rem 0.75rem 0.55rem 1.7rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: #fff;
+}
+
+.etats-custom-prose__list li::before {
+    content: "";
+    position: absolute;
+    left: 0.7rem;
+    top: 0.95rem;
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 50%;
+    background: #dc3545;
+}
+
+.etats-custom-prose ol.etats-custom-prose__list {
+    counter-reset: etats-prose;
+}
+
+.etats-custom-prose ol.etats-custom-prose__list li {
+    padding-left: 2.1rem;
+}
+
+.etats-custom-prose ol.etats-custom-prose__list li::before {
+    content: counter(etats-prose);
+    counter-increment: etats-prose;
+    width: auto;
+    height: auto;
+    left: 0.65rem;
+    top: 0.52rem;
+    background: transparent;
+    color: #dc3545;
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.etats-custom-prose p {
+    margin: 0 0 0.75rem;
+}
+
+.etats-custom-prose p:last-child,
+.etats-custom-prose__list:last-child,
+.etats-custom-prose__meta:last-child,
+.etats-custom-prose__h:last-child {
+    margin-bottom: 0;
+}
+
+.etats-custom-prose__rule {
+    border: 0;
+    border-top: 1px solid var(--ui-border);
+    margin: 1rem 0;
+}
+
+.etats-notas-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.etats-notas-list__item {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: 0.65rem 1rem;
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    background: #fff;
+    margin-bottom: 0.45rem;
+}
+
+.etats-notas-list__item:last-child {
+    margin-bottom: 0;
+}
+
+.etats-notas-list__date {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #6c757d;
+    align-self: center;
+}
+
+.etats-notas-list__text {
+    color: #212529;
+}
+
+@media (max-width: 576px) {
+    .etats-notas-list__item {
+        grid-template-columns: 1fr;
+        gap: 0.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .etats-custom-prose__meta-row {
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+    }
+}
+
 .etats-list-point {
     margin-bottom: 0.75rem;
     padding: 0.5rem 0.65rem;
@@ -2528,23 +2712,6 @@ body.login-page {
     font-size: 0.775rem;
 }
 
-@media print {
-    .etats-page .etats-print-hide,
-    .etats-page .etats-detail-actions {
-        display: none !important;
-    }
-
-    .etats-page .etats-result-card,
-    .etats-page .etats-section-card {
-        box-shadow: none !important;
-        break-inside: avoid;
-    }
-
-    .etats-report-legend {
-        break-inside: avoid;
-    }
-}
-
 /* Bandeau contexte, légende et KPI rapport informe */
 
 .etats-report-context {
@@ -2557,6 +2724,371 @@ body.login-page {
     border: 1px solid var(--ui-border);
     background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     box-shadow: var(--ui-shadow-sm);
+}
+
+.etats-print-only {
+    display: none;
+}
+
+/* Documento informe (ArchitectUI / A4) */
+.etats-report-doc {
+    background: #fff;
+    border: 1px solid var(--ui-border);
+    border-radius: 16px;
+    box-shadow: 0 0.46875rem 2.1875rem rgba(4, 9, 20, 0.03),
+                0 0.25rem 0.53125rem rgba(4, 9, 20, 0.05);
+    padding: 1.6rem 1.75rem 1.25rem;
+    max-width: 210mm;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.etats-report-doc__masthead {
+    position: relative;
+    padding-bottom: 1.15rem;
+    margin-bottom: 1.15rem;
+}
+
+.etats-report-doc__masthead::after {
+    content: "";
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #dc3545 0%, #3f6ad8 55%, rgba(63, 106, 216, 0.18) 100%);
+}
+
+.etats-report-doc__brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.etats-report-doc__logo {
+    height: 42px;
+    width: auto;
+    flex-shrink: 0;
+}
+
+.etats-report-doc__kicker {
+    margin: 0 0 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6c757d;
+}
+
+.etats-report-doc__title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #212529;
+}
+
+.etats-report-doc__masthead .etats-report-context {
+    margin-bottom: 0;
+    box-shadow: none;
+}
+
+.etats-report-section {
+    margin-bottom: 1.5rem;
+}
+
+.etats-report-section:last-child {
+    margin-bottom: 0;
+}
+
+.etats-report-section__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #212529;
+    margin: 0 0 0.85rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 2px solid rgba(220, 53, 69, 0.35);
+}
+
+.etats-report-section__subtitle {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 1rem 0 0.65rem;
+}
+
+.etats-report-list {
+    padding-left: 1.15rem;
+}
+
+.etats-report-list li {
+    margin-bottom: 0.45rem;
+}
+
+.etats-print-landscape {
+    border: 1px solid var(--ui-border);
+    border-radius: 12px;
+    padding: 0.95rem 1.05rem 0.7rem;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    margin-bottom: 1rem;
+}
+
+.etats-evolution-chart-wrap {
+    position: relative;
+    height: 320px;
+    margin-bottom: 0.5rem;
+}
+
+.etats-report-doc__colophon {
+    margin-top: 1.5rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--ui-border);
+    font-size: 0.72rem;
+    color: #6c757d;
+    letter-spacing: 0.02em;
+}
+
+@page {
+    size: A4 portrait;
+    margin: 12mm 14mm 14mm;
+}
+
+@page etats-landscape {
+    size: A4 landscape;
+    margin: 10mm 12mm;
+}
+
+@media print {
+    .etats-print-hide,
+    .etats-page .etats-detail-actions,
+    body.app-layout-v2 .app-header,
+    body.app-layout-v2 .app-sidebar,
+    body.app-layout-v2 .app-footer,
+    body.app-layout-v2 .app-page-title,
+    body.app-layout-v2 .app-flash-stack,
+    body.app-layout-v2 .app-breadcrumb,
+    body.app-layout-v2 .sidebar-mobile-overlay,
+    body.app-layout-v2 .notification-container,
+    #session-timeout-modal {
+        display: none !important;
+    }
+
+    .etats-print-only {
+        display: block !important;
+    }
+
+    html,
+    body.app-layout-v2,
+    html[data-app-theme="dark"] body.app-layout-v2,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 {
+        background: #fff !important;
+        color: #111 !important;
+    }
+
+    body.app-layout-v2 .app-container,
+    body.app-layout-v2 .app-main,
+    body.app-layout-v2 .app-main__outer,
+    body.app-layout-v2 .app-main__inner,
+    body.app-layout-v2 .app-main__content {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        background: #fff !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+    }
+
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-result-card,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-result-card,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-section-card,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-context,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-context,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-activity-kpi,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-activity-kpi,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-content-lead,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-content-lead,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-custom-prose__meta-row,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-custom-prose__meta-row,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-custom-prose__list li,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-custom-prose__list li,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-list-point,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-list-point,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-rec-row,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-rec-row,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-legend,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-legend,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-print-landscape,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-print-landscape,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-pill,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-pill,
+    .etats-report-doc,
+    .etats-result-card,
+    .etats-section-card,
+    .etats-report-context,
+    .etats-report-kpi-card,
+    .etats-activity-kpi,
+    .etats-content-lead,
+    .etats-custom-prose__meta-row,
+    .etats-custom-prose__list li,
+    .etats-notas-list__item,
+    .etats-list-point,
+    .etats-rec-row,
+    .etats-report-legend,
+    .etats-print-landscape,
+    .etats-report-pill {
+        background: #fff !important;
+        box-shadow: none !important;
+        color: #111 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .etats-report-doc {
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc__title,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc__title,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-section__title,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-section__title,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-result-card__title,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-result-card__title,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card__value,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-kpi-card__value,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-activity-kpi__value,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-activity-kpi__value,
+    .etats-report-doc__title,
+    .etats-report-section__title,
+    .etats-result-card__title,
+    .etats-report-kpi-card__value,
+    .etats-activity-kpi__value,
+    .etats-custom-prose__title,
+    .etats-custom-prose__h,
+    .etats-custom-prose__meta dd {
+        color: #111 !important;
+    }
+
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc__kicker,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc__kicker,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc__colophon,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-doc__colophon,
+    html[data-app-theme="dark"] body.app-layout-v2 .etats-page .etats-report-section__subtitle,
+    html[data-sidebar-theme="dark"] body.app-layout-v2 .etats-page .etats-report-section__subtitle,
+    .etats-report-doc__kicker,
+    .etats-report-doc__colophon,
+    .etats-report-section__subtitle,
+    .etats-page .text-muted {
+        color: #495057 !important;
+    }
+
+    .etats-page .etats-result-card,
+    .etats-page .etats-section-card,
+    .etats-report-kpi-card,
+    .etats-rec-row,
+    .etats-activity-kpi {
+        break-inside: avoid;
+        border-color: #d9dee6 !important;
+    }
+
+    .etats-report-legend {
+        break-inside: avoid;
+        border-color: #d9dee6 !important;
+    }
+
+    .etats-report-legend__summary {
+        color: #111 !important;
+    }
+
+    .etats-report-legend__body,
+    .etats-report-legend[open] .etats-report-legend__body {
+        display: block !important;
+    }
+
+    .etats-report-legend__item {
+        color: #343a40 !important;
+        border-bottom-color: rgba(15, 20, 28, 0.1) !important;
+    }
+
+    .etats-kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .etats-print-landscape {
+        page: etats-landscape;
+        break-before: page;
+        break-after: page;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    .etats-evolution-chart-wrap {
+        height: 145mm;
+        width: 100%;
+    }
+
+    .etats-report-doc__logo {
+        height: 36px;
+        filter: none !important;
+    }
+
+    .etats-activity-table,
+    .etats-evolution-data-table {
+        font-size: 10pt;
+        color: #111 !important;
+        background: #fff !important;
+    }
+
+    .etats-activity-table thead th,
+    .etats-evolution-data-table thead th {
+        color: #343a40 !important;
+        background: #f3f5f9 !important;
+        border-bottom-color: #cfd6e0 !important;
+    }
+
+    .etats-activity-table tbody td,
+    .etats-evolution-data-table tbody td {
+        color: #111 !important;
+        border-bottom-color: #e6e9ef !important;
+        background: #fff !important;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr {
+        break-inside: avoid;
+    }
+
+    a[href]::after {
+        content: none !important;
+    }
+
+    .etats-content-lead .lead {
+        font-size: 11pt;
+        color: #212529 !important;
+    }
+
+    .progress {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
 }
 
 .etats-report-pill {
@@ -2816,6 +3348,12 @@ body.login-page {
 
 .salida-tipo-card-label:focus-within .salida-tipo-card {
     box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25), var(--ui-shadow-sm);
+}
+
+.salida-tipo-banner {
+    border-color: rgba(220, 53, 69, 0.28) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8f8 100%);
+    box-shadow: 0 0 0 1px rgba(220, 53, 69, 0.08);
 }
 
 @media (max-width: 575.98px) {

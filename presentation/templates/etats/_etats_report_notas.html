@@ -1,0 +1,15 @@
+{# Notas del día (apreciaciones) del período del informe #}
+{% if contenu.notas_del_dia %}
+<section class="etats-report-section">
+    <h2 class="etats-report-section__title">Notas del día</h2>
+    <p class="text-muted small mb-3">Apreciaciones operativas registradas en el período analizado.</p>
+    <ul class="etats-notas-list mb-0">
+        {% for nota in contenu.notas_del_dia %}
+        <li class="etats-notas-list__item">
+            <time class="etats-notas-list__date" datetime="{{ nota.fecha_iso }}">{{ nota.fecha }}</time>
+            <span class="etats-notas-list__text">{{ nota.texto }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
