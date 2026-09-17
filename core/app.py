@@ -468,7 +468,7 @@ class Incident(db.Model):
     intitule = db.Column(db.String(200), nullable=False)
     observations = db.Column(db.Text)
     status = db.Column(db.String(20), nullable=False, default='Pendiente')  # Résolut, En atente, Bitrix
-    ref_bitrix = db.Column(db.String(10), nullable=True)  # Ref Bitrix (5 chiffres) - visible si status=Bitrix
+    ref_bitrix = db.Column(db.String(10), nullable=True)  # Ref Bitrix (hasta 10 cifras) - visible si status=Bitrix
     bitrix_task_status = db.Column(db.String(2), nullable=True)
     bitrix_status_label = db.Column(db.String(80), nullable=True)
     bitrix_status_emoji = db.Column(db.String(10), nullable=True)
@@ -997,13 +997,13 @@ def mark_incident_notifications_read(incident_id, user_id):
 
 
 def _extract_ref_bitrix(observations):
-    """Extrait la ref Bitrix (5 chiffres) des observations. Prend la derniere si plusieurs."""
+    """Extrait la ref Bitrix (5 a 10 chiffres) des observations. Prend la derniere si plusieurs."""
     if not observations or not str(observations).strip():
         return None
     obs = str(observations).strip()
-    if re.match(r'^(\d{5})$', obs):
+    if re.match(r'^(\d{5,10})$', obs):
         return obs
-    matches = re.findall(r'\b(\d{5})\b', obs)
+    matches = re.findall(r'\b(\d{5,10})\b', obs)
     return matches[-1] if matches else None
 
 
