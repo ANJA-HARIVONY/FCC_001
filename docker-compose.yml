@@ -103,8 +103,10 @@ services:
       # Configuration WeasyPrint
       WEASYPRINT_AVAILABLE: ${WEASYPRINT_AVAILABLE:-true}
       
-      # Initialisation (désactiver en production pour éviter données exemple)
-      INIT_SAMPLE_DATA: ${INIT_SAMPLE_DATA:-true}
+      # Initialisation : false = base vide + opérateur admin/admin uniquement
+      INIT_SAMPLE_DATA: ${INIT_SAMPLE_DATA:-false}
+      DEFAULT_ADMIN_USER: ${DEFAULT_ADMIN_USER:-admin}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-admin}
       
       # Configuration Gunicorn
       PORT: 5001
