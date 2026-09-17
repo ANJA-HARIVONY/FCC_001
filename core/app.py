@@ -1262,6 +1262,33 @@ def ensure_ciudad_agencia_seed():
     db.session.commit()
 
 
+def ensure_default_admin_operateur():
+    """Crée un unique opérateur admin si la table est vide (identifiant/mot de passe admin)."""
+    if Operateur.query.count() > 0:
+        return
+    ensure_ciudad_agencia_seed()
+    malabo = Ciudad.query.filter_by(nombre='Malabo').first()
+    ag_malabo = Agencia.query.filter_by(nombre='Malabo II Cede').first()
+    if not malabo or not ag_malabo:
+        logger.warning('Impossible de creer l\'operateur par defaut: ciudad/agencia manquantes')
+        return
+    username = (os.environ.get('DEFAULT_ADMIN_USER') or 'admin').strip() or 'admin'
+    password = os.environ.get('DEFAULT_ADMIN_PASSWORD') or 'admin'
+    db.session.add(Operateur(
+        nom=username,
+        telephone=username,
+        email=username,
+        mot_de_passe_hash=generate_password_hash(password),
+        id_ciudad=malabo.id,
+        id_agencia=ag_malabo.id,
+        role='admin',
+        actif=True,
+        cree_le=datetime.now(),
+    ))
+    db.session.commit()
+    logger.info('Operateur par defaut cree (identifiant=%s)', username)
+
+
 @app.errorhandler(403)
 def acceso_denegado(_e):
     return render_template('403.html'), 403
@@ -1317,7 +1344,7 @@ def require_authentication():
 
 
 def _find_operateur_for_login(ident_raw):
-    """Connexion par email (insensible à la casse) ou téléphone (égalité ou sans espaces)."""
+    """Connexion par email (insensible à la casse), téléphone ou nom unique."""
     ident = (ident_raw or '').strip()
     if not ident:
         return None
@@ -1327,6 +1354,9 @@ def _find_operateur_for_login(ident_raw):
     user = Operateur.query.filter(Operateur.telephone == ident).first()
     if user:
         return user
+    nom_matches = Operateur.query.filter(func.lower(Operateur.nom) == ident.lower()).all()
+    if len(nom_matches) == 1:
+        return nom_matches[0]
     compact = re.sub(r'[\s\-]+', '', ident)
     if compact and compact != ident:
         for op in Operateur.query.all():
@@ -3316,7 +3346,9 @@ if __name__ == '__main__':
             db.create_all()
             ensure_client_categoria_column()
             ensure_ciudad_agencia_seed()
-            create_sample_data()
+            ensure_default_admin_operateur()
+            if os.environ.get('INIT_SAMPLE_DATA', 'false').lower() == 'true':
+                create_sample_data()
             logger.info('Base de donnees initialisee avec succes')
         except Exception as e:
             logger.error('Erreur lors de l\'initialisation: %s', e)
