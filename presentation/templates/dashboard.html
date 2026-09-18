@@ -232,7 +232,8 @@
                                                 class="rounded-circle"
                                                 width="28"
                                                 height="28"
-                                                onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
+                                                data-fallback="{{ url_for('static', filename='img/default_avatar.png') }}"
+                                                onerror="this.onerror=null;this.src=this.dataset.fallback;"
                                             >
                                             <span>{{ incident.operateur.nom }}</span>
                                         </div>
