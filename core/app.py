@@ -2850,6 +2850,7 @@ def api_incidents_pendientes():
                 'id': incident.id,
                 'intitule': incident.intitule,
                 'client_nom': client.nom,
+                'client_ville': client.ville or '',
                 'operateur_nom': operateur.nom,
                 'tiempo_transcurrido': f"{horas}h {minutos}m",
                 'fecha_creacion': incident.date_heure.strftime('%d/%m/%Y %H:%M')

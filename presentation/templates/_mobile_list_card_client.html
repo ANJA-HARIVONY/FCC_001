@@ -21,7 +21,11 @@
             {% elif variant != 'recurrent' %}
                 <span class="badge bg-light text-dark">{{ categoria_cliente_labels.get(client.categoria, 'Particular') if categoria_cliente_labels is defined else 'Particular' }}</span>
             {% endif %}
+            {% if variant == 'recurrent' and rank is defined %}
+            <span class="badge badge-rank-{{ rank }}">{{ incidents_count }} incidencias</span>
+            {% else %}
             <span class="badge bg-secondary">{{ incidents_count }} incidencias</span>
+            {% endif %}
         </div>
         {% if variant == 'list' %}
         <div class="dropdown mobile-list-card__menu">

@@ -528,6 +528,45 @@ main.page-enter {
     background-color: var(--primary-blue);
 }
 
+/* Badges rang N° incidencias — 5 clientes recurrentes (dashboard)
+   #1 saturé (primary-red) → #5 dégradé (light-red) */
+.badge-rank-1,
+.badge-rank-2,
+.badge-rank-3,
+.badge-rank-4,
+.badge-rank-5 {
+    border-radius: 999px;
+    padding: 0.35em 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.badge-rank-1 {
+    background-color: var(--primary-red);
+    color: var(--white);
+}
+
+.badge-rank-2 {
+    background-color: rgba(220, 53, 69, 0.78);
+    color: var(--white);
+}
+
+.badge-rank-3 {
+    background-color: rgba(220, 53, 69, 0.56);
+    color: var(--white);
+}
+
+.badge-rank-4 {
+    background-color: rgba(220, 53, 69, 0.34);
+    color: var(--dark-gray);
+}
+
+.badge-rank-5 {
+    background-color: var(--light-red);
+    color: var(--dark-red);
+}
+
 .bitrix-emoji {
     font-size: 1.5rem;
     line-height: 1;
@@ -814,8 +853,17 @@ footer {
     line-clamp: 2;
 }
 
-.notification-operador {
+.notification-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: 1px;
+    min-width: 0;
+}
+
+.notification-operador,
+.notification-barrio {
     font-size: 11px;
     line-height: 1.25;
     font-weight: 500;
@@ -823,6 +871,19 @@ footer {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.notification-operador {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.notification-barrio {
+    flex: 0 0 auto;
+    max-width: 50%;
+    min-width: 0;
+    margin-left: auto;
+    text-align: right;
 }
 
 .notification-close {
@@ -954,7 +1015,8 @@ footer {
         font-size: 12px;
     }
 
-    .notification-operador {
+    .notification-operador,
+    .notification-barrio {
         font-size: 10px;
     }
 

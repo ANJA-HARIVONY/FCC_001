@@ -210,8 +210,8 @@
                                         {% endwith %}
                                     </td>
                                     <td>
-                                        <a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                        <i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ incident.client.adresse }}</small>
                                     </td>
                                     <td>{{ incident.intitule[:50] }}{% if incident.intitule|length > 50 %}...{% endif %}</td>
                                     <td>
@@ -300,10 +300,12 @@
                                     {% include '_cliente_corporativo_icon.html' %}
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
-                                    <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small>
+                                    <i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
+                                    <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ client.adresse }}</small>
                                 </td>
-                                <td>{{ client.incidents }}</td>
+                                <td>
+                                    <span class="badge badge-rank-{{ loop.index }}">{{ client.incidents }}</span>
+                                </td>
                                 <td>{{ client.intitule }}</td>
                                 <!--<td>{{ client.date_heure.strftime('%d/%m/%Y %H:%M') if client.date_heure else '' }}</td> -->
                             </tr>
@@ -1286,6 +1288,13 @@ function corporativoIconHtml(categoria) {
     return '';
 }
 
+function clientNameCellHtml(name, href, adresse) {
+    const adresseHtml = adresse
+        ? `<br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>${escapeHtml(adresse)}</small>`
+        : '';
+    return `<i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="${href}" class="text-decoration-none text-dark hover:text-primary">${escapeHtml(name)}</a>${adresseHtml}`;
+}
+
 function incidentStatusBadgesHtml(incident) {
     if (incident.status === 'Solucionadas') {
         return `<span class="badge badge-resolut">${escapeHtml(incident.status)} ✅</span>`;
@@ -1361,7 +1370,7 @@ function recurrentClientCardHtml(client, rank) {
                 <span class="mobile-list-card__id">#${rank}</span>
                 ${corporativoIconHtml(client.categoria)}
                 ${corporativoBadge}
-                <span class="badge bg-secondary">${escapeHtml(client.incidents)} incidencias</span>
+                <span class="badge badge-rank-${rank}">${escapeHtml(client.incidents)} incidencias</span>
             </div>
         </div>
         <a class="mobile-list-card__title" href="/clients/${client.id}/fiche">${escapeHtml(client.nom)}</a>
@@ -1437,8 +1446,7 @@ function updateLastIncidents(incidents) {
                     <td><strong>#${incident.id}</strong></td>
                     <td class="col-categoria-icon text-center">${corporativoIconHtml(incident.client_categoria)}</td>
                     <td>
-                        <a href="/incidents/${incident.id}/fiche_incident" class="text-decoration-none text-dark hover:text-primary">${incident.client_nom}</a>
-                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${incident.client_adresse || ''}</small>
+                        ${clientNameCellHtml(incident.client_nom, `/incidents/${incident.id}/fiche_incident`, incident.client_adresse)}
                     </td>
                     <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
                     <td>
@@ -1500,10 +1508,9 @@ function updateClientsRecurrents(clients) {
                     <td><strong># ${i + 1}</strong></td>
                     <td class="col-categoria-icon text-center">${corporativoIconHtml(client.categoria)}</td>
                     <td>
-                        <a href="/clients/${client.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
-                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${client.adresse || ''}</small>
+                        ${clientNameCellHtml(client.nom, `/clients/${client.id}/fiche`, client.adresse)}
                     </td>
-                    <td>${client.incidents}</td>
+                    <td><span class="badge badge-rank-${i + 1}">${client.incidents}</span></td>
                     <td>${client.intitule || ''}</td>
                 </tr>
             `).join('');

@@ -259,8 +259,9 @@
                                         {% include '_cliente_corporativo_icon.html' %}
                                         {% endwith %}
                                     </td>
-                                    <td>👨‍💼​<a href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br>📍​<small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
+                                    <td>
+                                        <i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ incident.client.adresse }}</small>
                                     </td>
                                     <td>
                                         <div class="text-truncate" style="max-width: 200px;" title="{{ incident.intitule }}">

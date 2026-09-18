@@ -312,7 +312,8 @@ class NotificationSystem {
         const cliente = this.escapeHtml(incident.client_nom);
         const asunto = this.escapeHtml(incident.intitule);
         const operador = this.escapeHtml(incident.operateur_nom);
-        const ariaParts = [incident.client_nom, incident.intitule, incident.operateur_nom]
+        const barrio = this.escapeHtml(incident.client_ville);
+        const ariaParts = [incident.client_nom, incident.intitule, incident.operateur_nom, incident.client_ville]
             .filter(Boolean)
             .join(', ');
 
@@ -330,7 +331,11 @@ class NotificationSystem {
             <div class="notification-content">
                 ${cliente ? `<div class="notification-title">${cliente}</div>` : ''}
                 ${asunto ? `<div class="notification-subtitle">${asunto}</div>` : ''}
-                ${operador ? `<div class="notification-operador">${operador}</div>` : ''}
+                ${(operador || barrio) ? `
+                <div class="notification-meta">
+                    ${operador ? `<div class="notification-operador">${operador}</div>` : ''}
+                    ${barrio ? `<div class="notification-barrio">${barrio}</div>` : ''}
+                </div>` : ''}
             </div>
             <button type="button" class="notification-close" aria-label="Cerrar">
                 <i class="fas fa-times" aria-hidden="true"></i>
@@ -505,6 +510,7 @@ window.debugNotifications = {
                 id: 999,
                 intitule: 'Problema de conectividad - PRUEBA',
                 client_nom: 'Cliente de Prueba',
+                client_ville: 'Semu',
                 operateur_nom: 'Operador Test',
                 tiempo_transcurrido: '2h 15m',
                 fecha_creacion: '08/01/2025 10:30'
@@ -522,6 +528,7 @@ window.debugNotifications = {
                 id: 900 + i,
                 intitule: `Problema de conectividad - PRUEBA ${i + 1} con un asunto bastante largo para verificar el recorte`,
                 client_nom: `Cliente de Prueba ${i + 1}`,
+                client_ville: `Barrio ${i + 1}`,
                 operateur_nom: `Operador Test ${i + 1}`,
                 tiempo_transcurrido: `${i}h 15m`,
                 fecha_creacion: '12/09/2026 10:30'
