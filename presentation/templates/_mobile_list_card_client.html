@@ -16,17 +16,16 @@
             <span class="mobile-list-card__id">#{{ client.id }}</span>
             {% endif %}
             {% include '_cliente_corporativo_icon.html' %}
-            {% if client.categoria == 'corporativo' %}
-                <span class="badge bg-dark">Corporativo</span>
-            {% elif variant != 'recurrent' %}
+            {% if variant != 'recurrent' and client.categoria != 'corporativo' %}
                 <span class="badge bg-light text-dark">{{ categoria_cliente_labels.get(client.categoria, 'Particular') if categoria_cliente_labels is defined else 'Particular' }}</span>
             {% endif %}
-            {% if variant == 'recurrent' and rank is defined %}
-            <span class="badge badge-rank-{{ rank }}">{{ incidents_count }} incidencias</span>
-            {% else %}
+            {% if variant != 'recurrent' %}
             <span class="badge bg-secondary">{{ incidents_count }} incidencias</span>
             {% endif %}
         </div>
+        {% if variant == 'recurrent' and rank is defined %}
+        <span class="badge badge-rank-{{ rank }} ms-auto">{{ incidents_count }}</span>
+        {% endif %}
         {% if variant == 'list' %}
         <div class="dropdown mobile-list-card__menu">
             <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
@@ -72,10 +71,10 @@
         {% endif %}
     </div>
     <a class="mobile-list-card__title" href="{% if variant == 'list' %}{{ url_for('fiche_client', id=client.id, next=next_url) }}{% else %}{{ url_for('fiche_client', id=client.id) }}{% endif %}">
-        {{ client.nom }}
+        <i class="fas fa-user-tie me-1" aria-hidden="true"></i>{{ client.nom }}
     </a>
     {% if client.adresse %}
-    <p class="mobile-list-card__subtitle">{{ client.adresse }}</p>
+    <p class="mobile-list-card__subtitle"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ client.adresse }}</p>
     {% endif %}
     <div class="mobile-list-card__badges">
         {% if variant == 'list' and client.telephone %}

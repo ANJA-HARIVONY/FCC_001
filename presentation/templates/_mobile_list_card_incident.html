@@ -77,10 +77,10 @@
         {% endif %}
     </div>
     <a class="mobile-list-card__title" href="{{ url_for('fiche_incident', id=incident.id, next=next_url) }}">
-        {{ incident.client.nom }}
+        <i class="fas fa-user-tie me-1" aria-hidden="true"></i>{{ incident.client.nom }}
     </a>
     {% if incident.client.adresse %}
-    <p class="mobile-list-card__subtitle">{{ incident.client.adresse }}</p>
+    <p class="mobile-list-card__subtitle"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ incident.client.adresse }}</p>
     {% endif %}
     {% if incident.intitule %}
     <p class="mobile-list-card__asunto" title="{{ incident.intitule }}">{{ incident.intitule }}</p>
@@ -95,7 +95,7 @@
                  onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';">
             {{ incident.operateur.nom }}
         </span>
-        <span class="badge rounded-pill mobile-list-card__chip">
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--date">
             <i class="fas fa-clock me-1"></i>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}
         </span>
     </div>
