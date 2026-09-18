@@ -1,18 +1,55 @@
 ---
-description: Templates Jinja, thème Connexia, i18n ES et vérification navigateur
+description: Cohérence UI Connexia — shell, cartes, listes, boutons, badges, mobile
 globs: "presentation/**"
 alwaysApply: false
 ---
 
-# FCC_001 — UI
+# FCC_001 — UI (cohérence)
 
-- Hériter de `base.html`. Partials : `_header`, `_sidebar`, `_footer`
-- Chaînes : `{{ _('…') }}` en **espagnol**. Flash : `success` | `error` | `info`
-- Formulaires : `{{ csrf_token() }}`. JS mutant : `js/csrf.js` déjà global
-- CSS : tokens de `style.css` / `layout-shell.css` (`--primary-red: #dc3545`, `--shell-top`, `--ui-radius`, `--kpi-*`). Pas de palette parallèle
-- Typo : `--bs-body-font-size: 0.88rem`. Ne pas forcer 14 px sur `html`
-- Mobile : breakpoint **992px**, cartes `_mobile_list_card_*.html`. Toute liste doit rester utilisable
-- Thème sidebar : `data-sidebar-theme` / `localStorage` (`sidebarTheme`, `sidebarCollapsed`)
-- Étendre `app-shell.js`, `notifications.js`, `bitrix-info.js`, `materiales-*.js` plutôt que dupliquer
-- Labels métier écran : `Incidencias`, `Pendiente`, `Solucionadas`, `Usuarios` — jamais en français
-- Vérifier le flux dans le navigateur (desktop + mobile si layout), pas seulement un screenshot
+Réutiliser les classes et partials existants. Ne pas inventer une palette, un shell ou un composant parallèle.
+
+## Shell
+
+- App authentifiée : `{% extends "base.html" %}` + blocs `title`, `page_icon`, `page_title`, `page_subtitle`, `page_actions`, `content`. Partials `_header` `_sidebar` `_footer`.
+- Login **seulement** : `login.html` (`body.login-page`, `login-aside` / `app-login-box`) — n’hérite pas de `base.html`.
+- Contenu : `<div class="container-fluid px-0">`.
+- Fil d’Ariane formulaires : `nav.app-breadcrumb`.
+- CSS : tokens `style.css` + `layout-shell.css` (`--primary-red: #dc3545`, `--shell-top`, `--ui-radius`, `--kpi-*`). Typo `--bs-body-font-size: 0.88rem`. Pas de 14 px forcé sur `html`.
+- Thème sidebar : `data-sidebar-theme` / `localStorage` (`sidebarTheme`, `sidebarCollapsed`).
+
+## Cartes et KPI
+
+- Blocs métier : `card shadow-sm border-0 content-card` (filtres, listes, fiches, formulaires).
+- KPI (dashboard / informes) : `card stat-card stat-card--registered|resolved|pending|bitrix` + `stat-card-icon` / `stat-card-value`. Grille `row-cols-1 row-cols-sm-2 row-cols-lg-4`.
+- Action principale du titre : `btn btn-primary btn-sm` dans `page_actions`.
+- Retour / reset : `btn btn-outline-secondary btn-sm` (`Volver`, `Limpiar`).
+- Dangereux : `btn-danger` dans une **modale** (Cancelar `btn-secondary` + Eliminar).
+
+## Listes
+
+Desktop ≥992px : `table-responsive d-none d-lg-block` + `table table-hover mb-0`.  
+Mobile : `d-lg-none` + `{% include '_mobile_list_card_incident.html' %}` ou `_mobile_list_card_client.html`.  
+Vide : `text-center py-5` + icône `fa-3x text-muted` + CTA.
+
+États incidencia (classes dédiées, pas `bg-success` générique) :
+
+- `badge badge-attente` → Pendiente
+- `badge badge-resolut` → Solucionadas
+- `badge badge-bitrix` → Bitrix (ou partial `_bitrix_status.html`)
+
+Corporativo : `_cliente_corporativo_icon.html`.
+
+## Formulaires
+
+- Carte centrée `col-lg-8` + `card-header` titre icône.
+- CSRF : `{{ csrf_token() }}`. Champs `form-control` / `form-select` ; filtres en `*-sm`.
+- Labels filtres : `form-label small text-dark text-uppercase fw-semibold`.
+- Obligatoire : ` <span class="text-danger">*</span>`.
+- Flash : `success` | `error` | `info` (error → `alert-danger`). Textes **espagnol**.
+
+## JS / i18n / vérif
+
+Étendre `app-shell.js`, `csrf.js`, `notifications.js`, `bitrix-info.js`, `materiales-*.js`.  
+Labels métier écran : `Incidencias`, `Pendiente`, `Solucionadas`, `Usuarios` — jamais en français.  
+Nouvelle page : ajouter l’endpoint dans `_sidebar.html` **et** `_nav_vars.html`.  
+Vérifier le flux navigateur (desktop + mobile si layout), pas seulement un screenshot.
