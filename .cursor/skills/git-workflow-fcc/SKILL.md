@@ -4,15 +4,16 @@ description: >-
   Prépare et exécute les opérations Git pour le dépôt FCC_001 : statut, add,
   commits au format Conventional Commits en français, push. Utiliser quand
   l'utilisateur demande un commit, un push, de valider des changements, ou
-  d'aligner le dépôt sur origin ; sur Windows PowerShell.
+  d'aligner le dépôt sur origin.
 ---
 
 # Workflow Git — FCC_001
 
-## Shell Windows (PowerShell)
+## Shell
 
-- Enchaîner les commandes avec **`;`**, pas avec `&&` (souvent invalide selon la version).
-- Exemple : `git add fichier.css; git status`
+- macOS / zsh / bash : `&&` est correct.
+- Windows PowerShell : enchaîner avec **`;`**, pas `&&`.
+- Exemple zsh : `git add fichier.css && git status`
 
 ## Avant un commit
 

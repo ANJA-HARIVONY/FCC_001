@@ -1,0 +1,18 @@
+---
+description: Templates Jinja, thème Connexia, i18n ES et vérification navigateur
+globs: "presentation/**"
+alwaysApply: false
+---
+
+# FCC_001 — UI
+
+- Hériter de `base.html`. Partials : `_header`, `_sidebar`, `_footer`
+- Chaînes : `{{ _('…') }}` en **espagnol**. Flash : `success` | `error` | `info`
+- Formulaires : `{{ csrf_token() }}`. JS mutant : `js/csrf.js` déjà global
+- CSS : tokens de `style.css` / `layout-shell.css` (`--primary-red: #dc3545`, `--shell-top`, `--ui-radius`, `--kpi-*`). Pas de palette parallèle
+- Typo : `--bs-body-font-size: 0.88rem`. Ne pas forcer 14 px sur `html`
+- Mobile : breakpoint **992px**, cartes `_mobile_list_card_*.html`. Toute liste doit rester utilisable
+- Thème sidebar : `data-sidebar-theme` / `localStorage` (`sidebarTheme`, `sidebarCollapsed`)
+- Étendre `app-shell.js`, `notifications.js`, `bitrix-info.js`, `materiales-*.js` plutôt que dupliquer
+- Labels métier écran : `Incidencias`, `Pendiente`, `Solucionadas`, `Usuarios` — jamais en français
+- Vérifier le flux dans le navigateur (desktop + mobile si layout), pas seulement un screenshot

@@ -1,0 +1,28 @@
+---
+description: Conventions Python Flask FCC (routes, services, JSON, helpers)
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# FCC_001 — Python
+
+- Flask 3, SQLAlchemy 2 : `db.session.get`, pas `Query.get`
+- Routes : `@app.route` sur `app` importé de `core.app`. Pas de Blueprints
+- Admin : `@admin_required`. Incidencias : `apply_incident_visibility` / `user_can_*`
+- JSON : `{ 'ok': True/False, 'error': '…en español' }` (403, 400 CSRF, 404)
+- Pagination : défaut 10, max 100 (`config.py`)
+- Dates : `datetime.now()` comme le reste du dépôt
+- Helpers existants : `normalize_categoria_*`, `write_audit`, `record_incident_estado_change`
+- Logique materiales / delays / caches / exports → `core/services/`, ne pas dupliquer
+- Nouvelle dépendance → `config/requirements.txt` + justification
+- Logger `logging.getLogger('fcc_001')`, pas de `print()` runtime
+
+```python
+# ❌ BAD
+Incident.query.get(id)
+query.filter(Incident.status == 'Pending')
+
+# ✅ GOOD
+db.session.get(Incident, id)
+query = apply_incident_visibility(Incident.query.filter(Incident.status == 'Pendiente'))
+```
