@@ -135,6 +135,8 @@ from core.app import (
     create_sample_data,
     ensure_client_categoria_column,
     ensure_client_radius_cache_columns,
+    ensure_client_trazabilidad_columns,
+    ensure_incident_modificacion_columns,
     ensure_ciudad_agencia_seed,
     ensure_default_admin_operateur,
     Client,
@@ -147,6 +149,8 @@ with app.app_context():
         db.create_all()
         ensure_client_categoria_column()
         ensure_client_radius_cache_columns()
+        ensure_client_trazabilidad_columns()
+        ensure_incident_modificacion_columns()
         print('Tables créées avec succès')
 
         # Référentiel ville/agence + un seul opérateur admin (pas de clients/incidents)

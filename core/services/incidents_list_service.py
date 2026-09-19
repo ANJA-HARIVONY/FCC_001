@@ -170,7 +170,7 @@ def apply_incidents_sort(query, sort_by, sort_order):
             Incident.intitule.asc() if sort_order == 'asc' else Incident.intitule.desc()
         )
     if sort_by == 'operador':
-        return query.join(Operateur).order_by(
+        return query.join(Operateur, Incident.id_operateur == Operateur.id).order_by(
             Operateur.nom.asc() if sort_order == 'asc' else Operateur.nom.desc()
         )
     if sort_by == 'fecha':

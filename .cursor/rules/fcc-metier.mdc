@@ -24,7 +24,9 @@ Ne pas renommer les colonnes FR : `nom`, `intitule`, `ville`, `date_heure`, `mot
 
 - Liste / KPI / export : toujours `apply_incident_visibility` (admin = tout ; sinon soi ou même agence)
 - Consulter / commenter : `user_can_access_incident`
-- Modifier / supprimer : créateur **ou** admin (`user_can_modify_incident`)
+- Modifier : quiconque peut la consulter (`user_can_modify_incident` = visibilité 10.4)
+- Supprimer : créateur **ou** admin (`user_can_delete_incident`)
+- `id_operateur` = créateur, **immuable** après création. L'édition renseigne `id_operateur_modificacion` + `modifie_le`
 - Mutation de `status` : **obligatoire** `record_incident_estado_change` ; clear cache Bitrix si status/`ref_bitrix` change
 - `Bitrix` → `ref_bitrix` max 10 chiffres ; sinon `ref_bitrix = None`
 - Commentaire ≤ 1000 car. Notifier créateur + commentateurs antérieurs

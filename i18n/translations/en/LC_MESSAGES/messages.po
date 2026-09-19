@@ -200,8 +200,14 @@ msgstr "User"
 msgid "No hay comentarios todavía."
 msgstr "No comments yet."
 
-msgid "Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba."
-msgstr "Only the creator or an administrator can modify this incident. You can add comments above."
+msgid "No tiene permiso para modificar esta incidencia. Puede añadir comentarios arriba."
+msgstr "You are not allowed to modify this incident. You can add comments above."
+
+msgid "Creado por"
+msgstr "Created by"
+
+msgid "Modificado por"
+msgstr "Modified by"
 
 msgid "Nuevo comentario"
 msgstr "New comment"

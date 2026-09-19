@@ -29,7 +29,7 @@ Le module routes fait `from core.app import app, db, …` et déclare `@app.rout
 - Admin (materiales, usuarios, audit, ficha AC, write apreciaciones) → `@admin_required`
 - Liste / KPI / export incidencias → `apply_incident_visibility`
 - Fiche / commentaire incidencia → `user_can_access_incident`
-- Modifier / supprimer incidencia → `user_can_modify_incident`
+- Modifier incidencia → `user_can_modify_incident` ; supprimer → `user_can_delete_incident`
 - JSON : `{ 'ok': True/False, 'error': '…en español' }`
 
 Ne pas inventer un statut, une catégorie ou un rôle. Si la règle métier est floue : **demander**.

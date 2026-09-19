@@ -324,8 +324,17 @@ class Client(db.Model):
     categoria = db.Column(db.String(20), nullable=False, default=CATEGORIA_CLIENTE_DEFAULT, index=True)
     radius_cache_json = db.Column(db.Text, nullable=True)
     radius_cache_at = db.Column(db.DateTime, nullable=True)
+    id_operateur = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    id_operateur_modificacion = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    modifie_le = db.Column(db.DateTime, nullable=True)
     ciudad_row = db.relationship('Ciudad', backref=db.backref('clients', lazy=True))
     incidents = db.relationship('Incident', backref='client', lazy=True)
+    cree_par = db.relationship('Operateur', foreign_keys=[id_operateur])
+    modifie_par = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
 
     def __repr__(self):
         return f'<Client {self.nom}>'
@@ -348,7 +357,12 @@ class Operateur(UserMixin, db.Model):
 
     ciudad = db.relationship('Ciudad', backref=db.backref('operateurs', lazy=True))
     agencia = db.relationship('Agencia', backref=db.backref('operateurs', lazy=True))
-    incidents = db.relationship('Incident', backref='operateur', lazy=True)
+    incidents = db.relationship(
+        'Incident',
+        backref='operateur',
+        lazy=True,
+        foreign_keys='Incident.id_operateur',
+    )
 
     def is_admin(self):
         return (self.role or '') == 'admin'
@@ -458,6 +472,15 @@ def user_can_access_incident(incident):
 
 
 def user_can_modify_incident(incident):
+    """Toute personne qui peut consulter l'incidencia peut la modifier (règle 10.4).
+
+    La propriété (`id_operateur`) reste au créateur : l'édition trace
+    seulement `id_operateur_modificacion` / `modifie_le`.
+    """
+    return user_can_access_incident(incident)
+
+
+def user_can_delete_incident(incident):
     """Créateur de l'incident ou administrateur."""
     return current_user.is_admin() or incident.id_operateur == current_user.id
 
@@ -477,6 +500,12 @@ class Incident(db.Model):
     bitrix_fetch_locked = db.Column(db.Boolean, nullable=False, default=False)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
     date_heure = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    id_operateur_modificacion = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    modifie_le = db.Column(db.DateTime, nullable=True)
+
+    modifie_par = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
 
     comentarios = db.relationship(
         'IncidentComentario',
@@ -905,6 +934,58 @@ def ensure_incident_bitrix_cache_columns():
         app.logger.exception('No se pudo verificar/crear columnas cache Bitrix en incident')
 
 
+def ensure_incident_modificacion_columns():
+    """Añade columnas de trazabilidad de modificación en incident si faltan."""
+    if getattr(ensure_incident_modificacion_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('incident'):
+            ensure_incident_modificacion_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('incident')}
+        statements = []
+        if 'id_operateur_modificacion' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN id_operateur_modificacion INTEGER NULL')
+        if 'modifie_le' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN modifie_le DATETIME NULL')
+        if statements:
+            with db.engine.begin() as conn:
+                for sql in statements:
+                    conn.execute(text(sql))
+        ensure_incident_modificacion_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas de modificación en incident')
+
+
+def ensure_client_trazabilidad_columns():
+    """Añade columnas de creador / modificador en client si faltan."""
+    if getattr(ensure_client_trazabilidad_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('client'):
+            ensure_client_trazabilidad_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('client')}
+        statements = []
+        if 'id_operateur' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN id_operateur INTEGER NULL')
+        if 'id_operateur_modificacion' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN id_operateur_modificacion INTEGER NULL')
+        if 'modifie_le' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN modifie_le DATETIME NULL')
+        if statements:
+            with db.engine.begin() as conn:
+                for sql in statements:
+                    conn.execute(text(sql))
+        ensure_client_trazabilidad_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas de trazabilidad en client')
+
+
 def ensure_client_radius_cache_columns():
     """Añade columnas RADIUS en client si faltan (arranque sin migración)."""
     if getattr(ensure_client_radius_cache_columns, '_done', False):
@@ -1304,7 +1385,9 @@ def require_authentication():
     ensure_salida_observaciones_column()
     ensure_salida_tipo_column()
     ensure_incident_bitrix_cache_columns()
+    ensure_incident_modificacion_columns()
     ensure_client_radius_cache_columns()
+    ensure_client_trazabilidad_columns()
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
     if not request.endpoint or request.endpoint == 'static':
@@ -1836,7 +1919,7 @@ def dashboard():
     # Données pour les graphiques selon la période
     operateurs_query = apply_incident_visibility(db.session.query(
         Operateur.nom, func.count(Incident.id)
-    ).join(Incident))
+    ).join(Incident, Incident.id_operateur == Operateur.id))
     
     if start_date:
         operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
@@ -2051,6 +2134,7 @@ def nouveau_client():
             username_radius=(request.form.get('username_radius') or '').strip() or None,
             id_ciudad=id_ciudad,
             categoria=categoria,
+            id_operateur=current_user.id,
         )
         db.session.add(client)
         db.session.commit()
@@ -2103,6 +2187,8 @@ def modifier_client(id):
         if old_username_radius != (client.username_radius or '').strip():
             client.radius_cache_json = None
             client.radius_cache_at = None
+        client.id_operateur_modificacion = current_user.id
+        client.modifie_le = datetime.now()
         db.session.commit()
         write_audit(
             'UPDATE_CLIENT',
@@ -2647,7 +2733,8 @@ def modifier_incident(id):
         incident.intitule = request.form['intitule']
         incident.observations = request.form['observations']
         incident.status = request.form['status']
-        incident.id_operateur = current_user.id
+        incident.id_operateur_modificacion = current_user.id
+        incident.modifie_le = datetime.now()
         if request.form.get('status') == 'Bitrix':
             ref = request.form.get('ref_bitrix', '').strip()[:10]
             if not ref:
@@ -2681,7 +2768,7 @@ def modifier_incident(id):
 @app.route('/incidents/<int:id>/supprimer', methods=['POST'])
 def supprimer_incident(id):
     incident = Incident.query.get_or_404(id)
-    if not user_can_modify_incident(incident):
+    if not user_can_delete_incident(incident):
         abort(403)
     iid = incident.id
     db.session.delete(incident)
@@ -2767,7 +2854,7 @@ def dashboard_data():
     # Données par opérateur pour la période
     operateurs_query = apply_incident_visibility(db.session.query(
         Operateur.nom, func.count(Incident.id)
-    ).join(Incident))
+    ).join(Incident, Incident.id_operateur == Operateur.id))
     
     if start_date:
         operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)

@@ -83,6 +83,31 @@
                             {% endif %}
                         </div>
                     </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('Creado por') }}:</strong></div>
+                        <div class="col-sm-8">
+                            {% if client.cree_par %}
+                            <i class="fas fa-user text-primary"></i> {{ client.cree_par.nom }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>{{ _('Modificado por') }}:</strong></div>
+                        <div class="col-sm-8">
+                            {% if client.modifie_par %}
+                            <i class="fas fa-user-edit text-muted"></i> {{ client.modifie_par.nom }}
+                            {% if client.modifie_le %}
+                            <span class="text-muted ms-1">{{ client.modifie_le.strftime('%d/%m/%Y %H:%M') }}</span>
+                            {% endif %}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

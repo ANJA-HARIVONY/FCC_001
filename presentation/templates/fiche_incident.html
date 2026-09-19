@@ -66,13 +66,24 @@
                     </div>
                     <hr>
                     <div class="row mb-3">
-                        <div class="col-sm-3"><strong>{{ _('Operador Asignado') }}:</strong></div>
+                        <div class="col-sm-3"><strong>{{ _('Creado por') }}:</strong></div>
                         <div class="col-sm-9">
                             <i class="fas fa-user text-primary"></i> 
                             <strong>{{ incident.operateur.nom }}</strong>
                         </div>
                     </div>
                     <hr>
+                    {% if incident.modifie_le %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Modificado por') }}:</strong></div>
+                        <div class="col-sm-9">
+                            <i class="fas fa-user-edit text-muted"></i> 
+                            <strong>{{ incident.modifie_par.nom if incident.modifie_par else _('Usuario') }}</strong>
+                            <span class="text-muted ms-1">{{ incident.modifie_le.strftime('%d/%m/%Y %H:%M') }}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
                     <div class="row mb-3">
                         <div class="col-sm-3"><strong>{{ _('Observaciones') }}:</strong></div>
                         <div class="col-sm-9">
@@ -163,7 +174,6 @@
                                 <input type="hidden" name="id_client" value="{{ incident.id_client }}">
                                 <input type="hidden" name="intitule" value="{{ incident.intitule }}">
                                 <textarea name="observations" style="display: none;">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n')|striptags }}</textarea>
-                                <input type="hidden" name="id_operateur" value="{{ incident.id_operateur }}">
                                 <input type="hidden" name="ref_bitrix" value="">
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="fas fa-check-circle"></i> {{ _('Marcar como Solucionada') }}
@@ -187,7 +197,7 @@
                         </div>
                     </div>
                     {% else %}
-                    <p class="text-muted small mb-0">{{ _('Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba.') }}</p>
+                    <p class="text-muted small mb-0">{{ _('No tiene permiso para modificar esta incidencia. Puede añadir comentarios arriba.') }}</p>
                     {% endif %}
                 </div>
             </div>

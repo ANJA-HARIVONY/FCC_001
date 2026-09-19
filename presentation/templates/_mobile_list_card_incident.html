@@ -35,13 +35,11 @@
                     </a>
                 </li>
                 {% else %}
-                {% if current_user.is_admin() or incident.id_operateur == current_user.id %}
                 <li>
                     <a class="dropdown-item" href="{{ url_for('modifier_incident', id=incident.id, next=next_url) }}">
                         <i class="fas fa-edit me-2"></i>Editar
                     </a>
                 </li>
-                {% endif %}
                 <li>
                     <button type="button" class="dropdown-item"
                             data-incident-id="{{ incident.id }}"

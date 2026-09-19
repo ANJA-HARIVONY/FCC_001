@@ -200,8 +200,14 @@ msgstr "Utilisateur"
 msgid "No hay comentarios todavía."
 msgstr "Aucun commentaire pour le moment."
 
-msgid "Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba."
-msgstr "Seul le créateur ou un administrateur peut modifier cette incidencia. Vous pouvez ajouter des commentaires ci-dessus."
+msgid "No tiene permiso para modificar esta incidencia. Puede añadir comentarios arriba."
+msgstr "Vous n'avez pas la permission de modifier cette incidencia. Vous pouvez ajouter des commentaires ci-dessus."
+
+msgid "Creado por"
+msgstr "Créé par"
+
+msgid "Modificado por"
+msgstr "Modifié par"
 
 msgid "Nuevo comentario"
 msgstr "Nouveau commentaire"
