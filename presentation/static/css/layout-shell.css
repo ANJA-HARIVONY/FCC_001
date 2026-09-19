@@ -1725,6 +1725,10 @@ html[data-sidebar-theme="dark"] body.app-layout-v2 [class*="mobile-list-card"] {
     color: var(--app-text);
 }
 
+html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card--inactive {
+    opacity: 0.82;
+}
+
 html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card__title,
 html[data-sidebar-theme="dark"] body.app-layout-v2 .mobile-list-card__id {
     color: var(--app-text) !important;

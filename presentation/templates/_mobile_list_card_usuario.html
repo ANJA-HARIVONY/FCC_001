@@ -1,0 +1,79 @@
+{# Carte mobile de un usuario (lista admin).
+   Variables : u (requis) #}
+<article class="mobile-list-card{% if not u.actif %} mobile-list-card--inactive{% endif %}">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="badge bg-{{ 'danger' if u.is_admin() else 'secondary' }}">{{ u.role }}</span>
+            <span class="badge bg-info text-dark">{{ categoria_operateur_label(u.categoria) }}</span>
+            {% if u.actif %}
+            <span class="badge bg-success">Activo</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+        </div>
+        <div class="dropdown mobile-list-card__menu">
+            <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
+                    data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
+                    aria-label="Acciones">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('editar_usuario', user_id=u.id) }}">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                </li>
+                {% if u.categoria == 'tecnico' %}
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('tecnico_ficha', tecnico_id=u.id) }}">
+                        <i class="fas fa-id-card me-2"></i>Ficha
+                    </a>
+                </li>
+                {% elif u.categoria == 'atencion_cliente' %}
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('atencion_cliente_ficha', user_id=u.id) }}">
+                        <i class="fas fa-id-card me-2"></i>Ficha
+                    </a>
+                </li>
+                {% endif %}
+                {% if u.id != current_user.id %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form method="POST" action="{{ url_for('desactivar_usuario', user_id=u.id) }}"
+                          onsubmit="return confirm('¿Cambiar el estado de este usuario?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-toggle-{{ 'off' if u.actif else 'on' }} me-2"></i>
+                            {% if u.actif %}Desactivar{% else %}Activar{% endif %}
+                        </button>
+                    </form>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <a class="mobile-list-card__title" href="{{ url_for('editar_usuario', user_id=u.id) }}">
+        <img src="{{ u.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+             alt=""
+             class="rounded-circle me-1"
+             width="22"
+             height="22"
+             onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';">
+        {{ u.nom }}
+    </a>
+    <div class="mobile-list-card__badges">
+        {% if u.telephone %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-phone me-1"></i>{{ u.telephone }}
+        </span>
+        {% endif %}
+        {% if u.email %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-envelope me-1"></i>{{ u.email }}
+        </span>
+        {% endif %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-city me-1"></i>{{ u.ciudad.nombre if u.ciudad else '—' }} / {{ u.agencia.nombre if u.agencia else '—' }}
+        </span>
+    </div>
+</article>

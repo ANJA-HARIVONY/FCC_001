@@ -50,21 +50,35 @@ def _allowed_material_foto(filename):
 
 
 def _project_root():
-    from core.app import app
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-    return os.path.abspath(os.path.join(app.root_path, '..'))
+
+def _material_foto_search_dirs():
+    """Dossiers où une photo peut se trouver (écriture = premier)."""
+    root = _project_root()
+    return [
+        os.path.join(root, 'presentation', 'uploads', 'materiales'),
+        os.path.join(root, 'instance', 'uploads', 'materiales'),
+        os.path.join(root, 'presentation', 'static', 'materiales'),
+    ]
 
 
 def _material_foto_dir():
-    foto_dir = os.path.join(_project_root(), 'instance', 'uploads', 'materiales')
+    foto_dir = _material_foto_search_dirs()[0]
     os.makedirs(foto_dir, exist_ok=True)
     return foto_dir
 
 
-def _legacy_static_foto_dir():
-    from core.app import app
-
-    return os.path.abspath(os.path.join(app.root_path, app.static_folder, 'materiales'))
+def resolve_material_foto_file(filename):
+    """Chemin disque d'une photo, ou None si absente / nom invalide."""
+    safe_name = secure_filename(filename or '')
+    if not safe_name or safe_name != filename:
+        return None
+    for directory in _material_foto_search_dirs():
+        path = os.path.join(directory, safe_name)
+        if os.path.isfile(path):
+            return path
+    return None
 
 
 def material_foto_filename(foto_path):
@@ -90,11 +104,10 @@ def material_foto_url(foto_path):
 
 
 def migrate_material_fotos_storage():
-    """Déplace les photos vers instance/uploads et normalise les chemins en base."""
+    """Regroupe les photos vers le dossier d'uploads persistant et normalise les chemins."""
     from core.app import Material, db
 
     upload_dir = _material_foto_dir()
-    legacy_dir = _legacy_static_foto_dir()
     changed = False
 
     for material in Material.query.filter(Material.foto.isnot(None)).all():
@@ -106,12 +119,12 @@ def migrate_material_fotos_storage():
 
         dst = os.path.join(upload_dir, fname)
         if not os.path.isfile(dst):
-            for src_dir in (legacy_dir, upload_dir):
-                src = os.path.join(src_dir, fname)
-                if os.path.isfile(src):
-                    if src != dst:
-                        shutil.copy2(src, dst)
-                    break
+            src = resolve_material_foto_file(fname)
+            if src and src != dst:
+                shutil.copy2(src, dst)
+
+        if not os.path.isfile(dst):
+            continue
 
         new_path = f'/uploads/materiales/{fname}'
         if material.foto != new_path:
@@ -124,7 +137,7 @@ def migrate_material_fotos_storage():
 
 def _remove_material_foto_files(material_id):
     fname_pattern = f'material_{material_id}.*'
-    for base_dir in (_material_foto_dir(), _legacy_static_foto_dir()):
+    for base_dir in _material_foto_search_dirs():
         for path in glob.glob(os.path.join(base_dir, fname_pattern)):
             try:
                 os.remove(path)

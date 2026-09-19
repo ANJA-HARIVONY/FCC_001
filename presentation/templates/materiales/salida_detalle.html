@@ -72,6 +72,8 @@
             <div class="card content-card">
                 <div class="card-header"><h5 class="mb-0">Líneas de material</h5></div>
                 <div class="card-body p-0">
+                    {% if salida.lineas %}
+                    <div class="table-responsive d-none d-lg-block d-print-block">
                     <table class="table mb-0">
                         <thead><tr><th>Material</th><th>Modelo</th><th class="text-end">Cantidad</th></tr></thead>
                         <tbody>
@@ -84,6 +86,18 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                    </div>
+                    <div class="mobile-list d-lg-none d-print-none" id="salida-lineas-mobile">
+                        {% for linea in salida.lineas %}
+                            {% include '_mobile_list_card_salida_linea.html' %}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-3">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay líneas de material.</h5>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -1,0 +1,77 @@
+{# Carte mobile de un material del catálogo.
+   Variables : m (requis), material_tipos, tipo_labels #}
+<article class="mobile-list-card{% if not m.activo %} mobile-list-card--inactive{% endif %}">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="badge bg-secondary">{{ tipo_labels.get(m.tipo, m.tipo) }}</span>
+            {% if m.activo %}
+            <span class="badge bg-success">Activo</span>
+            {% else %}
+            <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="collapse" data-bs-target="#edit-mobile-{{ m.id }}"
+                aria-expanded="false" aria-controls="edit-mobile-{{ m.id }}">
+            Editar
+        </button>
+    </div>
+    <div class="d-flex align-items-start gap-2">
+        {% if m.foto %}
+        <img src="{{ m.foto | material_foto_url }}" alt="" class="rounded flex-shrink-0"
+             style="width:40px;height:40px;object-fit:cover;">
+        {% endif %}
+        <div class="min-w-0">
+            <span class="mobile-list-card__title">{{ m.nombre }}</span>
+            {% if m.modelo %}
+            <p class="mobile-list-card__subtitle mb-0">{{ m.modelo }}</p>
+            {% endif %}
+            {% if m.descripcion %}
+            <p class="mobile-list-card__asunto" title="{{ m.descripcion }}">{{ m.descripcion }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="collapse mt-3" id="edit-mobile-{{ m.id }}">
+        <form method="POST" enctype="multipart/form-data" class="p-2 bg-light rounded">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" value="update">
+            <input type="hidden" name="material_id" value="{{ m.id }}">
+            <div class="mb-2">
+                <label class="form-label small" for="nombre-mobile-{{ m.id }}">Nombre</label>
+                <input type="text" name="nombre" id="nombre-mobile-{{ m.id }}"
+                       class="form-control form-control-sm" value="{{ m.nombre }}" required>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small" for="modelo-mobile-{{ m.id }}">Modelo</label>
+                <input type="text" name="modelo" id="modelo-mobile-{{ m.id }}"
+                       class="form-control form-control-sm" value="{{ m.modelo or '' }}">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small" for="tipo-mobile-{{ m.id }}">Tipo</label>
+                <select name="tipo" id="tipo-mobile-{{ m.id }}" class="form-select form-select-sm">
+                    {% for t in material_tipos %}
+                    <option value="{{ t }}" {% if m.tipo == t %}selected{% endif %}>{{ tipo_labels[t] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" name="activo" id="activo-mobile-{{ m.id }}"
+                       {% if m.activo %}checked{% endif %}>
+                <label class="form-check-label small" for="activo-mobile-{{ m.id }}">Activo</label>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small" for="descripcion-mobile-{{ m.id }}">Descripción</label>
+                <textarea name="descripcion" id="descripcion-mobile-{{ m.id }}"
+                          class="form-control form-control-sm" rows="2">{{ m.descripcion or '' }}</textarea>
+            </div>
+            <div class="mb-2">
+                <label class="form-label small" for="foto-mobile-{{ m.id }}">Foto</label>
+                <input type="file" name="foto" id="foto-mobile-{{ m.id }}"
+                       class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp">
+            </div>
+            <div class="text-end">
+                <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</article>

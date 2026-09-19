@@ -1,0 +1,21 @@
+{# Carte mobile de un registro de trazabilidad.
+   Variables : row (requis) #}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="badge bg-dark">{{ row.action }}</span>
+        </div>
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--date">
+            <i class="fas fa-clock me-1"></i>{{ row.date_heure.strftime('%Y-%m-%d %H:%M:%S') }}
+        </span>
+    </div>
+    <span class="mobile-list-card__title">{{ row.operateur.nom if row.operateur else 'N/A' }}</span>
+    {% if row.detail %}
+    <p class="mobile-list-card__asunto" title="{{ row.detail }}">{{ row.detail }}</p>
+    {% endif %}
+    <div class="mobile-list-card__badges">
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-network-wired me-1"></i><code>{{ row.ip_address or '-' }}</code>
+        </span>
+    </div>
+</article>

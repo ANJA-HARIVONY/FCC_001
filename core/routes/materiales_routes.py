@@ -4,11 +4,10 @@
 
 from datetime import date, datetime, timedelta
 
-from flask import render_template, request, redirect, url_for, flash, jsonify, send_from_directory, abort, send_file
+from flask import render_template, request, redirect, url_for, flash, jsonify, abort, send_file
 from flask_login import current_user
 
 from sqlalchemy import or_
-from werkzeug.utils import secure_filename
 
 from core.app import (
     app,
@@ -39,7 +38,7 @@ from core.services.materiales_service import (
     get_informe_material_filter_options,
     parse_informe_filters,
     get_tecnico_material_rows,
-    _material_foto_dir,
+    resolve_material_foto_file,
 )
 from core.services.materiales_export_service import (
     build_informe_export_filename,
@@ -79,10 +78,10 @@ def _informe_tecnicos_query(agencia_id=None):
 @app.route('/uploads/materiales/<path:filename>')
 @admin_required
 def serve_material_foto(filename):
-    safe_name = secure_filename(filename)
-    if not safe_name or safe_name != filename:
+    path = resolve_material_foto_file(filename)
+    if not path:
         abort(404)
-    return send_from_directory(_material_foto_dir(), safe_name)
+    return send_file(path)
 
 
 @app.route('/materiales')

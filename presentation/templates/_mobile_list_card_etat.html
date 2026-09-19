@@ -1,0 +1,76 @@
+{# Carte mobile de un informe reciente.
+   Variables : etat (requis) #}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="badge bg-secondary bg-opacity-75">
+                {% if etat.type_etat == 'summary' %}Resumen
+                {% elif etat.type_etat == 'analysis' %}Tendencias
+                {% elif etat.type_etat == 'performance' %}Rendimiento
+                {% else %}Personalizado{% endif %}
+            </span>
+            {% if etat.statut == 'generated' %}
+                <span class="badge bg-success">Generado</span>
+            {% elif etat.statut == 'generating' %}
+                <span class="badge bg-warning text-dark">En progreso...</span>
+            {% elif etat.statut == 'error' %}
+                <span class="badge bg-danger">Error</span>
+            {% else %}
+                <span class="badge bg-secondary">{{ etat.statut }}</span>
+            {% endif %}
+        </div>
+        <div class="dropdown mobile-list-card__menu">
+            <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
+                    data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
+                    aria-label="Acciones">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('etats_detail', id=etat.id) }}">
+                        <i class="fas fa-eye me-2"></i>Ver
+                    </a>
+                </li>
+                {% if etat.statut == 'generated' %}
+                <li>
+                    <form method="post" action="{{ url_for('etats_regenerer', id=etat.id) }}"
+                          onsubmit="return confirm('¿Regenerar este informe?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-sync me-2"></i>Regenerar
+                        </button>
+                    </form>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('api_etats_export_xlsx', id=etat.id) }}">
+                        <i class="fas fa-file-excel me-2"></i>Exportar Excel
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+    <a class="mobile-list-card__title" href="{{ url_for('etats_detail', id=etat.id) }}">
+        {% if etat.type_etat == 'summary' or etat.type_etat == 'analysis' %}
+            <i class="fas fa-chart-line me-1" aria-hidden="true"></i>
+        {% elif etat.type_etat == 'performance' %}
+            <i class="fas fa-users me-1" aria-hidden="true"></i>
+        {% else %}
+            <i class="fas fa-sliders-h me-1" aria-hidden="true"></i>
+        {% endif %}
+        {{ etat.titre }}
+    </a>
+    <div class="mobile-list-card__badges">
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-calendar me-1"></i>
+            {% if etat.periode_debut %}
+                {{ etat.periode_debut.strftime('%d/%m/%Y') }}{% if etat.periode_fin %} - {{ etat.periode_fin.strftime('%d/%m/%Y') }}{% endif %}
+            {% else %}
+                No definido
+            {% endif %}
+        </span>
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--date">
+            <i class="fas fa-clock me-1"></i>{{ etat.date_creation.strftime('%d/%m/%Y %H:%M') }}
+        </span>
+    </div>
+</article>

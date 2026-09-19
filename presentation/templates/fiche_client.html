@@ -407,7 +407,7 @@
         </div>
         <div class="card-body">
             {% if material_rows %}
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-lg-block d-print-block">
                     <table class="table table-bordered mb-0" width="100%" cellspacing="0">
                         <thead>
                             <tr>
@@ -431,6 +431,12 @@
                             {% endfor %}
                         </tbody>
                     </table>
+                </div>
+                <div class="mobile-list d-lg-none d-print-none px-0" id="ficha-materiales-mobile">
+                    {% for row in material_rows %}
+                        {% set variant = 'cliente' %}
+                        {% include '_mobile_list_card_material_asignado.html' %}
+                    {% endfor %}
                 </div>
             {% else %}
                 <div class="text-center py-4">

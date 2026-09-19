@@ -185,10 +185,10 @@ setup_directories() {
     log_info "Configuration des répertoires..."
     
     mkdir -p /app/logs
-    mkdir -p /app/instance
+    mkdir -p /app/instance/uploads/materiales
     mkdir -p /app/monitoring/logs
     mkdir -p /app/monitoring/backups
-    mkdir -p /app/presentation/uploads
+    mkdir -p /app/presentation/uploads/materiales
     
     log_success "Répertoires configurés!"
 }

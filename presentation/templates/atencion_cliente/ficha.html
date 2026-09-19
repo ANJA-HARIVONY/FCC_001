@@ -134,7 +134,8 @@ Retrasos en cambio de estado (&gt; {{ filters.umbral }} min)
             <small class="text-white-50">{{ pagination.total }} resultado{% if pagination.total != 1 %}s{% endif %}</small>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
+            {% if rows %}
+            <div class="table-responsive d-none d-lg-block d-print-block">
                 <table class="table table-hover mb-0 align-middle">
                     <thead>
                         <tr>
@@ -183,16 +184,21 @@ Retrasos en cambio de estado (&gt; {{ filters.umbral }} min)
                                 {% endif %}
                             </td>
                         </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                No hay incidencias con retraso en este período.
-                            </td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            <div class="mobile-list d-lg-none d-print-none" id="ac-retrasos-mobile">
+                {% for row in rows %}
+                    {% include '_mobile_list_card_ac_retraso.html' %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay incidencias con retraso en este período.</h5>
+            </div>
+            {% endif %}
         </div>
         {% if pagination.pages > 1 %}
         <div class="card-footer">

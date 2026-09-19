@@ -1,0 +1,23 @@
+{# Carte mobile de un punto de evolución (informe analysis).
+   Variables : point (requis) #}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="mobile-list-card__id">{{ point.label }}</span>
+        </div>
+        <span class="badge bg-light text-dark">Total {{ point.count or 0 }}</span>
+    </div>
+    <div class="mobile-list-card__badges">
+        <span class="badge rounded-pill mobile-list-card__chip text-success">
+            Solucionadas {{ point.solucionadas or 0 }}
+        </span>
+        <span class="badge rounded-pill mobile-list-card__chip text-primary">
+            Bitrix {{ point.bitrix or 0 }}
+        </span>
+        {% if point.apreciacion %}
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--asunto" title="{{ point.apreciacion }}">
+            {{ point.apreciacion }}
+        </span>
+        {% endif %}
+    </div>
+</article>

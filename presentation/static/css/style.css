@@ -3463,6 +3463,10 @@ body.login-page {
     padding: 0.85rem 0.95rem;
 }
 
+.mobile-list-card--inactive {
+    background: #f8f9fa;
+}
+
 .mobile-list-card__head {
     display: flex;
     align-items: flex-start;
@@ -3512,6 +3516,19 @@ body.login-page {
     min-height: 2.5rem;
     display: flex;
     align-items: center;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+}
+
+.mobile-list-card__menu form {
+    margin: 0;
+}
+
+span.mobile-list-card__title:hover,
+span.mobile-list-card__title:focus {
+    color: var(--dark-gray);
 }
 
 .mobile-list-card__title {
@@ -3589,12 +3606,14 @@ a.mobile-list-card__chip:focus {
     white-space: nowrap;
 }
 
-.content-card:has(.mobile-list) {
+.content-card:has(.mobile-list),
+.etats-section-card:has(.mobile-list) {
     overflow: visible;
 }
 
 @media (min-width: 992px) {
-    .content-card:has(.mobile-list) {
+    .content-card:has(.mobile-list),
+    .etats-section-card:has(.mobile-list) {
         overflow: hidden;
     }
 }

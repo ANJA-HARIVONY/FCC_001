@@ -1,0 +1,11 @@
+{# Carte mobile de un total por material (informe de salidas).
+   Variables : row (requis) #}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="badge bg-secondary">{{ row.cantidad_total }}</span>
+        </div>
+    </div>
+    <span class="mobile-list-card__title">{{ row.label }}</span>
+    <p class="mobile-list-card__subtitle">Cantidad total</p>
+</article>
