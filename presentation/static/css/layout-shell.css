@@ -261,6 +261,18 @@ body.app-layout-v2 .notification-bell-btn.app-header__icon-btn {
     width: 38px;
     height: 38px;
     border-radius: 50%;
+    overflow: hidden;
+}
+
+body.app-layout-v2 .notification-bell-btn .notification-bell-count.badge {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    max-width: calc(100% - 6px);
+    padding: 0 0.28rem;
+    font-size: 0.6rem;
 }
 
 /* Hamburger */
@@ -1668,6 +1680,19 @@ html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-danger {
     border: 1px solid rgba(220, 53, 69, 0.5);
 }
 
+/* Compteur cloche : rester vif en dark (le .badge.bg-danger ci-dessus est volontairement atténué) */
+html[data-sidebar-theme="dark"] body.app-layout-v2 .notification-bell-btn .notification-bell-count.badge.bg-danger,
+html[data-sidebar-theme="dark"] body.app-layout-v2 #comment-notification-header-count.badge.bg-danger {
+    background-color: #ff2940 !important;
+    color: #fff !important;
+    border: 1.5px solid #fff !important;
+    font-weight: 800;
+    font-size: 0.68rem;
+    letter-spacing: 0.01em;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35), 0 0 8px rgba(255, 41, 64, 0.7);
+}
+
 html[data-sidebar-theme="dark"] body.app-layout-v2 .badge.bg-info {
     background-color: rgba(13, 202, 240, 0.25) !important;
     color: #9eecff !important;
@@ -2472,12 +2497,15 @@ body.app-layout-v2 .app-flash-stack {
         color: #fff !important;
     }
 
-    body.app-layout-v2 .notification-bell-count {
+    body.app-layout-v2 .notification-bell-btn .notification-bell-count.badge {
+        position: absolute;
         top: 2px;
         right: 2px;
-        font-size: 0.62rem;
         min-width: 1rem;
-        padding: 0.15em 0.3em;
+        height: 1rem;
+        max-width: calc(100% - 4px);
+        padding: 0 0.22rem;
+        font-size: 0.58rem;
     }
 
     body.app-layout-v2 .app-sidebar {

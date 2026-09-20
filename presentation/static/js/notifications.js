@@ -279,7 +279,9 @@ class NotificationSystem {
         if (!element) {
             return;
         }
-        element.textContent = count > 99 ? '99+' : String(count);
+        const compactBell = element.id === 'comment-notification-count';
+        const maxShown = compactBell ? 9 : 99;
+        element.textContent = count > maxShown ? (compactBell ? '9+' : '99+') : String(count);
         element.classList.toggle('d-none', count <= 0);
     }
 
