@@ -62,13 +62,14 @@ Quand l’utilisateur a fini une branche et demande de merger dans `main` puis d
 3. Si `origin/main` a des commits en avance : d’abord rebase ou merge de `main` dans la feature, puis reprendre. Ne pas forcer.
 4. `git checkout main` puis `git merge <branche-feature>` (fast-forward si possible).
 5. `git push origin main`.
-6. Confirmer : `git status -sb` doit afficher `main...origin/main` à jour.
+6. Après un push réussi : supprimer la branche feature (ne pas attendre une demande séparée). Voir section suivante.
+7. Confirmer : `git status -sb` doit afficher `main...origin/main` à jour.
 
 Ne merger que si l’utilisateur le demande. Ne pas `push --force` sur `main`.
 
 ## Supprimer la branche feature
 
-Après un merge réussi dans `main`, si l’utilisateur demande de supprimer la branche :
+Après un merge et un push réussis dans `main`, supprimer automatiquement la branche feature :
 
 1. Vérifier local et remote : `git branch -a`.
 2. Local (sûr, uniquement si déjà mergée) : `git branch -d <branche-feature>`.
@@ -84,4 +85,4 @@ Rester sur `main`. Ne pas supprimer `main`. Utiliser `-D` seulement si l’utili
 - [ ] Pas de secrets (.env, clés) dans le commit
 - [ ] Push uniquement si l’utilisateur le demande
 - [ ] Merge dans `main` uniquement si l’utilisateur le demande
-- [ ] Suppression de la branche feature uniquement si l’utilisateur le demande (local + origin)
+- [ ] Après merge + push : suppression automatique de la branche feature (local + origin si elle existe)
