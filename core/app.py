@@ -1953,12 +1953,15 @@ def dashboard():
         func.count(Incident.id).desc()
     ).limit(5).all()
     
+    from core.services.bitrix_cache_service import build_bitrix_list_context
+
     return render_template('dashboard.html',
                          total_incidents=total_incidents,
                          incidents_resolus=incidents_resolus,
                          incidents_attente=incidents_attente,
                          incidents_bitrix=incidents_bitrix,
                          derniers_incidents=derniers_incidents,
+                         bitrix_list_info=build_bitrix_list_context(derniers_incidents),
                          incidents_par_operateur=incidents_par_operateur,
                          clients_recurrents=clients_recurrents,
                          current_period=period)
@@ -2835,9 +2838,23 @@ def dashboard_data():
         joinedload(Incident.operateur),
     ).order_by(Incident.date_heure.desc()).limit(5).all()
     
+    from core.services.bitrix_cache_service import build_bitrix_list_context
+
+    bitrix_list_info = build_bitrix_list_context(derniers_incidents)
+
     # Formater les derniers incidents pour l'API
     derniers_incidents_data = []
     for incident in derniers_incidents:
+        bx = bitrix_list_info.get(incident.id, {})
+        info = bx.get('info')
+        bitrix_info = None
+        if info:
+            bitrix_info = {
+                'status_label': info.get('status_label') or '',
+                'status_emoji': info.get('status_emoji') or '📋',
+            }
+            if info.get('error'):
+                bitrix_info['error'] = info['error']
         derniers_incidents_data.append({
             'id': incident.id,
             'intitule': incident.intitule,
@@ -2849,6 +2866,8 @@ def dashboard_data():
             'operateur_avatar_url': incident.operateur.avatar_url,
             'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M'),
             'ref_bitrix': incident.ref_bitrix or '',
+            'bitrix_auto_load': bool(bx.get('auto_load')),
+            'bitrix_info': bitrix_info,
         })
     
     # Données par opérateur pour la période

@@ -220,8 +220,10 @@
                                         {% elif incident.status == 'Pendiente' %}
                                             <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
                                         {% else %}
-                                            <span class="badge badge-bitrix">{{ incident.status }} 🔗​ </span>
-                                                <small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></small>
+                                            {% set bx = bitrix_list_info.get(incident.id, {}) if bitrix_list_info is defined else {} %}
+                                            {% with compact=true, auto_load=bx.auto_load|default(false), icon_only=true, bitrix_info=bx.info %}
+                                            {% include '_bitrix_status.html' %}
+                                            {% endwith %}
                                         {% endif %}
                                     </td>
                                     <td>
@@ -378,6 +380,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/bitrix-info.js') }}"></script>
 <script>
 let incidentsChart = null;
 let operateursChart = null;
@@ -396,6 +399,7 @@ const canEditApreciacion = {{ 'true' if current_user.is_authenticated and curren
 const defaultPeriod = 'current_week';
 const defaultViewType = 'date';
 const defaultOperateurChartType = 'doughnut';
+const bitrixApiEnabled = {{ 'true' if bitrix_api_enabled else 'false' }};
 const filterCookieMaxAgeSeconds = 30 * 24 * 60 * 60; // 30 jours
 const dashboardFilterCookieName = 'dashboard_filters_v1';
 const rememberedPeriods = new Set([
@@ -1298,17 +1302,36 @@ function clientNameCellHtml(name, href, adresse) {
     return `<i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="${href}" class="text-decoration-none text-dark hover:text-primary">${escapeHtml(name)}</a>${adresseHtml}`;
 }
 
-function incidentStatusBadgesHtml(incident) {
+function incidentStatusBadgesHtml(incident, suffix) {
     if (incident.status === 'Solucionadas') {
         return `<span class="badge badge-resolut">${escapeHtml(incident.status)} ✅</span>`;
     }
     if (incident.status === 'Pendiente') {
         return `<span class="badge badge-attente">${escapeHtml(incident.status)} ⏳</span>`;
     }
-    let html = `<span class="badge badge-bitrix">Bitrix 🔗</span>`;
-    if (incident.ref_bitrix) {
-        html += `<a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/${encodeURIComponent(incident.ref_bitrix)}/" target="_blank" rel="noopener noreferrer" class="badge bg-light text-dark text-decoration-none">${escapeHtml(incident.ref_bitrix)} <i class="fas fa-external-link-alt"></i></a>`;
+    if (incident.status !== 'Bitrix') {
+        return `<span class="badge badge-bitrix">${escapeHtml(incident.status)}</span>`;
     }
+
+    const ref = incident.ref_bitrix || '';
+    const blockSuffix = suffix || incident.id;
+    let html = `<span class="badge badge-bitrix">Bitrix <span class="d-inline text-muted"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/${encodeURIComponent(ref)}/" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-white" title="Abrir en nuevo tab">${escapeHtml(ref)} <i class="fas fa-external-link-alt"></i></a></span></span>`;
+    if (!ref || !bitrixApiEnabled) {
+        return html;
+    }
+
+    const autoLoad = !!incident.bitrix_auto_load;
+    const info = incident.bitrix_info;
+    let inner = '';
+    if (info && info.error) {
+        inner = `<span class="bitrix-emoji-inline text-white-50" id="bitrixEmoji-${blockSuffix}" title="${escapeHtml(info.error)}">⚠️</span>`;
+    } else if (info) {
+        inner = `<span class="bitrix-emoji-inline" id="bitrixEmoji-${blockSuffix}" title="${escapeHtml(info.status_label || '')}">${escapeHtml(info.status_emoji || '📋')}</span>`;
+    } else if (autoLoad) {
+        inner = `<span class="bitrix-emoji-inline bitrix-loading" id="bitrixLoading-${blockSuffix}"><i class="fas fa-spinner fa-spin small"></i></span>`;
+    }
+
+    html += `<div id="bitrixInfoBlock-${blockSuffix}" class="bitrix-info-block bitrix-info-block--compact bitrix-info-block--icon-only d-inline ms-1" data-bitrix-incident-id="${incident.id}" data-bitrix-url="/api/incidents/${incident.id}/bitrix-info" data-bitrix-icon-only="1"${autoLoad ? ' data-bitrix-auto-load="1"' : ''}>${inner}</div>`;
     return html;
 }
 
@@ -1325,7 +1348,7 @@ function lastIncidentCardHtml(incident) {
         <div class="mobile-list-card__head">
             <div class="mobile-list-card__meta">
                 <span class="mobile-list-card__id">#${escapeHtml(incident.id)}</span>
-                ${incidentStatusBadgesHtml(incident)}
+                ${incidentStatusBadgesHtml(incident, `${incident.id}-card`)}
                 ${corporativoIconHtml(incident.client_categoria)}
             </div>
             <div class="dropdown mobile-list-card__menu">
@@ -1449,10 +1472,7 @@ function updateLastIncidents(incidents) {
                     </td>
                     <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
                     <td>
-                        <span class="badge badge-${incident.status === 'Solucionadas' ? 'resolut' : 
-                                                     incident.status === 'Pendiente' ? 'attente' : 'bitrix'}">
-                            ${incident.status}
-                        </span>
+                        ${incidentStatusBadgesHtml(incident)}
                     </td>
                     <td>
                         <div class="d-flex align-items-center gap-2">
@@ -1478,6 +1498,9 @@ function updateLastIncidents(incidents) {
         }
         if (cards) {
             cards.innerHTML = incidents.map(lastIncidentCardHtml).join('');
+        }
+        if (typeof window.initBitrixAutoLoad === 'function') {
+            window.initBitrixAutoLoad();
         }
     } else {
         if (tableBody) tableBody.innerHTML = '';

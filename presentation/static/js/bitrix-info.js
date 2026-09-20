@@ -263,4 +263,5 @@
 
     window.refreshBitrixInfo = refreshBitrixInfo;
     window.fetchBitrixInfo = fetchBitrixInfo;
+    window.initBitrixAutoLoad = initAutoLoad;
 })();
