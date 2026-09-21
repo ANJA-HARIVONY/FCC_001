@@ -549,6 +549,9 @@ html[data-sidebar-theme="dark"] body.app-layout-v2 {
     --app-surface-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
     --app-text: #e8eaed;
     --app-text-muted: #9aa3b2;
+    /* Accent des icones d'information : meme rouge clair que la sidebar active */
+    --ui-icon-color: #ff6b7a;
+    --ui-border: rgba(255, 255, 255, 0.1);
     background: var(--app-main-bg);
     color: var(--app-text);
 }
@@ -567,6 +570,7 @@ html[data-app-theme="light"] body.app-layout-v2 {
     --app-surface-shadow: 0 6px 16px rgba(15, 20, 28, 0.08);
     --app-text: #343a40;
     --app-text-muted: #6c757d;
+    --ui-icon-color: var(--primary-red);
     --bs-body-color: #343a40;
     --bs-heading-color: #343a40;
     --bs-card-cap-color: #343a40;

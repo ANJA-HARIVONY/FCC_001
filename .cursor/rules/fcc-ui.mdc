@@ -20,6 +20,7 @@ Réutiliser les classes et partials existants. Ne pas inventer une palette, un s
 ## Cartes et KPI
 
 - Blocs métier : `card shadow-sm border-0 content-card` (filtres, listes, fiches, formulaires).
+- Rubrique **Estado** (ficha incidencia) : carte `status-detail-card` (alias `bitrix-status-card`). Bitrix → partial `_bitrix_status.html`. Pas de ligne `col-sm-3` / `col-sm-9`.
 - KPI (dashboard / informes) : `card stat-card stat-card--registered|resolved|pending|bitrix` + `stat-card-icon` / `stat-card-value`. Grille `row-cols-1 row-cols-sm-2 row-cols-lg-4`.
 - Action principale du titre : `btn btn-primary btn-sm` dans `page_actions`.
 - Retour / reset : `btn btn-outline-secondary btn-sm` (`Volver`, `Limpiar`).
@@ -38,6 +39,17 @@ Vide : `text-center py-5` + icône `fa-3x text-muted` + CTA.
 - `badge badge-bitrix` → Bitrix (ou partial `_bitrix_status.html`)
 
 Corporativo : `_cliente_corporativo_icon.html`.
+
+## Icônes
+
+Même famille que la sidebar (`_sidebar.html` : `nav-menu-icon` + Font Awesome).
+
+- Sidebar : `<i class="nav-menu-icon fas fa-…" aria-hidden="true"></i>`
+- Fiches / cartes de détail : `<i class="ui-icon fas fa-…" aria-hidden="true"></i>`
+- `.ui-icon` = même métrique que `.nav-menu-icon` (1.25rem, centré, opacity 0.85). Couleur `--ui-icon-color` : `--primary-red` en thème clair, `#ff6b7a` en thème sombre (comme l’item actif de la sidebar).
+- Tokens dans `style.css` (`--ui-icon-size`, `--ui-icon-color`) ; le thème sombre les surcharge dans `layout-shell.css`.
+- Pas d’emoji pour un libellé de fiche (Estado, Vencimiento, Prioridad, Responsable). Les emoji Bitrix restent acceptés en **liste compacte** (`icon_only`).
+- Nouvel icône d’information : Font Awesome déjà utilisé dans la sidebar si un équivalent existe (`fa-user`, `fa-clock`, `fa-check-circle`, `fa-hourglass-half`…).
 
 ## Formulaires
 

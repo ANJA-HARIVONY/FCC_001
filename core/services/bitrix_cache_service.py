@@ -134,7 +134,13 @@ def _format_datetime(value):
 
 def build_bitrix_task_extras(incident):
     """Données dérivées de la tâche Bitrix pour la ficha (vencimiento, prioridad, movimiento)."""
-    from core.app import BITRIX_OVERDUE_STATUSES, BITRIX_PRIORITY_LABELS
+    from core.app import (
+        BITRIX_OVERDUE_STATUSES,
+        BITRIX_PRIORITY_ICONS,
+        BITRIX_PRIORITY_LABELS,
+        BITRIX_STATUS_ICON_DEFAULT,
+        BITRIX_STATUS_ICONS,
+    )
     from core.services.incident_status_delay_service import format_retraso
 
     task_status = incident.bitrix_task_status or ''
@@ -168,6 +174,8 @@ def build_bitrix_task_extras(incident):
         'priority': priority,
         'priority_label': priority_label,
         'priority_emoji': priority_emoji,
+        'priority_icon': BITRIX_PRIORITY_ICONS.get(priority, 'fa-flag'),
+        'status_icon': BITRIX_STATUS_ICONS.get(task_status, BITRIX_STATUS_ICON_DEFAULT),
         'is_closed': task_status == BITRIX_TERMINAL_STATUS,
         'closed_label': _format_datetime(incident.bitrix_closed_at),
         'created_label': _format_datetime(incident.bitrix_created_at),

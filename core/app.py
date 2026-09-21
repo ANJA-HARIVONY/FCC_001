@@ -1126,6 +1126,21 @@ BITRIX_PRIORITY_LABELS = {
     '2': ('Alta', '🔺'),
 }
 
+# Icônes Font Awesome (ficha) : même famille que la sidebar, pas d'emoji.
+BITRIX_STATUS_ICONS = {
+    '2': 'fa-hourglass-start',
+    '3': 'fa-spinner',
+    '4': 'fa-user-check',
+    '5': 'fa-check-circle',
+    '6': 'fa-pause-circle',
+}
+BITRIX_STATUS_ICON_DEFAULT = 'fa-tasks'
+BITRIX_PRIORITY_ICONS = {
+    '0': 'fa-angle-down',
+    '1': 'fa-minus',
+    '2': 'fa-angle-double-up',
+}
+
 BITRIX_ERROR_DNS = (
     'No se puede contactar con Bitrix24: el servidor no resuelve el nombre de dominio. '
     'Compruebe la conexión a Internet del servidor y la variable BITRIX24_API en .env.'

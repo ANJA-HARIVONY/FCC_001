@@ -52,17 +52,35 @@
                         </div>
                     </div>
                     <hr>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>{{ _('Estado') }}:</strong></div>
-                        <div class="col-sm-9">
-                            {% if incident.status == 'Solucionadas' %}
-                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> {{ _('Solucionadas') }}</span>
-                            {% elif incident.status == 'Pendiente' %}
-                                <span class="badge bg-warning"><i class="fas fa-hourglass-half"></i> {{ _('Pendientes') }}</span>
-                            {% elif incident.status == 'Bitrix' %}
-                                {% include '_bitrix_status.html' %}
-                            {% endif %}
-                        </div>
+                    <div class="mb-3">
+                        {% if incident.status == 'Bitrix' %}
+                            {% include '_bitrix_status.html' %}
+                        {% else %}
+                            <div class="card status-detail-card shadow-sm">
+                                <div class="card-header d-flex align-items-center">
+                                    <span class="d-inline-flex align-items-center fw-semibold">
+                                        <i class="ui-icon fas fa-info-circle me-2" aria-hidden="true"></i>{{ _('Estado') }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="bitrix-status-row">
+                                        {% if incident.status == 'Solucionadas' %}
+                                        <i class="ui-icon fas fa-check-circle" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Estado') }}</small>
+                                            <div><span class="badge badge-resolut">{{ incident.status }}</span></div>
+                                        </div>
+                                        {% else %}
+                                        <i class="ui-icon fas fa-hourglass-half" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Estado') }}</small>
+                                            <div><span class="badge badge-attente">{{ incident.status }}</span></div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                     <hr>
                     <div class="row mb-3">

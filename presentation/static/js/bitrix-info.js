@@ -55,6 +55,10 @@
     }
 
     var BITRIX_LABELS_FALLBACK = {
+        titulo: 'Estado',
+        bitrix: 'Bitrix',
+        estado: 'Estado de la tarea',
+        responsable: 'Responsable',
         vencimiento: 'Vencimiento',
         prioridad: 'Prioridad',
         cerrada: 'Cerrada el',
@@ -79,6 +83,17 @@
         return escapeHtml(String(label).replace('{tiempo}', value == null ? '' : String(value)));
     }
 
+    function statusRow(iconClass, label, valueHtml, valueId, iconExtraClass) {
+        return '' +
+        '<div class="bitrix-status-row">' +
+            '<i class="ui-icon fas ' + iconClass + (iconExtraClass ? ' ' + iconExtraClass : '') + '" aria-hidden="true"></i>' +
+            '<div>' +
+                '<small class="text-uppercase text-muted">' + escapeHtml(label) + '</small>' +
+                '<div class="fw-semibold text-dark" id="' + valueId + '">' + valueHtml + '</div>' +
+            '</div>' +
+        '</div>';
+    }
+
     function buildExtrasHtml(data, suffix, labels) {
         var html = '';
         if (data.show_plazo) {
@@ -88,53 +103,25 @@
             } else if (data.deadline_label) {
                 plazo = ' <small class="text-muted">(' + withTiempo(labels.quedan, data.plazo_label) + ')</small>';
             }
-            html +=
-            '<div class="d-flex align-items-center mb-1">' +
-                '<span class="me-2">📅</span>' +
-                '<div>' +
-                    '<small class="text-uppercase text-muted">' + escapeHtml(labels.vencimiento) + '</small>' +
-                    '<div class="text-dark fw-semibold" id="bitrixDeadline-' + suffix + '">' +
-                        escapeHtml(data.deadline_label || '—') + plazo +
-                    '</div>' +
-                '</div>' +
-            '</div>';
+            html += statusRow('fa-calendar-day', labels.vencimiento,
+                escapeHtml(data.deadline_label || '—') + plazo, 'bitrixDeadline-' + suffix);
             if (data.priority_label) {
-                html +=
-                '<div class="d-flex align-items-center mb-1">' +
-                    '<span class="me-2">' + escapeHtml(data.priority_emoji) + '</span>' +
-                    '<div>' +
-                        '<small class="text-uppercase text-muted">' + escapeHtml(labels.prioridad) + '</small>' +
-                        '<div class="text-dark fw-semibold" id="bitrixPriority-' + suffix + '">' + escapeHtml(data.priority_label) + '</div>' +
-                    '</div>' +
-                '</div>';
+                html += statusRow(data.priority_icon || 'fa-flag', labels.prioridad,
+                    escapeHtml(data.priority_label), 'bitrixPriority-' + suffix);
             }
         } else if (data.is_closed && data.closed_label) {
-            html +=
-            '<div class="d-flex align-items-center mb-1">' +
-                '<span class="me-2">🏁</span>' +
-                '<div>' +
-                    '<small class="text-uppercase text-muted">' + escapeHtml(labels.cerrada) + '</small>' +
-                    '<div class="text-dark fw-semibold" id="bitrixClosed-' + suffix + '">' + escapeHtml(data.closed_label) + '</div>' +
-                '</div>' +
-            '</div>';
+            html += statusRow('fa-flag-checkered', labels.cerrada,
+                escapeHtml(data.closed_label), 'bitrixClosed-' + suffix);
         }
         if (data.changed_label) {
             var movida = data.moved_recently
                 ? ' <span class="badge badge-bitrix ms-1" title="' + escapeHtml(labels.movidaEl + ' ' + data.moved_label) + '">' +
                     escapeHtml(labels.movida) + '</span>'
                 : '';
-            html +=
-            '<div class="d-flex align-items-center">' +
-                '<span class="me-2">🕒</span>' +
-                '<div>' +
-                    '<small class="text-uppercase text-muted">' + escapeHtml(labels.modificacion) + '</small>' +
-                    '<div class="text-dark fw-semibold" id="bitrixChanged-' + suffix + '">' +
-                        escapeHtml(data.changed_label) + movida +
-                    '</div>' +
-                '</div>' +
-            '</div>';
+            html += statusRow('fa-history', labels.modificacion,
+                escapeHtml(data.changed_label) + movida, 'bitrixChanged-' + suffix);
         }
-        return html ? '<hr class="my-2">' + html : '';
+        return html;
     }
 
     function replaceExtras(block, data, suffix) {
@@ -148,8 +135,16 @@
         wrapper.className = 'bitrix-extras';
         wrapper.innerHTML = html;
         if (!existing) {
-            var card = block.querySelector('.bitrix-info-card');
-            if (card) card.appendChild(wrapper);
+            var host = block.querySelector('.bitrix-status-card .card-body') ||
+                block.querySelector('.bitrix-info-card');
+            if (host) host.appendChild(wrapper);
+        }
+    }
+
+    function updateStatusIcon(block, data) {
+        var iconEl = block.querySelector('.bitrix-status-icon');
+        if (iconEl && data.status_icon) {
+            iconEl.className = 'ui-icon fas ' + data.status_icon + ' bitrix-status-icon';
         }
     }
 
@@ -192,15 +187,19 @@
             if (emojiEl) emojiEl.textContent = emoji;
             if (statusEl) statusEl.textContent = data.status_label;
             if (respEl) respEl.textContent = data.responsible_name;
-            if (!compact) replaceExtras(block, data, suffix);
+            if (!compact) {
+                updateStatusIcon(block, data);
+                replaceExtras(block, data, suffix);
+            }
             return;
         }
 
-        const cardClass = 'bitrix-info-card' + (compact ? ' bitrix-info-card--compact' : '');
         const div = document.createElement('div');
-        div.className = cardClass;
         div.id = 'bitrixDataDiv-' + suffix;
-        let innerHtml =
+
+        if (compact) {
+            div.className = 'bitrix-info-card bitrix-info-card--compact';
+            div.innerHTML =
             '<div class="d-flex align-items-center mb-1">' +
                 '<span class="bitrix-emoji me-2" id="bitrixEmoji-' + suffix + '">' + emoji + '</span>' +
                 '<div>' +
@@ -208,28 +207,51 @@
                     '<div class="fw-semibold ' + statusClass + '" id="bitrixStatus-' + suffix + '">' + escapeHtml(data.status_label) + '</div>' +
                 '</div>' +
             '</div>';
-        if (!compact) {
-            innerHtml +=
-            '<div class="d-flex align-items-center">' +
-                '<span class="me-2">🧑‍💻</span>' +
-                '<div>' +
-                    '<small class="text-uppercase text-muted">Responsable</small>' +
-                    '<div id="bitrixResponsable-' + suffix + '" class="' + respClass + ' fw-semibold">' + escapeHtml(data.responsible_name) + '</div>' +
-                '</div>' +
-            '</div>';
-            const extrasHtml = buildExtrasHtml(data, suffix, getLabels(block));
-            if (extrasHtml) {
-                innerHtml += '<div class="bitrix-extras">' + extrasHtml + '</div>';
+            const compactRefresh = block.querySelector('.btn-refresh-bitrix');
+            if (compactRefresh) {
+                block.insertBefore(div, compactRefresh);
+            } else {
+                block.appendChild(div);
             }
+            return;
         }
-        div.innerHTML = innerHtml;
 
-        const refreshBtn = block.querySelector('.btn-refresh-bitrix');
-        if (refreshBtn) {
-            block.insertBefore(div, refreshBtn);
-        } else {
-            block.appendChild(div);
+        const labels = getLabels(block);
+        const taskUrl = block.getAttribute('data-bitrix-task-url') || '';
+        const ref = block.getAttribute('data-bitrix-ref') || '';
+        div.className = 'card bitrix-info-card bitrix-status-card status-detail-card shadow-sm';
+        let header = '';
+        if (taskUrl && ref) {
+            header =
+            '<div class="card-header d-flex align-items-center justify-content-between">' +
+                '<span class="d-inline-flex align-items-center fw-semibold">' +
+                    '<i class="ui-icon fas fa-info-circle me-2" aria-hidden="true"></i>' + escapeHtml(labels.titulo) +
+                    ' <span class="badge badge-bitrix ms-2">' + escapeHtml(labels.bitrix) + '</span>' +
+                '</span>' +
+                '<a href="' + escapeHtml(taskUrl) + '" target="_blank" rel="noopener noreferrer" class="text-decoration-none">' +
+                    escapeHtml(ref) + ' <i class="fas fa-external-link-alt"></i>' +
+                '</a>' +
+            '</div>';
         }
+        let body =
+            statusRow(data.status_icon || 'fa-tasks', labels.estado,
+                escapeHtml(data.status_label), 'bitrixStatus-' + suffix, 'bitrix-status-icon') +
+            statusRow('fa-user-tie', labels.responsable,
+                escapeHtml(data.responsible_name), 'bitrixResponsable-' + suffix);
+        const extrasHtml = buildExtrasHtml(data, suffix, labels);
+        if (extrasHtml) {
+            body += '<div class="bitrix-extras">' + extrasHtml + '</div>';
+        }
+        const refreshBtn = block.querySelector('.btn-refresh-bitrix');
+        div.innerHTML = header + '<div class="card-body">' + body + '</div>';
+        if (refreshBtn) {
+            const footerEl = document.createElement('div');
+            footerEl.className = 'card-footer bg-transparent py-2';
+            refreshBtn.classList.remove('mt-1');
+            footerEl.appendChild(refreshBtn);
+            div.appendChild(footerEl);
+        }
+        block.appendChild(div);
     }
 
     function renderBitrixError(block, message) {

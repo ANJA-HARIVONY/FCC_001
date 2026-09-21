@@ -22,6 +22,10 @@
     --anim-slow: 300ms;
     --anim-ease: cubic-bezier(0.2, 0, 0, 1);
 
+    /* Icone d'information : meme rendu que .nav-menu-icon de la sidebar */
+    --ui-icon-color: var(--primary-red);
+    --ui-icon-size: 1.25rem;
+
     /* Design tokens UI partages (dashboard + aide.html) */
     --ui-radius: 18px;
     --ui-radius-sm: 12px;
@@ -596,8 +600,66 @@ main.page-enter {
     line-height: 1;
 }
 
+/* Icone d'information (fiches, cartes de detail).
+   Meme metrique que .nav-menu-icon (sidebar) : 1.25rem, centre, opacity 0.85.
+   Couleur : --ui-icon-color (rouge actif sidebar ; #ff6b7a en theme sombre). */
+.ui-icon {
+    width: var(--ui-icon-size);
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.85;
+    color: var(--ui-icon-color);
+}
+
 .bitrix-info-card {
     max-width: 280px;
+}
+
+/* Carte d'etat (ficha incidencia : Pendiente / Solucionadas / Bitrix) */
+.status-detail-card,
+.bitrix-status-card {
+    max-width: 100%;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    overflow: hidden;
+}
+
+.status-detail-card .card-header,
+.bitrix-status-card .card-header {
+    padding: 0.55rem 0.85rem;
+    border-radius: 0 !important;
+    font-size: 0.85rem;
+}
+
+.status-detail-card .card-body,
+.bitrix-status-card .card-body {
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.status-detail-card .card-footer,
+.bitrix-status-card .card-footer {
+    padding: 0.45rem 0.85rem;
+}
+
+.bitrix-status-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+}
+
+.bitrix-status-row small {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+}
+
+.bitrix-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
 }
 
 .bitrix-info-card--compact {
