@@ -54,6 +54,17 @@
 
              {% if icon_only %}data-bitrix-icon-only="1"{% endif %}
 
+             {% if not compact %}data-bitrix-labels='{{ {
+                 "vencimiento": _('Vencimiento'),
+                 "prioridad": _('Prioridad'),
+                 "cerrada": _('Cerrada el'),
+                 "modificacion": _('Última modificación'),
+                 "movida": _('Movida'),
+                 "movidaEl": _('Movida el'),
+                 "retrasada": _('Retrasada desde %(tiempo)s', tiempo='{tiempo}'),
+                 "quedan": _('Quedan %(tiempo)s', tiempo='{tiempo}')
+             }|tojson }}'{% endif %}
+
              {% if auto_load %}data-bitrix-auto-load="1"{% endif %}>
 
             {% if bitrix_info %}
@@ -111,6 +122,112 @@
                             </div>
 
                         </div>
+
+                        {% set bx_extras = bitrix_task_extras if bitrix_task_extras is defined else none %}
+
+                        {% if bx_extras and (bx_extras.show_plazo or (bx_extras.is_closed and bx_extras.closed_label) or bx_extras.changed_label) %}
+
+                        <div class="bitrix-extras">
+
+                        <hr class="my-2">
+
+                        {% if bx_extras.show_plazo %}
+
+                        <div class="d-flex align-items-center mb-1">
+
+                            <span class="me-2">📅</span>
+
+                            <div>
+
+                                <small class="text-uppercase text-muted">{{ _('Vencimiento') }}</small>
+
+                                <div id="bitrixDeadline-{{ suffix }}" class="text-dark fw-semibold">
+
+                                    {{ bx_extras.deadline_label or '—' }}
+
+                                    {% if bx_extras.deadline_label and bx_extras.is_overdue %}
+
+                                    <span class="badge badge-attente ms-1">{{ _('Retrasada desde %(tiempo)s', tiempo=bx_extras.plazo_label) }}</span>
+
+                                    {% elif bx_extras.deadline_label %}
+
+                                    <small class="text-muted">({{ _('Quedan %(tiempo)s', tiempo=bx_extras.plazo_label) }})</small>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        {% if bx_extras.priority_label %}
+
+                        <div class="d-flex align-items-center mb-1">
+
+                            <span class="me-2">{{ bx_extras.priority_emoji }}</span>
+
+                            <div>
+
+                                <small class="text-uppercase text-muted">{{ _('Prioridad') }}</small>
+
+                                <div id="bitrixPriority-{{ suffix }}" class="text-dark fw-semibold">{{ bx_extras.priority_label }}</div>
+
+                            </div>
+
+                        </div>
+
+                        {% endif %}
+
+                        {% elif bx_extras.is_closed and bx_extras.closed_label %}
+
+                        <div class="d-flex align-items-center mb-1">
+
+                            <span class="me-2">🏁</span>
+
+                            <div>
+
+                                <small class="text-uppercase text-muted">{{ _('Cerrada el') }}</small>
+
+                                <div id="bitrixClosed-{{ suffix }}" class="text-dark fw-semibold">{{ bx_extras.closed_label }}</div>
+
+                            </div>
+
+                        </div>
+
+                        {% endif %}
+
+                        {% if bx_extras.changed_label %}
+
+                        <div class="d-flex align-items-center">
+
+                            <span class="me-2">🕒</span>
+
+                            <div>
+
+                                <small class="text-uppercase text-muted">{{ _('Última modificación') }}</small>
+
+                                <div id="bitrixChanged-{{ suffix }}" class="text-dark fw-semibold">
+
+                                    {{ bx_extras.changed_label }}
+
+                                    {% if bx_extras.moved_recently %}
+
+                                    <span class="badge badge-bitrix ms-1" title="{{ _('Movida el') }} {{ bx_extras.moved_label }}">{{ _('Movida') }}</span>
+
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        {% endif %}
+
+                        </div>
+
+                        {% endif %}
 
                         {% endif %}
 

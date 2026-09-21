@@ -230,4 +230,28 @@ msgstr "Publicar"
 msgid "Cerrar"
 msgstr "Cerrar"
 
+msgid "Vencimiento"
+msgstr "Vencimiento"
+
+msgid "Retrasada desde %(tiempo)s"
+msgstr "Retrasada desde %(tiempo)s"
+
+msgid "Quedan %(tiempo)s"
+msgstr "Quedan %(tiempo)s"
+
+msgid "Prioridad"
+msgstr "Prioridad"
+
+msgid "Cerrada el"
+msgstr "Cerrada el"
+
+msgid "Última modificación"
+msgstr "Última modificación"
+
+msgid "Movida el"
+msgstr "Movida el"
+
+msgid "Movida"
+msgstr "Movida"
+
 

@@ -91,7 +91,7 @@ def _truncate(text, max_len=200):
     return text[: max_len - 1] + '…'
 
 
-def _format_retraso(minutes):
+def format_retraso(minutes):
     minutes = int(minutes)
     if minutes < 60:
         return f'{minutes} min'
@@ -200,7 +200,7 @@ def build_status_delay_rows(operateur_id, filters=None):
             'fecha_creacion': incident.date_heure,
             'fecha_cambio': row.cambiado_en,
             'retraso_min': delay_minutes,
-            'retraso_label': _format_retraso(delay_minutes),
+            'retraso_label': format_retraso(delay_minutes),
             'ref_bitrix': row.ref_bitrix or incident.ref_bitrix or '',
             'comentarios_count': len(comments_before),
             'ultimo_comentario': _truncate(last_comment),

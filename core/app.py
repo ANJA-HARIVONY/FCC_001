@@ -498,6 +498,12 @@ class Incident(db.Model):
     bitrix_responsible = db.Column(db.String(120), nullable=True)
     bitrix_fetched_at = db.Column(db.DateTime, nullable=True)
     bitrix_fetch_locked = db.Column(db.Boolean, nullable=False, default=False)
+    bitrix_deadline = db.Column(db.DateTime, nullable=True)
+    bitrix_created_at = db.Column(db.DateTime, nullable=True)
+    bitrix_closed_at = db.Column(db.DateTime, nullable=True)
+    bitrix_changed_at = db.Column(db.DateTime, nullable=True)
+    bitrix_priority = db.Column(db.String(2), nullable=True)
+    bitrix_moved_at = db.Column(db.DateTime, nullable=True)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
     date_heure = db.Column(db.DateTime, nullable=False, default=datetime.now)
     id_operateur_modificacion = db.Column(
@@ -924,6 +930,18 @@ def ensure_incident_bitrix_cache_columns():
             statements.append('ALTER TABLE incident ADD COLUMN bitrix_fetched_at DATETIME NULL')
         if 'bitrix_fetch_locked' not in columns:
             statements.append('ALTER TABLE incident ADD COLUMN bitrix_fetch_locked INTEGER NOT NULL DEFAULT 0')
+        if 'bitrix_deadline' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_deadline DATETIME NULL')
+        if 'bitrix_created_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_created_at DATETIME NULL')
+        if 'bitrix_closed_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_closed_at DATETIME NULL')
+        if 'bitrix_changed_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_changed_at DATETIME NULL')
+        if 'bitrix_priority' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_priority VARCHAR(2) NULL')
+        if 'bitrix_moved_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_moved_at DATETIME NULL')
         if statements:
             with db.engine.begin() as conn:
                 for sql in statements:
@@ -1097,6 +1115,17 @@ BITRIX_STATUS_LABELS = {
     '6': ('Aplazada', '⏸️'),
 }
 
+# Statuts où le vencimiento, la prioridad et le retard ont un sens métier.
+# '5' Terminada : tâche fermée. '6' Aplazada : ajournée volontairement, pas un retard.
+BITRIX_OVERDUE_STATUSES = ('2', '3', '4')
+
+# Prioridad Bitrix24 (tasks.task.get) - en español + emoji
+BITRIX_PRIORITY_LABELS = {
+    '0': ('Baja', '🔽'),
+    '1': ('Media', '➖'),
+    '2': ('Alta', '🔺'),
+}
+
 BITRIX_ERROR_DNS = (
     'No se puede contactar con Bitrix24: el servidor no resuelve el nombre de dominio. '
     'Compruebe la conexión a Internet del servidor y la variable BITRIX24_API en .env.'
@@ -1174,6 +1203,8 @@ def _get_bitrix_task_info(api_base_url, task_id):
     """
     from urllib.parse import urlparse
 
+    from core.services.bitrix_cache_service import parse_bitrix_datetime
+
     api_base_url = (api_base_url or '').strip()
     parsed = urlparse(api_base_url)
     if not parsed.scheme or not parsed.netloc:
@@ -1190,7 +1221,10 @@ def _get_bitrix_task_info(api_base_url, task_id):
         url = f"{api_base_url.rstrip('/')}/tasks.task.get"
         payload = {
             "taskId": int(task_id),
-            "select": ["ID", "TITLE", "STATUS", "REAL_STATUS", "RESPONSIBLE_ID", "RESPONSIBLE"]
+            "select": [
+                "ID", "TITLE", "STATUS", "REAL_STATUS", "RESPONSIBLE_ID", "RESPONSIBLE",
+                "DEADLINE", "CREATED_DATE", "CLOSED_DATE", "CHANGED_DATE", "PRIORITY",
+            ]
         }
         data = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(
@@ -1214,12 +1248,24 @@ def _get_bitrix_task_info(api_base_url, task_id):
         responsible_name = responsible.get('name', '') if isinstance(responsible, dict) else str(responsible)
         if not responsible_name and responsible_id:
             responsible_name = f"ID: {responsible_id}"
+        priority = str(task_data.get('priority', task_data.get('PRIORITY', '')) or '')
         return {
             'task_status': status,
             'status_label': status_label,
             'status_emoji': status_emoji,
             'responsible_name': responsible_name or '(no definido)',
             'title': task_data.get('title', task_data.get('TITLE', '')),
+            'priority': priority,
+            'deadline': parse_bitrix_datetime(task_data.get('deadline', task_data.get('DEADLINE'))),
+            'created_date': parse_bitrix_datetime(
+                task_data.get('createdDate', task_data.get('CREATED_DATE'))
+            ),
+            'closed_date': parse_bitrix_datetime(
+                task_data.get('closedDate', task_data.get('CLOSED_DATE'))
+            ),
+            'changed_date': parse_bitrix_datetime(
+                task_data.get('changedDate', task_data.get('CHANGED_DATE'))
+            ),
         }
     except Exception as e:
         friendly = _format_bitrix_connection_error(e)
@@ -2644,6 +2690,8 @@ def nouveau_incident():
 
 @app.route('/incidents/<int:id>/fiche_incident')
 def fiche_incident(id):
+    from core.services.bitrix_cache_service import build_bitrix_task_extras
+
     incident = Incident.query.get_or_404(id)
     if not user_can_access_incident(incident):
         abort(403)
@@ -2659,10 +2707,12 @@ def fiche_incident(id):
     abrir_comentario = request.args.get('abrir_comentario') == '1'
     can_modify_incident = user_can_modify_incident(incident)
     bitrix_info = fetch_bitrix_info_for_incident(incident)
+    bitrix_task_extras = build_bitrix_task_extras(incident) if bitrix_info else None
     return render_template(
         'fiche_incident.html',
         incident=incident,
         bitrix_info=bitrix_info,
+        bitrix_task_extras=bitrix_task_extras,
         comentarios=comentarios,
         can_modify_incident=can_modify_incident,
         abrir_comentario=abrir_comentario,
@@ -2697,6 +2747,8 @@ def agregar_comentario_incident(id):
 @app.route('/api/incidents/<int:id>/bitrix-info')
 def api_incident_bitrix_info(id):
     """API pour récupérer les infos Bitrix d'un incident (AJAX)."""
+    from core.services.bitrix_cache_service import build_bitrix_task_extras
+
     incident = Incident.query.get_or_404(id)
     if not user_can_access_incident(incident):
         abort(403)
@@ -2712,7 +2764,12 @@ def api_incident_bitrix_info(id):
     if 'error' in info:
         return jsonify({'ok': False, 'error': info['error']}), 200
 
-    payload = {k: v for k, v in info.items() if k not in ('from_cache', 'task_status')}
+    # Les datetime bruts ne sont pas sérialisés lisiblement par jsonify : on expose les labels.
+    omitted = ('from_cache', 'task_status', 'deadline', 'created_date', 'closed_date', 'changed_date')
+    payload = {k: v for k, v in info.items() if k not in omitted}
+    extras = build_bitrix_task_extras(incident)
+    if extras:
+        payload.update({k: v for k, v in extras.items() if k != 'deadline'})
     return jsonify({
         'ok': True,
         'data': payload,

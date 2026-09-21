@@ -230,3 +230,27 @@ msgstr "Post"
 msgid "Cerrar"
 msgstr "Close"
 
+msgid "Vencimiento"
+msgstr "Due date"
+
+msgid "Retrasada desde %(tiempo)s"
+msgstr "Overdue by %(tiempo)s"
+
+msgid "Quedan %(tiempo)s"
+msgstr "%(tiempo)s left"
+
+msgid "Prioridad"
+msgstr "Priority"
+
+msgid "Cerrada el"
+msgstr "Closed on"
+
+msgid "Última modificación"
+msgstr "Last modified"
+
+msgid "Movida el"
+msgstr "Moved on"
+
+msgid "Movida"
+msgstr "Moved"
+
