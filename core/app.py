@@ -2588,6 +2588,7 @@ def _paginated_incidents_from_request():
     from core.services.incidents_list_service import (
         apply_incidents_sort,
         build_filtered_incidents_query,
+        get_bitrix_status_filter_choices,
         get_incidents_category_counts,
         get_incidents_filter_options,
         get_incidents_list_params,
@@ -2614,6 +2615,8 @@ def _paginated_incidents_from_request():
     return {
         'incidents': incidents_paginated,
         'status_filter': params['status_filter'],
+        'bitrix_status_filter': params.get('bitrix_status_filter', ''),
+        'bitrix_status_choices': get_bitrix_status_filter_choices(),
         'search_query': params['search_query'],
         'date_from': params['date_from'],
         'date_to': params['date_to'],

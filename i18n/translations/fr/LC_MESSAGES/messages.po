@@ -254,3 +254,13 @@ msgstr "Modifiée le"
 msgid "Movida"
 msgstr "Modifiée"
 
+msgid "Tarea Bitrix"
+msgstr "Tâche Bitrix"
+
+msgid "Todas"
+msgstr "Toutes"
+
+msgid "Sin consultar"
+msgstr "Non consultée"
+
+

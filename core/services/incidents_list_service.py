@@ -8,6 +8,30 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
 
+BITRIX_TASK_STATUS_UNFETCHED = '_none'
+
+
+def _normalize_bitrix_status_filter(status_filter, raw):
+    """Valide le sous-filtre de tâche Bitrix. Vide si status n'est pas Bitrix."""
+    from core.app import BITRIX_STATUS_LABELS
+
+    raw = (raw or '').strip()
+    if status_filter != 'Bitrix':
+        return ''
+    if raw == BITRIX_TASK_STATUS_UNFETCHED:
+        return raw
+    if raw in BITRIX_STATUS_LABELS:
+        return raw
+    return ''
+
+
+def get_bitrix_status_filter_choices():
+    """Options du sous-filtre (codes Bitrix24 littéraux, jamais inventés)."""
+    from core.app import BITRIX_STATUS_LABELS
+
+    return list(BITRIX_STATUS_LABELS.items())
+
+
 def get_incidents_list_params(request):
     """Lee parámetros de la URL de /incidents."""
     return {
@@ -16,6 +40,7 @@ def get_incidents_list_params(request):
         'sort_by': request.args.get('sort', 'fecha'),
         'sort_order': request.args.get('order', 'desc'),
         'status_filter': request.args.get('status', ''),
+        'bitrix_status_filter': request.args.get('bitrix_status', ''),
         'search_query': request.args.get('search', ''),
         'date_from': request.args.get('date_from', ''),
         'date_to': request.args.get('date_to', ''),
@@ -36,6 +61,9 @@ def build_filtered_incidents_query(current_user, params):
     from core.app import Agencia, Ciudad, Client, Incident, Operateur, db
 
     status_filter = params['status_filter']
+    bitrix_status_filter = _normalize_bitrix_status_filter(
+        status_filter, params.get('bitrix_status_filter', ''),
+    )
     search_query = params['search_query']
     date_from = params['date_from']
     date_to = params['date_to']
@@ -90,6 +118,10 @@ def build_filtered_incidents_query(current_user, params):
 
     if status_filter:
         query = query.filter(Incident.status == status_filter)
+        if bitrix_status_filter == BITRIX_TASK_STATUS_UNFETCHED:
+            query = query.filter(Incident.bitrix_task_status.is_(None))
+        elif bitrix_status_filter:
+            query = query.filter(Incident.bitrix_task_status == bitrix_status_filter)
 
     if operateur_filter:
         try:
@@ -146,6 +178,7 @@ def build_filtered_incidents_query(current_user, params):
 
     params.update({
         'status_filter': status_filter,
+        'bitrix_status_filter': bitrix_status_filter,
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,

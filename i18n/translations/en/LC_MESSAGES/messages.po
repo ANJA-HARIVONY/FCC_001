@@ -254,3 +254,13 @@ msgstr "Moved on"
 msgid "Movida"
 msgstr "Moved"
 
+msgid "Tarea Bitrix"
+msgstr "Bitrix task"
+
+msgid "Todas"
+msgstr "All"
+
+msgid "Sin consultar"
+msgstr "Not fetched"
+
+

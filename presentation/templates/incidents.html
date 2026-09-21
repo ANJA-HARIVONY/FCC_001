@@ -22,7 +22,7 @@
                         <i class="fas fa-filter me-2"></i>
                         Filtros de búsqueda
                     </h5>
-                    {% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %}
+                    {% if search_query or status_filter or bitrix_status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %}
                     <span class="badge bg-light text-dark ms-0 ms-md-2" id="filtrosActivos">
                         Filtros activos
                     </span>
@@ -49,6 +49,20 @@
                                     <option value="Solucionadas" {% if status_filter == 'Solucionadas' %}selected{% endif %}>Solucionadas ✅​</option>
                                     <option value="Pendiente" {% if status_filter == 'Pendiente' %}selected{% endif %}>Pendiente ⏳​</option>
                                     <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix 🔗​</option>
+                                </select>
+                            </div>
+                            <!-- Estado de la tarea Bitrix (visible si Estado = Bitrix) -->
+                            <div class="col-6 col-md-4 col-lg-2" id="bitrix-status-filter-wrap"{% if status_filter != 'Bitrix' %} hidden{% endif %}>
+                                <label for="bitrix_status" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-tasks me-1"></i>{{ _('Tarea Bitrix') }}
+                                </label>
+                                <select class="form-select form-select-sm" id="bitrix_status" name="bitrix_status"
+                                        {% if status_filter != 'Bitrix' %}disabled{% endif %}>
+                                    <option value="">{{ _('Todas') }}</option>
+                                    {% for code, meta in bitrix_status_choices|default([]) %}
+                                    <option value="{{ code }}" {% if bitrix_status_filter == code %}selected{% endif %}>{{ meta[1] }} {{ meta[0] }}</option>
+                                    {% endfor %}
+                                    <option value="_none" {% if bitrix_status_filter == '_none' %}selected{% endif %}>{{ _('Sin consultar') }}</option>
                                 </select>
                             </div>
                             <!-- Usuario -->
@@ -133,7 +147,7 @@
                                 <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
                                     <i class="fas fa-print"></i>
                                 </button>
-                                <a href="{{ url_for('api_incidents_export_xlsx', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}"
+                                <a href="{{ url_for('api_incidents_export_xlsx', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}"
                                    class="btn btn-outline-success btn-sm"
                                    title="Exportar Excel (página actual)">
                                     <i class="fas fa-file-excel"></i>
@@ -158,7 +172,7 @@
                             <i class="fas fa-list me-2"></i>
                             Registros de las Incidencias
                             {% if incidents.total is not none %}
-                                ({{ incidents.total }} total{% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %} — {{ incidents.items|length }} en esta página{% endif %})
+                                ({{ incidents.total }} total{% if search_query or status_filter or bitrix_status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %} — {{ incidents.items|length }} en esta página{% endif %})
                             {% endif %}
                         </h5>
                         <div class="small text-muted mt-1 d-flex flex-wrap align-items-center gap-3 card-header-meta">
@@ -198,7 +212,7 @@
                                     <th>ID</th>
                                     <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='client', order='asc' if sort_by|default('') == 'client' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Cliente
                                             {% if sort_by|default('') == 'client' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -208,7 +222,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='asunto', order='asc' if sort_by|default('') == 'asunto' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Asunto
                                             {% if sort_by|default('') == 'asunto' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -219,7 +233,7 @@
                                     </th>
                                     <th>Estado</th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Usuario
                                             {% if sort_by|default('') == 'operador' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -229,7 +243,7 @@
                                         </a>
                                     </th>
                                     <th>
-                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
+                                        <a href="{{ url_for('incidents', sort='fecha', order='asc' if sort_by|default('') == 'fecha' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Fecha/Hora
                                             {% if sort_by|default('') == 'fecha' %}
                                                 <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
@@ -347,7 +361,7 @@
                                 <!-- Bouton Précédent -->
                                 {% if incidents.has_prev %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.prev_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.prev_num, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
                                             <i class="fas fa-chevron-left"></i> Anterior
                                         </a>
                                     </li>
@@ -362,7 +376,7 @@
                                     {% if page_num %}
                                         {% if page_num != incidents.page %}
                                             <li class="page-item">
-                                                <a class="page-link" href="{{ url_for('incidents', page=page_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                                <a class="page-link" href="{{ url_for('incidents', page=page_num, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
                                                     {{ page_num }}
                                                 </a>
                                             </li>
@@ -381,7 +395,7 @@
                                 <!-- Bouton Suivant -->
                                 {% if incidents.has_next %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.next_num, per_page=per_page, status=status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
+                                        <a class="page-link" href="{{ url_for('incidents', page=incidents.next_num, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}">
                                             Siguiente <i class="fas fa-chevron-right"></i>
                                         </a>
                                     </li>
@@ -407,7 +421,7 @@
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-                        {% if search_query or status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %}
+                        {% if search_query or status_filter or bitrix_status_filter or operateur_filter or ciudad_filter or agencia_filter or date_from or date_to %}
                             <h5 class="text-muted">No se encontraron incidencias</h5>
                             <p class="text-muted">Intente cambiar los filtros de búsqueda</p>
                             <a href="{{ url_for('incidents') }}" class="btn btn-outline-primary">
@@ -544,7 +558,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const cookieName = 'incidents_filters_v1';
     const cookieMaxAge = 30 * 24 * 60 * 60;
     const cookieScope = 'incidents_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
-    const trackedParams = ['status', 'operateur', 'ciudad', 'agencia', 'date_from', 'date_to', 'per_page'];
+    const trackedParams = ['status', 'bitrix_status', 'operateur', 'ciudad', 'agencia', 'date_from', 'date_to', 'per_page'];
 
     function setCookie(name, value, maxAgeSeconds) {
         document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
@@ -566,9 +580,27 @@ document.addEventListener('DOMContentLoaded', function() {
         document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
     }
 
+    const statusSelect = document.getElementById('status');
+    const bitrixStatusWrap = document.getElementById('bitrix-status-filter-wrap');
+    const bitrixStatusSelect = document.getElementById('bitrix_status');
+
+    function syncBitrixStatusFilter() {
+        const isBitrix = statusSelect.value === 'Bitrix';
+        if (bitrixStatusWrap) {
+            bitrixStatusWrap.hidden = !isBitrix;
+        }
+        if (bitrixStatusSelect) {
+            bitrixStatusSelect.disabled = !isBitrix;
+            if (!isBitrix) {
+                bitrixStatusSelect.value = '';
+            }
+        }
+    }
+
     function getCurrentFilters() {
         return {
-            status: document.getElementById('status').value || '',
+            status: statusSelect.value || '',
+            bitrix_status: (bitrixStatusSelect && !bitrixStatusSelect.disabled) ? (bitrixStatusSelect.value || '') : '',
             operateur: document.getElementById('operateur').value || '',
             ciudad: document.getElementById('ciudad').value || '',
             agencia: document.getElementById('agencia').value || '',
@@ -612,7 +644,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function applyFilters(filters) {
-        document.getElementById('status').value = filters.status || '';
+        statusSelect.value = filters.status || '';
+        syncBitrixStatusFilter();
+        if (bitrixStatusSelect && !bitrixStatusSelect.disabled) {
+            bitrixStatusSelect.value = filters.bitrix_status || '';
+        }
         document.getElementById('operateur').value = filters.operateur || '';
         document.getElementById('ciudad').value = filters.ciudad || '';
         document.getElementById('agencia').value = filters.agencia || '';
@@ -630,6 +666,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (saved && saved.enabled === false) {
         rememberToggle.checked = false;
     }
+
+    statusSelect.addEventListener('change', syncBitrixStatusFilter);
+    syncBitrixStatusFilter();
 
     const shouldRestore = !hasUrlFilters() && saved && saved.enabled !== false && saved.filters;
     if (shouldRestore) {
