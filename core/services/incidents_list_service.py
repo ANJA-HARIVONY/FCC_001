@@ -176,6 +176,10 @@ def build_filtered_incidents_query(current_user, params):
             )
             date_to = ''
 
+    sort_by = params.get('sort_by') or 'fecha'
+    if sort_by == 'tecnico' and status_filter != 'Bitrix':
+        sort_by = 'fecha'
+
     params.update({
         'status_filter': status_filter,
         'bitrix_status_filter': bitrix_status_filter,
@@ -187,6 +191,7 @@ def build_filtered_incidents_query(current_user, params):
         'agencia_filter': agencia_filter,
         'ciudad_id': ciudad_id,
         'agencia_id': agencia_id,
+        'sort_by': sort_by,
     })
     return query, params
 
@@ -210,6 +215,11 @@ def apply_incidents_sort(query, sort_by, sort_order):
         return query.order_by(
             Incident.date_heure.asc() if sort_order == 'asc' else Incident.date_heure.desc()
         )
+    if sort_by == 'tecnico':
+        col = Incident.bitrix_responsible
+        if sort_order == 'asc':
+            return query.order_by(col.is_(None), col.asc(), Incident.date_heure.desc())
+        return query.order_by(col.is_(None), col.desc(), Incident.date_heure.desc())
     return query.order_by(Incident.date_heure.desc())
 
 

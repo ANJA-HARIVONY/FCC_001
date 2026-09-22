@@ -263,4 +263,7 @@ msgstr "Toutes"
 msgid "Sin consultar"
 msgstr "Non consultée"
 
+msgid "Técnico"
+msgstr "Technicien"
+
 

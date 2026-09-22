@@ -263,4 +263,7 @@ msgstr "All"
 msgid "Sin consultar"
 msgstr "Not fetched"
 
+msgid "Técnico"
+msgstr "Technician"
+
 

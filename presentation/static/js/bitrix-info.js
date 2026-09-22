@@ -148,10 +148,19 @@
         }
     }
 
+    function updateTecnicoCells(incidentId, name) {
+        if (!incidentId) return;
+        var text = (name && String(name).trim()) ? String(name).trim() : '—';
+        document.querySelectorAll('[data-bitrix-tecnico-cell="' + incidentId + '"]').forEach(function (el) {
+            el.textContent = text;
+        });
+    }
+
     function renderBitrixData(block, data) {
         const compact = isCompact(block);
         const iconOnly = isIconOnly(block);
         hideLoading(block);
+        updateTecnicoCells(block.getAttribute('data-bitrix-incident-id'), data.responsible_name);
 
         const errEl = block.querySelector('.bitrix-error');
         const dataDiv = block.querySelector('.bitrix-info-card');

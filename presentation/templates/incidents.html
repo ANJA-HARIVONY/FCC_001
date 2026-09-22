@@ -232,6 +232,18 @@
                                         </a>
                                     </th>
                                     <th>Estado</th>
+                                    {% if status_filter == 'Bitrix' %}
+                                    <th>
+                                        <a href="{{ url_for('incidents', sort='tecnico', order='asc' if sort_by|default('') == 'tecnico' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
+                                            {{ _('Técnico') }}
+                                            {% if sort_by|default('') == 'tecnico' %}
+                                                <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
+                                            {% else %}
+                                                <i class="fas fa-sort"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    {% endif %}
                                     <th>
                                         <a href="{{ url_for('incidents', sort='operador', order='asc' if sort_by|default('') == 'operador' and sort_order|default('') == 'desc' else 'desc', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to) }}" class="table-sort-link text-decoration-none">
                                             Usuario
@@ -294,6 +306,9 @@
                                             {% endwith %}
                                         {% endif %}
                                     </td>
+                                    {% if status_filter == 'Bitrix' %}
+                                    <td data-bitrix-tecnico-cell="{{ incident.id }}">{{ incident.bitrix_responsible or '—' }}</td>
+                                    {% endif %}
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             <img
