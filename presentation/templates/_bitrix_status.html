@@ -40,6 +40,7 @@
                  "bitrix": _('Bitrix'),
                  "estado": _('Estado de la tarea'),
                  "responsable": _('Responsable'),
+                 "creada": _('Creada el'),
                  "vencimiento": _('Vencimiento'),
                  "prioridad": _('Prioridad'),
                  "cerrada": _('Cerrada el'),
@@ -91,75 +92,89 @@
                             </a>
                         </div>
                         <div class="card-body">
-                            <div class="bitrix-status-row">
-                                <i class="ui-icon fas {{ bx_extras.status_icon if bx_extras else 'fa-tasks' }} bitrix-status-icon"
-                                   id="bitrixStatusIcon-{{ suffix }}" aria-hidden="true"></i>
-                                <div>
-                                    <small class="text-uppercase text-muted">{{ _('Estado de la tarea') }}</small>
-                                    <div class="fw-semibold text-dark" id="bitrixStatus-{{ suffix }}">{{ bitrix_info.status_label }}</div>
-                                </div>
-                            </div>
-                            <div class="bitrix-status-row">
-                                <i class="ui-icon fas fa-user-tie" aria-hidden="true"></i>
-                                <div>
-                                    <small class="text-uppercase text-muted">{{ _('Responsable') }}</small>
-                                    <div class="fw-semibold text-dark" id="bitrixResponsable-{{ suffix }}">{{ bitrix_info.responsible_name }}</div>
-                                </div>
-                            </div>
-
-                            {% if bx_extras and (bx_extras.show_plazo or (bx_extras.is_closed and bx_extras.closed_label) or bx_extras.changed_label) %}
-                            <div class="bitrix-extras">
-                                {% if bx_extras.show_plazo %}
-                                <div class="bitrix-status-row">
-                                    <i class="ui-icon fas fa-calendar-day" aria-hidden="true"></i>
-                                    <div>
-                                        <small class="text-uppercase text-muted">{{ _('Vencimiento') }}</small>
-                                        <div class="fw-semibold text-dark" id="bitrixDeadline-{{ suffix }}">
-                                            {{ bx_extras.deadline_label or '—' }}
-                                            {% if bx_extras.deadline_label and bx_extras.is_overdue %}
-                                            <span class="badge badge-attente ms-1">{{ _('Retrasada desde %(tiempo)s', tiempo=bx_extras.plazo_label) }}</span>
-                                            {% elif bx_extras.deadline_label %}
-                                            <small class="text-muted">({{ _('Quedan %(tiempo)s', tiempo=bx_extras.plazo_label) }})</small>
-                                            {% endif %}
+                            <div class="row g-3 bitrix-status-grid">
+                                <div class="col-12 col-md-6 bitrix-status-col">
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas {{ bx_extras.status_icon if bx_extras else 'fa-tasks' }} bitrix-status-icon"
+                                           id="bitrixStatusIcon-{{ suffix }}" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Estado de la tarea') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixStatus-{{ suffix }}">{{ bitrix_info.status_label }}</div>
                                         </div>
                                     </div>
-                                </div>
-                                {% if bx_extras.priority_label %}
-                                <div class="bitrix-status-row">
-                                    <i class="ui-icon fas {{ bx_extras.priority_icon }}" aria-hidden="true"></i>
-                                    <div>
-                                        <small class="text-uppercase text-muted">{{ _('Prioridad') }}</small>
-                                        <div class="fw-semibold text-dark" id="bitrixPriority-{{ suffix }}">{{ bx_extras.priority_label }}</div>
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                                {% elif bx_extras.is_closed and bx_extras.closed_label %}
-                                <div class="bitrix-status-row">
-                                    <i class="ui-icon fas fa-flag-checkered" aria-hidden="true"></i>
-                                    <div>
-                                        <small class="text-uppercase text-muted">{{ _('Cerrada el') }}</small>
-                                        <div class="fw-semibold text-dark" id="bitrixClosed-{{ suffix }}">{{ bx_extras.closed_label }}</div>
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                                {% if bx_extras.changed_label %}
-                                <div class="bitrix-status-row">
-                                    <i class="ui-icon fas fa-history" aria-hidden="true"></i>
-                                    <div>
-                                        <small class="text-uppercase text-muted">{{ _('Última modificación') }}</small>
-                                        <div class="fw-semibold text-dark" id="bitrixChanged-{{ suffix }}">
-                                            {{ bx_extras.changed_label }}
-                                            {% if bx_extras.moved_recently %}
-                                            <span class="badge badge-bitrix ms-1" title="{{ _('Movida el') }} {{ bx_extras.moved_label }}">{{ _('Movida') }}</span>
-                                            {% endif %}
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas fa-user-tie" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Responsable') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixResponsable-{{ suffix }}">{{ bitrix_info.responsible_name or '—' }}</div>
                                         </div>
                                     </div>
+                                    {% if bx_extras and bx_extras.priority_label %}
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas {{ bx_extras.priority_icon }}" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Prioridad') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixPriority-{{ suffix }}">{{ bx_extras.priority_label }}</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
+                                <div class="col-12 col-md-6 bitrix-status-col">
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas fa-calendar-plus" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Creada el') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixCreated-{{ suffix }}">
+                                                {% if bx_extras and bx_extras.created_label %}
+                                                {{ bx_extras.created_label }}
+                                                {% elif incident.bitrix_created_at %}
+                                                {{ incident.bitrix_created_at.strftime('%d/%m/%Y %H:%M') }}
+                                                {% else %}
+                                                —
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if bx_extras and bx_extras.show_plazo %}
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas fa-calendar-day" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Vencimiento') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixDeadline-{{ suffix }}">
+                                                {{ bx_extras.deadline_label or '—' }}
+                                                {% if bx_extras.deadline_label and bx_extras.is_overdue %}
+                                                <span class="badge badge-attente ms-1">{{ _('Retrasada desde %(tiempo)s', tiempo=bx_extras.plazo_label) }}</span>
+                                                {% elif bx_extras.deadline_label %}
+                                                <small class="text-muted">({{ _('Quedan %(tiempo)s', tiempo=bx_extras.plazo_label) }})</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% elif bx_extras and bx_extras.is_closed %}
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas fa-flag-checkered" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Cerrada el') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixClosed-{{ suffix }}">{{ bx_extras.closed_label or '—' }}</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% if bx_extras and bx_extras.changed_label %}
+                                    <div class="bitrix-status-row">
+                                        <i class="ui-icon fas fa-history" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Última modificación') }}</small>
+                                            <div class="fw-semibold text-dark" id="bitrixChanged-{{ suffix }}">
+                                                {{ bx_extras.changed_label }}
+                                                {% if bx_extras.moved_recently %}
+                                                <span class="badge badge-bitrix ms-1" title="{{ _('Movida el') }} {{ bx_extras.moved_label }}">{{ _('Movida') }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
-                            {% endif %}
                         </div>
                         {% if incident.ref_bitrix %}
                         <div class="card-footer bg-transparent py-2">

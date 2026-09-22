@@ -59,6 +59,7 @@
         bitrix: 'Bitrix',
         estado: 'Estado de la tarea',
         responsable: 'Responsable',
+        creada: 'Creada el',
         vencimiento: 'Vencimiento',
         prioridad: 'Prioridad',
         cerrada: 'Cerrada el',
@@ -94,58 +95,57 @@
         '</div>';
     }
 
-    function buildExtrasHtml(data, suffix, labels) {
-        var html = '';
+    function plazoSuffix(data, labels) {
+        if (data.deadline_label && data.is_overdue) {
+            return ' <span class="badge badge-attente ms-1">' + withTiempo(labels.retrasada, data.plazo_label) + '</span>';
+        }
+        if (data.deadline_label) {
+            return ' <small class="text-muted">(' + withTiempo(labels.quedan, data.plazo_label) + ')</small>';
+        }
+        return '';
+    }
+
+    function buildFichaGridHtml(data, suffix, labels) {
+        var left =
+            statusRow(data.status_icon || 'fa-tasks', labels.estado,
+                escapeHtml(data.status_label || '—'), 'bitrixStatus-' + suffix, 'bitrix-status-icon') +
+            statusRow('fa-user-tie', labels.responsable,
+                escapeHtml(data.responsible_name || '—'), 'bitrixResponsable-' + suffix);
+        if (data.priority_label) {
+            left += statusRow(data.priority_icon || 'fa-flag', labels.prioridad,
+                escapeHtml(data.priority_label), 'bitrixPriority-' + suffix);
+        }
+
+        var right = statusRow('fa-calendar-plus', labels.creada,
+            escapeHtml(data.created_label || '—'), 'bitrixCreated-' + suffix);
         if (data.show_plazo) {
-            var plazo = '';
-            if (data.deadline_label && data.is_overdue) {
-                plazo = ' <span class="badge badge-attente ms-1">' + withTiempo(labels.retrasada, data.plazo_label) + '</span>';
-            } else if (data.deadline_label) {
-                plazo = ' <small class="text-muted">(' + withTiempo(labels.quedan, data.plazo_label) + ')</small>';
-            }
-            html += statusRow('fa-calendar-day', labels.vencimiento,
-                escapeHtml(data.deadline_label || '—') + plazo, 'bitrixDeadline-' + suffix);
-            if (data.priority_label) {
-                html += statusRow(data.priority_icon || 'fa-flag', labels.prioridad,
-                    escapeHtml(data.priority_label), 'bitrixPriority-' + suffix);
-            }
-        } else if (data.is_closed && data.closed_label) {
-            html += statusRow('fa-flag-checkered', labels.cerrada,
-                escapeHtml(data.closed_label), 'bitrixClosed-' + suffix);
+            right += statusRow('fa-calendar-day', labels.vencimiento,
+                escapeHtml(data.deadline_label || '—') + plazoSuffix(data, labels),
+                'bitrixDeadline-' + suffix);
+        } else if (data.is_closed) {
+            right += statusRow('fa-flag-checkered', labels.cerrada,
+                escapeHtml(data.closed_label || '—'), 'bitrixClosed-' + suffix);
         }
         if (data.changed_label) {
             var movida = data.moved_recently
                 ? ' <span class="badge badge-bitrix ms-1" title="' + escapeHtml(labels.movidaEl + ' ' + data.moved_label) + '">' +
                     escapeHtml(labels.movida) + '</span>'
                 : '';
-            html += statusRow('fa-history', labels.modificacion,
+            right += statusRow('fa-history', labels.modificacion,
                 escapeHtml(data.changed_label) + movida, 'bitrixChanged-' + suffix);
         }
-        return html;
+
+        return '' +
+            '<div class="row g-3 bitrix-status-grid">' +
+                '<div class="col-12 col-md-6 bitrix-status-col">' + left + '</div>' +
+                '<div class="col-12 col-md-6 bitrix-status-col">' + right + '</div>' +
+            '</div>';
     }
 
-    function replaceExtras(block, data, suffix) {
-        var existing = block.querySelector('.bitrix-extras');
-        var html = buildExtrasHtml(data, suffix, getLabels(block));
-        if (!html) {
-            if (existing) existing.remove();
-            return;
-        }
-        var wrapper = existing || document.createElement('div');
-        wrapper.className = 'bitrix-extras';
-        wrapper.innerHTML = html;
-        if (!existing) {
-            var host = block.querySelector('.bitrix-status-card .card-body') ||
-                block.querySelector('.bitrix-info-card');
-            if (host) host.appendChild(wrapper);
-        }
-    }
-
-    function updateStatusIcon(block, data) {
-        var iconEl = block.querySelector('.bitrix-status-icon');
-        if (iconEl && data.status_icon) {
-            iconEl.className = 'ui-icon fas ' + data.status_icon + ' bitrix-status-icon';
-        }
+    function replaceFichaBody(block, data, suffix) {
+        var body = block.querySelector('.bitrix-status-card .card-body');
+        if (!body) return;
+        body.innerHTML = buildFichaGridHtml(data, suffix, getLabels(block));
     }
 
     function updateTecnicoCells(incidentId, name) {
@@ -194,11 +194,11 @@
             dataDiv.style.display = '';
             const emojiEl = block.querySelector('.bitrix-emoji');
             if (emojiEl) emojiEl.textContent = emoji;
-            if (statusEl) statusEl.textContent = data.status_label;
-            if (respEl) respEl.textContent = data.responsible_name;
-            if (!compact) {
-                updateStatusIcon(block, data);
-                replaceExtras(block, data, suffix);
+            if (compact) {
+                if (statusEl) statusEl.textContent = data.status_label;
+                if (respEl) respEl.textContent = data.responsible_name;
+            } else {
+                replaceFichaBody(block, data, suffix);
             }
             return;
         }
@@ -242,15 +242,7 @@
                 '</a>' +
             '</div>';
         }
-        let body =
-            statusRow(data.status_icon || 'fa-tasks', labels.estado,
-                escapeHtml(data.status_label), 'bitrixStatus-' + suffix, 'bitrix-status-icon') +
-            statusRow('fa-user-tie', labels.responsable,
-                escapeHtml(data.responsible_name), 'bitrixResponsable-' + suffix);
-        const extrasHtml = buildExtrasHtml(data, suffix, labels);
-        if (extrasHtml) {
-            body += '<div class="bitrix-extras">' + extrasHtml + '</div>';
-        }
+        const body = buildFichaGridHtml(data, suffix, labels);
         const refreshBtn = block.querySelector('.btn-refresh-bitrix');
         div.innerHTML = header + '<div class="card-body">' + body + '</div>';
         if (refreshBtn) {

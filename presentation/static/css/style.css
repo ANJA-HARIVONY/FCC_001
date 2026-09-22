@@ -639,6 +639,23 @@ main.page-enter {
     gap: 0.55rem;
 }
 
+.bitrix-status-card .card-body {
+    display: block;
+}
+
+.bitrix-status-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+@media (min-width: 768px) {
+    .bitrix-status-col + .bitrix-status-col {
+        border-left: 1px solid var(--ui-border);
+        padding-left: 1rem;
+    }
+}
+
 .status-detail-card .card-footer,
 .bitrix-status-card .card-footer {
     padding: 0.45rem 0.85rem;

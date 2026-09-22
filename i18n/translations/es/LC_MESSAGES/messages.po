@@ -242,6 +242,9 @@ msgstr "Quedan %(tiempo)s"
 msgid "Prioridad"
 msgstr "Prioridad"
 
+msgid "Creada el"
+msgstr "Creada el"
+
 msgid "Cerrada el"
 msgstr "Cerrada el"
 
