@@ -269,5 +269,17 @@ msgstr "Sin consultar"
 msgid "Técnico"
 msgstr "Técnico"
 
+msgid "Cuenta PPPoE"
+msgstr "Cuenta PPPoE"
+
+msgid "No configurada"
+msgstr "No configurada"
+
+msgid "Copiar"
+msgstr "Copiar"
+
+msgid "Copiar información"
+msgstr "Copiar información"
+
 
 

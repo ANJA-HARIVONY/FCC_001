@@ -53,6 +53,7 @@
                             data-client-ville="{{ incident.client.ville|e }}"
                             data-client-ip-router="{{ incident.client.ip_router|e }}"
                             data-client-ip-antea="{{ incident.client.ip_antea|e }}"
+                            data-client-pppoe="{{ (incident.client.username_radius or '')|e }}"
                             data-operateur-nom="{{ incident.operateur.nom|e }}"
                             onclick="copierIncident(this)">
                         <i class="fas fa-copy me-2"></i>Copiar información

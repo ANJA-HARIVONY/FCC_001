@@ -269,4 +269,16 @@ msgstr "Not fetched"
 msgid "Técnico"
 msgstr "Technician"
 
+msgid "Cuenta PPPoE"
+msgstr "PPPoE account"
+
+msgid "No configurada"
+msgstr "Not configured"
+
+msgid "Copiar"
+msgstr "Copy"
+
+msgid "Copiar información"
+msgstr "Copy information"
+
 

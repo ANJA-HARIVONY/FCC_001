@@ -341,6 +341,7 @@
                                                     data-client-ville="{{ incident.client.ville }}"
                                                     data-client-ip-router="{{ incident.client.ip_router }}"
                                                     data-client-ip-antea="{{ incident.client.ip_antea }}"
+                                                    data-client-pppoe="{{ incident.client.username_radius or '' }}"
                                                     data-operateur-nom="{{ incident.operateur.nom }}"
                                                     onclick="copierIncident(this)" 
                                                     title="Copiar información">
@@ -484,6 +485,7 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/bitrix-info.js') }}"></script>
 <script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/incident-copy.js') }}"></script>
 <script>
 // Fonction pour confirmer la suppression d'un incident
 function confirmerSuppression(button) {
@@ -492,69 +494,6 @@ function confirmerSuppression(button) {
     document.getElementById('incidentIntitule').textContent = incidentIntitule;
     document.getElementById('deleteForm').action = '/incidents/' + incidentId + '/supprimer';
     new bootstrap.Modal(document.getElementById('confirmModal')).show();
-}
-
-// Fonction pour copier les informations d'un incident
-function copierIncident(button) {
-    const incidentId = button.getAttribute('data-incident-id');
-    const incidentIntitule = button.getAttribute('data-incident-intitule');
-    const incidentObservations = button.getAttribute('data-incident-observations');
-    const incidentStatus = button.getAttribute('data-incident-status');
-    const incidentDate = button.getAttribute('data-incident-date');
-    const clientNom = button.getAttribute('data-client-nom');
-    const clientTelephone = button.getAttribute('data-client-telephone');
-    const clientAdresse = button.getAttribute('data-client-adresse');
-    const clientVille = button.getAttribute('data-client-ville');
-    const clientIpRouter = button.getAttribute('data-client-ip-router');
-    const clientIpAntea = button.getAttribute('data-client-ip-antea');
-    const operateurNom = button.getAttribute('data-operateur-nom');
-    
-    // Créer le texte à copier
-    const texteIncident = `
-${clientNom}
-${incidentIntitule}
-${incidentObservations}
-Contacto: ${clientTelephone}
-Ubicacíon: ${clientAdresse}
-IPs: ${clientIpRouter} - ${clientIpAntea}`;
-    
-    // Essayer d'abord l'API Clipboard moderne
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(texteIncident).then(function() {
-            afficherToast('Información de la incidencia copiada al portapapeles');
-        }).catch(function(err) {
-            console.error('Erreur avec l\'API Clipboard:', err);
-            fallbackCopy();
-        });
-    } else {
-        fallbackCopy();
-    }
-    
-    // Méthode de fallback
-    function fallbackCopy() {
-        try {
-            const textArea = document.createElement('textarea');
-            textArea.value = texteIncident;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-999999px';
-            textArea.style.top = '-999999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            const successful = document.execCommand('copy');
-            document.body.removeChild(textArea);
-            
-            if (successful) {
-                afficherToast('Información de la incidencia copiada al portapapeles');
-            } else {
-                afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
-            }
-        } catch (err) {
-            console.error('Erreur avec la méthode de fallback:', err);
-            afficherToast('Error al copiar. Intente seleccionar y copiar manualmente.');
-        }
-    }
 }
 
 

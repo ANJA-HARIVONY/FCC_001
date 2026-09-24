@@ -269,4 +269,16 @@ msgstr "Non consultée"
 msgid "Técnico"
 msgstr "Technicien"
 
+msgid "Cuenta PPPoE"
+msgstr "Compte PPPoE"
+
+msgid "No configurada"
+msgstr "Non configurée"
+
+msgid "Copiar"
+msgstr "Copier"
+
+msgid "Copiar información"
+msgstr "Copier les informations"
+
 
