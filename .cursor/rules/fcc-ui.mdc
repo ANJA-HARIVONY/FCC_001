@@ -30,8 +30,43 @@ Réutiliser les classes et partials existants. Ne pas inventer une palette, un s
 ## Listes
 
 Desktop ≥992px : `table-responsive d-none d-lg-block` + `table table-hover mb-0`.  
-Mobile : `d-lg-none` + `{% include '_mobile_list_card_incident.html' %}` ou `_mobile_list_card_client.html`.  
+Mobile : `d-lg-none` + `{% include '_mobile_list_card_incident.html' %}` ou `_mobile_list_card_client.html` (ou `_mobile_list_card_salida.html`).  
 Vide : `text-center py-5` + icône `fa-3x text-muted` + CTA.
+
+Filtres (clients, incidencias, instalaciones) : carte `card shadow-sm border-0 content-card`, header «Filtros de búsqueda», formulaire GET (`form-control-sm` / `form-select-sm`). `per_page` **50 / 100 / 200 / 500** (défaut 50, `clamp_list_per_page`). Boutons Buscar / Reiniciar + Recordar filtros (cookie scoped user). Pas de nouvel export Excel sans demande.
+
+Pagination : `iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2)`, Anterior / Siguiente, «Mostrando X a Y de Z». Reprendre les filtres dans chaque `url_for`. Header liste : total + «Página Y de Z».
+
+### Lista de instalaciones (`/instalaciones`, `instalaciones/hub.html`)
+
+Header carte : «Lista de instalaciones». Desktop = table ci-dessous. Mobile = `_mobile_list_card_salida.html` (mêmes champs, pas de colonne GPS/fotos). Ne pas ajouter de colonnes (estado, tipo, GPS, fotos) sans demande.
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `#` | `MaterialSalida.id` | Identifiant de la salida |
+| `Fecha` | `MaterialSalida.fecha` | `%d/%m/%Y` |
+| `Técnico` | `s.tecnico.nom` | `—` si absent |
+| `Cliente` | `s.client.nom` | Lien `fiche_client` ; `—` si pas de client |
+| `Materiales` | `s.lineas` | `nombre x cantidad`, séparés par virgule |
+| `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` |
+
+Filtres GET : `search` (cliente / teléfono / técnico / material / id), `tecnico`, `date_from`, `date_to`, `per_page`. Cookie `instalaciones_filters_v1`. CTA titre : `Nueva instalación` → `materiales_salida_nueva?tipo=instalacion`.
+
+### Salidas de material (`/materiales/salidas`, `materiales/salidas.html`)
+
+Toutes les salidas (les 3 `tipo_salida`). Desktop = table ci-dessous. Mobile = `_mobile_list_card_salida.html`. Colonne `Estado` commentée : ne pas la réactiver sans demande.
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `#` | `MaterialSalida.id` | Identifiant de la salida |
+| `Fecha` | `MaterialSalida.fecha` | `%d/%m/%Y` |
+| `Tipo` | `tipo_salida` | Badge `uso_interno` → `bg-success` ; `incidencia` → `bg-warning text-dark` ; `instalacion` → `bg-primary`. Labels `SALIDA_TIPO_LABELS` |
+| `Técnico` | `s.tecnico.nom` | `—` si absent |
+| `Cliente` | `s.client.nom` | Texte (pas de lien). `uso_interno` sans client → «Uso interno» ; sinon sans client → «Uso general» |
+| `Materiales` | `s.lineas` | `nombre(modelo) x cantidad`, séparés par virgule |
+| `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` |
+
+Filtres GET : `date_from`, `date_to`, `tipo_salida`, `tecnico`, `material`, `per_page` (Filtrar / Limpiar). Pagination comme clients/incidencias/instalaciones : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` puis `materiales_salida_nueva?tipo=`.
 
 États incidencia (classes dédiées, pas `bg-success` générique) :
 

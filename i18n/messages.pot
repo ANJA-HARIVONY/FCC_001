@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-25 12:13+0100\n"
+"POT-Creation-Date: 2026-09-25 16:38+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,184 +21,192 @@ msgstr ""
 msgid "La sesión de seguridad ha expirado. Vuelva a iniciar sesión."
 msgstr ""
 
-#: core/app.py:1224
+#: core/app.py:1253
 msgid "cliente desconocido"
 msgstr ""
 
-#: core/app.py:1631
+#: core/app.py:1660
 msgid ""
 "Su sesión ha expirado (duración máxima alcanzada). Vuelva a iniciar "
 "sesión."
 msgstr ""
 
-#: core/app.py:1639
+#: core/app.py:1668
 msgid "Ha sido desconectado tras 30 minutos de inactividad."
 msgstr ""
 
-#: core/app.py:1682
+#: core/app.py:1711
 msgid "Introduzca correo o teléfono y contraseña."
 msgstr ""
 
-#: core/app.py:1686
+#: core/app.py:1715
 msgid "Credenciales incorrectas o cuenta desactivada."
 msgstr ""
 
-#: core/app.py:1688
+#: core/app.py:1717
 msgid "Cuenta desactivada."
 msgstr ""
 
-#: core/app.py:1690
+#: core/app.py:1719
 msgid "Su cuenta no tiene contraseña asignada; contacte al administrador."
 msgstr ""
 
-#: core/app.py:1703
+#: core/app.py:1732
 msgid "Credenciales incorrectas."
 msgstr ""
 
-#: core/app.py:1733
+#: core/app.py:1762
 msgid "Las contraseñas no coinciden."
 msgstr ""
 
-#: core/app.py:1735
+#: core/app.py:1764
 msgid "La contraseña debe tener al menos 6 caracteres."
 msgstr ""
 
-#: core/app.py:1740
+#: core/app.py:1769
 msgid "Contraseña actualizada."
 msgstr ""
 
-#: core/app.py:1860 core/app.py:1910
+#: core/app.py:1889 core/app.py:1939
 msgid "Nombre, teléfono, ciudad y agencia son obligatorios."
 msgstr ""
 
-#: core/app.py:1862
+#: core/app.py:1891
 msgid "La contraseña es obligatoria para un nuevo usuario."
 msgstr ""
 
-#: core/app.py:1866 core/app.py:1914
+#: core/app.py:1895 core/app.py:1943
 msgid "La agencia no pertenece a la ciudad seleccionada."
 msgstr ""
 
-#: core/app.py:1868 core/app.py:1918
+#: core/app.py:1897 core/app.py:1947
 msgid "Ya existe un usuario con este correo."
 msgstr ""
 
-#: core/app.py:1870 core/app.py:1922
+#: core/app.py:1899 core/app.py:1951
 msgid "Ya existe un usuario con este teléfono."
 msgstr ""
 
-#: core/app.py:1887
+#: core/app.py:1916
 msgid "Usuario creado."
 msgstr ""
 
-#: core/app.py:1938
+#: core/app.py:1967
 msgid "Usuario actualizado."
 msgstr ""
 
-#: core/app.py:1949
+#: core/app.py:1978
 msgid "No puede desactivar su propia cuenta."
 msgstr ""
 
-#: core/app.py:1955
+#: core/app.py:1984
 msgid "Estado del usuario actualizado."
 msgstr ""
 
-#: core/app.py:1971
+#: core/app.py:2000
 msgid "Seleccione un archivo."
 msgstr ""
 
-#: core/app.py:1974
+#: core/app.py:2003
 msgid "Formato no válido (JPG, PNG, WEBP)."
 msgstr ""
 
-#: core/app.py:1978
+#: core/app.py:2007
 msgid "Archivo demasiado grande (máx. 2 MB)."
 msgstr ""
 
-#: core/app.py:1990
+#: core/app.py:2019
 msgid "Avatar actualizado."
 msgstr ""
 
-#: core/app.py:2017
+#: core/app.py:2046
 msgid "Formato inválido para fecha inicio."
 msgstr ""
 
-#: core/app.py:2023
+#: core/app.py:2052
 msgid "Formato inválido para fecha fin."
 msgstr ""
 
-#: core/app.py:2335 core/app.py:2394
+#: core/app.py:2364 core/app.py:2423
 msgid "La ciudad es obligatoria."
 msgstr ""
 
-#: core/app.py:2364
+#: core/app.py:2393
 msgid "Cliente creado con éxito!"
 msgstr ""
 
-#: core/app.py:2416
+#: core/app.py:2445
 msgid "Cliente modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2436
+#: core/app.py:2465
 msgid "Cliente eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:2514
+#: core/app.py:2543
 msgid ""
 "Generación de PDF temporalmente desactivada. Utilice la impresión del "
 "navegador (Ctrl+P)."
 msgstr ""
 
-#: core/app.py:2720
+#: core/app.py:2749
 msgid "Operador creado con éxito!"
 msgstr ""
 
-#: core/app.py:2732
+#: core/app.py:2761
 msgid "Operador modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2742
+#: core/app.py:2771
 msgid "Operador eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:2856
+#: core/app.py:2885
 msgid "Incidencia creada con éxito!"
 msgstr ""
 
-#: core/app.py:2907
+#: core/app.py:2936
 msgid "El comentario no puede estar vacío."
 msgstr ""
 
-#: core/app.py:2910
+#: core/app.py:2939
 msgid "El comentario no puede superar 1000 caracteres."
 msgstr ""
 
-#: core/app.py:2921
+#: core/app.py:2950
 msgid "Comentario publicado."
 msgstr ""
 
-#: core/app.py:2999
+#: core/app.py:3028
 msgid "Incidencia modificada con éxito!"
 msgstr ""
 
-#: core/app.py:3015
+#: core/app.py:3044
 msgid "Incidencia eliminada con éxito!"
 msgstr ""
 
-#: core/app.py:3241
+#: core/app.py:3270
 msgid "Utilisateur"
 msgstr ""
 
-#: core/routes/instalaciones_routes.py:42
+#: core/routes/instalaciones_routes.py:87
 msgid "Coordenadas GPS actualizadas."
 msgstr ""
 
-#: core/routes/instalaciones_routes.py:54
+#: core/routes/instalaciones_routes.py:99
 msgid "Fotos de la instalación guardadas."
 msgstr ""
 
-#: core/routes/instalaciones_routes.py:69
+#: core/routes/instalaciones_routes.py:114
 msgid "Foto eliminada."
+msgstr ""
+
+#: core/routes/materiales_routes.py:166
+msgid "Nueva salida de instalación"
+msgstr ""
+
+#: core/routes/materiales_routes.py:168
+msgid "Nueva salida de material"
 msgstr ""
 
 #: presentation/templates/_bitrix_status.html:16
@@ -336,6 +344,7 @@ msgstr ""
 
 #: presentation/templates/fiche_client.html:13
 #: presentation/templates/fiche_incident.html:31
+#: presentation/templates/instalaciones/hub.html:163
 msgid "Modificar"
 msgstr ""
 
@@ -681,6 +690,154 @@ msgid "Sin consultar"
 msgstr ""
 
 #: presentation/templates/incidents.html:238
+#: presentation/templates/instalaciones/hub.html:51
+#: presentation/templates/instalaciones/hub.html:132
 msgid "Técnico"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:3
+#: presentation/templates/instalaciones/hub.html:6
+msgid "Instalaciones"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:7
+msgid "Salidas de material de tipo instalación"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:10
+#: presentation/templates/instalaciones/hub.html:248
+msgid "Nueva instalación"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:31
+msgid "Filtros de búsqueda"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:34
+msgid "Filtros activos"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:42
+#: presentation/templates/instalaciones/hub.html:91
+msgid "Buscar"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:46
+msgid "Cliente, teléfono, técnico, material…"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:54
+msgid "Todos"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:62
+msgid "Desde"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:68
+msgid "Hasta"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:74
+msgid "Por página"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:87
+msgid "Recordar filtros"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:94
+msgid "Reiniciar"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:100
+msgid "Filtros restaurados automáticamente"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:113
+msgid "Lista de instalaciones"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:115
+msgid "total"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:115
+msgid "mostrados"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:120
+msgid "Página"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:120
+#: presentation/templates/instalaciones/hub.html:230
+msgid "de"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:131
+msgid "Fecha"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:133
+msgid "Cliente"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:134
+msgid "Materiales"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:135
+msgid "Acciones"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:159
+msgid "Ver"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:179
+msgid "Paginación de las instalaciones"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:184
+#: presentation/templates/instalaciones/hub.html:189
+msgid "Anterior"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:216
+#: presentation/templates/instalaciones/hub.html:221
+msgid "Siguiente"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:228
+msgid "Mostrando"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:228
+msgid "a"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:230
+msgid "instalaciones"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:239
+msgid "No se encontraron instalaciones"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:240
+msgid "Intente cambiar los filtros de búsqueda"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:242
+msgid "Limpiar filtros"
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:245
+msgid "No hay salidas de instalación registradas."
+msgstr ""
+
+#: presentation/templates/instalaciones/hub.html:246
+msgid "Comience agregando su primera instalación"
 msgstr ""
 

@@ -5,6 +5,8 @@
 {% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print', 'client_gps_actualizar', 'client_fotos_agregar', 'client_foto_eliminar'] %}
 {% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
 {% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+{% set nav_instalaciones = ['instalaciones_hub'] %}
+{% set inst_nueva = ep == 'materiales_salida_nueva' and request.args.get('tipo') == 'instalacion' %}
 {% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
 {% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
 {% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
@@ -49,12 +51,20 @@
 
                 {% if current_user.is_admin() %}
                 <li class="app-sidebar__heading">Materiales</li>
-                <li class="{% if ep in nav_materiales %}mm-active{% endif %}">
+                <li class="{% if ep in nav_materiales and not inst_nueva %}mm-active{% endif %}">
                     <a href="{{ url_for('materiales_hub') }}"
-                       class="{% if ep in nav_materiales %}mm-active active{% endif %}"
-                       {% if ep in nav_materiales %}aria-current="page"{% endif %}>
+                       class="{% if ep in nav_materiales and not inst_nueva %}mm-active active{% endif %}"
+                       {% if ep in nav_materiales and not inst_nueva %}aria-current="page"{% endif %}>
                         <i class="nav-menu-icon fas fa-toolbox" aria-hidden="true"></i>
                         <span class="nav-menu-label">Materiales</span>
+                    </a>
+                </li>
+                <li class="{% if ep in nav_instalaciones or inst_nueva %}mm-active{% endif %}">
+                    <a href="{{ url_for('instalaciones_hub') }}"
+                       class="{% if ep in nav_instalaciones or inst_nueva %}mm-active active{% endif %}"
+                       {% if ep in nav_instalaciones or inst_nueva %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-building" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Instalaciones</span>
                     </a>
                 </li>
 

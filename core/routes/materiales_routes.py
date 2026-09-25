@@ -5,6 +5,7 @@
 from datetime import date, datetime, timedelta
 
 from flask import render_template, request, redirect, url_for, flash, jsonify, abort, send_file
+from flask_babel import gettext
 from flask_login import current_user
 
 from sqlalchemy import or_
@@ -32,6 +33,7 @@ from core.services.materiales_service import (
     update_salida,
     salidas_base_query,
     apply_salida_list_filters,
+    clamp_list_per_page,
     get_salidas_material_filter_options,
     salida_resumen_lineas,
     build_informe_page_data,
@@ -161,7 +163,11 @@ def materiales_salida_nueva():
         tipo_salida=tipo_salida,
         fecha_default=date.today().strftime('%Y-%m-%d'),
         form_action=url_for('materiales_salida_nueva'),
-        page_title='Nueva salida de material',
+        page_title=(
+            gettext('Nueva salida de instalación')
+            if tipo_salida == 'instalacion'
+            else gettext('Nueva salida de material')
+        ),
     )
 
 
@@ -169,9 +175,10 @@ def materiales_salida_nueva():
 @admin_required
 def materiales_salidas():
     page = request.args.get('page', 1, type=int)
+    per_page = clamp_list_per_page(request.args.get('per_page', type=int))
     agencia_id = _agencia_scope()
     query = apply_salida_list_filters(salidas_base_query(agencia_id), request.args)
-    pagination = query.paginate(page=page, per_page=25, error_out=False)
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     materiales_filter = get_salidas_material_filter_options(agencia_id)
     tecnicos = (
         Operateur.query.filter_by(categoria='tecnico', actif=True)
@@ -190,6 +197,7 @@ def materiales_salidas():
         tecnicos=tecnicos,
         materiales_filter=materiales_filter,
         filters=request.args,
+        per_page=per_page,
         open_nueva_modal=open_nueva,
     )
 

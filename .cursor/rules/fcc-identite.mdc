@@ -7,7 +7,7 @@ alwaysApply: true
 
 App Flask **Atención al Cliente** (Connexia, FAI). UI métier en **espagnol**. Locale Babel : `es`.
 
-Périmètre : clientes, incidencias, usuarios (`Operateur`), materiales (admin), informes (`/etats` + Gemini), ficha AC (admin), apreciaciones, audit (admin).
+Périmètre : clientes, incidencias, usuarios (`Operateur`), materiales (admin), instalaciones (admin, hub `/instalaciones` = salidas `tipo_salida=instalacion` ; GPS/fotos sur la fiche client), informes (`/etats` + Gemini), ficha AC (admin), apreciaciones, audit (admin).
 
 Hors périmètre : Odoo (`.env` seulement), Kimi (non branché), WeasyPrint (PDF désactivé → HTML). Ne pas les brancher sans demande.
 

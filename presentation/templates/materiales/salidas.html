@@ -18,6 +18,15 @@
     'incidencia': 'bg-warning text-dark',
     'instalacion': 'bg-primary'
 } %}
+{% set filter_kwargs = {
+    'date_from': filters.get('date_from', ''),
+    'date_to': filters.get('date_to', ''),
+    'estado': filters.get('estado', ''),
+    'tipo_salida': filters.get('tipo_salida', ''),
+    'tecnico': filters.get('tecnico', ''),
+    'material': filters.get('material', ''),
+    'per_page': per_page,
+} %}
 
 <div class="container-fluid px-0">
 
@@ -117,6 +126,24 @@
                         <option value="{{ m.id }}" {% if filters.get('material') and filters.get('material')|int == m.id %}selected{% endif %}>{{ m.label }}</option>
 
                         {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+
+                    <label for="per_page" class="form-label small">Por página</label>
+
+                    <select class="form-select form-select-sm" id="per_page" name="per_page">
+
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+
+                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+
+                        <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
+
+                        <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
 
                     </select>
 
@@ -289,33 +316,62 @@
         </div>
 
         {% if pagination.pages > 1 %}
+        <div class="card-footer">
+            <nav aria-label="Paginación de las salidas">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if pagination.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.prev_num, **filter_kwargs) }}">
+                                <i class="fas fa-chevron-left"></i> Anterior
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fas fa-chevron-left"></i> Anterior</span>
+                        </li>
+                    {% endif %}
 
-        <div class="card-footer d-flex justify-content-between align-items-center">
+                    {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num != pagination.page %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('materiales_salidas', page=page_num, **filter_kwargs) }}">
+                                        {{ page_num }}
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">…</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
 
-            <small class="text-muted">Página {{ pagination.page }} / {{ pagination.pages }} ({{ pagination.total }} salidas)</small>
-
-            <nav>
-
-                <ul class="pagination pagination-sm mb-0">
-
-                    <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
-
-                        <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.prev_num, date_from=filters.get('date_from', ''), date_to=filters.get('date_to', ''), estado=filters.get('estado', ''), tipo_salida=filters.get('tipo_salida', ''), tecnico=filters.get('tecnico', ''), material=filters.get('material', '')) }}">Anterior</a>
-
-                    </li>
-
-                    <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
-
-                        <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.next_num, date_from=filters.get('date_from', ''), date_to=filters.get('date_to', ''), estado=filters.get('estado', ''), tipo_salida=filters.get('tipo_salida', ''), tecnico=filters.get('tecnico', ''), material=filters.get('material', '')) }}">Siguiente</a>
-
-                    </li>
-
+                    {% if pagination.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('materiales_salidas', page=pagination.next_num, **filter_kwargs) }}">
+                                Siguiente <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente <i class="fas fa-chevron-right"></i></span>
+                        </li>
+                    {% endif %}
                 </ul>
-
             </nav>
-
+            <div class="text-center mt-3">
+                <small class="text-muted">
+                    Mostrando {{ (pagination.page - 1) * pagination.per_page + 1 }} a
+                    {{ pagination.page * pagination.per_page if pagination.page * pagination.per_page < pagination.total else pagination.total }}
+                    de {{ pagination.total }} salidas
+                </small>
+            </div>
         </div>
-
         {% endif %}
 
     </div>
@@ -391,6 +447,13 @@
 
     if (openOnLoad && modalEl && window.bootstrap) {
         bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    const perPageSelect = document.getElementById('per_page');
+    if (perPageSelect && perPageSelect.form) {
+        perPageSelect.addEventListener('change', function () {
+            this.form.submit();
+        });
     }
 })();
 </script>

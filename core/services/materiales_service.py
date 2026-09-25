@@ -360,8 +360,23 @@ def salidas_base_query(agencia_id=None):
     return query
 
 
+LIST_PER_PAGE_CHOICES = (50, 100, 200, 500)
+DEFAULT_LIST_PER_PAGE = 50
+
+
+def clamp_list_per_page(value, default=DEFAULT_LIST_PER_PAGE):
+    """Alinea per_page con las listas clientes / incidencias (50, 100, 200, 500)."""
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    if parsed in LIST_PER_PAGE_CHOICES:
+        return parsed
+    return default
+
+
 def apply_salida_list_filters(query, request_args):
-    from core.app import MaterialSalida, SALIDA_TIPOS
+    from core.app import Client, Material, MaterialSalida, MaterialSalidaLinea, Operateur, SALIDA_TIPOS, db
 
     estado = (request_args.get('estado') or '').strip()
     if estado in SALIDA_ESTADO_LABELS:
@@ -395,6 +410,25 @@ def apply_salida_list_filters(query, request_args):
     material_id = request_args.get('material', type=int)
     if material_id:
         query = query.filter(MaterialSalida.lineas.any(id_material=material_id))
+
+    search = (request_args.get('search') or '').strip()
+    if search:
+        clauses = [
+            Operateur.nom.contains(search),
+            MaterialSalida.observaciones.contains(search),
+            MaterialSalida.client.has(
+                db.or_(
+                    Client.nom.contains(search),
+                    Client.telephone.contains(search),
+                )
+            ),
+            MaterialSalida.lineas.any(
+                MaterialSalidaLinea.material.has(Material.nombre.contains(search))
+            ),
+        ]
+        if search.isdigit():
+            clauses.append(MaterialSalida.id == int(search))
+        query = query.filter(db.or_(*clauses))
 
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id))
 
