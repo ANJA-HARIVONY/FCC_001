@@ -100,7 +100,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY --chown=appuser:appgroup . /app/
 
 # Créer les répertoires nécessaires
-RUN mkdir -p /app/logs /app/instance/uploads/materiales /app/monitoring/logs /app/monitoring/backups /app/presentation/uploads/materiales && \
+RUN mkdir -p /app/logs /app/instance/uploads/materiales /app/monitoring/logs /app/monitoring/backups /app/presentation/uploads/materiales /app/presentation/uploads/instalaciones && \
     chown -R appuser:appgroup /app
 
 # Copier et configurer le script d'entrée

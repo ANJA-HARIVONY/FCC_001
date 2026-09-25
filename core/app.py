@@ -331,10 +331,44 @@ class Client(db.Model):
         db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
     )
     modifie_le = db.Column(db.DateTime, nullable=True)
+    latitud = db.Column(db.Numeric(10, 7), nullable=True)
+    longitud = db.Column(db.Numeric(10, 7), nullable=True)
+    gps_actualizado_le = db.Column(db.DateTime, nullable=True)
+    id_operateur_gps = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
     ciudad_row = db.relationship('Ciudad', backref=db.backref('clients', lazy=True))
     incidents = db.relationship('Incident', backref='client', lazy=True)
     cree_par = db.relationship('Operateur', foreign_keys=[id_operateur])
     modifie_par = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
+    gps_actualizado_por = db.relationship('Operateur', foreign_keys=[id_operateur_gps])
+    fotos_instalacion = db.relationship(
+        'InstalacionFoto',
+        foreign_keys='InstalacionFoto.id_client',
+        backref='client',
+        lazy=True,
+        cascade='all, delete-orphan',
+        order_by='InstalacionFoto.id',
+    )
+
+    @property
+    def has_gps(self):
+        return self.latitud is not None and self.longitud is not None
+
+    @property
+    def google_maps_url(self):
+        if not self.has_gps:
+            return None
+        return f'https://www.google.com/maps?q={float(self.latitud)},{float(self.longitud)}'
+
+    @property
+    def google_maps_embed_url(self):
+        if not self.has_gps:
+            return None
+        return (
+            f'https://maps.google.com/maps?q={float(self.latitud)},{float(self.longitud)}'
+            '&z=16&output=embed'
+        )
 
     def __repr__(self):
         return f'<Client {self.nom}>'
@@ -418,6 +452,7 @@ _CSP_DIRECTIVES = (
     "font-src 'self' https://cdnjs.cloudflare.com data:; "
     "img-src 'self' data: blob:; "
     "connect-src 'self'; "
+    "frame-src 'self' https://www.google.com https://maps.google.com; "
     "frame-ancestors 'none'; "
     "base-uri 'self'; "
     "form-action 'self'"
@@ -437,7 +472,7 @@ def apply_security_headers(response):
     response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
     response.headers.setdefault(
         'Permissions-Policy',
-        'geolocation=(), microphone=(), camera=(), payment=()',
+        'geolocation=(self), microphone=(), camera=(), payment=()',
     )
     response.headers.setdefault('Content-Security-Policy', _CSP_DIRECTIVES)
     if request.is_secure:
@@ -636,9 +671,44 @@ class MaterialSalida(db.Model):
         lazy=True,
         cascade='all, delete-orphan',
     )
+    fotos_instalacion = db.relationship(
+        'InstalacionFoto',
+        foreign_keys='InstalacionFoto.id_salida',
+        backref='salida',
+        lazy=True,
+        order_by='InstalacionFoto.id',
+    )
 
     def __repr__(self):
         return f'<MaterialSalida {self.id}>'
+
+
+MAX_INSTALACION_FOTOS = 10
+
+
+class InstalacionFoto(db.Model):
+    __tablename__ = 'instalacion_foto'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(
+        db.Integer, db.ForeignKey('client.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    id_salida = db.Column(
+        db.Integer, db.ForeignKey('material_salida.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    fichier = db.Column(db.String(255), nullable=False)
+    id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True)
+    creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    operateur = db.relationship('Operateur', foreign_keys=[id_operateur])
+
+    @property
+    def filename(self):
+        if not self.fichier:
+            return None
+        return self.fichier.rsplit('/', 1)[-1]
+
+    def __repr__(self):
+        return f'<InstalacionFoto client={self.id_client} {self.fichier}>'
 
 
 class MaterialSalidaLinea(db.Model):
@@ -1042,6 +1112,115 @@ def ensure_client_radius_cache_columns():
         app.logger.exception('No se pudo verificar/crear columnas RADIUS en client')
 
 
+def ensure_client_gps_columns():
+    """Añade columnas GPS en client si faltan (arranque sin migración)."""
+    if getattr(ensure_client_gps_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('client'):
+            ensure_client_gps_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('client')}
+        statements = []
+        if 'latitud' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN latitud DECIMAL(10,7) NULL')
+        if 'longitud' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN longitud DECIMAL(10,7) NULL')
+        if 'gps_actualizado_le' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN gps_actualizado_le DATETIME NULL')
+        if 'id_operateur_gps' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN id_operateur_gps INTEGER NULL')
+        if statements:
+            with db.engine.begin() as conn:
+                for sql in statements:
+                    conn.execute(text(sql))
+        ensure_client_gps_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas GPS en client')
+
+
+def ensure_instalacion_foto_table():
+    """Crea la tabla instalacion_foto si falta (arranque sin migración)."""
+    if getattr(ensure_instalacion_foto_table, '_done', False):
+        return
+    try:
+        if not inspect(db.engine).has_table(InstalacionFoto.__tablename__):
+            InstalacionFoto.__table__.create(db.engine)
+        ensure_instalacion_foto_table._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear la tabla instalacion_foto')
+
+
+def ensure_instalacion_foto_id_client():
+    """Añade id_client y deja id_salida nullable (arranque sin migración)."""
+    if getattr(ensure_instalacion_foto_id_client, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('instalacion_foto'):
+            ensure_instalacion_foto_id_client._done = True
+            return
+        columns = {col['name']: col for col in inspector.get_columns('instalacion_foto')}
+        dialect = db.engine.dialect.name
+        fks = inspector.get_foreign_keys('instalacion_foto')
+        with db.engine.begin() as conn:
+            if 'id_client' not in columns:
+                conn.execute(text('ALTER TABLE instalacion_foto ADD COLUMN id_client INTEGER NULL'))
+                try:
+                    conn.execute(text(
+                        'CREATE INDEX ix_instalacion_foto_id_client ON instalacion_foto (id_client)'
+                    ))
+                except Exception:
+                    pass
+            if inspector.has_table('material_salida'):
+                conn.execute(text(
+                    'UPDATE instalacion_foto SET id_client = ('
+                    'SELECT material_salida.id_client FROM material_salida '
+                    'WHERE material_salida.id = instalacion_foto.id_salida'
+                    ') WHERE id_client IS NULL AND id_salida IS NOT NULL'
+                ))
+            col = columns.get('id_salida')
+            if col is not None and not col.get('nullable', True) and dialect != 'sqlite':
+                conn.execute(text(
+                    'ALTER TABLE instalacion_foto MODIFY COLUMN id_salida INTEGER NULL'
+                ))
+            if dialect != 'sqlite':
+                has_client_fk = any(
+                    list(fk.get('constrained_columns') or []) == ['id_client'] for fk in fks
+                )
+                if not has_client_fk and inspector.has_table('client'):
+                    try:
+                        conn.execute(text(
+                            'ALTER TABLE instalacion_foto ADD CONSTRAINT fk_instalacion_foto_id_client '
+                            'FOREIGN KEY (id_client) REFERENCES client(id) ON DELETE CASCADE'
+                        ))
+                    except Exception:
+                        pass
+                for fk in fks:
+                    if list(fk.get('constrained_columns') or []) != ['id_salida']:
+                        continue
+                    ondelete = ((fk.get('options') or {}).get('ondelete') or '').upper()
+                    name = fk.get('name')
+                    if name and ondelete == 'CASCADE':
+                        try:
+                            conn.execute(text(
+                                f'ALTER TABLE instalacion_foto DROP FOREIGN KEY {name}'
+                            ))
+                            conn.execute(text(
+                                'ALTER TABLE instalacion_foto ADD CONSTRAINT fk_instalacion_foto_id_salida '
+                                'FOREIGN KEY (id_salida) REFERENCES material_salida(id) ON DELETE SET NULL'
+                            ))
+                        except Exception:
+                            pass
+        ensure_instalacion_foto_id_client._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear id_client en instalacion_foto')
+
+
 def build_comment_notification_message(actor_name, client_name):
     return f"El usuario {actor_name} ha comentado su incidencia del cliente {client_name}."
 
@@ -1357,6 +1536,7 @@ class Etat(db.Model):
 # Importar las rutas de los informes IA
 from core.routes import etats_routes
 from core.routes import materiales_routes
+from core.routes import instalaciones_routes
 from core.routes import atencion_cliente_routes
 from core.routes import apreciaciones_routes
 
@@ -1449,6 +1629,9 @@ def require_authentication():
     ensure_incident_modificacion_columns()
     ensure_client_radius_cache_columns()
     ensure_client_trazabilidad_columns()
+    ensure_client_gps_columns()
+    ensure_instalacion_foto_table()
+    ensure_instalacion_foto_id_client()
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
     if not request.endpoint or request.endpoint == 'static':
@@ -2290,9 +2473,12 @@ def fiche_client(id):
     return_url = _resolve_next_url()
     from core.services.materiales_service import get_client_material_rows
     from core.services.radius_service import get_client_radius_info, radius_enabled
+    from core.services.instalaciones_service import client_instalacion_fotos
 
     agencia_id = None if current_user.is_admin() else current_user.id_agencia
     material_rows = get_client_material_rows(id, agencia_id)
+    instalacion_fotos = client_instalacion_fotos(client)
+    slots_left = max(0, MAX_INSTALACION_FOTOS - len(instalacion_fotos))
 
     radius_info = None
     if radius_enabled():
@@ -2317,6 +2503,9 @@ def fiche_client(id):
         return_url=return_url,
         radius_info=radius_info,
         radius_enabled=radius_enabled(),
+        instalacion_fotos=instalacion_fotos,
+        max_fotos=MAX_INSTALACION_FOTOS,
+        slots_left=slots_left,
     )
 
 
@@ -3527,6 +3716,9 @@ if __name__ == '__main__':
             logger.info('Initialisation de la base (moteur=%s)', engine)
             db.create_all()
             ensure_client_categoria_column()
+            ensure_client_gps_columns()
+            ensure_instalacion_foto_table()
+            ensure_instalacion_foto_id_client()
             ensure_ciudad_agencia_seed()
             ensure_default_admin_operateur()
             if os.environ.get('INIT_SAMPLE_DATA', 'false').lower() == 'true':

@@ -398,6 +398,144 @@
         </div>
     </div>
 
+    {% set fotos = instalacion_fotos or [] %}
+    <div class="card shadow mb-4 content-card" id="instalacionSection"
+         data-max-fotos="{{ max_fotos }}"
+         data-fotos-actuales="{{ fotos|length }}">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-map-marker-alt"></i> {{ _('Instalación') }}
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger py-2 small d-none" id="instalacionAlert" role="alert"></div>
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    {% if client.has_gps %}
+                    <div class="ratio ratio-4x3 rounded overflow-hidden border mb-3">
+                        <iframe src="{{ client.google_maps_embed_url }}"
+                                title="{{ _('Mapa de la instalación') }}"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                allowfullscreen></iframe>
+                    </div>
+                    <div class="small text-muted mb-3">
+                        {{ '%.7f'|format(client.latitud|float) }}, {{ '%.7f'|format(client.longitud|float) }}
+                        <a href="{{ client.google_maps_url }}" target="_blank" rel="noopener" class="ms-2">
+                            <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                            {{ _('Ver en Google Maps') }}
+                        </a>
+                        {% if client.gps_actualizado_le %}
+                        <div>
+                            {{ _('Actualizado') }}
+                            {{ client.gps_actualizado_le.strftime('%d/%m/%Y %H:%M') }}
+                            {% if client.gps_actualizado_por %}
+                            — {{ client.gps_actualizado_por.nom }}
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-3">{{ _('Aún no hay coordenadas GPS.') }}</p>
+                    {% endif %}
+                    {% if current_user.is_admin() %}
+                    <form method="POST" action="{{ url_for('client_gps_actualizar', id=client.id) }}"
+                          id="clientGpsForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label" for="gps_pair">{{ _('Pegar coordenadas') }}</label>
+                            <input type="text" class="form-control" id="gps_pair" name="gps_pair"
+                                   placeholder="4.6097, -74.0817" autocomplete="off">
+                            <div class="form-text">{{ _('Formato: latitud, longitud') }}</div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="latitud">{{ _('Latitud') }}</label>
+                                <input type="text" class="form-control" id="latitud" name="latitud" inputmode="decimal"
+                                       value="{% if client.latitud is not none %}{{ '%.7f'|format(client.latitud|float) }}{% endif %}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="longitud">{{ _('Longitud') }}</label>
+                                <input type="text" class="form-control" id="longitud" name="longitud" inputmode="decimal"
+                                       value="{% if client.longitud is not none %}{{ '%.7f'|format(client.longitud|float) }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="usarUbicacionBtn">
+                                <i class="fas fa-location-crosshairs me-1" aria-hidden="true"></i>{{ _('Usar mi ubicación') }}
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fas fa-save me-1" aria-hidden="true"></i>{{ _('Guardar GPS') }}
+                            </button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="col-lg-6">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="small text-uppercase text-muted fw-semibold mb-0">
+                            <i class="fas fa-images me-1" aria-hidden="true"></i>{{ _('Galería') }}
+                        </h6>
+                        <span class="badge bg-secondary" id="fotosCounter">{{ fotos|length }}/{{ max_fotos }}</span>
+                    </div>
+                    {% if fotos %}
+                    <div class="row g-2 mb-3">
+                        {% for foto in fotos %}
+                        <div class="col-6 col-md-4">
+                            <div class="border rounded overflow-hidden h-100">
+                                <a href="{{ url_for('serve_instalacion_foto', filename=foto.filename) }}"
+                                   target="_blank" rel="noopener">
+                                    <img src="{{ url_for('serve_instalacion_foto', filename=foto.filename) }}"
+                                         alt="{{ _('Foto de la instalación') }}"
+                                         class="w-100" style="height: 110px; object-fit: cover;">
+                                </a>
+                                {% if current_user.is_admin() %}
+                                <div class="p-1 text-end">
+                                    <button type="button" class="btn btn-outline-danger btn-sm js-delete-foto"
+                                            data-bs-toggle="modal" data-bs-target="#eliminarFotoModal"
+                                            data-action="{{ url_for('client_foto_eliminar', id=client.id, foto_id=foto.id) }}">
+                                        <i class="fas fa-trash" aria-hidden="true"></i>
+                                        <span class="visually-hidden">{{ _('Eliminar') }}</span>
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-3">{{ _('No hay fotos de la instalación.') }}</p>
+                    {% endif %}
+                    {% if current_user.is_admin() %}
+                    <form method="POST" action="{{ url_for('client_fotos_agregar', id=client.id) }}"
+                          enctype="multipart/form-data" id="clientFotosForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label" for="fotos">{{ _('Añadir fotos') }}</label>
+                            <input type="file" class="form-control" id="fotos" name="fotos"
+                                   accept="image/jpeg,image/png,image/webp" multiple
+                                   {% if slots_left < 1 %}disabled{% endif %}>
+                            <div class="form-text" id="fotosHint">
+                                {{ _('JPG, PNG o WEBP. Máx. 5 MB por foto. Hasta %(n)s fotos.', n=max_fotos) }}
+                                {% if slots_left < 1 %}
+                                {{ _('Límite alcanzado.') }}
+                                {% else %}
+                                {{ _('Puede añadir %(n)s más.', n=slots_left) }}
+                                {% endif %}
+                            </div>
+                            <div class="alert alert-danger py-2 small mt-2 d-none" id="fotosLimitAlert" role="alert"></div>
+                        </div>
+                        <div class="row g-2 mb-3" id="fotosPreview"></div>
+                        <button type="submit" class="btn btn-primary btn-sm" {% if slots_left < 1 %}disabled{% endif %}>
+                            <i class="fas fa-upload me-1" aria-hidden="true"></i>{{ _('Guardar fotos') }}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Materiales instalados -->
     <div class="card shadow mb-4 content-card">
         <div class="card-header py-3">
@@ -446,4 +584,33 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block modals %}
+{% if current_user.is_admin() %}
+<div class="modal fade" id="eliminarFotoModal" tabindex="-1" aria-labelledby="eliminarFotoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="eliminarFotoForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eliminarFotoModalLabel">{{ _('Eliminar foto') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+                </div>
+                <div class="modal-body">
+                    {{ _('¿Eliminar esta foto de la instalación?') }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                    <button type="submit" class="btn btn-danger">{{ _('Eliminar') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/instalaciones-detalle.js') }}"></script>
 {% endblock %} 

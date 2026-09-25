@@ -136,6 +136,9 @@ from core.app import (
     ensure_client_categoria_column,
     ensure_client_radius_cache_columns,
     ensure_client_trazabilidad_columns,
+    ensure_client_gps_columns,
+    ensure_instalacion_foto_table,
+    ensure_instalacion_foto_id_client,
     ensure_incident_modificacion_columns,
     ensure_ciudad_agencia_seed,
     ensure_default_admin_operateur,
@@ -150,6 +153,9 @@ with app.app_context():
         ensure_client_categoria_column()
         ensure_client_radius_cache_columns()
         ensure_client_trazabilidad_columns()
+        ensure_client_gps_columns()
+        ensure_instalacion_foto_table()
+        ensure_instalacion_foto_id_client()
         ensure_incident_modificacion_columns()
         print('Tables créées avec succès')
 

@@ -1,178 +1,686 @@
 # Translations template for PROJECT.
-# Copyright (C) 2025 ORGANIZATION
+# Copyright (C) 2026 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR anjaharivoni@gmail.com, 2025.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-05-25 21:36+0100\n"
+"POT-Creation-Date: 2026-09-25 12:13+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.17.0\n"
+"Generated-By: Babel 2.14.0\n"
 
-#: app.py:155
-msgid "Client ajouté avec succès!"
+#: core/app.py:165
+msgid "La sesión de seguridad ha expirado. Vuelva a iniciar sesión."
 msgstr ""
 
-#: app.py:170
-msgid "Client modifié avec succès!"
+#: core/app.py:1224
+msgid "cliente desconocido"
 msgstr ""
 
-#: app.py:179
-msgid "Client supprimé avec succès!"
+#: core/app.py:1631
+msgid ""
+"Su sesión ha expirado (duración máxima alcanzada). Vuelva a iniciar "
+"sesión."
 msgstr ""
 
-#: app.py:223
-msgid "Opérateur ajouté avec succès!"
+#: core/app.py:1639
+msgid "Ha sido desconectado tras 30 minutos de inactividad."
 msgstr ""
 
-#: app.py:234
-msgid "Opérateur modifié avec succès!"
+#: core/app.py:1682
+msgid "Introduzca correo o teléfono y contraseña."
 msgstr ""
 
-#: app.py:243
-msgid "Opérateur supprimé avec succès!"
+#: core/app.py:1686
+msgid "Credenciales incorrectas o cuenta desactivada."
 msgstr ""
 
-#: app.py:264
-msgid "Incident ajouté avec succès!"
+#: core/app.py:1688
+msgid "Cuenta desactivada."
 msgstr ""
 
-#: app.py:281
-msgid "Incident modifié avec succès!"
+#: core/app.py:1690
+msgid "Su cuenta no tiene contraseña asignada; contacte al administrador."
 msgstr ""
 
-#: app.py:293
-msgid "Incident supprimé avec succès!"
+#: core/app.py:1703
+msgid "Credenciales incorrectas."
 msgstr ""
 
-#: templates/base.html:78
-msgid "Rechercher..."
+#: core/app.py:1733
+msgid "Las contraseñas no coinciden."
 msgstr ""
 
-#: templates/clients.html:64
-msgid "Voir la fiche"
+#: core/app.py:1735
+msgid "La contraseña debe tener al menos 6 caracteres."
 msgstr ""
 
-#: templates/clients.html:68
-msgid "Modifier"
+#: core/app.py:1740
+msgid "Contraseña actualizada."
 msgstr ""
 
-#: templates/clients.html:75
-msgid "Supprimer"
+#: core/app.py:1860 core/app.py:1910
+msgid "Nombre, teléfono, ciudad y agencia son obligatorios."
 msgstr ""
 
-#: templates/fiche_client.html:4 templates/fiche_client.html:12
-#: templates/fiche_client_pdf.html:6 templates/fiche_client_pdf.html:163
-msgid "Fiche Client"
+#: core/app.py:1862
+msgid "La contraseña es obligatoria para un nuevo usuario."
 msgstr ""
 
-#: templates/fiche_client.html:16
-msgid "Retour"
+#: core/app.py:1866 core/app.py:1914
+msgid "La agencia no pertenece a la ciudad seleccionada."
 msgstr ""
 
-#: templates/fiche_client.html:19
-msgid "Imprimer PDF"
+#: core/app.py:1868 core/app.py:1918
+msgid "Ya existe un usuario con este correo."
 msgstr ""
 
-#: templates/fiche_client.html:30 templates/fiche_client_pdf.html:169
-msgid "Informations du Client"
+#: core/app.py:1870 core/app.py:1922
+msgid "Ya existe un usuario con este teléfono."
 msgstr ""
 
-#: templates/fiche_client.html:35 templates/fiche_client_pdf.html:172
-msgid "Nom"
+#: core/app.py:1887
+msgid "Usuario creado."
 msgstr ""
 
-#: templates/fiche_client.html:40 templates/fiche_client_pdf.html:176
-msgid "Contact"
+#: core/app.py:1938
+msgid "Usuario actualizado."
 msgstr ""
 
-#: templates/fiche_client.html:45 templates/fiche_client_pdf.html:180
-msgid "Adresse"
+#: core/app.py:1949
+msgid "No puede desactivar su propia cuenta."
 msgstr ""
 
-#: templates/fiche_client.html:50 templates/fiche_client_pdf.html:184
-msgid "Ville"
+#: core/app.py:1955
+msgid "Estado del usuario actualizado."
 msgstr ""
 
-#: templates/fiche_client.html:55 templates/fiche_client_pdf.html:188
-msgid "IP Router"
+#: core/app.py:1971
+msgid "Seleccione un archivo."
 msgstr ""
 
-#: templates/fiche_client.html:60 templates/fiche_client_pdf.html:192
-msgid "IP Antea"
+#: core/app.py:1974
+msgid "Formato no válido (JPG, PNG, WEBP)."
 msgstr ""
 
-#: templates/fiche_client.html:72 templates/fiche_client_pdf.html:200
-msgid "Statistiques des Incidents"
+#: core/app.py:1978
+msgid "Archivo demasiado grande (máx. 2 MB)."
 msgstr ""
 
-#: templates/fiche_client.html:85 templates/fiche_client_pdf.html:209
-msgid "Total"
+#: core/app.py:1990
+msgid "Avatar actualizado."
 msgstr ""
 
-#: templates/fiche_client.html:93 templates/fiche_client_pdf.html:213
-msgid "Résolus"
+#: core/app.py:2017
+msgid "Formato inválido para fecha inicio."
 msgstr ""
 
-#: templates/fiche_client.html:101 templates/fiche_client.html:149
-#: templates/fiche_client_pdf.html:217 templates/fiche_client_pdf.html:249
-msgid "En attente"
+#: core/app.py:2023
+msgid "Formato inválido para fecha fin."
 msgstr ""
 
-#: templates/fiche_client.html:109 templates/fiche_client.html:151
-#: templates/fiche_client_pdf.html:221 templates/fiche_client_pdf.html:251
+#: core/app.py:2335 core/app.py:2394
+msgid "La ciudad es obligatoria."
+msgstr ""
+
+#: core/app.py:2364
+msgid "Cliente creado con éxito!"
+msgstr ""
+
+#: core/app.py:2416
+msgid "Cliente modificado con éxito!"
+msgstr ""
+
+#: core/app.py:2436
+msgid "Cliente eliminado con éxito!"
+msgstr ""
+
+#: core/app.py:2514
+msgid ""
+"Generación de PDF temporalmente desactivada. Utilice la impresión del "
+"navegador (Ctrl+P)."
+msgstr ""
+
+#: core/app.py:2720
+msgid "Operador creado con éxito!"
+msgstr ""
+
+#: core/app.py:2732
+msgid "Operador modificado con éxito!"
+msgstr ""
+
+#: core/app.py:2742
+msgid "Operador eliminado con éxito!"
+msgstr ""
+
+#: core/app.py:2856
+msgid "Incidencia creada con éxito!"
+msgstr ""
+
+#: core/app.py:2907
+msgid "El comentario no puede estar vacío."
+msgstr ""
+
+#: core/app.py:2910
+msgid "El comentario no puede superar 1000 caracteres."
+msgstr ""
+
+#: core/app.py:2921
+msgid "Comentario publicado."
+msgstr ""
+
+#: core/app.py:2999
+msgid "Incidencia modificada con éxito!"
+msgstr ""
+
+#: core/app.py:3015
+msgid "Incidencia eliminada con éxito!"
+msgstr ""
+
+#: core/app.py:3241
+msgid "Utilisateur"
+msgstr ""
+
+#: core/routes/instalaciones_routes.py:42
+msgid "Coordenadas GPS actualizadas."
+msgstr ""
+
+#: core/routes/instalaciones_routes.py:54
+msgid "Fotos de la instalación guardadas."
+msgstr ""
+
+#: core/routes/instalaciones_routes.py:69
+msgid "Foto eliminada."
+msgstr ""
+
+#: presentation/templates/_bitrix_status.html:16
+#: presentation/templates/_bitrix_status.html:40
+#: presentation/templates/_bitrix_status.html:84
+#: presentation/templates/fiche_client.html:157
+#: presentation/templates/fiche_client.html:324
+#: presentation/templates/fiche_client.html:355
+#: presentation/templates/fiche_client_pdf.html:232
+#: presentation/templates/fiche_client_pdf.html:262
 msgid "Bitrix"
 msgstr ""
 
-#: templates/fiche_client.html:124 templates/fiche_client_pdf.html:228
-msgid "Historique des Incidents"
+#: presentation/templates/_bitrix_status.html:22
+#: presentation/templates/_bitrix_status.html:90
+msgid "Abrir en nuevo tab"
 msgstr ""
 
-#: templates/fiche_client.html:133 templates/fiche_client_pdf.html:233
-msgid "Date/Heure"
+#: presentation/templates/_bitrix_status.html:39
+#: presentation/templates/_bitrix_status.html:83
+#: presentation/templates/fiche_client.html:308
+#: presentation/templates/fiche_client_pdf.html:246
+#: presentation/templates/fiche_incident.html:75
+#: presentation/templates/fiche_incident.html:83
+#: presentation/templates/fiche_incident.html:89
+msgid "Estado"
 msgstr ""
 
-#: templates/fiche_client.html:134 templates/fiche_client_pdf.html:234
-msgid "Intitulé"
+#: presentation/templates/_bitrix_status.html:41
+#: presentation/templates/_bitrix_status.html:73
+#: presentation/templates/_bitrix_status.html:101
+msgid "Estado de la tarea"
 msgstr ""
 
-#: templates/fiche_client.html:135 templates/fiche_client_pdf.html:235
-msgid "Statut"
+#: presentation/templates/_bitrix_status.html:42
+#: presentation/templates/_bitrix_status.html:108
+msgid "Responsable"
 msgstr ""
 
-#: templates/fiche_client.html:136 templates/fiche_client_pdf.html:236
-msgid "Opérateur"
+#: presentation/templates/_bitrix_status.html:43
+#: presentation/templates/_bitrix_status.html:126
+msgid "Creada el"
 msgstr ""
 
-#: templates/fiche_client.html:137 templates/fiche_client_pdf.html:237
-msgid "Observations"
+#: presentation/templates/_bitrix_status.html:44
+#: presentation/templates/_bitrix_status.html:142
+msgid "Vencimiento"
 msgstr ""
 
-#: templates/fiche_client.html:147 templates/fiche_client_pdf.html:247
-msgid "Résolut"
+#: presentation/templates/_bitrix_status.html:45
+#: presentation/templates/_bitrix_status.html:116
+msgid "Prioridad"
 msgstr ""
 
-#: templates/fiche_client.html:161 templates/fiche_client_pdf.html:259
-msgid "Aucune observation"
+#: presentation/templates/_bitrix_status.html:46
+#: presentation/templates/_bitrix_status.html:157
+msgid "Cerrada el"
 msgstr ""
 
-#: templates/fiche_client.html:172 templates/fiche_client_pdf.html:268
-msgid "Aucun incident enregistré pour ce client."
+#: presentation/templates/_bitrix_status.html:47
+#: presentation/templates/_bitrix_status.html:166
+msgid "Última modificación"
 msgstr ""
 
-#: templates/fiche_client_pdf.html:164
-msgid "Générée le"
+#: presentation/templates/_bitrix_status.html:48
+#: presentation/templates/_bitrix_status.html:170
+msgid "Movida"
 msgstr ""
 
-#: templates/fiche_client_pdf.html:274
-msgid "Document généré automatiquement par le système de gestion des clients"
+#: presentation/templates/_bitrix_status.html:49
+#: presentation/templates/_bitrix_status.html:170
+msgid "Movida el"
+msgstr ""
+
+#: presentation/templates/_bitrix_status.html:50
+#: presentation/templates/_bitrix_status.html:146
+#, python-format
+msgid "Retrasada desde %(tiempo)s"
+msgstr ""
+
+#: presentation/templates/_bitrix_status.html:51
+#: presentation/templates/_bitrix_status.html:148
+#, python-format
+msgid "Quedan %(tiempo)s"
+msgstr ""
+
+#: presentation/templates/_bitrix_status.html:184
+#: presentation/templates/_bitrix_status.html:199
+msgid "Actualizar información de Bitrix"
+msgstr ""
+
+#: presentation/templates/_bitrix_status.html:185
+#: presentation/templates/_bitrix_status.html:200
+msgid "Actualizar"
+msgstr ""
+
+#: presentation/templates/_bitrix_status.html:207
+msgid ""
+"Estado Bitrix no consultable desde este servidor (sin acceso a Bitrix24)."
+" Abra el enlace de la tarea."
+msgstr ""
+
+#: presentation/templates/_mobile_list_card_client.html:39
+#: presentation/templates/clients.html:230
+msgid "Ver la ficha"
+msgstr ""
+
+#: presentation/templates/_mobile_list_card_client.html:44
+#: presentation/templates/clients.html:234
+msgid "Editar"
+msgstr ""
+
+#: presentation/templates/_mobile_list_card_client.html:57
+#: presentation/templates/clients.html:246
+#: presentation/templates/fiche_incident.html:22
+msgid "Copiar información"
+msgstr ""
+
+#: presentation/templates/_mobile_list_card_client.html:66
+#: presentation/templates/clients.html:253
+#: presentation/templates/fiche_client.html:498
+#: presentation/templates/fiche_client.html:605
+#: presentation/templates/fiche_incident.html:225
+msgid "Eliminar"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:6
+#: presentation/templates/fiche_client_pdf.html:166
+msgid "Ficha del Cliente"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:10
+msgid "Crear incidencia"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:13
+#: presentation/templates/fiche_incident.html:31
+msgid "Modificar"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:16
+msgid "Imprimir PDF"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:28
+#: presentation/templates/fiche_client_pdf.html:172
+msgid "Información del cliente"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:33
+#: presentation/templates/fiche_client_pdf.html:175
+msgid "Nombre"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:38
+#: presentation/templates/fiche_client_pdf.html:179
+#: presentation/templates/fiche_incident.html:262
+msgid "Teléfono"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:43
+#: presentation/templates/fiche_client_pdf.html:183
+#: presentation/templates/fiche_incident.html:269
+msgid "Dirección"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:48
+#: presentation/templates/fiche_client_pdf.html:187
+#: presentation/templates/fiche_incident.html:276
+msgid "Barrio"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:67
+#: presentation/templates/fiche_client_pdf.html:199
+#: presentation/templates/fiche_incident.html:285
+msgid "IP Router"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:72
+#: presentation/templates/fiche_client_pdf.html:203
+#: presentation/templates/fiche_incident.html:296
+msgid "IP Antena"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:88
+#: presentation/templates/fiche_incident.html:100
+msgid "Creado por"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:99
+#: presentation/templates/fiche_incident.html:109
+msgid "Modificado por"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:120
+msgid "Estadisticas de las Incidencias"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:133
+#: presentation/templates/fiche_client_pdf.html:220
+msgid "Total"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:141
+#: presentation/templates/fiche_client.html:320
+#: presentation/templates/fiche_client.html:351
+#: presentation/templates/fiche_client_pdf.html:224
+#: presentation/templates/fiche_client_pdf.html:258
+msgid "Solucionadas"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:149
+#: presentation/templates/fiche_client.html:322
+#: presentation/templates/fiche_client.html:353
+#: presentation/templates/fiche_client_pdf.html:228
+#: presentation/templates/fiche_client_pdf.html:260
+msgid "Pendientes"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:297
+#: presentation/templates/fiche_client_pdf.html:239
+msgid "Historial de las Incidencias"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:306
+#: presentation/templates/fiche_client_pdf.html:244
+#: presentation/templates/fiche_incident.html:59
+msgid "Fecha/Hora"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:307
+#: presentation/templates/fiche_client_pdf.html:245
+#: presentation/templates/fiche_incident.html:54
+msgid "Asunto"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:309
+#: presentation/templates/fiche_client_pdf.html:247
+msgid "Operador"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:310
+#: presentation/templates/fiche_client_pdf.html:248
+#: presentation/templates/fiche_incident.html:119
+msgid "Observaciones"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:337
+#: presentation/templates/fiche_client_pdf.html:270
+#: presentation/templates/fiche_incident.html:124
+msgid "Ninguna observación"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:395
+#: presentation/templates/fiche_client_pdf.html:279
+msgid "No hay incidencias registradas para este cliente."
+msgstr ""
+
+#: presentation/templates/fiche_client.html:407
+msgid "Instalación"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:417
+msgid "Mapa de la instalación"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:426
+msgid "Ver en Google Maps"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:430
+msgid "Actualizado"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:439
+msgid "Aún no hay coordenadas GPS."
+msgstr ""
+
+#: presentation/templates/fiche_client.html:446
+msgid "Pegar coordenadas"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:449
+msgid "Formato: latitud, longitud"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:453
+msgid "Latitud"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:458
+msgid "Longitud"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:465
+msgid "Usar mi ubicación"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:468
+msgid "Guardar GPS"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:477
+msgid "Galería"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:489
+msgid "Foto de la instalación"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:507
+msgid "No hay fotos de la instalación."
+msgstr ""
+
+#: presentation/templates/fiche_client.html:514
+msgid "Añadir fotos"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:519
+#, python-format
+msgid "JPG, PNG o WEBP. Máx. 5 MB por foto. Hasta %(n)s fotos."
+msgstr ""
+
+#: presentation/templates/fiche_client.html:521
+msgid "Límite alcanzado."
+msgstr ""
+
+#: presentation/templates/fiche_client.html:523
+#, python-format
+msgid "Puede añadir %(n)s más."
+msgstr ""
+
+#: presentation/templates/fiche_client.html:530
+msgid "Guardar fotos"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:597
+msgid "Eliminar foto"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:598
+msgid "Cerrar"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:601
+msgid "¿Eliminar esta foto de la instalación?"
+msgstr ""
+
+#: presentation/templates/fiche_client.html:604
+msgid "Cancelar"
+msgstr ""
+
+#: presentation/templates/fiche_client_pdf.html:167
+msgid "Generada el"
+msgstr ""
+
+#: presentation/templates/fiche_client_pdf.html:211
+msgid "Estadísticas de las incidencias"
+msgstr ""
+
+#: presentation/templates/fiche_client_pdf.html:285
+msgid ""
+"Documento generado automaticamente por el portal de registro para "
+"atencion al cliente de CONNEXIA"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:6
+msgid "Incidencia"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:10
+msgid "Volver"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:23
+msgid "Copiar"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:27
+msgid "Ping"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:44
+msgid "Detalles de la Incidencia"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:49
+msgid "ID Incidencia"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:112
+#: presentation/templates/fiche_incident.html:147
+msgid "Usuario"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:135
+msgid "Comentarios"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:168
+msgid "No hay comentarios todavía."
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:174
+msgid "Comentario"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:181
+msgid "Escriba un mensaje…"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:184
+msgid "Enviar"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:194
+msgid "Acciones rápidas"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:210
+msgid "Marcar como Solucionada"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:218
+msgid "Modificar Incidencia"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:223
+msgid "¿Está seguro de eliminar esta incidencia?"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:231
+msgid ""
+"No tiene permiso para modificar esta incidencia. Puede añadir comentarios"
+" arriba."
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:242
+msgid "Cliente Afectado"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:307
+msgid "Cuenta PPPoE"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:312
+msgid "No configurada"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:319
+msgid "Ver Ficha Completa del Cliente"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:329
+msgid "Información de tiempo"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:340
+msgid "Tiempo Transcurrido"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:355
+msgid "¡Atención!"
+msgstr ""
+
+#: presentation/templates/fiche_incident.html:356
+msgid "Incidencia pendiente por más de 30 minutos"
+msgstr ""
+
+#: presentation/templates/incidents.html:57
+msgid "Tarea Bitrix"
+msgstr ""
+
+#: presentation/templates/incidents.html:61
+msgid "Todas"
+msgstr ""
+
+#: presentation/templates/incidents.html:65
+msgid "Sin consultar"
+msgstr ""
+
+#: presentation/templates/incidents.html:238
+msgid "Técnico"
 msgstr ""
 
