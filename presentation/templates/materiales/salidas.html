@@ -18,7 +18,10 @@
     'incidencia': 'bg-warning text-dark',
     'instalacion': 'bg-primary'
 } %}
+{% set search_query = search_query|default(filters.get('search', '')) %}
+{% set filters_active = search_query or filters.get('tipo_salida') or filters.get('tecnico') or filters.get('material') or filters.get('date_from') or filters.get('date_to') %}
 {% set filter_kwargs = {
+    'search': search_query,
     'date_from': filters.get('date_from', ''),
     'date_to': filters.get('date_to', ''),
     'estado': filters.get('estado', ''),
@@ -37,130 +40,115 @@
         </ol>
     </nav>
 
-    <div class="card content-card mb-4">
-
-        <div class="card-body">
-
-            <form method="GET" class="row g-2 align-items-end">
-
-                <div class="col-md-2">
-
-                    <label class="form-label small">Desde</label>
-
-                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ filters.get('date_from', '') }}">
-
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 content-card">
+                <div class="card-header d-flex align-items-center flex-wrap gap-2 py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtros de búsqueda
+                    </h5>
+                    <span class="badge bg-light text-dark ms-0 ms-md-2{% if not filters_active %} d-none{% endif %}" id="filtrosActivos">
+                        Filtros activos
+                    </span>
                 </div>
-
-                <div class="col-md-2">
-
-                    <label class="form-label small">Hasta</label>
-
-                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ filters.get('date_to', '') }}">
-
+                <div class="card-body">
+                    <form method="GET" id="formFiltrosSalidas">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-12 col-md-6 col-lg-3">
+                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-search me-1"></i>Buscar
+                                </label>
+                                <input type="text" class="form-control form-control-sm" id="search" name="search"
+                                       value="{{ search_query }}" placeholder="Cliente, teléfono, técnico, material…"
+                                       autocomplete="off">
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="tipo_salida" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-tag me-1"></i>Tipo de salida
+                                </label>
+                                <select class="form-select form-select-sm" id="tipo_salida" name="tipo_salida">
+                                    <option value="">Todos</option>
+                                    {% for t in salida_tipos %}
+                                    <option value="{{ t }}" {% if filters.get('tipo_salida') == t %}selected{% endif %}>{{ salida_tipo_labels[t] }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="tecnico" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-user-cog me-1"></i>Técnico
+                                </label>
+                                <select class="form-select form-select-sm" id="tecnico" name="tecnico">
+                                    <option value="">Todos</option>
+                                    {% for t in tecnicos %}
+                                    <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="material" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-box me-1"></i>Material
+                                </label>
+                                <select class="form-select form-select-sm" id="material" name="material">
+                                    <option value="">Todos</option>
+                                    {% for m in materiales_filter %}
+                                    <option value="{{ m.id }}" {% if filters.get('material') and filters.get('material')|int == m.id %}selected{% endif %}>{{ m.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="date_from" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-calendar-alt me-1"></i>Desde
+                                </label>
+                                <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ filters.get('date_from', '') }}">
+                            </div>
+                            <div class="col-6 col-md-4 col-lg-2">
+                                <label for="date_to" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-calendar-alt me-1"></i>Hasta
+                                </label>
+                                <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ filters.get('date_to', '') }}">
+                            </div>
+                            <div class="col-4 col-md-2 col-lg-1">
+                                <label for="per_page" class="form-label small text-dark text-uppercase fw-semibold">
+                                    <i class="fas fa-list me-1"></i>Por pág.
+                                </label>
+                                <select class="form-select form-select-sm" id="per_page" name="per_page">
+                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+                                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
+                                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+                                </select>
+                            </div>
+                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
+                                <div class="form-check ms-2">
+                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle-salidas" checked>
+                                    <label class="form-check-label small text-muted" for="remember-filters-toggle-salidas">
+                                        Recordar filtros
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search"></i> Buscar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-salidas">
+                                    <i class="fas fa-undo-alt"></i> Reiniciar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
+                                    <i class="fas fa-print"></i>
+                                </button>
+                                <a href="{{ url_for('materiales_salidas_export_xlsx', page=pagination.page, **filter_kwargs) }}"
+                                   class="btn btn-outline-success btn-sm"
+                                   title="Exportar Excel (página actual)">
+                                    <i class="fas fa-file-excel"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="filters-feedback-salidas" class="small text-success mt-2 d-none">
+                        <i class="fas fa-check-circle me-1"></i>Filtros restaurados automáticamente
+                    </div>
                 </div>
-
-                <!--<div class="col-md-2">
-
-                    <label class="form-label small">Estado</label>
-
-                    <select name="estado" class="form-select form-select-sm">
-
-                        <option value="">Todos</option>
-
-                        {% for e in salida_estados %}
-
-                        <option value="{{ e }}" {% if filters.get('estado') == e %}selected{% endif %}>{{ estado_labels[e] }}</option>
-
-                        {% endfor %}
-
-                    </select>
-
-                </div> -->
-
-                <div class="col-md-2">
-
-                    <label class="form-label small">Tipo de salida</label>
-
-                    <select name="tipo_salida" class="form-select form-select-sm">
-
-                        <option value="">Todos</option>
-
-                        {% for t in salida_tipos %}
-
-                        <option value="{{ t }}" {% if filters.get('tipo_salida') == t %}selected{% endif %}>{{ salida_tipo_labels[t] }}</option>
-
-                        {% endfor %}
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label class="form-label small">Técnico</label>
-
-                    <select name="tecnico" class="form-select form-select-sm">
-
-                        <option value="">Todos</option>
-
-                        {% for t in tecnicos %}
-
-                        <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
-
-                        {% endfor %}
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label class="form-label small">Material</label>
-
-                    <select name="material" class="form-select form-select-sm">
-
-                        <option value="">Todos</option>
-
-                        {% for m in materiales_filter %}
-
-                        <option value="{{ m.id }}" {% if filters.get('material') and filters.get('material')|int == m.id %}selected{% endif %}>{{ m.label }}</option>
-
-                        {% endfor %}
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-2">
-
-                    <label for="per_page" class="form-label small">Por página</label>
-
-                    <select class="form-select form-select-sm" id="per_page" name="per_page">
-
-                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-
-                        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-
-                        <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
-
-                        <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
-
-                    </select>
-
-                </div>
-
-                <div class="col-md-12 col-lg-auto">
-
-                    <button type="submit" class="btn btn-sm btn-outline-primary me-1">Filtrar</button>
-
-                    <a href="{{ url_for('materiales_salidas') }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
-
-                </div>
-
-            </form>
-
+            </div>
         </div>
-
     </div>
 
 
@@ -169,6 +157,13 @@
 
         <div class="card-body p-0">
 
+            <div id="salidas-export-meta"
+                 class="d-none"
+                 data-page="{{ pagination.page }}"
+                 data-pages="{{ pagination.pages or 1 }}"
+                 data-per-page="{{ per_page }}"
+                 data-total="{{ pagination.total }}"
+                 aria-hidden="true"></div>
             {% if salidas %}
             <div class="table-responsive d-none d-lg-block d-print-block">
 
@@ -201,8 +196,15 @@
                     <tbody>
 
                         {% for s in salidas %}
-
-                        <tr>
+                        {% set cliente_export = s.client.nom if s.client else ('Uso interno' if s.tipo_salida == 'uso_interno' else 'Uso general') %}
+                        <tr class="salida-export-row"
+                            data-export-id="#{{ s.id }}"
+                            data-export-fecha="{{ s.fecha.strftime('%d/%m/%Y') if s.fecha else '' }}"
+                            data-export-tipo="{{ salida_tipo_labels.get(s.tipo_salida, s.tipo_salida) }}"
+                            data-export-tipo-code="{{ s.tipo_salida or '' }}"
+                            data-export-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
+                            data-export-cliente="{{ cliente_export|e }}"
+                            data-export-materiales="{% for linea in s.lineas %}{{ linea.material.nombre if linea.material else '?' }}({{ linea.material.modelo if linea.material else '?' }}) x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}{% endfor %}">
 
                             <td>{{ s.id }}</td>
 
@@ -453,6 +455,130 @@
     if (perPageSelect && perPageSelect.form) {
         perPageSelect.addEventListener('change', function () {
             this.form.submit();
+        });
+    }
+
+    const form = document.getElementById('formFiltrosSalidas');
+    const rememberToggle = document.getElementById('remember-filters-toggle-salidas');
+    const resetButton = document.getElementById('reset-filters-btn-salidas');
+    const feedback = document.getElementById('filters-feedback-salidas');
+    const cookieName = 'salidas_filters_v1';
+    const cookieMaxAge = 30 * 24 * 60 * 60;
+    const cookieScope = 'salidas_user_{{ current_user.id if current_user.is_authenticated else "anonymous" }}';
+    const trackedParams = ['search', 'tipo_salida', 'tecnico', 'material', 'date_from', 'date_to', 'per_page'];
+
+    function setCookie(name, value, maxAgeSeconds) {
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+    }
+
+    function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split('; ') : [];
+        for (const cookie of cookies) {
+            const index = cookie.indexOf('=');
+            const key = index >= 0 ? cookie.slice(0, index) : cookie;
+            if (key === name) {
+                return decodeURIComponent(index >= 0 ? cookie.slice(index + 1) : '');
+            }
+        }
+        return null;
+    }
+
+    function clearCookie(name) {
+        document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+    }
+
+    function getCurrentFilters() {
+        return {
+            search: document.getElementById('search').value || '',
+            tipo_salida: document.getElementById('tipo_salida').value || '',
+            tecnico: document.getElementById('tecnico').value || '',
+            material: document.getElementById('material').value || '',
+            date_from: document.getElementById('date_from').value || '',
+            date_to: document.getElementById('date_to').value || '',
+            per_page: document.getElementById('per_page').value || '50'
+        };
+    }
+
+    function saveFilters() {
+        if (!rememberToggle.checked) {
+            return;
+        }
+        setCookie(cookieName, JSON.stringify({
+            scope: cookieScope,
+            enabled: true,
+            filters: getCurrentFilters()
+        }), cookieMaxAge);
+    }
+
+    function loadSavedFilters() {
+        const raw = getCookie(cookieName);
+        if (!raw) {
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (parsed.scope !== cookieScope) {
+                return null;
+            }
+            return parsed;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function hasUrlFilters() {
+        const params = new URLSearchParams(window.location.search);
+        return trackedParams.some(function (param) { return params.has(param); });
+    }
+
+    function applyFilters(filters) {
+        document.getElementById('search').value = filters.search || '';
+        document.getElementById('tipo_salida').value = filters.tipo_salida || '';
+        document.getElementById('tecnico').value = filters.tecnico || '';
+        document.getElementById('material').value = filters.material || '';
+        document.getElementById('date_from').value = filters.date_from || '';
+        document.getElementById('date_to').value = filters.date_to || '';
+        document.getElementById('per_page').value = filters.per_page || '50';
+    }
+
+    function showFeedback() {
+        feedback.classList.remove('d-none');
+        setTimeout(function () { feedback.classList.add('d-none'); }, 3000);
+    }
+
+    if (form && rememberToggle && resetButton && feedback) {
+        const saved = loadSavedFilters();
+        if (saved && saved.enabled === false) {
+            rememberToggle.checked = false;
+        }
+
+        const shouldRestore = !hasUrlFilters() && saved && saved.enabled !== false && saved.filters;
+        if (shouldRestore) {
+            applyFilters(saved.filters);
+            showFeedback();
+            form.submit();
+            return;
+        }
+
+        if (saved && rememberToggle.checked) {
+            saveFilters();
+        }
+
+        rememberToggle.addEventListener('change', function () {
+            if (this.checked) {
+                saveFilters();
+            } else {
+                clearCookie(cookieName);
+            }
+        });
+
+        resetButton.addEventListener('click', function () {
+            clearCookie(cookieName);
+            window.location.href = '{{ url_for("materiales_salidas") }}';
+        });
+
+        form.addEventListener('submit', function () {
+            saveFilters();
         });
     }
 })();

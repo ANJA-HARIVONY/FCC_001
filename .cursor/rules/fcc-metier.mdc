@@ -35,9 +35,9 @@ Ne pas renommer les colonnes FR : `nom`, `intitule`, `ville`, `date_heure`, `mot
 
 - Materiales / instalaciones / ficha técnico / ficha AC / audit / usuarios CRUD : `@admin_required`
 - Hub `/instalaciones` : uniquement les salidas `tipo_salida=instalacion` ; filtres + pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
-- Table «Lista de instalaciones» : `#` \| `Fecha` \| `Técnico` \| `Cliente` \| `Materiales` \| `Acciones` (Ver / Modificar). GPS/fotos restent sur la fiche client, pas sur cette liste
+- Table «Lista de instalaciones» : `ID` \| `Fecha` \| `Técnico` \| `Cliente` \| `Materiales` \| `Acciones` (Ver / Modificar). GPS/fotos restent sur la fiche client, pas sur cette liste
 - Table «Salidas de material» (`/materiales/salidas`) : `#` \| `Fecha` \| `Tipo` \| `Técnico` \| `Cliente` \| `Materiales` \| `Acciones` (Ver / Modificar / Copiar). Colonne `Estado` masquée. Les 3 `tipo_salida` ; pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
 - `uso_interno` → `id_client` NULL ; `incidencia`/`instalacion` → client obligatoire ; `tipo_salida` non modifiable à l’édition
 - Apreciaciones : GET connecté ; PUT/DELETE admin ; max 120 car. ; 1 / jour
-- Excel clients/incidents = **page courante** seulement
+- Excel clients / incidents / salidas = **page courante** seulement
 - `write_audit` best-effort (ne jamais faire échouer la requête métier)

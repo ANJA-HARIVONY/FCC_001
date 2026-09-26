@@ -4,7 +4,7 @@
 {% set nav_incidents = ['incidents', 'nouveau_incident', 'fiche_incident', 'modifier_incident'] %}
 {% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print', 'client_gps_actualizar', 'client_fotos_agregar', 'client_foto_eliminar'] %}
 {% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
-{% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+{% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salidas_export_xlsx', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
 {% set nav_instalaciones = ['instalaciones_hub'] %}
 {% set inst_nueva = ep == 'materiales_salida_nueva' and request.args.get('tipo') == 'instalacion' %}
 {% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}

@@ -767,6 +767,10 @@ msgstr "au total"
 msgid "mostrados"
 msgstr "affichés"
 
+#: presentation/templates/instalaciones/hub.html:115
+msgid "en esta página"
+msgstr "sur cette page"
+
 #: presentation/templates/instalaciones/hub.html:120
 msgid "Página"
 msgstr "Page"

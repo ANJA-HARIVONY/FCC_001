@@ -45,6 +45,8 @@ from core.services.materiales_service import (
 from core.services.materiales_export_service import (
     build_informe_export_filename,
     build_informe_workbook,
+    build_salidas_export_filename,
+    build_salidas_list_workbook,
 )
 
 
@@ -171,9 +173,8 @@ def materiales_salida_nueva():
     )
 
 
-@app.route('/materiales/salidas')
-@admin_required
-def materiales_salidas():
+def _paginated_salidas_from_request():
+    """Lista paginada de salidas y metadatos de filtros (lista y export Excel)."""
     page = request.args.get('page', 1, type=int)
     per_page = clamp_list_per_page(request.args.get('per_page', type=int))
     agencia_id = _agencia_scope()
@@ -185,21 +186,45 @@ def materiales_salidas():
         .order_by(Operateur.nom)
         .all()
     )
-    open_nueva = request.args.get('nueva') == '1'
-    return render_template(
-        'materiales/salidas.html',
-        pagination=pagination,
-        salidas=pagination.items,
-        estado_labels=SALIDA_ESTADO_LABELS,
-        salida_estados=SALIDA_ESTADOS,
-        salida_tipos=SALIDA_TIPOS,
-        salida_tipo_labels=SALIDA_TIPO_LABELS,
-        tecnicos=tecnicos,
-        materiales_filter=materiales_filter,
-        filters=request.args,
-        per_page=per_page,
-        open_nueva_modal=open_nueva,
-    )
+    return {
+        'pagination': pagination,
+        'salidas': pagination.items,
+        'estado_labels': SALIDA_ESTADO_LABELS,
+        'salida_estados': SALIDA_ESTADOS,
+        'salida_tipos': SALIDA_TIPOS,
+        'salida_tipo_labels': SALIDA_TIPO_LABELS,
+        'tecnicos': tecnicos,
+        'materiales_filter': materiales_filter,
+        'filters': request.args,
+        'search_query': (request.args.get('search') or '').strip(),
+        'per_page': per_page,
+    }
+
+
+@app.route('/materiales/salidas')
+@admin_required
+def materiales_salidas():
+    context = _paginated_salidas_from_request()
+    context['open_nueva_modal'] = request.args.get('nueva') == '1'
+    return render_template('materiales/salidas.html', **context)
+
+
+@app.route('/materiales/salidas/export.xlsx')
+@admin_required
+def materiales_salidas_export_xlsx():
+    """Exportar la página actual de salidas en Excel (.xlsx)."""
+    try:
+        context = _paginated_salidas_from_request()
+        buffer = build_salidas_list_workbook(context['salidas'])
+        return send_file(
+            buffer,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=build_salidas_export_filename(),
+        )
+    except Exception as exc:
+        flash(f'Error al exportar las salidas: {exc}', 'error')
+        return redirect(url_for('materiales_salidas', **request.args.to_dict()))
 
 
 @app.route('/materiales/salidas/<int:salida_id>')

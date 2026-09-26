@@ -767,6 +767,10 @@ msgstr "total"
 msgid "mostrados"
 msgstr "mostrados"
 
+#: presentation/templates/instalaciones/hub.html:115
+msgid "en esta página"
+msgstr "en esta página"
+
 #: presentation/templates/instalaciones/hub.html:120
 msgid "Página"
 msgstr "Página"

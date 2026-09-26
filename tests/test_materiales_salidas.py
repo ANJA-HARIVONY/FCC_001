@@ -93,6 +93,25 @@ class MaterialesSalidasPaginationTests(unittest.TestCase):
         self.assertIn('name="per_page"', html)
         self.assertIn('option value="50" selected', html)
 
+    def test_filtros_reproducen_botones_incidencias(self):
+        html = self._html()
+        self.assertIn('Filtros de búsqueda', html)
+        self.assertIn('formFiltrosSalidas', html)
+        self.assertIn('name="search"', html)
+        self.assertIn('Recordar filtros', html)
+        self.assertIn('Buscar', html)
+        self.assertIn('Reiniciar', html)
+        self.assertIn('printReport()', html)
+        self.assertIn('/materiales/salidas/export.xlsx', html)
+        self.assertIn('materiales_salidas_export_xlsx', app.view_functions)
+
+    def test_export_xlsx_pagina_actual(self):
+        with self.app.test_request_context('/materiales/salidas/export.xlsx?per_page=50'):
+            login_user(self.admin)
+            response = self.app.view_functions['materiales_salidas_export_xlsx']()
+            self.assertEqual(response.mimetype, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            self.assertTrue(response.headers.get('Content-Disposition', '').startswith('attachment'))
+
     def test_paginacion_numerada_conserva_filtros(self):
         html = self._html('/materiales/salidas?tipo_salida=uso_interno&per_page=50')
         self.assertIn('pagination', html)
