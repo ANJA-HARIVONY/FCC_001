@@ -179,6 +179,25 @@ class InstalacionesHubFilterTests(unittest.TestCase):
         self.assertIn('Cliente Alpha', html)
         self.assertNotIn('Cliente Beta', html)
 
+    def _dashboard_html(self, query_string='/'):
+        with self.app.test_request_context(query_string):
+            login_user(self.admin)
+            html = self.app.view_functions['dashboard']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            return html
+
+    def test_dashboard_instalaciones_del_dia_ignora_periodo(self):
+        html = self._dashboard_html('/?period=last_6_months')
+        self.assertIn('Instalaciones del día', html)
+        self.assertIn('Cliente Alpha', html)
+        self.assertIn('ONU filtro', html)
+        self.assertIn(f'<strong>#{self.salida_a.id}</strong>', html)
+        self.assertNotIn('Cliente Beta', html)
+        self.assertNotIn(f'<strong>#{self.salida_b.id}</strong>', html)
+        self.assertNotIn(f'<strong>#{self.salida_interna.id}</strong>', html)
+        self.assertNotIn('5 últimos registros', html)
+
     def test_per_page_invalido_cae_a_50(self):
         html = self._hub_html('/instalaciones?per_page=25')
         self.assertIn('option value="50" selected', html)

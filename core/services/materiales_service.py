@@ -360,6 +360,29 @@ def salidas_base_query(agencia_id=None):
     return query
 
 
+def instalaciones_del_dia(day=None, agencia_id=None, *, all_agencies=False):
+    """Salidas tipo instalacion d'un jour calendaire, hors filtre de période."""
+    from core.app import MaterialSalida, Operateur
+
+    if day is None:
+        day = datetime.now().date()
+    query = salidas_base_query(None).filter(
+        MaterialSalida.tipo_salida == 'instalacion',
+        MaterialSalida.fecha == day,
+    )
+    if not all_agencies:
+        query = query.filter(Operateur.id_agencia == agencia_id)
+    rows = query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id)).all()
+    seen = set()
+    unique_rows = []
+    for row in rows:
+        if row.id in seen:
+            continue
+        seen.add(row.id)
+        unique_rows.append(row)
+    return unique_rows
+
+
 LIST_PER_PAGE_CHOICES = (50, 100, 200, 500)
 DEFAULT_LIST_PER_PAGE = 50
 

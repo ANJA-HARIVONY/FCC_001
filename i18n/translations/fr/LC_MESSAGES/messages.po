@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-25 16:38+0100\n"
+"POT-Creation-Date: 2026-09-26 13:38+0100\n"
 "PO-Revision-Date: 2025-05-25 21:36+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -16,7 +16,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.14.0\n"
+"Generated-By: Babel 2.18.0\n"
 
 #: core/app.py:165
 msgid "La sesión de seguridad ha expirado. Vuelva a iniciar sesión."
@@ -128,65 +128,65 @@ msgstr ""
 msgid "Formato inválido para fecha fin."
 msgstr ""
 
-#: core/app.py:2364 core/app.py:2423
+#: core/app.py:2363 core/app.py:2422
 msgid "La ciudad es obligatoria."
 msgstr ""
 
-#: core/app.py:2393
+#: core/app.py:2392
 msgid "Cliente creado con éxito!"
 msgstr ""
 
-#: core/app.py:2445
+#: core/app.py:2444
 msgid "Cliente modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2465
+#: core/app.py:2464
 msgid "Cliente eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:2543
+#: core/app.py:2542
 msgid ""
 "Generación de PDF temporalmente desactivada. Utilice la impresión del "
 "navegador (Ctrl+P)."
 msgstr ""
 
-#: core/app.py:2749
+#: core/app.py:2748
 msgid "Operador creado con éxito!"
 msgstr ""
 
-#: core/app.py:2761
+#: core/app.py:2760
 msgid "Operador modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2771
+#: core/app.py:2770
 msgid "Operador eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:2885
+#: core/app.py:2884
 msgid "Incidencia creada con éxito!"
 msgstr ""
 
-#: core/app.py:2936
+#: core/app.py:2935
 msgid "El comentario no puede estar vacío."
 msgstr ""
 
-#: core/app.py:2939
+#: core/app.py:2938
 msgid "El comentario no puede superar 1000 caracteres."
 msgstr ""
 
-#: core/app.py:2950
+#: core/app.py:2949
 msgid "Comentario publicado."
 msgstr ""
 
-#: core/app.py:3028
+#: core/app.py:3027
 msgid "Incidencia modificada con éxito!"
 msgstr ""
 
-#: core/app.py:3044
+#: core/app.py:3043
 msgid "Incidencia eliminada con éxito!"
 msgstr ""
 
-#: core/app.py:3270
+#: core/app.py:3224
 msgid "Utilisateur"
 msgstr ""
 
@@ -202,11 +202,11 @@ msgstr "Photos de l'installation enregistrées."
 msgid "Foto eliminada."
 msgstr "Photo supprimée."
 
-#: core/routes/materiales_routes.py:166
+#: core/routes/materiales_routes.py:169
 msgid "Nueva salida de instalación"
 msgstr "Nouvelle sortie d'installation"
 
-#: core/routes/materiales_routes.py:168
+#: core/routes/materiales_routes.py:171
 msgid "Nueva salida de material"
 msgstr "Nouvelle sortie de matériel"
 
@@ -334,6 +334,59 @@ msgstr ""
 msgid "Eliminar"
 msgstr ""
 
+#: presentation/templates/dashboard.html:186
+msgid "Instalaciones del día"
+msgstr "Installations du jour"
+
+#: presentation/templates/dashboard.html:199
+#: presentation/templates/instalaciones/hub.html:131
+msgid "Fecha"
+msgstr "Date"
+
+#: presentation/templates/dashboard.html:200
+#: presentation/templates/incidents.html:238
+#: presentation/templates/instalaciones/hub.html:51
+#: presentation/templates/instalaciones/hub.html:132
+msgid "Técnico"
+msgstr ""
+
+#: presentation/templates/dashboard.html:201
+#: presentation/templates/instalaciones/hub.html:133
+msgid "Cliente"
+msgstr "Client"
+
+#: presentation/templates/dashboard.html:202
+#: presentation/templates/instalaciones/hub.html:134
+msgid "Materiales"
+msgstr "Matériaux"
+
+#: presentation/templates/dashboard.html:203
+#: presentation/templates/instalaciones/hub.html:135
+msgid "Acciones"
+msgstr "Actions"
+
+#: presentation/templates/dashboard.html:258
+#: presentation/templates/instalaciones/hub.html:190
+msgid "Ver"
+msgstr "Voir"
+
+#: presentation/templates/dashboard.html:262
+#: presentation/templates/fiche_client.html:13
+#: presentation/templates/fiche_incident.html:31
+#: presentation/templates/instalaciones/hub.html:194
+msgid "Modificar"
+msgstr ""
+
+#: presentation/templates/dashboard.html:280
+msgid "No hay instalaciones registradas hoy"
+msgstr "Aucune installation enregistrée aujourd'hui"
+
+#: presentation/templates/dashboard.html:283
+#: presentation/templates/instalaciones/hub.html:10
+#: presentation/templates/instalaciones/hub.html:280
+msgid "Nueva instalación"
+msgstr "Nouvelle installation"
+
 #: presentation/templates/fiche_client.html:6
 #: presentation/templates/fiche_client_pdf.html:166
 msgid "Ficha del Cliente"
@@ -341,12 +394,6 @@ msgstr ""
 
 #: presentation/templates/fiche_client.html:10
 msgid "Crear incidencia"
-msgstr ""
-
-#: presentation/templates/fiche_client.html:13
-#: presentation/templates/fiche_incident.html:31
-#: presentation/templates/instalaciones/hub.html:163
-msgid "Modificar"
 msgstr ""
 
 #: presentation/templates/fiche_client.html:16
@@ -690,12 +737,6 @@ msgstr ""
 msgid "Sin consultar"
 msgstr ""
 
-#: presentation/templates/incidents.html:238
-#: presentation/templates/instalaciones/hub.html:51
-#: presentation/templates/instalaciones/hub.html:132
-msgid "Técnico"
-msgstr ""
-
 #: presentation/templates/instalaciones/hub.html:3
 #: presentation/templates/instalaciones/hub.html:6
 msgid "Instalaciones"
@@ -704,11 +745,6 @@ msgstr "Installations"
 #: presentation/templates/instalaciones/hub.html:7
 msgid "Salidas de material de tipo instalación"
 msgstr "Sorties de matériel de type installation"
-
-#: presentation/templates/instalaciones/hub.html:10
-#: presentation/templates/instalaciones/hub.html:248
-msgid "Nueva instalación"
-msgstr "Nouvelle installation"
 
 #: presentation/templates/instalaciones/hub.html:31
 msgid "Filtros de búsqueda"
@@ -764,10 +800,6 @@ msgid "total"
 msgstr "au total"
 
 #: presentation/templates/instalaciones/hub.html:115
-msgid "mostrados"
-msgstr "affichés"
-
-#: presentation/templates/instalaciones/hub.html:115
 msgid "en esta página"
 msgstr "sur cette page"
 
@@ -776,73 +808,53 @@ msgid "Página"
 msgstr "Page"
 
 #: presentation/templates/instalaciones/hub.html:120
-#: presentation/templates/instalaciones/hub.html:230
+#: presentation/templates/instalaciones/hub.html:262
 msgid "de"
 msgstr "sur"
 
-#: presentation/templates/instalaciones/hub.html:131
-msgid "Fecha"
-msgstr "Date"
-
-#: presentation/templates/instalaciones/hub.html:133
-msgid "Cliente"
-msgstr "Client"
-
-#: presentation/templates/instalaciones/hub.html:134
-msgid "Materiales"
-msgstr "Matériaux"
-
-#: presentation/templates/instalaciones/hub.html:135
-msgid "Acciones"
-msgstr "Actions"
-
-#: presentation/templates/instalaciones/hub.html:159
-msgid "Ver"
-msgstr "Voir"
-
-#: presentation/templates/instalaciones/hub.html:179
+#: presentation/templates/instalaciones/hub.html:211
 msgid "Paginación de las instalaciones"
 msgstr "Pagination des installations"
 
-#: presentation/templates/instalaciones/hub.html:184
-#: presentation/templates/instalaciones/hub.html:189
+#: presentation/templates/instalaciones/hub.html:216
+#: presentation/templates/instalaciones/hub.html:221
 msgid "Anterior"
 msgstr "Précédent"
 
-#: presentation/templates/instalaciones/hub.html:216
-#: presentation/templates/instalaciones/hub.html:221
+#: presentation/templates/instalaciones/hub.html:248
+#: presentation/templates/instalaciones/hub.html:253
 msgid "Siguiente"
 msgstr "Suivant"
 
-#: presentation/templates/instalaciones/hub.html:228
+#: presentation/templates/instalaciones/hub.html:260
 msgid "Mostrando"
 msgstr "Affichage de"
 
-#: presentation/templates/instalaciones/hub.html:228
+#: presentation/templates/instalaciones/hub.html:260
 msgid "a"
 msgstr "à"
 
-#: presentation/templates/instalaciones/hub.html:230
+#: presentation/templates/instalaciones/hub.html:262
 msgid "instalaciones"
 msgstr "installations"
 
-#: presentation/templates/instalaciones/hub.html:239
+#: presentation/templates/instalaciones/hub.html:271
 msgid "No se encontraron instalaciones"
 msgstr "Aucune installation trouvée"
 
-#: presentation/templates/instalaciones/hub.html:240
+#: presentation/templates/instalaciones/hub.html:272
 msgid "Intente cambiar los filtros de búsqueda"
 msgstr "Essayez de modifier les filtres de recherche"
 
-#: presentation/templates/instalaciones/hub.html:242
+#: presentation/templates/instalaciones/hub.html:274
 msgid "Limpiar filtros"
 msgstr "Effacer les filtres"
 
-#: presentation/templates/instalaciones/hub.html:245
+#: presentation/templates/instalaciones/hub.html:277
 msgid "No hay salidas de instalación registradas."
 msgstr "Aucune sortie d'installation enregistrée."
 
-#: presentation/templates/instalaciones/hub.html:246
+#: presentation/templates/instalaciones/hub.html:278
 msgid "Comience agregando su primera instalación"
 msgstr "Commencez par ajouter votre première installation"
 
@@ -1168,4 +1180,7 @@ msgstr "Commencez par ajouter votre première installation"
 
 #~ msgid "Siguiente"
 #~ msgstr ""
+
+#~ msgid "mostrados"
+#~ msgstr "affichés"
 

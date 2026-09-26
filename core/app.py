@@ -2154,11 +2154,13 @@ def dashboard():
     incidents_resolus = len([i for i in incidents_periode if i.status == 'Solucionadas'])
     incidents_attente = len([i for i in incidents_periode if i.status == 'Pendiente'])
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
-    
-    # 5 derniers incidents
-    derniers_incidents = apply_incident_visibility(
-        Incident.query.options(joinedload(Incident.client), joinedload(Incident.operateur))
-    ).order_by(Incident.date_heure.desc()).limit(5).all()
+
+    from core.services.materiales_service import instalaciones_del_dia
+
+    instalaciones_dia = instalaciones_del_dia(
+        agencia_id=current_user.id_agencia,
+        all_agencies=current_user.is_admin(),
+    )
     
     # Données pour les graphiques selon la période
     operateurs_query = apply_incident_visibility(db.session.query(
@@ -2197,15 +2199,12 @@ def dashboard():
         func.count(Incident.id).desc()
     ).limit(5).all()
     
-    from core.services.bitrix_cache_service import build_bitrix_list_context
-
     return render_template('dashboard.html',
                          total_incidents=total_incidents,
                          incidents_resolus=incidents_resolus,
                          incidents_attente=incidents_attente,
                          incidents_bitrix=incidents_bitrix,
-                         derniers_incidents=derniers_incidents,
-                         bitrix_list_info=build_bitrix_list_context(derniers_incidents),
+                         instalaciones_dia=instalaciones_dia,
                          incidents_par_operateur=incidents_par_operateur,
                          clients_recurrents=clients_recurrents,
                          current_period=period)
@@ -3090,50 +3089,6 @@ def dashboard_data():
     incidents_attente = len([i for i in incidents_periode if i.status == 'Pendiente'])
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
     
-    # 5 derniers incidents de la période
-    derniers_query = apply_incident_visibility(Incident.query)
-    if start_date:
-        derniers_query = derniers_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        derniers_query = derniers_query.filter(Incident.date_heure <= end_date)
-    
-    derniers_incidents = derniers_query.options(
-        joinedload(Incident.client),
-        joinedload(Incident.operateur),
-    ).order_by(Incident.date_heure.desc()).limit(5).all()
-    
-    from core.services.bitrix_cache_service import build_bitrix_list_context
-
-    bitrix_list_info = build_bitrix_list_context(derniers_incidents)
-
-    # Formater les derniers incidents pour l'API
-    derniers_incidents_data = []
-    for incident in derniers_incidents:
-        bx = bitrix_list_info.get(incident.id, {})
-        info = bx.get('info')
-        bitrix_info = None
-        if info:
-            bitrix_info = {
-                'status_label': info.get('status_label') or '',
-                'status_emoji': info.get('status_emoji') or '📋',
-            }
-            if info.get('error'):
-                bitrix_info['error'] = info['error']
-        derniers_incidents_data.append({
-            'id': incident.id,
-            'intitule': incident.intitule,
-            'status': incident.status,
-            'client_nom': incident.client.nom,
-            'client_adresse': incident.client.adresse or '',
-            'client_categoria': incident.client.categoria,
-            'operateur_nom': incident.operateur.nom,
-            'operateur_avatar_url': incident.operateur.avatar_url,
-            'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M'),
-            'ref_bitrix': incident.ref_bitrix or '',
-            'bitrix_auto_load': bool(bx.get('auto_load')),
-            'bitrix_info': bitrix_info,
-        })
-    
     # Données par opérateur pour la période
     operateurs_query = apply_incident_visibility(db.session.query(
         Operateur.nom, func.count(Incident.id)
@@ -3187,7 +3142,6 @@ def dashboard_data():
         'incidents_resolus': incidents_resolus,
         'incidents_attente': incidents_attente,
         'incidents_bitrix': incidents_bitrix,
-        'derniers_incidents': derniers_incidents_data,
         'incidents_par_operateur': incidents_par_operateur,
         'clients_recurrents': clients_recurrents_data
     })

@@ -174,98 +174,115 @@
         </div>
     </div>
 
-    <!-- Tableau des derniers incidents -->
+    <!-- Instalaciones del día : jour calendaire, indépendant du filtre de période -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card content-card">
+            {% set salida_tipo_badge = {'instalacion': 'bg-primary'} %}
+            {% set salida_tipo_labels = SALIDA_TIPO_LABELS %}
+            <div class="card content-card" id="instalaciones-dia-card">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>
-                        5 últimos registros
+                        <i class="fas fa-building me-2" aria-hidden="true"></i>
+                        {{ _('Instalaciones del día') }}
+                        {% if instalaciones_dia %}
+                        <span class="text-muted fw-normal">({{ instalaciones_dia|length }})</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    {% if derniers_incidents %}
+                    {% if instalaciones_dia %}
                     <div class="table-responsive d-none d-lg-block d-print-block">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0 align-middle">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
-                                    <th>Cliente</th>
-                                    <th>Asuntos</th>
-                                    <th>Estado</th>
-                                    <th>Operador</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th>{{ _('Fecha') }}</th>
+                                    <th>{{ _('Técnico') }}</th>
+                                    <th>{{ _('Cliente') }}</th>
+                                    <th>{{ _('Materiales') }}</th>
+                                    <th>{{ _('Acciones') }}</th>
                                 </tr>
                             </thead>
-                            <tbody id="derniers-incidents-tbody">
-                                {% for incident in derniers_incidents %}
+                            <tbody>
+                                {% for s in instalaciones_dia %}
                                 <tr>
-                                    <td><strong>#{{ incident.id }}</strong></td>
-                                    <td class="col-categoria-icon text-center">
-                                        {% with client=incident.client %}
-                                        {% include '_cliente_corporativo_icon.html' %}
-                                        {% endwith %}
-                                    </td>
+                                    <td><strong>#{{ s.id }}</strong></td>
+                                    <td>{{ s.fecha.strftime('%d/%m/%Y') if s.fecha else '—' }}</td>
                                     <td>
-                                        <i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ incident.client.adresse }}</small>
-                                    </td>
-                                    <td>{{ incident.intitule[:50] }}{% if incident.intitule|length > 50 %}...{% endif %}</td>
-                                    <td>
-                                        {% if incident.status == 'Solucionadas' %}
-                                            <span class="badge badge-resolut">{{ incident.status }} ✅​ </span>
-                                        {% elif incident.status == 'Pendiente' %}
-                                            <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
-                                        {% else %}
-                                            {% set bx = bitrix_list_info.get(incident.id, {}) if bitrix_list_info is defined else {} %}
-                                            {% with compact=true, auto_load=bx.auto_load|default(false), icon_only=true, bitrix_info=bx.info %}
-                                            {% include '_bitrix_status.html' %}
-                                            {% endwith %}
-                                        {% endif %}
-                                    </td>
-                                    <td>
+                                        {% if s.tecnico %}
                                         <div class="d-flex align-items-center gap-2">
                                             <img
-                                                src="{{ incident.operateur.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
-                                                alt="Avatar de {{ incident.operateur.nom }}"
+                                                src="{{ s.tecnico.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                                                alt="{{ s.tecnico.nom }}"
                                                 class="rounded-circle"
                                                 width="28"
                                                 height="28"
-                                                data-fallback="{{ url_for('static', filename='img/default_avatar.png') }}"
-                                                onerror="this.onerror=null;this.src=this.dataset.fallback;"
+                                                onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
                                             >
-                                            <span>{{ incident.operateur.nom }}</span>
+                                            <span>{{ s.tecnico.nom }}</span>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if s.client %}
+                                        <span class="d-inline-flex align-items-center gap-1">
+                                            {% with client=s.client %}
+                                            {% include '_cliente_corporativo_icon.html' %}
+                                            {% endwith %}
+                                            <i class="fas fa-user-tie me-1" aria-hidden="true"></i>
+                                            <a href="{{ url_for('fiche_client', id=s.client.id) }}" class="text-decoration-none text-dark">{{ s.client.nom }}</a>
+                                        </span>
+                                        {% if s.client.adresse %}
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ s.client.adresse }}</small>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate small text-muted" style="max-width: 220px;"
+                                             title="{% for linea in s.lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}{% endfor %}">
+                                            {% for linea in s.lineas %}
+                                            {{ linea.material.nombre if linea.material else '?' }}
+                                            x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
+                                            {% else %}
+                                            —
+                                            {% endfor %}
                                         </div>
                                     </td>
-                                    <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
                                     <td>
-                                        <a href="{{ url_for('modifier_incident', id=incident.id) }}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('materiales_salida_detalle', salida_id=s.id) }}"
+                                               class="btn btn-sm btn-outline-secondary" title="{{ _('Ver') }}">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </a>
+                                            <a href="{{ url_for('materiales_salida_modificar', salida_id=s.id) }}"
+                                               class="btn btn-sm btn-outline-primary" title="{{ _('Modificar') }}">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <div class="mobile-list d-lg-none d-print-none" id="derniers-incidents-cards">
-                        {% for incident in derniers_incidents %}
-                            {% with actions='edit' %}
-                            {% include '_mobile_list_card_incident.html' %}
-                            {% endwith %}
+                    <div class="mobile-list d-lg-none d-print-none">
+                        {% for s in instalaciones_dia %}
+                            {% include '_mobile_list_card_salida.html' %}
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No hay incidencias registradas</p>
-                        <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Añadir incidencia
+                    <div class="text-center py-5">
+                        <i class="fas fa-building fa-3x text-muted mb-3" aria-hidden="true"></i>
+                        <h5 class="text-muted">{{ _('No hay instalaciones registradas hoy') }}</h5>
+                        {% if current_user.is_admin() %}
+                        <a href="{{ url_for('materiales_salida_nueva', tipo='instalacion') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Nueva instalación') }}
                         </a>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -380,7 +397,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/bitrix-info.js') }}"></script>
+<script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
 <script>
 let incidentsChart = null;
 let operateursChart = null;
@@ -399,7 +416,6 @@ const canEditApreciacion = {{ 'true' if current_user.is_authenticated and curren
 const defaultPeriod = 'current_week';
 const defaultViewType = 'date';
 const defaultOperateurChartType = 'doughnut';
-const bitrixApiEnabled = {{ 'true' if bitrix_api_enabled else 'false' }};
 const filterCookieMaxAgeSeconds = 30 * 24 * 60 * 60; // 30 jours
 const dashboardFilterCookieName = 'dashboard_filters_v1';
 const rememberedPeriods = new Set([
@@ -1201,7 +1217,7 @@ function showLoadingIndicator() {
         card.classList.add('is-loading');
     });
 
-    document.querySelectorAll('.content-card').forEach(card => {
+    document.querySelectorAll('.content-card:not(#instalaciones-dia-card)').forEach(card => {
         card.classList.add('is-loading');
     });
 
@@ -1277,7 +1293,6 @@ function animateCount(el, targetValue, duration = 500) {
 }
 
 const CORPORATIVO_ICON_URL = "{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}";
-const DEFAULT_AVATAR_URL = "{{ url_for('static', filename='img/default_avatar.png') }}";
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -1300,83 +1315,6 @@ function clientNameCellHtml(name, href, adresse) {
         ? `<br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>${escapeHtml(adresse)}</small>`
         : '';
     return `<i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="${href}" class="text-decoration-none text-dark hover:text-primary">${escapeHtml(name)}</a>${adresseHtml}`;
-}
-
-function incidentStatusBadgesHtml(incident, suffix) {
-    if (incident.status === 'Solucionadas') {
-        return `<span class="badge badge-resolut">${escapeHtml(incident.status)} ✅</span>`;
-    }
-    if (incident.status === 'Pendiente') {
-        return `<span class="badge badge-attente">${escapeHtml(incident.status)} ⏳</span>`;
-    }
-    if (incident.status !== 'Bitrix') {
-        return `<span class="badge badge-bitrix">${escapeHtml(incident.status)}</span>`;
-    }
-
-    const ref = incident.ref_bitrix || '';
-    const blockSuffix = suffix || incident.id;
-    let html = `<span class="badge badge-bitrix">Bitrix <span class="d-inline text-muted"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/${encodeURIComponent(ref)}/" target="_blank" rel="noopener noreferrer" class="text-decoration-none text-white" title="Abrir en nuevo tab">${escapeHtml(ref)} <i class="fas fa-external-link-alt"></i></a></span></span>`;
-    if (!ref || !bitrixApiEnabled) {
-        return html;
-    }
-
-    const autoLoad = !!incident.bitrix_auto_load;
-    const info = incident.bitrix_info;
-    let inner = '';
-    if (info && info.error) {
-        inner = `<span class="bitrix-emoji-inline text-white-50" id="bitrixEmoji-${blockSuffix}" title="${escapeHtml(info.error)}">⚠️</span>`;
-    } else if (info) {
-        inner = `<span class="bitrix-emoji-inline" id="bitrixEmoji-${blockSuffix}" title="${escapeHtml(info.status_label || '')}">${escapeHtml(info.status_emoji || '📋')}</span>`;
-    } else if (autoLoad) {
-        inner = `<span class="bitrix-emoji-inline bitrix-loading" id="bitrixLoading-${blockSuffix}"><i class="fas fa-spinner fa-spin small"></i></span>`;
-    }
-
-    html += `<div id="bitrixInfoBlock-${blockSuffix}" class="bitrix-info-block bitrix-info-block--compact bitrix-info-block--icon-only d-inline ms-1" data-bitrix-incident-id="${incident.id}" data-bitrix-url="/api/incidents/${incident.id}/bitrix-info" data-bitrix-icon-only="1"${autoLoad ? ' data-bitrix-auto-load="1"' : ''}>${inner}</div>`;
-    return html;
-}
-
-function lastIncidentCardHtml(incident) {
-    const avatar = incident.operateur_avatar_url || DEFAULT_AVATAR_URL;
-    const adresse = incident.client_adresse
-        ? `<p class="mobile-list-card__subtitle"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>${escapeHtml(incident.client_adresse)}</p>`
-        : '';
-    const asunto = incident.intitule
-        ? `<p class="mobile-list-card__asunto">${escapeHtml(incident.intitule)}</p>`
-        : '';
-    return `
-    <article class="mobile-list-card">
-        <div class="mobile-list-card__head">
-            <div class="mobile-list-card__meta">
-                <span class="mobile-list-card__id">#${escapeHtml(incident.id)}</span>
-                ${incidentStatusBadgesHtml(incident, `${incident.id}-card`)}
-                ${corporativoIconHtml(incident.client_categoria)}
-            </div>
-            <div class="dropdown mobile-list-card__menu">
-                <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="Acciones">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/incidents/${incident.id}/modifier">
-                            <i class="fas fa-edit me-2"></i>Editar
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <a class="mobile-list-card__title" href="/incidents/${incident.id}/fiche_incident"><i class="fas fa-user-tie me-1" aria-hidden="true"></i>${escapeHtml(incident.client_nom)}</a>
-        ${adresse}
-        ${asunto}
-        <div class="mobile-list-card__badges">
-            <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--user">
-                <img src="${escapeHtml(avatar)}" alt="" class="rounded-circle" width="18" height="18" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_URL}';">
-                ${escapeHtml(incident.operateur_nom)}
-            </span>
-            <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--date">
-                <i class="fas fa-clock me-1"></i>${escapeHtml(incident.date_heure_formatted)}
-            </span>
-        </div>
-    </article>`;
 }
 
 function recurrentClientCardHtml(client, rank) {
@@ -1408,9 +1346,6 @@ function loadDashboardData(period) {
         .then(data => {
             // Mettre à jour les statistiques
             updateStatistics(data);
-            
-            // Mettre à jour le tableau des derniers incidents
-            updateLastIncidents(data.derniers_incidents);
             
             // Mettre à jour la liste des clients récurrents
             updateClientsRecurrents(data.clients_recurrents);
@@ -1451,62 +1386,6 @@ function updateStatistics(data) {
         el.setAttribute('data-stat-target', String(values[index]));
         animateCount(el, values[index]);
     });
-}
-
-// Fonction pour mettre à jour le tableau des derniers incidents
-function updateLastIncidents(incidents) {
-    const tableBody = document.getElementById('derniers-incidents-tbody');
-    const cards = document.getElementById('derniers-incidents-cards');
-    const noDataDiv = document.querySelector('.text-center.py-4');
-    
-    if (incidents.length > 0) {
-        if (noDataDiv) noDataDiv.style.display = 'none';
-        
-        if (tableBody) {
-            tableBody.innerHTML = incidents.map(incident => `
-                <tr>
-                    <td><strong>#${incident.id}</strong></td>
-                    <td class="col-categoria-icon text-center">${corporativoIconHtml(incident.client_categoria)}</td>
-                    <td>
-                        ${clientNameCellHtml(incident.client_nom, `/incidents/${incident.id}/fiche_incident`, incident.client_adresse)}
-                    </td>
-                    <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
-                    <td>
-                        ${incidentStatusBadgesHtml(incident)}
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <img
-                                src="${incident.operateur_avatar_url || DEFAULT_AVATAR_URL}"
-                                alt="Avatar de ${incident.operateur_nom}"
-                                class="rounded-circle"
-                                width="28"
-                                height="28"
-                                onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_URL}';"
-                            >
-                            <span>${incident.operateur_nom}</span>
-                        </div>
-                    </td>
-                    <td>${incident.date_heure_formatted}</td>
-                    <td>
-                        <a href="/incidents/${incident.id}/modifier" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        if (cards) {
-            cards.innerHTML = incidents.map(lastIncidentCardHtml).join('');
-        }
-        if (typeof window.initBitrixAutoLoad === 'function') {
-            window.initBitrixAutoLoad();
-        }
-    } else {
-        if (tableBody) tableBody.innerHTML = '';
-        if (cards) cards.innerHTML = '';
-        if (noDataDiv) noDataDiv.style.display = 'block';
-    }
 }
 
 // Fonction pour mettre à jour la liste des clients récurrents
