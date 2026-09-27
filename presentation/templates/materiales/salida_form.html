@@ -5,17 +5,25 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 {% block page_subtitle %}Formulario de salida de material{% endblock %}
 {% block page_actions %}
-<a href="{{ url_for('materiales_salidas') }}" class="btn btn-outline-secondary btn-sm">
+{% set inst_link = instalacion or (salida.instalacion if salida else None) %}
+<a href="{{ url_for('instalaciones_detalle', instalacion_id=inst_link.id) if inst_link else url_for('materiales_salidas') }}" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1"></i>Volver
 </a>
 {% endblock %}
 
 {% block content %}
+{% set inst_link = instalacion or (salida.instalacion if salida else None) %}
+{% set volver_url = url_for('instalaciones_detalle', instalacion_id=inst_link.id) if inst_link else url_for('materiales_salidas') %}
 <div class="container-fluid px-0">
     <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
         <ol class="breadcrumb mb-0">
+            {% if inst_link %}
+            <li class="breadcrumb-item"><a href="{{ url_for('instalaciones_hub') }}">{{ _('Instalaciones') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ volver_url }}">#{{ inst_link.id }}</a></li>
+            {% else %}
             <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
             <li class="breadcrumb-item"><a href="{{ url_for('materiales_salidas') }}">Salidas</a></li>
+            {% endif %}
             <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
         </ol>
     </nav>
@@ -28,6 +36,9 @@
                 {% if not salida %}
                 <input type="hidden" name="tipo_salida" value="{{ tipo_salida }}">
                 {% endif %}
+                {% if instalacion %}
+                <input type="hidden" name="id_instalacion" value="{{ instalacion.id }}">
+                {% endif %}
 
                 <div class="alert alert-light border mb-4 py-2 salida-tipo-banner">
                     <strong>Tipo de salida:</strong>
@@ -39,6 +50,12 @@
                     <span class="badge {{ salida_tipo_badge.get(tipo_salida, 'bg-secondary') }} ms-1">{{ salida_tipo_labels.get(tipo_salida, tipo_salida) }}</span>
                     {% if salida %}
                     <span class="text-muted small ms-2">(no modificable)</span>
+                    {% endif %}
+                    {% if inst_link %}
+                    <span class="ms-2">
+                        {{ _('Instalación') }}
+                        <a href="{{ url_for('instalaciones_detalle', instalacion_id=inst_link.id) }}">#{{ inst_link.id }}</a>
+                    </span>
                     {% endif %}
                 </div>
 
@@ -53,14 +70,15 @@
                             <input type="text" class="form-control" id="tecnico_search"
                                    placeholder="Buscar técnico por nombre o teléfono..."
                                    autocomplete="off"
-                                   value="{{ salida.tecnico.nom if salida and salida.tecnico else '' }}">
-                            <input type="hidden" id="id_tecnico" name="id_tecnico" value="{{ salida.id_tecnico if salida else '' }}" required>
+                                   value="{{ salida.tecnico.nom if salida and salida.tecnico else (instalacion.tecnico.nom if instalacion and instalacion.tecnico else '') }}">
+                            <input type="hidden" id="id_tecnico" name="id_tecnico" value="{{ salida.id_tecnico if salida else (instalacion.id_tecnico if instalacion else '') }}" required>
                             <div id="tecnico_dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto; display: none;"></div>
                         </div>
-                        <div id="selected_tecnico" class="mt-2" style="display: {% if salida and salida.tecnico %}block{% else %}none{% endif %};">
+                        {% set tecnico_pre = salida.tecnico if salida else (instalacion.tecnico if instalacion else None) %}
+                        <div id="selected_tecnico" class="mt-2" style="display: {% if tecnico_pre %}block{% else %}none{% endif %};">
                             <div class="alert alert-info py-2 mb-0">
                                 <i class="fas fa-user-cog me-2"></i>
-                                <strong>Técnico:</strong> <span id="selected_tecnico_info">{% if salida and salida.tecnico %}{{ salida.tecnico.nom }} — {{ salida.tecnico.telephone }}{% endif %}</span>
+                                <strong>Técnico:</strong> <span id="selected_tecnico_info">{% if tecnico_pre %}{{ tecnico_pre.nom }} — {{ tecnico_pre.telephone }}{% endif %}</span>
                                 <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearTecnicoBtn"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
@@ -71,6 +89,13 @@
                             <span class="text-danger cliente-required-mark" style="display: none;">*</span>
                             <!--<span class="text-muted cliente-optional-mark">(opcional)</span> -->
                         </label>
+                        {% if inst_link %}
+                        <input type="hidden" id="id_client" name="id_client" value="{{ inst_link.id_client }}">
+                        <p class="form-control-plaintext mb-0">
+                            {{ inst_link.client.nom }}
+                            <span class="text-muted small ms-1">({{ _('no modificable') }})</span>
+                        </p>
+                        {% else %}
                         <div class="position-relative">
                             <input type="text" class="form-control" id="client_search"
                                    placeholder="Buscar cliente por nombre, teléfono o ciudad..."
@@ -86,6 +111,7 @@
                                 <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearClientBtn"><i class="fas fa-times"></i></button>
                             </div>
                         </div>
+                        {% endif %}
                         <!--<div class="form-text cliente-hint">Vacío = uso general del técnico</div> -->
                     </div>
                     <div class="col-12">
@@ -141,7 +167,7 @@
                 <button type="button" class="btn btn-outline-primary btn-sm mb-4" id="addLineaBtn"><i class="fas fa-plus me-1"></i>Añadir línea</button>
 
                 <div class="d-flex justify-content-between">
-                    <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Volver</a>
+                    <a href="{{ volver_url }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Volver</a>
                     <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Guardar</button>
                 </div>
             </form>

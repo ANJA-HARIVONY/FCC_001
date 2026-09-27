@@ -392,14 +392,18 @@
             </div>
             <div class="modal-body">
                 <p class="text-muted small mb-3">Seleccione el contexto de la salida antes de continuar.</p>
+                <p class="small mb-3">
+                    <i class="fas fa-info-circle me-1" aria-hidden="true"></i>{{ _('El material de una instalación se registra desde') }}
+                    <a href="{{ url_for('instalaciones_nueva') }}">{{ _('Nueva instalación') }}</a>.
+                </p>
                 {% set salida_tipo_icons = {
                     'uso_interno': 'fa-building',
                     'incidencia': 'fa-triangle-exclamation',
                     'instalacion': 'fa-screwdriver-wrench'
                 } %}
                 <div class="row g-3 salida-tipo-radios">
-                    {% for t in salida_tipos %}
-                    <div class="col-4">
+                    {% for t in salida_tipos if t != 'instalacion' %}
+                    <div class="col-6">
                         <div class="position-relative h-100">
                             <input class="form-check-input visually-hidden salida-tipo-choice-input"
                                    type="radio" name="tipo_salida_modal" id="tipo_salida_{{ t }}" value="{{ t }}"

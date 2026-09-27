@@ -144,7 +144,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
-        const form = document.getElementById('salidaForm');
+        const form = document.getElementById('salidaForm')
+            || document.getElementById('instalacionForm')
+            || document.getElementById('trasladoForm');
         const tipoSalida = form ? (form.dataset.tipoSalida || '') : '';
 
         await Promise.all([loadTecnicos(), loadClients()]);

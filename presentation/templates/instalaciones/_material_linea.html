@@ -1,0 +1,12 @@
+<tr class="linea-row">
+    <td>
+        <select name="material_id[]" class="form-select material-select" aria-label="{{ _('Material') }}">
+            <option value="">— {{ _('Seleccionar') }} —</option>
+            {% for m in materiales %}
+            <option value="{{ m.id }}">{{ m.nombre }}{% if m.modelo %} ({{ m.modelo }}){% endif %}</option>
+            {% endfor %}
+        </select>
+    </td>
+    <td><input type="number" name="cantidad[]" class="form-control" min="1" value="1" aria-label="{{ _('Cantidad') }}"></td>
+    <td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-linea" aria-label="{{ _('Quitar') }}"><i class="fas fa-trash"></i></button></td>
+</tr>

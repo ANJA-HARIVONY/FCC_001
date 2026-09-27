@@ -1,0 +1,3 @@
+{# Badge tipo de instalación. Variable : s (Instalacion) #}
+{% set instalacion_tipo_badge = {'nueva': 'bg-primary', 'traslado': 'bg-info text-dark'} %}
+<span class="badge {{ instalacion_tipo_badge.get(s.tipo, 'bg-secondary') }}">{{ INSTALACION_TIPO_LABELS.get(s.tipo, s.tipo) }}</span>

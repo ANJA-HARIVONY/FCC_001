@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block page_icon %}<i class="fas fa-building" aria-hidden="true"></i>{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+{% block page_subtitle %}{{ _('Datos de la instalación') }}{% endblock %}
+{% block page_actions %}
+<a href="{{ url_for('instalaciones_detalle', instalacion_id=instalacion.id) if instalacion else url_for('instalaciones_hub') }}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>{{ _('Volver') }}
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ url_for('instalaciones_hub') }}">{{ _('Instalaciones') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ page_title }}</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 content-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-building me-2" aria-hidden="true"></i>{{ page_title }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" id="instalacionForm" action="{{ form_action }}" data-tipo-salida="instalacion">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        {% if instalacion %}
+                        <div class="alert alert-light border mb-4 py-2">
+                            <strong>{{ _('Tipo') }}:</strong> {% with s=instalacion %}{% include 'instalaciones/_tipo_badge.html' %}{% endwith %}
+                            <strong class="ms-3">{{ _('Estado') }}:</strong> {% with s=instalacion %}{% include 'instalaciones/_estado_badge.html' %}{% endwith %}
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="fecha" class="form-label">{{ _('Fecha') }} <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="fecha" name="fecha" value="{{ fecha_default }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="tecnico_search" class="form-label">{{ _('Técnico') }} <span class="text-danger">*</span></label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="tecnico_search"
+                                           placeholder="{{ _('Buscar técnico por nombre o teléfono...') }}"
+                                           autocomplete="off"
+                                           value="{{ instalacion.tecnico.nom if instalacion and instalacion.tecnico else '' }}">
+                                    <input type="hidden" id="id_tecnico" name="id_tecnico" value="{{ instalacion.id_tecnico if instalacion else '' }}" required>
+                                    <div id="tecnico_dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto; display: none;"></div>
+                                </div>
+                                <div id="selected_tecnico" class="mt-2" style="display: {% if instalacion and instalacion.tecnico %}block{% else %}none{% endif %};">
+                                    <div class="alert alert-info py-2 mb-0">
+                                        <i class="fas fa-user-cog me-2" aria-hidden="true"></i>
+                                        <strong>{{ _('Técnico') }}:</strong> <span id="selected_tecnico_info">{% if instalacion and instalacion.tecnico %}{{ instalacion.tecnico.nom }} — {{ instalacion.tecnico.telephone }}{% endif %}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearTecnicoBtn" aria-label="{{ _('Quitar') }}"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="client_search" class="form-label">{{ _('Cliente') }} <span class="text-danger">*</span></label>
+                                {% if instalacion %}
+                                <input type="hidden" id="id_client" name="id_client" value="{{ instalacion.id_client }}">
+                                <p class="form-control-plaintext mb-0">
+                                    <a href="{{ url_for('fiche_client', id=instalacion.id_client) }}">{{ instalacion.client.nom }}</a>
+                                    <span class="text-muted small ms-2">({{ _('no modificable') }})</span>
+                                </p>
+                                {% else %}
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="client_search"
+                                           placeholder="{{ _('Buscar cliente por nombre, teléfono o ciudad...') }}"
+                                           autocomplete="off"
+                                           value="{{ client.nom if client else '' }}">
+                                    <input type="hidden" id="id_client" name="id_client" value="{{ client.id if client else '' }}">
+                                    <div id="client_dropdown" class="dropdown-menu w-100" style="max-height: 300px; overflow-y: auto; display: none;"></div>
+                                </div>
+                                <div id="selected_client" class="mt-2" style="display: {% if client %}block{% else %}none{% endif %};">
+                                    <div class="alert alert-secondary py-2 mb-0">
+                                        <i class="fas fa-user me-2" aria-hidden="true"></i>
+                                        <strong>{{ _('Cliente') }}:</strong> <span id="selected_client_info">{{ client.nom if client else '' }}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary ms-2" id="clearClientBtn" aria-label="{{ _('Quitar') }}"><i class="fas fa-times"></i></button>
+                                    </div>
+                                </div>
+                                <div class="form-text">{{ _('La instalación se asocia a la dirección actual del cliente. Para un cambio de dirección use «Traslado» en la ficha del cliente.') }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label for="observaciones" class="form-label">{{ _('Observaciones') }} <span class="text-muted">({{ _('opcional') }})</span></label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3">{{ instalacion.observaciones or '' if instalacion else '' }}</textarea>
+                            </div>
+                        </div>
+
+                        {% if not instalacion %}
+                        <h6 class="mt-4 mb-2"><i class="fas fa-boxes me-2" aria-hidden="true"></i>{{ _('Material entregado') }} <span class="text-muted small">({{ _('opcional') }})</span></h6>
+                        <div class="table-responsive mb-2">
+                            <table class="table table-bordered align-middle mb-0" id="lineasTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:60%">{{ _('Material') }}</th>
+                                        <th style="width:25%">{{ _('Cantidad') }}</th>
+                                        <th style="width:15%" class="text-end">{{ _('Acción') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lineasBody">
+                                    {% include 'instalaciones/_material_linea.html' %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="addLineaBtn"><i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Añadir línea') }}</button>
+                        <p class="text-muted small mt-3 mb-0">
+                            <i class="fas fa-info-circle me-1" aria-hidden="true"></i>
+                            {{ _('La instalación se crea «En curso». Las líneas sin material se ignoran; podrá añadir más material desde la ficha de la instalación.') }}
+                        </p>
+                        {% endif %}
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{{ url_for('instalaciones_detalle', instalacion_id=instalacion.id) if instalacion else url_for('instalaciones_hub') }}" class="btn btn-secondary">{{ _('Cancelar') }}</a>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1" aria-hidden="true"></i>{{ _('Guardar') }}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if not instalacion %}
+<template id="lineaRowTemplate">
+    {% include 'instalaciones/_material_linea.html' %}
+</template>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/materiales-salida-form.js') }}"></script>
+{% endblock %}

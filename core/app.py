@@ -254,6 +254,26 @@ SALIDA_TIPO_LABELS = {
     'instalacion': 'Instalación',
 }
 
+INSTALACION_ESTADOS = ('en_curso', 'terminada')
+INSTALACION_ESTADO_DEFAULT = 'en_curso'
+INSTALACION_ESTADO_LABELS = {
+    'en_curso': 'En curso',
+    'terminada': 'Terminada',
+}
+
+INSTALACION_TIPOS = ('nueva', 'traslado')
+INSTALACION_TIPO_DEFAULT = 'nueva'
+INSTALACION_TIPO_LABELS = {
+    'nueva': 'Nueva',
+    'traslado': 'Traslado',
+}
+
+TRASLADO_ACCIONES = ('reutilizado', 'retirado')
+TRASLADO_ACCION_LABELS = {
+    'reutilizado': 'Reutilizado',
+    'retirado': 'Retirado',
+}
+
 INFORME_GROUP_MODES = ('material', 'tecnico')
 INFORME_GROUP_LABELS = {
     'material': 'Por material',
@@ -307,6 +327,9 @@ def inject_operateur_categoria_labels():
         'MATERIAL_TIPO_LABELS': MATERIAL_TIPO_LABELS,
         'SALIDA_ESTADO_LABELS': SALIDA_ESTADO_LABELS,
         'SALIDA_TIPO_LABELS': SALIDA_TIPO_LABELS,
+        'INSTALACION_ESTADO_LABELS': INSTALACION_ESTADO_LABELS,
+        'INSTALACION_TIPO_LABELS': INSTALACION_TIPO_LABELS,
+        'TRASLADO_ACCION_LABELS': TRASLADO_ACCION_LABELS,
         'INFORME_GROUP_LABELS': INFORME_GROUP_LABELS,
     }
 
@@ -370,8 +393,65 @@ class Client(db.Model):
             '&z=16&output=embed'
         )
 
+    @property
+    def sitio_activo(self):
+        return next((s for s in (self.sitios or []) if s.activo), None)
+
+    @property
+    def sitios_anteriores(self):
+        return [s for s in (self.sitios or []) if not s.activo]
+
     def __repr__(self):
         return f'<Client {self.nom}>'
+
+
+class ClientSitio(db.Model):
+    """Dirección física del cliente. Un solo sitio activo; los anteriores quedan como historial (traslados)."""
+    __tablename__ = 'client_sitio'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(
+        db.Integer, db.ForeignKey('client.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    adresse = db.Column(db.String(200), nullable=False)
+    ville = db.Column(db.String(100), nullable=False)
+    latitud = db.Column(db.Numeric(10, 7), nullable=True)
+    longitud = db.Column(db.Numeric(10, 7), nullable=True)
+    gps_actualizado_le = db.Column(db.DateTime, nullable=True)
+    id_operateur_gps = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    activo = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    desde = db.Column(db.Date, nullable=True)
+    hasta = db.Column(db.Date, nullable=True)
+    creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    client = db.relationship(
+        'Client',
+        backref=db.backref(
+            'sitios', lazy=True, cascade='all, delete-orphan', order_by='ClientSitio.id.desc()'
+        ),
+    )
+    gps_actualizado_por = db.relationship('Operateur', foreign_keys=[id_operateur_gps])
+    fotos = db.relationship(
+        'InstalacionFoto',
+        foreign_keys='InstalacionFoto.id_sitio',
+        backref='sitio',
+        lazy=True,
+        order_by='InstalacionFoto.id',
+    )
+
+    @property
+    def has_gps(self):
+        return self.latitud is not None and self.longitud is not None
+
+    @property
+    def google_maps_url(self):
+        if not self.has_gps:
+            return None
+        return f'https://www.google.com/maps?q={float(self.latitud)},{float(self.longitud)}'
+
+    def __repr__(self):
+        return f'<ClientSitio client={self.id_client} activo={self.activo}>'
 
 
 class Operateur(UserMixin, db.Model):
@@ -660,6 +740,9 @@ class MaterialSalida(db.Model):
     fecha_modificacion = db.Column(db.DateTime, nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
     tipo_salida = db.Column(db.String(20), nullable=False, default='uso_interno', index=True)
+    id_instalacion = db.Column(
+        db.Integer, db.ForeignKey('instalacion.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico], backref=db.backref('salidas_tecnico', lazy=True))
     client = db.relationship('Client', backref=db.backref('salidas_material', lazy=True))
@@ -695,6 +778,9 @@ class InstalacionFoto(db.Model):
     id_salida = db.Column(
         db.Integer, db.ForeignKey('material_salida.id', ondelete='SET NULL'), nullable=True, index=True
     )
+    id_sitio = db.Column(
+        db.Integer, db.ForeignKey('client_sitio.id', ondelete='CASCADE'), nullable=True, index=True
+    )
     fichier = db.Column(db.String(255), nullable=False)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True)
     creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
@@ -720,6 +806,84 @@ class MaterialSalidaLinea(db.Model):
 
     def __repr__(self):
         return f'<MaterialSalidaLinea salida={self.id_salida} material={self.id_material}>'
+
+
+class Instalacion(db.Model):
+    """Intervención en un sitio del cliente (nueva o traslado). El material sale por MaterialSalida."""
+    __tablename__ = 'instalacion'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(
+        db.Integer, db.ForeignKey('client.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    id_sitio = db.Column(
+        db.Integer, db.ForeignKey('client_sitio.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    id_sitio_origen = db.Column(
+        db.Integer, db.ForeignKey('client_sitio.id', ondelete='SET NULL'), nullable=True
+    )
+    tipo = db.Column(db.String(20), nullable=False, default=INSTALACION_TIPO_DEFAULT, index=True)
+    estado = db.Column(db.String(20), nullable=False, default=INSTALACION_ESTADO_DEFAULT, index=True)
+    fecha = db.Column(db.Date, nullable=False, index=True)
+    id_tecnico = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False, index=True)
+    observaciones = db.Column(db.Text, nullable=True)
+    id_operateur_registro = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
+    fecha_registro = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    id_operateur_modificacion = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
+    fecha_modificacion = db.Column(db.DateTime, nullable=True)
+    terminada_le = db.Column(db.DateTime, nullable=True)
+    id_operateur_terminada = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
+
+    client = db.relationship(
+        'Client',
+        backref=db.backref(
+            'instalaciones', lazy=True, cascade='all, delete-orphan',
+            order_by='[Instalacion.fecha.desc(), Instalacion.id.desc()]',
+        ),
+    )
+    sitio = db.relationship('ClientSitio', foreign_keys=[id_sitio])
+    sitio_origen = db.relationship('ClientSitio', foreign_keys=[id_sitio_origen])
+    tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico])
+    registrado_por = db.relationship('Operateur', foreign_keys=[id_operateur_registro])
+    modificado_por = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
+    terminada_por = db.relationship('Operateur', foreign_keys=[id_operateur_terminada])
+    salidas = db.relationship(
+        'MaterialSalida',
+        foreign_keys='MaterialSalida.id_instalacion',
+        backref='instalacion',
+        lazy=True,
+        order_by='MaterialSalida.id',
+    )
+    lineas_traslado = db.relationship(
+        'InstalacionTrasladoLinea',
+        backref='instalacion',
+        lazy=True,
+        cascade='all, delete-orphan',
+        order_by='InstalacionTrasladoLinea.id',
+    )
+
+    @property
+    def lineas_material(self):
+        return [linea for salida in (self.salidas or []) for linea in (salida.lineas or [])]
+
+    def __repr__(self):
+        return f'<Instalacion {self.id} {self.tipo} {self.estado}>'
+
+
+class InstalacionTrasladoLinea(db.Model):
+    """Material existente reutilizado o retirado durante un traslado."""
+    __tablename__ = 'instalacion_traslado_linea'
+    id = db.Column(db.Integer, primary_key=True)
+    id_instalacion = db.Column(
+        db.Integer, db.ForeignKey('instalacion.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    id_material = db.Column(db.Integer, db.ForeignKey('material.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    accion = db.Column(db.String(20), nullable=False)
+
+    material = db.relationship('Material')
+
+    def __repr__(self):
+        return f'<InstalacionTrasladoLinea inst={self.id_instalacion} {self.accion}>'
 
 
 class AuditLog(db.Model):
@@ -1221,6 +1385,54 @@ def ensure_instalacion_foto_id_client():
         app.logger.exception('No se pudo verificar/crear id_client en instalacion_foto')
 
 
+def ensure_instalaciones_sitio_schema():
+    """Tablas client_sitio / instalacion / traslado, columnas de enlace y reprise (arranque sin migración)."""
+    if getattr(ensure_instalaciones_sitio_schema, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not all(inspector.has_table(t) for t in ('client', 'material_salida', 'instalacion_foto')):
+            ensure_instalaciones_sitio_schema._done = True
+            return
+        for model in (ClientSitio, Instalacion, InstalacionTrasladoLinea):
+            if not inspector.has_table(model.__tablename__):
+                model.__table__.create(db.engine)
+
+        dialect = db.engine.dialect.name
+        salida_cols = {col['name'] for col in inspector.get_columns('material_salida')}
+        foto_cols = {col['name'] for col in inspector.get_columns('instalacion_foto')}
+        with db.engine.begin() as conn:
+            if 'id_instalacion' not in salida_cols:
+                conn.execute(text('ALTER TABLE material_salida ADD COLUMN id_instalacion INTEGER NULL'))
+                conn.execute(text(
+                    'CREATE INDEX ix_material_salida_id_instalacion ON material_salida (id_instalacion)'
+                ))
+                if dialect != 'sqlite':
+                    conn.execute(text(
+                        'ALTER TABLE material_salida ADD CONSTRAINT fk_material_salida_id_instalacion '
+                        'FOREIGN KEY (id_instalacion) REFERENCES instalacion(id) ON DELETE SET NULL'
+                    ))
+            if 'id_sitio' not in foto_cols:
+                conn.execute(text('ALTER TABLE instalacion_foto ADD COLUMN id_sitio INTEGER NULL'))
+                conn.execute(text(
+                    'CREATE INDEX ix_instalacion_foto_id_sitio ON instalacion_foto (id_sitio)'
+                ))
+                if dialect != 'sqlite':
+                    conn.execute(text(
+                        'ALTER TABLE instalacion_foto ADD CONSTRAINT fk_instalacion_foto_id_sitio '
+                        'FOREIGN KEY (id_sitio) REFERENCES client_sitio(id) ON DELETE CASCADE'
+                    ))
+
+        from core.services.instalaciones_backfill import run_instalaciones_backfill
+
+        with db.engine.begin() as conn:
+            run_instalaciones_backfill(conn)
+        ensure_instalaciones_sitio_schema._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear el esquema de sitios e instalaciones')
+
+
 def build_comment_notification_message(actor_name, client_name):
     return f"El usuario {actor_name} ha comentado su incidencia del cliente {client_name}."
 
@@ -1632,6 +1844,7 @@ def require_authentication():
     ensure_client_gps_columns()
     ensure_instalacion_foto_table()
     ensure_instalacion_foto_id_client()
+    ensure_instalaciones_sitio_schema()
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
     if not request.endpoint or request.endpoint == 'static':
@@ -2155,7 +2368,7 @@ def dashboard():
     incidents_attente = len([i for i in incidents_periode if i.status == 'Pendiente'])
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
 
-    from core.services.materiales_service import instalaciones_del_dia
+    from core.services.instalaciones_service import instalaciones_del_dia
 
     instalaciones_dia = instalaciones_del_dia(
         agencia_id=current_user.id_agencia,
@@ -2433,6 +2646,10 @@ def modifier_client(id):
         if old_username_radius != (client.username_radius or '').strip():
             client.radius_cache_json = None
             client.radius_cache_at = None
+        sitio = client.sitio_activo
+        if sitio is not None:
+            sitio.adresse = client.adresse
+            sitio.ville = client.ville
         client.id_operateur_modificacion = current_user.id
         client.modifie_le = datetime.now()
         db.session.commit()
@@ -3673,6 +3890,7 @@ if __name__ == '__main__':
             ensure_client_gps_columns()
             ensure_instalacion_foto_table()
             ensure_instalacion_foto_id_client()
+            ensure_instalaciones_sitio_schema()
             ensure_ciudad_agencia_seed()
             ensure_default_admin_operateur()
             if os.environ.get('INIT_SAMPLE_DATA', 'false').lower() == 'true':

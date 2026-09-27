@@ -283,11 +283,16 @@ def create_salida(form, current_user):
     lineas = parse_lineas_form(form)
     _validate_materials(lineas)
 
+    from core.services.instalaciones_service import resolve_instalacion_for_salida
+
+    instalacion = resolve_instalacion_for_salida(tipo_salida, client_id, form)
+
     salida = MaterialSalida(
         fecha=fecha,
         id_tecnico=tecnico_id,
         id_client=client_id,
         tipo_salida=tipo_salida,
+        id_instalacion=instalacion.id if instalacion else None,
         observaciones=parse_observaciones_form(form),
         estado='registrada',
         id_operateur_registro=current_user.id,
@@ -324,6 +329,8 @@ def update_salida(salida_id, form, current_user):
     )
     if client_id:
         _validate_client(client_id)
+    if salida.instalacion is not None and salida.instalacion.id_client != client_id:
+        raise MaterialesValidationError('El cliente no coincide con la instalación.')
     lineas = parse_lineas_form(form)
     _validate_materials(lineas, activos_only=False)
 
@@ -358,29 +365,6 @@ def salidas_base_query(agencia_id=None):
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
     return query
-
-
-def instalaciones_del_dia(day=None, agencia_id=None, *, all_agencies=False):
-    """Salidas tipo instalacion d'un jour calendaire, hors filtre de période."""
-    from core.app import MaterialSalida, Operateur
-
-    if day is None:
-        day = datetime.now().date()
-    query = salidas_base_query(None).filter(
-        MaterialSalida.tipo_salida == 'instalacion',
-        MaterialSalida.fecha == day,
-    )
-    if not all_agencies:
-        query = query.filter(Operateur.id_agencia == agencia_id)
-    rows = query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id)).all()
-    seen = set()
-    unique_rows = []
-    for row in rows:
-        if row.id in seen:
-            continue
-        seen.add(row.id)
-        unique_rows.append(row)
-    return unique_rows
 
 
 LIST_PER_PAGE_CHOICES = (50, 100, 200, 500)

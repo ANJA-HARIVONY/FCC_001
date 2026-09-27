@@ -37,6 +37,11 @@
                     <p><strong>Tipo de salida:</strong>
                         <span class="badge bg-secondary">{{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}</span>
                     </p>
+                    {% if salida.instalacion %}
+                    <p><strong>{{ _('Instalación') }}:</strong>
+                        <a href="{{ url_for('instalaciones_detalle', instalacion_id=salida.instalacion.id) }}">#{{ salida.instalacion.id }}</a>
+                    </p>
+                    {% endif %}
                     <p><strong>Técnico:</strong> {{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
                     <p><strong>Cliente:</strong>
                         {% if salida.client %}

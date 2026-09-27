@@ -39,18 +39,20 @@ Pagination : `iter_pages(left_edge=1, right_edge=1, left_current=1, right_curren
 
 ### Lista de instalaciones (`/instalaciones`, `instalaciones/hub.html`)
 
-Header carte : «Lista de instalaciones». Desktop = table ci-dessous. Mobile = `_mobile_list_card_salida.html` (mêmes champs, pas de colonne GPS/fotos). Ne pas ajouter de colonnes (estado, tipo, GPS, fotos) sans demande.
+Header carte : «Lista de instalaciones». Desktop = table ci-dessous. Mobile = `_mobile_list_card_instalacion.html` (pas de GPS/fotos). Ne pas ajouter de colonnes (GPS, fotos) sans demande.
 
 | Colonne UI | Source | Règle |
 |---|---|---|
-| `ID` | `MaterialSalida.id` | `<strong>#id</strong>` comme Incidencias |
-| `Fecha` | `MaterialSalida.fecha` | `%d/%m/%Y` |
+| `ID` | `Instalacion.id` | `<strong>#id</strong>` comme Incidencias |
+| `Fecha` | `Instalacion.fecha` | `%d/%m/%Y` |
+| `Tipo` | `Instalacion.tipo` | `instalaciones/_tipo_badge.html` : `nueva` → `bg-primary` ; `traslado` → `bg-info text-dark` |
 | `Técnico` | `s.tecnico.nom` | Avatar 28px + nom (comme Usuario en Incidencias) ; `—` si absent |
-| `Cliente` | `s.client.nom` | Icône corporativo + `fa-user-tie` + lien `fiche_client` (`text-decoration-none text-dark`) + adresse en petit ; `—` si pas de client |
-| `Materiales` | `s.lineas` | `nombre x cantidad`, `text-truncate` max 220px |
-| `Acciones` | — | `btn-group` : `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` |
+| `Cliente` | `s.client.nom` | Icône corporativo + `fa-user-tie` + lien `fiche_client` (`text-decoration-none text-dark`) + adresse du sitio en petit |
+| `Materiales` | `s.lineas_material` | lignes de toutes ses salidas, `nombre x cantidad`, `text-truncate` max 220px |
+| `Estado` | `Instalacion.estado` | `instalaciones/_estado_badge.html` : `en_curso` → `bg-warning text-dark` ; `terminada` → `bg-success` |
+| `Acciones` | — | `btn-group` : `Ver` → `instalaciones_detalle` ; `Modificar` → `instalaciones_modificar` |
 
-Filtres GET : `search` (cliente / teléfono / técnico / material / id), `tecnico`, `date_from`, `date_to`, `per_page`. Cookie `instalaciones_filters_v1`. CTA titre : `Nueva instalación` → `materiales_salida_nueva?tipo=instalacion`.
+Filtres GET : `search` (cliente / teléfono / técnico / material / id), `tecnico`, `estado`, `tipo`, `date_from`, `date_to`, `per_page`. Cookie `instalaciones_filters_v2`. CTA titre : `Nueva instalación` → `instalaciones_nueva` (formulaire unique avec section «Material entregado» facultative, `instalaciones/_material_linea.html`, sans `required`). Détail : `Terminar` (en curso) / `Reabrir` (admin, terminada) + `Añadir material` → `materiales_salida_nueva?tipo=instalacion&instalacion=<id>`. Fiche client : bouton `Traslado` → `client_traslado`, carte «Instalaciones», «Direcciones anteriores».
 
 ### Salidas de material (`/materiales/salidas`, `materiales/salidas.html`)
 
@@ -66,7 +68,7 @@ Toutes les salidas (les 3 `tipo_salida`). Desktop = table ci-dessous. Mobile = `
 | `Materiales` | `s.lineas` | `nombre(modelo) x cantidad`, séparés par virgule |
 | `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` |
 
-Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Boutons : Recordar filtros + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` puis `materiales_salida_nueva?tipo=`.
+Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Boutons : Recordar filtros + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
 
 États incidencia (classes dédiées, pas `bg-success` générique) :
 

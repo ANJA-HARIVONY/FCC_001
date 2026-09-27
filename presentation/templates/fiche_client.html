@@ -402,10 +402,16 @@
     <div class="card shadow mb-4 content-card" id="instalacionSection"
          data-max-fotos="{{ max_fotos }}"
          data-fotos-actuales="{{ fotos|length }}">
-        <div class="card-header py-3">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
             <h6 class="m-0 font-weight-bold text-primary">
                 <i class="fas fa-map-marker-alt"></i> {{ _('Instalación') }}
+                <span class="text-muted fw-normal small ms-2">{{ client.adresse }}</span>
             </h6>
+            {% if current_user.is_admin() %}
+            <a href="{{ url_for('client_traslado', id=client.id) }}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-truck-moving me-1" aria-hidden="true"></i>{{ _('Traslado') }}
+            </a>
+            {% endif %}
         </div>
         <div class="card-body">
             <div class="alert alert-danger py-2 small d-none" id="instalacionAlert" role="alert"></div>
@@ -533,8 +539,81 @@
                     {% endif %}
                 </div>
             </div>
+            {% set sitios_anteriores = client.sitios_anteriores %}
+            {% if sitios_anteriores %}
+            <hr>
+            <h6 class="small text-uppercase text-muted fw-semibold">
+                <i class="fas fa-history me-1" aria-hidden="true"></i>{{ _('Direcciones anteriores') }}
+            </h6>
+            <ul class="list-unstyled small mb-0">
+                {% for sitio in sitios_anteriores %}
+                <li class="mb-1">
+                    {{ sitio.adresse }} — {{ sitio.ville }}
+                    {% if sitio.hasta %}<span class="text-muted">({{ _('hasta') }} {{ sitio.hasta.strftime('%d/%m/%Y') }})</span>{% endif %}
+                    {% if sitio.google_maps_url %}
+                    <a href="{{ sitio.google_maps_url }}" target="_blank" rel="noopener" class="ms-1">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                        <span class="visually-hidden">{{ _('Ver en Google Maps') }}</span>
+                    </a>
+                    {% endif %}
+                    {% if sitio.fotos %}<span class="text-muted ms-1">· {{ sitio.fotos|length }} {{ _('fotos') }}</span>{% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
         </div>
     </div>
+
+    {% if current_user.is_admin() %}
+    <div class="card shadow mb-4 content-card">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-building"></i> {{ _('Instalaciones') }}
+            </h6>
+            <a href="{{ url_for('instalaciones_nueva', client=client.id) }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Nueva instalación') }}
+            </a>
+        </div>
+        <div class="card-body{% if client.instalaciones %} p-0{% endif %}">
+            {% if client.instalaciones %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>{{ _('Fecha') }}</th>
+                            <th>{{ _('Tipo') }}</th>
+                            <th>{{ _('Dirección') }}</th>
+                            <th>{{ _('Técnico') }}</th>
+                            <th>{{ _('Estado') }}</th>
+                            <th class="text-end">{{ _('Acciones') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in client.instalaciones %}
+                        <tr>
+                            <td><strong>#{{ s.id }}</strong></td>
+                            <td>{{ s.fecha.strftime('%d/%m/%Y') }}</td>
+                            <td>{% include 'instalaciones/_tipo_badge.html' %}</td>
+                            <td class="small">{{ s.sitio.adresse if s.sitio else '—' }}</td>
+                            <td>{{ s.tecnico.nom if s.tecnico else '—' }}</td>
+                            <td>{% include 'instalaciones/_estado_badge.html' %}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('instalaciones_detalle', instalacion_id=s.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Ver') }}">
+                                    <i class="fas fa-eye" aria-hidden="true"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted mb-0">{{ _('No hay instalaciones registradas para este cliente.') }}</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Materiales instalados -->
     <div class="card shadow mb-4 content-card">

@@ -138,7 +138,8 @@ class SidebarRenderTests(unittest.TestCase):
             if hasattr(html, 'get_data'):
                 html = html.get_data(as_text=True)
             self.assertIn('Nueva instalación', html)
-            self.assertIn('/materiales/salida/nueva?tipo=instalacion', html)
+            self.assertIn('/instalaciones/nueva', html)
+            self.assertIn('name="estado"', html)
             self.assertIn('Filtros de búsqueda', html)
             self.assertIn('name="per_page"', html)
             self.assertIn('name="search"', html)
@@ -151,15 +152,12 @@ class SidebarRenderTests(unittest.TestCase):
             with self.assertRaises(Forbidden):
                 self.app.view_functions['instalaciones_hub']()
 
-    def test_nueva_salida_instalacion_preselecciona_tipo(self):
+    def test_nueva_salida_instalacion_sin_instalacion_redirige(self):
         with self.app.test_request_context('/materiales/salida/nueva?tipo=instalacion'):
             login_user(self.admin)
-            html = self.app.view_functions['materiales_salida_nueva']()
-            if hasattr(html, 'get_data'):
-                html = html.get_data(as_text=True)
-            self.assertIn('name="tipo_salida"', html)
-            self.assertIn('value="instalacion"', html)
-            self.assertIn('Nueva salida de instalación', html)
+            resp = self.app.view_functions['materiales_salida_nueva']()
+            self.assertEqual(resp.status_code, 302)
+            self.assertIn('/instalaciones/nueva', resp.location)
 
 
 if __name__ == '__main__':

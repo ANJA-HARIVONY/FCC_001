@@ -13,6 +13,7 @@ from sqlalchemy import or_
 from core.app import (
     app,
     admin_required,
+    Instalacion,
     Material,
     Operateur,
     db,
@@ -147,18 +148,32 @@ def materiales_salida_nueva():
         return redirect(url_for('materiales_salidas'))
 
     materiales = _materiales_activos()
+    instalacion = None
+    instalacion_id = request.form.get('id_instalacion', type=int) or request.args.get('instalacion', type=int)
+    if tipo_salida == 'instalacion':
+        if not instalacion_id:
+            flash(gettext('El material de una instalación se registra desde «Nueva instalación».'), 'info')
+            return redirect(url_for('instalaciones_nueva'))
+        instalacion = db.session.get(Instalacion, instalacion_id)
+        if not instalacion:
+            abort(404)
+
     if request.method == 'POST':
         try:
             salida = create_salida(request.form, current_user)
             flash('Salida registrada.', 'success')
+            if instalacion is not None:
+                return redirect(url_for('instalaciones_detalle', instalacion_id=salida.id_instalacion))
             return redirect(url_for('materiales_salida_detalle', salida_id=salida.id))
         except MaterialesValidationError as exc:
+            db.session.rollback()
             flash(str(exc), 'error')
             tipo_salida = (request.form.get('tipo_salida') or tipo_salida).strip()
 
     return render_template(
         'materiales/salida_form.html',
         salida=None,
+        instalacion=instalacion,
         materiales=materiales,
         tipo_labels=MATERIAL_TIPO_LABELS,
         salida_tipo_labels=SALIDA_TIPO_LABELS,
@@ -166,8 +181,8 @@ def materiales_salida_nueva():
         fecha_default=date.today().strftime('%Y-%m-%d'),
         form_action=url_for('materiales_salida_nueva'),
         page_title=(
-            gettext('Nueva salida de instalación')
-            if tipo_salida == 'instalacion'
+            gettext('Añadir material a la instalación #%(id)s', id=instalacion.id)
+            if instalacion
             else gettext('Nueva salida de material')
         ),
     )
@@ -273,6 +288,7 @@ def materiales_salida_modificar(salida_id):
     return render_template(
         'materiales/salida_form.html',
         salida=salida,
+        instalacion=None,
         materiales=materiales,
         tipo_labels=MATERIAL_TIPO_LABELS,
         salida_tipo_labels=SALIDA_TIPO_LABELS,

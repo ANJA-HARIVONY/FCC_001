@@ -15,6 +15,8 @@ Ne **jamais** inventer un statut, une catégorie, un rôle ou un `tipo_salida`. 
 - `Operateur.categoria` : `atencion_cliente` | `tecnico` (métier — un técnico n’est pas admin)
 - Matériel : `outillage` | `material_cliente`
 - Salida : types `uso_interno` | `incidencia` | `instalacion` ; états `registrada` → `modificada`
+- `Instalacion.estado` : `en_curso` → `terminada` (réouverture admin seulement) ; `Instalacion.tipo` : `nueva` | `traslado`
+- `InstalacionTrasladoLinea.accion` : `reutilizado` | `retirado`
 
 Entité code = `Operateur`. UI = **Usuarios** (`/usuarios`). Ne pas étendre `/operateurs`.
 
@@ -34,8 +36,11 @@ Ne pas renommer les colonnes FR : `nom`, `intitule`, `ville`, `date_heure`, `mot
 ## Autres domaines
 
 - Materiales / instalaciones / ficha técnico / ficha AC / audit / usuarios CRUD : `@admin_required`
-- Hub `/instalaciones` : uniquement les salidas `tipo_salida=instalacion` ; filtres + pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
-- Table «Lista de instalaciones» : `ID` \| `Fecha` \| `Técnico` \| `Cliente` \| `Materiales` \| `Acciones` (Ver / Modificar). GPS/fotos restent sur la fiche client, pas sur cette liste
+- Sitio : `ClientSitio` = adresse physique (GPS + fotos, max 10). **Un seul sitio actif** par client ; `Client.adresse/ville/latitud/longitud` = miroir du sitio actif, écrit uniquement via `instalaciones_service`. Correction d'adresse (`modifier_client`) = met à jour le sitio actif ; déménagement = **Traslado** (`create_traslado`) : ferme le sitio (`activo=False`, `hasta`), en crée un nouveau, crée une `Instalacion` `tipo=traslado`
+- `Instalacion` : 1 client, 1 sitio, 0..N salidas `tipo_salida=instalacion` (`MaterialSalida.id_instalacion`). Saisie unique : `Nueva instalación` (`create_instalacion`) = données + lignes de matériel **facultatives** → crée la 1ʳᵉ salida dans le même enregistrement. Une salida `instalacion` exige `id_instalacion` (matériel additionnel depuis la fiche instalación, client figé) ; sans lui → refus / redirection vers `instalaciones_nueva`. La modale «Nueva salida» n'offre que `uso_interno` / `incidencia`. Client / sitio / tipo non modifiables à l'édition. Terminar sans condition
+- Dashboard «Instalaciones del día» : `Instalacion` du jour (`instalaciones_del_dia`), pas des salidas
+- Hub `/instalaciones` : liste des `Instalacion` ; filtres `search`, `tecnico`, `estado`, `tipo`, `date_from`, `date_to` + pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
+- Table «Lista de instalaciones» : `ID` \| `Fecha` \| `Tipo` \| `Técnico` \| `Cliente` \| `Materiales` \| `Estado` \| `Acciones` (Ver / Modificar). GPS/fotos restent sur la fiche client, pas sur cette liste
 - Table «Salidas de material» (`/materiales/salidas`) : `#` \| `Fecha` \| `Tipo` \| `Técnico` \| `Cliente` \| `Materiales` \| `Acciones` (Ver / Modificar / Copiar). Colonne `Estado` masquée. Les 3 `tipo_salida` ; pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
 - `uso_interno` → `id_client` NULL ; `incidencia`/`instalacion` → client obligatoire ; `tipo_salida` non modifiable à l’édition
 - Apreciaciones : GET connecté ; PUT/DELETE admin ; max 120 car. ; 1 / jour
