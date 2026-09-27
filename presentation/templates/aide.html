@@ -22,8 +22,8 @@
                     </span>
                     <h1 class="aide-hero-title">¿En qué podemos ayudarte hoy?</h1>
                     <p class="aide-hero-subtitle">
-                        Guía completa para sacar el máximo provecho de la aplicación
-                        de gestión de clientes e incidencias.
+                        Guía de Atención al Cliente: clientes, incidencias,
+                        instalaciones, materiales e informes.
                     </p>
 
                     <div class="aide-search-wrapper" role="search">
@@ -50,6 +50,14 @@
                         <a href="#clientes" class="aide-shortcut" data-aide-anchor>
                             <i class="fas fa-users"></i><span>Clientes</span>
                         </a>
+                        {% if current_user.is_authenticated and current_user.is_admin() %}
+                        <a href="#materiales" class="aide-shortcut" data-aide-anchor>
+                            <i class="fas fa-toolbox"></i><span>Materiales</span>
+                        </a>
+                        <a href="#instalaciones" class="aide-shortcut" data-aide-anchor>
+                            <i class="fas fa-building"></i><span>Instalaciones</span>
+                        </a>
+                        {% endif %}
                         <a href="#faq" class="aide-shortcut" data-aide-anchor>
                             <i class="fas fa-question-circle"></i><span>FAQ</span>
                         </a>
@@ -76,7 +84,10 @@
                         <li><a href="#dashboard" class="aide-toc-link" data-aide-anchor><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
                         <li><a href="#clientes" class="aide-toc-link" data-aide-anchor><i class="fas fa-users"></i>Clientes</a></li>
                         <li><a href="#incidencias" class="aide-toc-link" data-aide-anchor><i class="fas fa-exclamation-triangle"></i>Incidencias</a></li>
-                        <li><a href="#operadores" class="aide-toc-link" data-aide-anchor><i class="fas fa-headset"></i>Operadores</a></li>
+                        {% if current_user.is_authenticated and current_user.is_admin() %}
+                        <li><a href="#materiales" class="aide-toc-link" data-aide-anchor><i class="fas fa-toolbox"></i>Materiales</a></li>
+                        <li><a href="#instalaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-building"></i>Instalaciones</a></li>
+                        {% endif %}
                         <li><a href="#informes" class="aide-toc-link" data-aide-anchor><i class="fas fa-chart-bar"></i>Informes</a></li>
                         <li><a href="#notificaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-bell"></i>Notificaciones</a></li>
                         <li><a href="#perfil" class="aide-toc-link" data-aide-anchor><i class="fas fa-user-circle"></i>Perfil</a></li>
@@ -106,7 +117,10 @@
                                     <li><a href="#dashboard" class="aide-toc-link" data-aide-anchor><i class="fas fa-tachometer-alt"></i>Dashboard</a></li>
                                     <li><a href="#clientes" class="aide-toc-link" data-aide-anchor><i class="fas fa-users"></i>Clientes</a></li>
                                     <li><a href="#incidencias" class="aide-toc-link" data-aide-anchor><i class="fas fa-exclamation-triangle"></i>Incidencias</a></li>
-                                    <li><a href="#operadores" class="aide-toc-link" data-aide-anchor><i class="fas fa-headset"></i>Operadores</a></li>
+                                    {% if current_user.is_authenticated and current_user.is_admin() %}
+                                    <li><a href="#materiales" class="aide-toc-link" data-aide-anchor><i class="fas fa-toolbox"></i>Materiales</a></li>
+                                    <li><a href="#instalaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-building"></i>Instalaciones</a></li>
+                                    {% endif %}
                                     <li><a href="#informes" class="aide-toc-link" data-aide-anchor><i class="fas fa-chart-bar"></i>Informes</a></li>
                                     <li><a href="#notificaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-bell"></i>Notificaciones</a></li>
                                     <li><a href="#perfil" class="aide-toc-link" data-aide-anchor><i class="fas fa-user-circle"></i>Perfil</a></li>
@@ -142,11 +156,10 @@
                         <div class="aide-section-body">
                             <p>
                                 Esta aplicación centraliza la <strong>gestión de clientes</strong>,
-                                <strong>incidencias</strong>, <strong>operadores</strong> e
-                                <strong>informes</strong> de Atención al Cliente. Su objetivo es
-                                ofrecer una vista única y rápida del estado del servicio,
-                                con herramientas eficientes para registrar, hacer seguimiento y
-                                resolver casos.
+                                <strong>incidencias</strong> e <strong>informes</strong> de Atención al Cliente.
+                                Los administradores registran además las <strong>instalaciones</strong>
+                                y el <strong>material</strong> entregado a los técnicos.
+                                El objetivo es ofrecer una vista única del servicio: registrar, dar seguimiento y cerrar casos.
                             </p>
                             <div class="aide-feature-grid">
                                 <div class="aide-feature">
@@ -176,7 +189,7 @@
                 </section>
 
                 <!-- NAVEGACION -->
-                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes informes perfil ayuda administracion notificaciones tema">
+                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes instalaciones materiales informes perfil ayuda administracion usuarios trazabilidad notificaciones tema">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-compass"></i></span>
@@ -191,7 +204,7 @@
                                     <i class="fas fa-bars"></i>
                                     <div>
                                         <strong>Barra lateral (izquierda)</strong>
-                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales y Administración (Usuarios, Trazabilidad, Base de datos, Operadores) para admin{% endif %}. Cuenta: Perfil, Ayuda y Salir.</p>
+                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales e Instalaciones, y Administración (Usuarios, Trazabilidad, Base de datos) para admin{% endif %}. Cuenta: Perfil, Ayuda y Salir.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -225,17 +238,22 @@
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-check"></i><span><strong>Indicadores clave (KPI):</strong> total de clientes, incidencias abiertas, resueltas, etc.</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>Gráficos:</strong> evolución mensual, distribución por estado y por operador.</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>Instalaciones del día:</strong> instalaciones con fecha de hoy (tipo, estado y material entregado), independientes del período seleccionado.</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>Filtros rápidos:</strong> por agencia, ciudad o periodo.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Indicadores:</strong> Total de Registrados, Solucionadas (remotamente), Pendientes y Bitrix (localmente).</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Evolución de las incidencias:</strong> por día, por mes o por año.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Distribución por operador:</strong> gráfico de tarta o de barras.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Instalaciones del día:</strong> las de la fecha de hoy (tipo, técnico, cliente, materiales y estado). No dependen del período elegido.{% if current_user.is_authenticated and current_user.is_admin() %} Desde aquí puede abrir o modificar la ficha.{% endif %}</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>5 Clientes Recurrentes:</strong> los cinco clientes con más incidencias en el período.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Período:</strong> semana en curso, mes, últimos meses o todos los datos. Puede recordar o reiniciar los filtros.</span></li>
+                                {% if current_user.is_authenticated and current_user.is_admin() %}
+                                <li><i class="fas fa-check"></i><span><strong>Nota del día:</strong> el botón <em>Nota del día</em> guarda una apreciación (máximo 120 caracteres, una por día).</span></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
                 </section>
 
                 <!-- CLIENTES -->
-                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion red">
+                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion particular corporativo radius gps fotos traslado sitio">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-users"></i></span>
@@ -247,10 +265,15 @@
                         <div class="aide-section-body">
                             <ul class="aide-list">
                                 <li><i class="fas fa-plus-circle"></i><span><strong>Nuevo cliente:</strong> menú <em>Clientes</em> → botón <em>Nuevo cliente</em> → completar el formulario y guardar.</span></li>
-                                <li><i class="fas fa-edit"></i><span><strong>Modificar:</strong> abrir la ficha del cliente y pulsar <em>Modificar</em>.</span></li>
+                                <li><i class="fas fa-edit"></i><span><strong>Modificar:</strong> abrir la ficha del cliente y pulsar <em>Modificar</em>. Corregir la dirección actualiza el sitio activo.</span></li>
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde el listado, con confirmación.</span></li>
-                                <li><i class="fas fa-id-card"></i><span><strong>Ficha completa:</strong> datos de contacto, red, agencia, ciudad e historial de incidencias.</span></li>
-                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador.</span></li>
+                                <li><i class="fas fa-id-card"></i><span><strong>Categoría:</strong> Particular (por defecto) o Corporativo. El icono de corporativo aparece en los listados.</span></li>
+                                <li><i class="fas fa-id-card"></i><span><strong>Ficha:</strong> contacto, agencia, ciudad, historial de incidencias e información RADIUS (solo lectura, si el cliente tiene Username RADIUS).</span></li>
+                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador. La lista muestra 50, 100, 200 o 500 filas por página. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.</span></li>
+                                {% if current_user.is_authenticated and current_user.is_admin() %}
+                                <li><i class="fas fa-map-marker-alt"></i><span><strong>GPS y fotos:</strong> en la ficha, guarde las coordenadas y hasta 10 fotos (JPG, PNG o WEBP, 5 MB como máximo cada una).</span></li>
+                                <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> un cambio de domicilio no se hace con <em>Modificar</em>. Use el botón <em>Traslado</em> de la ficha. La dirección anterior queda en <em>Direcciones anteriores</em>.</span></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -270,38 +293,70 @@
                             <ul class="aide-list">
                                 <li><i class="fas fa-plus-circle"></i><span><strong>Nueva incidencia:</strong> menú <em>Incidencias</em> → <em>Nueva incidencia</em> → seleccionar cliente, operador y describir el problema.</span></li>
                                 <li><i class="fas fa-comment-dots"></i><span><strong>Comentarios:</strong> añade comentarios desde la ficha; el equipo recibe una notificación.</span></li>
-                                <li><i class="fas fa-tag"></i><span><strong>Estados disponibles:</strong> <span class="badge badge-attente">Pendiente</span> <span class="badge badge-resolut">Solucionada</span> <span class="badge badge-bitrix">Bitrix</span>.</span></li>
+                                <li><i class="fas fa-tag"></i><span><strong>Estados disponibles:</strong> <span class="badge badge-attente">Pendiente</span> <span class="badge badge-resolut">Solucionadas</span> <span class="badge badge-bitrix">Bitrix</span>. El estado Bitrix pide una referencia de hasta 10 cifras.</span></li>
                                 <li><i class="fas fa-print"></i><span><strong>Imprimir listado:</strong> en la lista de incidencias, use el botón <em>Imprimir</em> para obtener un documento en español con filtros y tabla de la página actual (guardable como PDF desde el navegador).</span></li>
                                 <li><i class="fas fa-file-excel"></i><span><strong>Exportar Excel:</strong> en la misma lista, pulse <em>Exportar Excel</em> para descargar un archivo .xlsx con solo las filas visibles de la página actual, sin resumen ni KPI.</span></li>
                                 <li><i class="fas fa-file-export"></i><span><strong>Ficha en PDF:</strong> desde la ficha de una incidencia, puede imprimir o exportar el detalle del ticket.</span></li>
-                                <li><i class="fas fa-history"></i><span><strong>Historial:</strong> cada cambio se registra con fecha, hora y autor.</span></li>
+                                <li><i class="fas fa-history"></i><span><strong>Historial:</strong> cada cambio de estado queda con fecha, hora y autor. Quien puede consultar la incidencia puede modificarla; solo el creador o un administrador puede eliminarla.</span></li>
                             </ul>
                         </div>
                     </div>
                 </section>
 
-                <!-- OPERADORES -->
-                <section id="operadores" class="aide-section" data-aide-keywords="operadores crear modificar tecnico responsable">
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <!-- MATERIALES (admin) -->
+                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
-                            <span class="aide-section-icon"><i class="fas fa-headset"></i></span>
+                            <span class="aide-section-icon"><i class="fas fa-toolbox"></i></span>
                             <div>
-                                <h2 class="aide-section-title">Gestión de Operadores</h2>
-                                <p class="aide-section-lead">Mantén la lista de operadores responsables de las incidencias.</p>
+                                <h2 class="aide-section-title">Materiales
+                                    <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo admin</span>
+                                </h2>
+                                <p class="aide-section-lead">Catálogo y salidas de herramientas y materiales de cliente.</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-user-plus"></i><span><strong>Nuevo operador:</strong> formulario para añadir un operador con sus datos.</span></li>
-                                <li><i class="fas fa-user-edit"></i><span><strong>Modificar:</strong> actualiza los datos de contacto o la asignación.</span></li>
-                                <li><i class="fas fa-link"></i><span><strong>Asignación:</strong> cada incidencia se asocia a un operador responsable.</span></li>
+                                <li><i class="fas fa-list"></i><span><strong>Catálogo:</strong> menú <em>Materiales</em> → <em>Gestionar</em>. Tipos: Herramientas y Materiales de cliente.</span></li>
+                                <li><i class="fas fa-plus-circle"></i><span><strong>Nueva salida:</strong> desde el hub o la lista <em>Salidas de material</em>. La ventana solo ofrece <em>Uso interno</em> (sin cliente) o <em>Incidencia</em> (cliente obligatorio).</span></li>
+                                <li><i class="fas fa-building"></i><span><strong>Instalación:</strong> el material de una instalación no se crea desde esa ventana. Se indica en <em>Nueva instalación</em> o con <em>Añadir material</em> en la ficha de la instalación.</span></li>
+                                <li><i class="fas fa-clipboard-list"></i><span><strong>Lista de salidas:</strong> fecha, tipo, técnico, cliente y materiales. Acciones: Ver, Modificar y Copiar. Filtros por búsqueda, tipo, técnico, material y fechas. Imprimir y Excel exportan la página actual (50, 100, 200 o 500 filas).</span></li>
+                                <li><i class="fas fa-chart-bar"></i><span><strong>Informe de salidas:</strong> elija fechas, tipo de salida, técnico y material, luego <em>Generar</em>. Puede exportar el resultado en Excel.</span></li>
+                                <li><i class="fas fa-id-card"></i><span><strong>Ficha del técnico:</strong> desde <em>Usuarios</em>, en una cuenta de categoría Técnico, el botón <em>Ficha</em> muestra el material asignado.</span></li>
                             </ul>
                         </div>
                     </div>
                 </section>
 
+                <!-- INSTALACIONES (admin) -->
+                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir">
+                    <div class="aide-section-card">
+                        <div class="aide-section-head">
+                            <span class="aide-section-icon"><i class="fas fa-building"></i></span>
+                            <div>
+                                <h2 class="aide-section-title">Instalaciones
+                                    <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo admin</span>
+                                </h2>
+                                <p class="aide-section-lead">Instalaciones nuevas y traslados de dirección.</p>
+                            </div>
+                        </div>
+                        <div class="aide-section-body">
+                            <ul class="aide-list">
+                                <li><i class="fas fa-plus-circle"></i><span><strong>Nueva instalación:</strong> menú <em>Instalaciones</em> → <em>Nueva instalación</em>. Fecha, técnico y cliente son obligatorios. El material entregado es opcional y crea la primera salida. La instalación queda <span class="badge bg-warning text-dark">En curso</span>.</span></li>
+                                <li><i class="fas fa-lock"></i><span><strong>Edición:</strong> cliente, sitio y tipo no se cambian al modificar. Puede ajustar fecha, técnico y observaciones.</span></li>
+                                <li><i class="fas fa-check-circle"></i><span><strong>Terminar:</strong> en la ficha, <em>Terminar</em> pasa el estado a <span class="badge bg-success">Terminada</span>. Solo un administrador puede <em>Reabrir</em>.</span></li>
+                                <li><i class="fas fa-dolly"></i><span><strong>Más material:</strong> <em>Añadir material</em> en la ficha abre una salida de tipo Instalación, con el cliente ya fijado.</span></li>
+                                <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> en la ficha del cliente, botón <em>Traslado</em>. Indique la nueva dirección, el técnico y, si aplica, el material <em>Reutilizado</em> o <em>Retirado</em>. El material nuevo se añade después en la ficha de esa instalación.</span></li>
+                                <li><i class="fas fa-filter"></i><span><strong>Lista:</strong> ID, fecha, tipo (<span class="badge bg-primary">Nueva</span> o <span class="badge bg-info text-dark">Traslado</span>), técnico, cliente, materiales, estado y acciones Ver / Modificar. Filtros por búsqueda, técnico, estado, tipo y fechas.</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+                {% endif %}
+
                 <!-- INFORMES -->
-                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion pdf excel filtros estadisticas">
+                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion excel imprimir filtros estado general evolucion actividad analisis personalizado">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-chart-bar"></i></span>
@@ -312,7 +367,7 @@
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-filter"></i><span><strong>Filtros:</strong> al generar un informe, elija periodo y agencia.</span></li>
+                                <li><i class="fas fa-filter"></i><span><strong>Generar:</strong> menú <em>Informes</em> → elija el tipo (Estado General, Evolución de Registros, Actividad por Usuario o Análisis Personalizado), el período y la agencia.</span></li>
                                 <li><i class="fas fa-print"></i><span><strong>Imprimir:</strong> desde el detalle del informe, use el botón <em>Imprimir</em> para una versión en papel.</span></li>
                                 <li><i class="fas fa-file-excel"></i><span><strong>Exportación Excel:</strong> desde el detalle de un informe generado, pulse <em>Exportar Excel</em> para descargar los datos en formato .xlsx.</span></li>
                             </ul>
@@ -341,7 +396,7 @@
                 </section>
 
                 <!-- PERFIL -->
-                <section id="perfil" class="aide-section" data-aide-keywords="perfil datos personales cambiar contraseña avatar foto">
+                <section id="perfil" class="aide-section" data-aide-keywords="perfil avatar foto contraseña sesion inactividad">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-user-circle"></i></span>
@@ -352,9 +407,9 @@
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-id-badge"></i><span><strong>Datos personales:</strong> nombre, email y avatar.</span></li>
-                                <li><i class="fas fa-key"></i><span><strong>Cambiar contraseña:</strong> sección dedicada con confirmación.</span></li>
-                                <li><i class="fas fa-camera"></i><span><strong>Foto de perfil:</strong> sube tu avatar para personalizar la interfaz.</span></li>
+                                <li><i class="fas fa-camera"></i><span><strong>Avatar:</strong> en <em>Perfil</em> (barra lateral o menú de usuario) suba una foto JPG, PNG o WEBP.</span></li>
+                                <li><i class="fas fa-key"></i><span><strong>Cambiar contraseña:</strong> misma página, sección <em>Cambiar contraseña</em>. El nombre y el teléfono de la cuenta los gestiona un administrador en <em>Usuarios</em>.</span></li>
+                                <li><i class="fas fa-clock"></i><span><strong>Sesión:</strong> si permanece inactivo, aparece el aviso <em>Sesión a punto de expirar</em>. Puede pulsar <em>Seguir conectado</em> o <em>Cerrar sesión</em>.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -402,12 +457,12 @@
                                 <div class="accordion-item aide-faq-item" data-aide-keywords="cambiar estado incidencia pendiente solucionada bitrix">
                                     <h3 class="accordion-header">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-3">
-                                            <i class="fas fa-circle-question me-2"></i>¿Cómo cambio el estado de una incidencia (Pendiente / Solucionada / Bitrix)?
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo cambio el estado de una incidencia (Pendiente / Solucionadas / Bitrix)?
                                         </button>
                                     </h3>
                                     <div id="faq-3" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Abre la ficha de la incidencia, selecciona el nuevo estado en el desplegable correspondiente y guarda. El cambio queda registrado en el historial con fecha, hora y autor.
+                                            Abre la ficha de la incidencia, selecciona el nuevo estado (<span class="badge badge-attente">Pendiente</span>, <span class="badge badge-resolut">Solucionadas</span> o <span class="badge badge-bitrix">Bitrix</span>) y guarda. Si elige Bitrix, indique la referencia (hasta 10 cifras). El cambio queda en el historial con fecha, hora y autor.
                                         </div>
                                     </div>
                                 </div>
@@ -446,7 +501,7 @@
                                     </h3>
                                     <div id="faq-6" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Abre el menú de usuario (avatar en la cabecera), pulsa <em>Perfil</em> (también disponible en la barra lateral → Cuenta) y dirígete a la sección <strong>Cambiar contraseña</strong>. Introduce la nueva contraseña dos veces para confirmar.
+                                            Abre <em>Perfil</em> (barra lateral → Cuenta, o el menú de usuario). En <strong>Cambiar contraseña</strong>, escribe la nueva contraseña y confírmala. El mínimo es de 6 caracteres.
                                         </div>
                                     </div>
                                 </div>
@@ -472,10 +527,51 @@
                                     </h3>
                                     <div id="faq-8" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Algunas opciones (Materiales, Usuarios, Trazabilidad, Base de datos, Operadores) solo aparecen en la barra lateral para administradores. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
+                                            Algunas opciones (Materiales, Instalaciones, Usuarios, Trazabilidad y Base de datos) solo aparecen en la barra lateral para administradores. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
                                         </div>
                                     </div>
                                 </div>
+
+                                {% if current_user.is_authenticated and current_user.is_admin() %}
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="nueva instalacion material entregado en curso">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-9">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo registro una instalación nueva?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-9" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Vaya a <em>Instalaciones</em> → <strong>Nueva instalación</strong>. Indique fecha, técnico y cliente. El material entregado es opcional. Al guardar, la instalación queda <span class="badge bg-warning text-dark">En curso</span>. Más material se añade después con <em>Añadir material</em> en la ficha.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="traslado direccion domicilio reutilizado retirado">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-10">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo registro un cambio de dirección?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-10" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Abra la ficha del cliente y pulse <strong>Traslado</strong>. Escriba la nueva dirección y el barrio, elija el técnico y, si corresponde, marque el material existente como <em>Reutilizado</em> o <em>Retirado</em>. La dirección anterior queda en <em>Direcciones anteriores</em>. Para corregir la redacción de la dirección actual, use <em>Modificar</em>: actualiza el sitio activo.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="salida material uso interno incidencia">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-11">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo registro una salida de material?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-11" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            En <em>Materiales</em> → <strong>Crear salida</strong> (o <em>Nueva salida</em> en la lista). Elija <em>Uso interno</em> si no hay cliente, o <em>Incidencia</em> si el material va ligado a un cliente. El material de una instalación se registra desde la propia instalación, no desde esta ventana.
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
 
                             </div>
                         </div>
@@ -501,7 +597,7 @@
                                     <i class="fas fa-users-cog"></i>
                                     <div>
                                         <strong>Usuarios</strong>
-                                        <p>Crear, modificar y eliminar cuentas; gestionar roles y permisos.</p>
+                                        <p>Cuentas con rol administrador o usuario, y categoría Atención al cliente o Técnico. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un administrador no puede desactivarse a sí mismo.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -521,8 +617,8 @@
                                 <div class="aide-feature">
                                     <i class="fas fa-toolbox"></i>
                                     <div>
-                                        <strong>Materiales</strong>
-                                        <p>Catálogo de herramientas y materiales de cliente, registro de salidas a técnicos, informes por período y ficha de materiales por técnico.</p>
+                                        <strong>Materiales e instalaciones</strong>
+                                        <p>El detalle está en las secciones <a href="#materiales" data-aide-anchor>Materiales</a> e <a href="#instalaciones" data-aide-anchor>Instalaciones</a> de esta guía.</p>
                                     </div>
                                 </div>
                             </div>

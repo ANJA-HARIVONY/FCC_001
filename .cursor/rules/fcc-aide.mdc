@@ -1,0 +1,20 @@
+---
+description: Mettre à jour le Centro de Ayuda quand une fonctionnalité change
+alwaysApply: true
+---
+
+# FCC_001 — Centro de Ayuda
+
+Toute évolution visible (écran, bouton, filtre, statut, flux, droit) met à jour `presentation/templates/aide.html` dans le même changement.
+
+- Espagnol, libellés déjà utilisés dans l’UI. Pas de statut, rôle ou menu inventé.
+- Sommaire **deux fois** : sidebar (`#aide-toc`) et accordéon mobile (`#aide-toc-mobile`).
+- Section : `id`, `data-aide-keywords`, et FAQ si le geste est courant.
+- Admin seulement (`Materiales`, `Instalaciones`, `Usuarios`, `Trazabilidad`, `Base de datos`) : `{% if current_user.is_authenticated and current_user.is_admin() %}`.
+- Le menu `Operadores` est masqué : ne pas le documenter comme entrée de navigation.
+- GPS, fotos et `Traslado` sont sur la fiche client ; le hub `/instalaciones` ne les liste pas.
+
+```html
+<!-- ❌ BAD : nouvelle page sans ancre dans les deux sommaires -->
+<!-- ✅ GOOD : lien #instalaciones dans #aide-toc et #aide-toc-mobile + section correspondante -->
+```
