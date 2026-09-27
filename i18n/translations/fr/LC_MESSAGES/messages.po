@@ -1166,6 +1166,30 @@ msgstr "Enregistrer le transfert"
 msgid "El material de una instalación se registra desde"
 msgstr "Le matériel d'une installation s'enregistre depuis"
 
+msgid "Ver todas las incidencias del período"
+msgstr "Voir toutes les incidences de la période"
+
+msgid "Ver incidencias solucionadas del período"
+msgstr "Voir les incidences résolues de la période"
+
+msgid "Ver incidencias pendientes del período"
+msgstr "Voir les incidences en attente de la période"
+
+msgid "Ver incidencias Bitrix del período"
+msgstr "Voir les incidences Bitrix de la période"
+
+msgid "Ver lista"
+msgstr "Voir la liste"
+
+msgid "Ver clientes"
+msgstr "Voir les clients"
+
+msgid "Ver incidencias"
+msgstr "Voir les incidences"
+
+msgid "Incidencias"
+msgstr "Incidencias"
+
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "Client ajouté avec succès!"
 

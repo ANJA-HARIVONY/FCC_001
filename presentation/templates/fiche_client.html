@@ -17,6 +17,15 @@
 </a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('clients') }}">{{ _('Clientes') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ client.nom }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
     <div class="row">

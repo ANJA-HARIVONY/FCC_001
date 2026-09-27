@@ -1,4 +1,6 @@
-{# Carte mobile de una instalación. Variable : s (Instalacion) #}
+{# Carte mobile de una instalación. Variable : s (Instalacion).
+   show_instalacion_actions=false : lien vers la ficha client, sans acciones admin. #}
+{% set actions_on = show_instalacion_actions|default(true) %}
 <article class="mobile-list-card">
     <div class="mobile-list-card__head">
         <div class="mobile-list-card__meta">
@@ -6,6 +8,7 @@
             {% include 'instalaciones/_tipo_badge.html' %}
             {% include 'instalaciones/_estado_badge.html' %}
         </div>
+        {% if actions_on %}
         <div class="dropdown mobile-list-card__menu">
             <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
                     data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
@@ -23,12 +26,28 @@
                         <i class="fas fa-edit me-2"></i>{{ _('Modificar') }}
                     </a>
                 </li>
+                <li>
+                    <button type="button" class="dropdown-item"
+                            {% include 'instalaciones/_copy_attrs.html' %}
+                            onclick="copierInstalacion(this)">
+                        <i class="fas fa-copy me-2"></i>{{ _('Copiar información') }}
+                    </button>
+                </li>
             </ul>
         </div>
+        {% endif %}
     </div>
+    {% if actions_on %}
     <a class="mobile-list-card__title" href="{{ url_for('instalaciones_detalle', instalacion_id=s.id) }}">
         {{ s.client.nom if s.client else '—' }}
     </a>
+    {% elif s.client %}
+    <a class="mobile-list-card__title" href="{{ url_for('fiche_client', id=s.client.id) }}">
+        {{ s.client.nom }}
+    </a>
+    {% else %}
+    <span class="mobile-list-card__title">—</span>
+    {% endif %}
     <div class="mobile-list-card__badges">
         <span class="badge rounded-pill mobile-list-card__chip">
             <i class="fas fa-user-cog me-1"></i>{{ s.tecnico.nom if s.tecnico else '—' }}

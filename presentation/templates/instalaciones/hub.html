@@ -223,6 +223,12 @@
                                                class="btn btn-sm btn-outline-primary" title="{{ _('Modificar') }}">
                                                 <i class="fas fa-edit" aria-hidden="true"></i>
                                             </a>
+                                            <button type="button" class="btn btn-sm btn-outline-success"
+                                                    {% include 'instalaciones/_copy_attrs.html' %}
+                                                    onclick="copierInstalacion(this)"
+                                                    title="{{ _('Copiar información') }}">
+                                                <i class="fas fa-copy" aria-hidden="true"></i>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -319,6 +325,8 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/instalaciones-copy.js') }}"></script>
 <script>
 document.getElementById('per_page').addEventListener('change', function() {
     this.form.submit();

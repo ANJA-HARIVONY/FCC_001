@@ -8,15 +8,17 @@
 <a href="{{ url_for('usuarios') }}" class="btn btn-secondary btn-sm">Volver a usuarios</a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ tecnico.nom }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ tecnico.nom }}</li>
-        </ol>
-    </nav>
-
     <div class="card content-card mb-4">
         <div class="card-header"><h5 class="mb-0">Datos del técnico</h5></div>
         <div class="card-body">

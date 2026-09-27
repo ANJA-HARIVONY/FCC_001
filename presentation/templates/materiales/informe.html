@@ -10,6 +10,15 @@
 </a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Informe</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 {% set salida_tipo_badge = {
     'uso_interno': 'bg-success',
@@ -17,13 +26,6 @@
     'instalacion': 'bg-primary'
 } %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Informe</li>
-        </ol>
-    </nav>
-
     <div class="card content-card mb-4">
         <div class="card-body">
             <form method="GET" class="row g-2 align-items-end">

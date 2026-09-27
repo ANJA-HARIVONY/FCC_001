@@ -1163,6 +1163,30 @@ msgstr "Registrar traslado"
 msgid "El material de una instalación se registra desde"
 msgstr "El material de una instalación se registra desde"
 
+msgid "Ver todas las incidencias del período"
+msgstr "Ver todas las incidencias del período"
+
+msgid "Ver incidencias solucionadas del período"
+msgstr "Ver incidencias solucionadas del período"
+
+msgid "Ver incidencias pendientes del período"
+msgstr "Ver incidencias pendientes del período"
+
+msgid "Ver incidencias Bitrix del período"
+msgstr "Ver incidencias Bitrix del período"
+
+msgid "Ver lista"
+msgstr "Ver lista"
+
+msgid "Ver clientes"
+msgstr "Ver clientes"
+
+msgid "Ver incidencias"
+msgstr "Ver incidencias"
+
+msgid "Incidencias"
+msgstr "Incidencias"
+
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "¡Cliente agregado con éxito!"
 

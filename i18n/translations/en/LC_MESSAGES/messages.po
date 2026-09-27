@@ -1165,6 +1165,30 @@ msgstr "Register relocation"
 msgid "El material de una instalación se registra desde"
 msgstr "Installation material is recorded from"
 
+msgid "Ver todas las incidencias del período"
+msgstr "View all incidents for the period"
+
+msgid "Ver incidencias solucionadas del período"
+msgstr "View resolved incidents for the period"
+
+msgid "Ver incidencias pendientes del período"
+msgstr "View pending incidents for the period"
+
+msgid "Ver incidencias Bitrix del período"
+msgstr "View Bitrix incidents for the period"
+
+msgid "Ver lista"
+msgstr "View list"
+
+msgid "Ver clientes"
+msgstr "View clients"
+
+msgid "Ver incidencias"
+msgstr "View incidents"
+
+msgid "Incidencias"
+msgstr "Incidencias"
+
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "Client added successfully!"
 

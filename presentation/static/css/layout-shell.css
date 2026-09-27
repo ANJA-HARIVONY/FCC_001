@@ -1966,6 +1966,15 @@ body.app-layout-v2 .aide-accordion .accordion-button > i:first-child {
     opacity: 1 !important;
 }
 
+body.app-layout-v2 .page-title-copy .page-title-breadcrumb {
+    margin-bottom: 0.2rem;
+}
+
+body.app-layout-v2 .page-title-copy .page-title-breadcrumb .breadcrumb {
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+}
+
 body.app-layout-v2 .page-title-text {
     font-size: 1.35rem;
     /* ArchitectUI headings = 400 ; titre de page légèrement plus marqué pour la hiérarchie métier */

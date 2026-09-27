@@ -2377,7 +2377,7 @@ def dashboard():
     
     # Données pour les graphiques selon la période
     operateurs_query = apply_incident_visibility(db.session.query(
-        Operateur.nom, func.count(Incident.id)
+        Operateur.id, Operateur.nom, func.count(Incident.id)
     ).join(Incident, Incident.id_operateur == Operateur.id))
     
     if start_date:
@@ -2385,10 +2385,10 @@ def dashboard():
     if end_date:
         operateurs_query = operateurs_query.filter(Incident.date_heure <= end_date)
     
-    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.nom).all()
+    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.id, Operateur.nom).all()
     
-    # Convertir en liste de listes pour la sérialisation JSON
-    incidents_par_operateur = [[nom, count] for nom, count in incidents_par_operateur_raw]
+    # [nom, count, id] : le clic du graphique ouvre la liste filtrée sur cet opérateur
+    incidents_par_operateur = [[nom, count, op_id] for op_id, nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
     clients_recurrents_query = apply_incident_visibility(db.session.query(
@@ -2420,7 +2420,9 @@ def dashboard():
                          instalaciones_dia=instalaciones_dia,
                          incidents_par_operateur=incidents_par_operateur,
                          clients_recurrents=clients_recurrents,
-                         current_period=period)
+                         current_period=period,
+                         period_date_from=start_date.strftime('%Y-%m-%d') if start_date else '',
+                         period_date_to=end_date.strftime('%Y-%m-%d') if end_date else '')
 
 @app.route('/recherche')
 def recherche():
@@ -3308,7 +3310,7 @@ def dashboard_data():
     
     # Données par opérateur pour la période
     operateurs_query = apply_incident_visibility(db.session.query(
-        Operateur.nom, func.count(Incident.id)
+        Operateur.id, Operateur.nom, func.count(Incident.id)
     ).join(Incident, Incident.id_operateur == Operateur.id))
     
     if start_date:
@@ -3316,8 +3318,8 @@ def dashboard_data():
     if end_date:
         operateurs_query = operateurs_query.filter(Incident.date_heure <= end_date)
     
-    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.nom).all()
-    incidents_par_operateur = [[nom, count] for nom, count in incidents_par_operateur_raw]
+    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.id, Operateur.nom).all()
+    incidents_par_operateur = [[nom, count, op_id] for op_id, nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
     clients_recurrents_query = apply_incident_visibility(db.session.query(
@@ -3360,7 +3362,9 @@ def dashboard_data():
         'incidents_attente': incidents_attente,
         'incidents_bitrix': incidents_bitrix,
         'incidents_par_operateur': incidents_par_operateur,
-        'clients_recurrents': clients_recurrents_data
+        'clients_recurrents': clients_recurrents_data,
+        'period_date_from': start_date.strftime('%Y-%m-%d') if start_date else '',
+        'period_date_to': end_date.strftime('%Y-%m-%d') if end_date else '',
     })
 
 # API pour les notifications d'incidents pendientes
@@ -3602,10 +3606,10 @@ def get_date_range_for_period(period):
         # Mois précédent
         if today.month == 1:
             start_date = datetime(today.year - 1, 12, 1)
-            end_date = datetime(today.year, 1, 1) - timedelta(days=1)
+            end_date = datetime(today.year, 1, 1) - timedelta(seconds=1)
         else:
             start_date = datetime(today.year, today.month - 1, 1)
-            end_date = datetime(today.year, today.month, 1) - timedelta(days=1)
+            end_date = datetime(today.year, today.month, 1) - timedelta(seconds=1)
         return start_date, end_date
         
     elif period == 'last_3_months':

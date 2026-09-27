@@ -2,7 +2,7 @@
 
 {% block title %}Dashboard - Atención al cliente{% endblock %}
 
-{% block page_icon %}<i class="fa fa-tachometer-alt" aria-hidden="true"></i>{% endblock %}
+{% block page_icon %}<i class="fas fa-tachometer-alt" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Dashboard — <span id="period-title">Semana en curso</span>{% endblock %}
 {% block page_subtitle %}Vista general de las incidencias y estadísticas{% endblock %}
 {% block page_actions %}
@@ -57,64 +57,80 @@
     <!-- Cartes de statistiques — widget ArchitectUI (icone a gauche, libelle + valeur) -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
         <div class="col">
-            <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--registered" aria-hidden="true">
-                            <i class="fa fa-ticket"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Total de Registrados</div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
+            <a class="stat-card-link h-100" data-incident-status=""
+               href="{{ url_for('incidents', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               aria-label="{{ _('Ver todas las incidencias del período') }}">
+                <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--registered" aria-hidden="true">
+                                <i class="fas fa-ticket"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Total de Registrados</div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col">
-            <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--resolved" aria-hidden="true">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Solucionadas <small class="text-italic">(remotamente)</small></div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
+            <a class="stat-card-link h-100" data-incident-status="Solucionadas"
+               href="{{ url_for('incidents', status='Solucionadas', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               aria-label="{{ _('Ver incidencias solucionadas del período') }}">
+                <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--resolved" aria-hidden="true">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Solucionadas <small class="text-italic">(remotamente)</small></div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col">
-            <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--pending" aria-hidden="true">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Pendientes</div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
+            <a class="stat-card-link h-100" data-incident-status="Pendiente"
+               href="{{ url_for('incidents', status='Pendiente', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               aria-label="{{ _('Ver incidencias pendientes del período') }}">
+                <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--pending" aria-hidden="true">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Pendientes</div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col">
-            <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--bitrix" aria-hidden="true">
-                            <i class="fas fa-cog"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Bitrix <small class="text-italic">(localmente)</small></div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
+            <a class="stat-card-link h-100" data-incident-status="Bitrix"
+               href="{{ url_for('incidents', status='Bitrix', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               aria-label="{{ _('Ver incidencias Bitrix del período') }}">
+                <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--bitrix" aria-hidden="true">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Bitrix <small class="text-italic">(localmente)</small></div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -178,7 +194,7 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card content-card" id="instalaciones-dia-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">
                         <i class="fas fa-building me-2" aria-hidden="true"></i>
                         {{ _('Instalaciones del día') }}
@@ -186,6 +202,11 @@
                         <span class="text-muted fw-normal">({{ instalaciones_dia|length }})</span>
                         {% endif %}
                     </h5>
+                    {% if current_user.is_admin() %}
+                    {% set hoy = moment.now().strftime('%Y-%m-%d') %}
+                    <a href="{{ url_for('instalaciones_hub', date_from=hoy, date_to=hoy) }}"
+                       class="btn btn-sm btn-outline-secondary">{{ _('Ver lista') }}</a>
+                    {% endif %}
                 </div>
                 <div class="card-body p-0">
                     {% if instalaciones_dia %}
@@ -279,7 +300,9 @@
                     </div>
                     <div class="mobile-list d-lg-none d-print-none">
                         {% for s in instalaciones_dia %}
+                            {% with show_instalacion_actions=current_user.is_admin() %}
                             {% include '_mobile_list_card_instalacion.html' %}
+                            {% endwith %}
                         {% endfor %}
                     </div>
                     {% else %}
@@ -301,11 +324,12 @@
     <div class="row">
         <div class="col-12">
             <div class="card content-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>
                         5 Clientes Recurrentes
                     </h5>
+                    <a href="{{ url_for('clients') }}" class="btn btn-sm btn-outline-secondary">{{ _('Ver clientes') }}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive d-none d-lg-block d-print-block">
@@ -334,7 +358,10 @@
                                     <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ client.adresse }}</small>
                                 </td>
                                 <td>
-                                    <span class="badge badge-rank-{{ loop.index }}">{{ client.incidents }}</span>
+                                    <a href="{{ url_for('incidents', search=client.nom, date_from=period_date_from or none, date_to=period_date_to or none) }}"
+                                       class="badge badge-rank-{{ loop.index }} text-decoration-none"
+                                       data-incident-search="{{ client.nom }}"
+                                       title="{{ _('Ver incidencias') }}">{{ client.incidents }}</a>
                                 </td>
                                 <td>{{ client.intitule }}</td>
                                 <!--<td>{{ client.date_heure.strftime('%d/%m/%Y %H:%M') if client.date_heure else '' }}</td> -->
@@ -405,7 +432,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
 <script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
+<script src="{{ url_for('static', filename='js/instalaciones-copy.js') }}"></script>
 <script>
 let incidentsChart = null;
 let operateursChart = null;
@@ -443,6 +472,10 @@ const OPERATEUR_CHART_ICONS = {
     bar: 'fa-chart-bar'
 };
 const dashboardFilterScope = `dashboard_user_{{ current_user.id if current_user.is_authenticated else 'anonymous' }}`;
+const incidentsListPath = {{ url_for('incidents')|tojson }};
+const verIncidenciasLabel = {{ _('Ver incidencias')|tojson }};
+let periodDateFrom = {{ period_date_from|tojson }};
+let periodDateTo = {{ period_date_to|tojson }};
 
 // Configuration des titres de période
 const periodTitles = {
@@ -1339,7 +1372,7 @@ function recurrentClientCardHtml(client, rank) {
                 <span class="mobile-list-card__id">#${rank}</span>
                 ${corporativoIconHtml(client.categoria)}
             </div>
-            <span class="badge badge-rank-${rank} ms-auto">${escapeHtml(client.incidents)}</span>
+            <a class="badge badge-rank-${rank} text-decoration-none ms-auto" data-incident-search="${escapeHtml(client.nom)}" href="${incidentListHref({ search: client.nom })}" title="${escapeHtml(verIncidenciasLabel)}">${escapeHtml(client.incidents)}</a>
         </div>
         <a class="mobile-list-card__title" href="/clients/${client.id}/fiche"><i class="fas fa-user-tie me-1" aria-hidden="true"></i>${escapeHtml(client.nom)}</a>
         ${adresse}
@@ -1348,10 +1381,42 @@ function recurrentClientCardHtml(client, rank) {
 }
 
 // Fonction pour charger les données du dashboard selon la période
+function incidentListHref(extra) {
+    const params = new URLSearchParams();
+    if (periodDateFrom) {
+        params.set('date_from', periodDateFrom);
+    }
+    if (periodDateTo) {
+        params.set('date_to', periodDateTo);
+    }
+    if (extra) {
+        Object.keys(extra).forEach(function(key) {
+            if (extra[key]) {
+                params.set(key, extra[key]);
+            }
+        });
+    }
+    const qs = params.toString();
+    return qs ? (incidentsListPath + '?' + qs) : incidentsListPath;
+}
+
+function syncIncidentPeriodLinks() {
+    document.querySelectorAll('[data-incident-status]').forEach(function(el) {
+        const status = el.getAttribute('data-incident-status') || '';
+        el.href = incidentListHref(status ? { status: status } : {});
+    });
+    document.querySelectorAll('[data-incident-search]').forEach(function(el) {
+        el.href = incidentListHref({ search: el.getAttribute('data-incident-search') || '' });
+    });
+}
+
 function loadDashboardData(period) {
-    fetch(`/dashboard-data?period=${period}`)
+    fetch(`/dashboard-data?period=${encodeURIComponent(period)}`)
         .then(response => response.json())
         .then(data => {
+            periodDateFrom = data.period_date_from || '';
+            periodDateTo = data.period_date_to || '';
+            syncIncidentPeriodLinks();
             // Mettre à jour les statistiques
             updateStatistics(data);
             
@@ -1419,7 +1484,7 @@ function updateClientsRecurrents(clients) {
                     <td>
                         ${clientNameCellHtml(client.nom, `/clients/${client.id}/fiche`, client.adresse)}
                     </td>
-                    <td><span class="badge badge-rank-${i + 1}">${client.incidents}</span></td>
+                    <td><a href="${incidentListHref({ search: client.nom })}" class="badge badge-rank-${i + 1} text-decoration-none" data-incident-search="${escapeHtml(client.nom)}" title="${escapeHtml(verIncidenciasLabel)}">${escapeHtml(client.incidents)}</a></td>
                     <td>${client.intitule || ''}</td>
                 </tr>
             `).join('');
@@ -1482,7 +1547,24 @@ function buildOperateursChartSpec(data) {
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: 4 }
+        layout: { padding: 4 },
+        onHover: function(evt, elements) {
+            const canvas = evt.native && evt.native.target;
+            if (canvas) {
+                canvas.style.cursor = elements.length ? 'pointer' : 'default';
+            }
+        },
+        onClick: function(evt, elements) {
+            if (!elements.length) {
+                return;
+            }
+            const row = lastOperateursData[elements[0].index];
+            const operateurId = row && row[2];
+            if (!operateurId) {
+                return;
+            }
+            window.location.href = incidentListHref({ operateur: String(operateurId) });
+        }
     };
     const cartesianScales = {
         x: {

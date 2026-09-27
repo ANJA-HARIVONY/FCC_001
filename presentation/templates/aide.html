@@ -189,7 +189,7 @@
                 </section>
 
                 <!-- NAVEGACION -->
-                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes instalaciones materiales informes perfil ayuda administracion usuarios trazabilidad notificaciones tema">
+                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes instalaciones materiales informes perfil ayuda administracion usuarios trazabilidad notificaciones tema ruta titulo logo volver">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-compass"></i></span>
@@ -211,7 +211,14 @@
                                     <i class="fas fa-window-maximize"></i>
                                     <div>
                                         <strong>Cabecera (arriba)</strong>
-                                        <p>Botón menú (móvil / replegar), cambio de tema claro/oscuro, campana de notificaciones y menú de usuario.</p>
+                                        <p>Botón menú (móvil / replegar), cambio de tema claro/oscuro, campana de notificaciones y menú de usuario. El logotipo vuelve al Dashboard.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-route"></i>
+                                    <div>
+                                        <strong>Ruta sobre el título</strong>
+                                        <p>En fichas y formularios, el primer enlace es la sección del menú (Incidencias, Clientes, Materiales, Instalaciones o Usuarios). El botón <em>Volver</em> regresa a esa misma sección.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -227,7 +234,7 @@
                 </section>
 
                 <!-- DASHBOARD -->
-                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen instalaciones del dia">
+                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen instalaciones del dia ver lista ver clientes tarjeta indicador operador periodo">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-tachometer-alt"></i></span>
@@ -238,11 +245,11 @@
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-check"></i><span><strong>Indicadores:</strong> Total de Registrados, Solucionadas (remotamente), Pendientes y Bitrix (localmente).</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Indicadores:</strong> Total de Registrados, Solucionadas (remotamente), Pendientes y Bitrix (localmente). Al pulsar una tarjeta se abre la lista de incidencias del mismo período y estado.</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>Evolución de las incidencias:</strong> por día, por mes o por año.</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>Distribución por operador:</strong> gráfico de tarta o de barras.</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>Instalaciones del día:</strong> las de la fecha de hoy (tipo, técnico, cliente, materiales y estado). No dependen del período elegido.{% if current_user.is_authenticated and current_user.is_admin() %} Desde aquí puede abrir o modificar la ficha.{% endif %}</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>5 Clientes Recurrentes:</strong> los cinco clientes con más incidencias en el período.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Distribución por operador:</strong> gráfico de tarta o de barras. Al pulsar un operador se abre su lista de incidencias del período.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Instalaciones del día:</strong> las de la fecha de hoy (tipo, técnico, cliente, materiales y estado). No dependen del período elegido.{% if current_user.is_authenticated and current_user.is_admin() %} <em>Ver lista</em> abre las instalaciones de hoy. Desde aquí puede abrir o modificar la ficha.{% endif %}</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>5 Clientes Recurrentes:</strong> los cinco clientes con más incidencias en el período. <em>Ver clientes</em> abre el listado. El número abre las incidencias de ese cliente en el período.</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>Período:</strong> semana en curso, mes, últimos meses o todos los datos. Puede recordar o reiniciar los filtros.</span></li>
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
                                 <li><i class="fas fa-check"></i><span><strong>Nota del día:</strong> el botón <em>Nota del día</em> guarda una apreciación (máximo 120 caracteres, una por día).</span></li>
@@ -330,7 +337,7 @@
                 </section>
 
                 <!-- INSTALACIONES (admin) -->
-                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir">
+                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir copiar">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-building"></i></span>
@@ -348,7 +355,7 @@
                                 <li><i class="fas fa-check-circle"></i><span><strong>Terminar:</strong> en la ficha, <em>Terminar</em> pasa el estado a <span class="badge bg-success">Terminada</span>. Solo un administrador puede <em>Reabrir</em>.</span></li>
                                 <li><i class="fas fa-dolly"></i><span><strong>Más material:</strong> <em>Añadir material</em> en la ficha abre una salida de tipo Instalación, con el cliente ya fijado.</span></li>
                                 <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> en la ficha del cliente, botón <em>Traslado</em>. Indique la nueva dirección, el técnico y, si aplica, el material <em>Reutilizado</em> o <em>Retirado</em>. El material nuevo se añade después en la ficha de esa instalación.</span></li>
-                                <li><i class="fas fa-filter"></i><span><strong>Lista:</strong> ID, fecha, tipo (<span class="badge bg-primary">Nueva</span> o <span class="badge bg-info text-dark">Traslado</span>), técnico, cliente, materiales, estado y acciones Ver / Modificar. Filtros por búsqueda, técnico, estado, tipo y fechas.</span></li>
+                                <li><i class="fas fa-filter"></i><span><strong>Lista:</strong> ID, fecha, tipo (<span class="badge bg-primary">Nueva</span> o <span class="badge bg-info text-dark">Traslado</span>), técnico, cliente, materiales, estado y acciones Ver, Modificar y Copiar. Filtros por búsqueda, técnico, estado, tipo y fechas.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -515,6 +522,19 @@
                                     <div id="faq-7" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
                                             La campana en la <strong>cabecera</strong> muestra un <span class="badge bg-danger">badge rojo</span> con el número de notificaciones sin leer. Pulsa la campana para abrir el desplegable y acceder directamente a la incidencia o cliente correspondiente.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="dashboard tarjeta indicador lista periodo ruta volver titulo">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-12">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo paso del Dashboard a una lista o vuelvo desde una ficha?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-12" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Pulse una tarjeta del Dashboard (Total de Registrados, Solucionadas, Pendientes o Bitrix): se abre <em>Incidencias</em> con el mismo período y estado. En el gráfico de operadores, pulse un nombre para ver sus incidencias. El número de un cliente recurrente abre las suyas; <em>Ver clientes</em> abre el listado.{% if current_user.is_authenticated and current_user.is_admin() %} <em>Ver lista</em> abre las instalaciones de hoy.{% endif %} Desde una ficha, use la ruta encima del título o el botón <em>Volver</em>. El logotipo vuelve al Dashboard.
                                         </div>
                                     </div>
                                 </div>
