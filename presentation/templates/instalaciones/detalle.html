@@ -8,6 +8,13 @@
 <a href="{{ url_for('instalaciones_hub') }}" class="btn btn-outline-secondary btn-sm">
     <i class="fas fa-arrow-left me-1" aria-hidden="true"></i>{{ _('Volver') }}
 </a>
+{% set s = instalacion %}
+<button type="button" class="btn btn-outline-success btn-sm"
+        {% include 'instalaciones/_copy_attrs.html' %}
+        onclick="copierInstalacion(this)"
+        title="{{ _('Copiar información') }}">
+    <i class="fas fa-copy me-1" aria-hidden="true"></i>{{ _('Copiar información') }}
+</button>
 <a href="{{ url_for('instalaciones_modificar', instalacion_id=instalacion.id) }}" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-edit me-1" aria-hidden="true"></i>{{ _('Modificar') }}
 </a>
@@ -186,4 +193,9 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/instalaciones-copy.js') }}"></script>
 {% endblock %}
