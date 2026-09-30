@@ -351,6 +351,21 @@ def update_salida(salida_id, form, current_user):
     return salida
 
 
+def delete_salida(salida_id, current_user):
+    """Supprime une salida et ses lignes. Les photos d'installation restent (id_salida → NULL)."""
+    from core.app import MaterialSalida, db, write_audit
+
+    salida = db.session.get(MaterialSalida, salida_id)
+    if not salida:
+        raise MaterialesValidationError('Salida no encontrada.')
+
+    sid = salida.id
+    db.session.delete(salida)
+    db.session.commit()
+    write_audit('DELETE_MATERIAL_SALIDA', id_operateur=current_user.id, detail=f'salida_id={sid}')
+    return sid
+
+
 def salidas_base_query(agencia_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 

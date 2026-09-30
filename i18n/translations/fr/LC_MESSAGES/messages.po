@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-27 17:06+0100\n"
+"POT-Creation-Date: 2026-09-30 14:48+0100\n"
 "PO-Revision-Date: 2025-05-25 21:36+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -27,7 +27,9 @@ msgid "cliente desconocido"
 msgstr ""
 
 #: core/app.py:1873
-msgid "Su sesión ha expirado (duración máxima alcanzada). Vuelva a iniciar sesión."
+msgid ""
+"Su sesión ha expirado (duración máxima alcanzada). Vuelva a iniciar "
+"sesión."
 msgstr ""
 
 #: core/app.py:1881
@@ -126,65 +128,65 @@ msgstr ""
 msgid "Formato inválido para fecha fin."
 msgstr ""
 
-#: core/app.py:2576 core/app.py:2635
+#: core/app.py:2578 core/app.py:2637
 msgid "La ciudad es obligatoria."
 msgstr ""
 
-#: core/app.py:2605
+#: core/app.py:2607
 msgid "Cliente creado con éxito!"
 msgstr ""
 
-#: core/app.py:2661
+#: core/app.py:2663
 msgid "Cliente modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2681
+#: core/app.py:2683
 msgid "Cliente eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:2759
+#: core/app.py:2761
 msgid ""
 "Generación de PDF temporalmente desactivada. Utilice la impresión del "
 "navegador (Ctrl+P)."
 msgstr ""
 
-#: core/app.py:2965
+#: core/app.py:2967
 msgid "Operador creado con éxito!"
 msgstr ""
 
-#: core/app.py:2977
+#: core/app.py:2979
 msgid "Operador modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2987
+#: core/app.py:2989
 msgid "Operador eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:3101
+#: core/app.py:3103
 msgid "Incidencia creada con éxito!"
 msgstr ""
 
-#: core/app.py:3152
+#: core/app.py:3154
 msgid "El comentario no puede estar vacío."
 msgstr ""
 
-#: core/app.py:3155
+#: core/app.py:3157
 msgid "El comentario no puede superar 1000 caracteres."
 msgstr ""
 
-#: core/app.py:3166
+#: core/app.py:3168
 msgid "Comentario publicado."
 msgstr ""
 
-#: core/app.py:3244
+#: core/app.py:3246
 msgid "Incidencia modificada con éxito!"
 msgstr ""
 
-#: core/app.py:3260
+#: core/app.py:3262
 msgid "Incidencia eliminada con éxito!"
 msgstr ""
 
-#: core/app.py:3441
+#: core/app.py:3445
 msgid "Utilisateur"
 msgstr ""
 
@@ -193,11 +195,11 @@ msgid "Instalación registrada."
 msgstr "Installation enregistrée."
 
 #: core/routes/instalaciones_routes.py:117
-#: presentation/templates/dashboard.html:291
-#: presentation/templates/fiche_client.html:574
+#: presentation/templates/dashboard.html:314
+#: presentation/templates/fiche_client.html:583
 #: presentation/templates/instalaciones/hub.html:10
-#: presentation/templates/instalaciones/hub.html:309
-#: presentation/templates/materiales/salidas.html:397
+#: presentation/templates/instalaciones/hub.html:315
+#: presentation/templates/materiales/salidas.html:415
 msgid "Nueva instalación"
 msgstr "Nouvelle installation"
 
@@ -219,7 +221,9 @@ msgid "Instalación reabierta."
 msgstr "Installation rouverte."
 
 #: core/routes/instalaciones_routes.py:184
-msgid "Traslado registrado. Añada el material nuevo con una salida de instalación."
+msgid ""
+"Traslado registrado. Añada el material nuevo con una salida de "
+"instalación."
 msgstr ""
 "Transfert enregistré. Ajoutez le nouveau matériel avec une sortie "
 "d'installation."
@@ -236,25 +240,31 @@ msgstr "Photos de l'installation enregistrées."
 msgid "Foto eliminada."
 msgstr "Photo supprimée."
 
-#: core/routes/materiales_routes.py:155
+#: core/routes/materiales_routes.py:156
 msgid "El material de una instalación se registra desde «Nueva instalación»."
-msgstr "Le matériel d'une installation s'enregistre depuis « Nouvelle installation »."
+msgstr ""
+"Le matériel d'une installation s'enregistre depuis « Nouvelle "
+"installation »."
 
-#: core/routes/materiales_routes.py:184
+#: core/routes/materiales_routes.py:185
 #, python-format
 msgid "Añadir material a la instalación #%(id)s"
 msgstr "Ajouter du matériel à l'installation #%(id)s"
 
-#: core/routes/materiales_routes.py:186
+#: core/routes/materiales_routes.py:187
 msgid "Nueva salida de material"
 msgstr "Nouvelle sortie de matériel"
+
+#: core/routes/materiales_routes.py:308
+msgid "Salida eliminada."
+msgstr "Sortie supprimée."
 
 #: presentation/templates/_bitrix_status.html:16
 #: presentation/templates/_bitrix_status.html:40
 #: presentation/templates/_bitrix_status.html:84
-#: presentation/templates/fiche_client.html:157
-#: presentation/templates/fiche_client.html:324
-#: presentation/templates/fiche_client.html:355
+#: presentation/templates/fiche_client.html:166
+#: presentation/templates/fiche_client.html:333
+#: presentation/templates/fiche_client.html:364
 #: presentation/templates/fiche_client_pdf.html:232
 #: presentation/templates/fiche_client_pdf.html:262
 msgid "Bitrix"
@@ -267,15 +277,15 @@ msgstr ""
 
 #: presentation/templates/_bitrix_status.html:39
 #: presentation/templates/_bitrix_status.html:83
-#: presentation/templates/dashboard.html:202
-#: presentation/templates/fiche_client.html:308
-#: presentation/templates/fiche_client.html:588
+#: presentation/templates/dashboard.html:223
+#: presentation/templates/fiche_client.html:317
+#: presentation/templates/fiche_client.html:597
 #: presentation/templates/fiche_client_pdf.html:246
-#: presentation/templates/fiche_incident.html:75
-#: presentation/templates/fiche_incident.html:83
-#: presentation/templates/fiche_incident.html:89
-#: presentation/templates/instalaciones/detalle.html:49
-#: presentation/templates/instalaciones/form.html:35
+#: presentation/templates/fiche_incident.html:84
+#: presentation/templates/fiche_incident.html:92
+#: presentation/templates/fiche_incident.html:98
+#: presentation/templates/instalaciones/detalle.html:58
+#: presentation/templates/instalaciones/form.html:37
 #: presentation/templates/instalaciones/hub.html:63
 #: presentation/templates/instalaciones/hub.html:159
 msgid "Estado"
@@ -314,7 +324,7 @@ msgstr ""
 
 #: presentation/templates/_bitrix_status.html:47
 #: presentation/templates/_bitrix_status.html:166
-#: presentation/templates/instalaciones/detalle.html:83
+#: presentation/templates/instalaciones/detalle.html:92
 msgid "Última modificación"
 msgstr "Dernière modification"
 
@@ -352,8 +362,8 @@ msgstr ""
 
 #: presentation/templates/_bitrix_status.html:207
 msgid ""
-"Estado Bitrix no consultable desde este servidor (sin acceso a Bitrix24). "
-"Abra el enlace de la tarea."
+"Estado Bitrix no consultable desde este servidor (sin acceso a Bitrix24)."
+" Abra el enlace de la tarea."
 msgstr ""
 
 #: presentation/templates/_mobile_list_card_client.html:39
@@ -367,99 +377,135 @@ msgid "Editar"
 msgstr ""
 
 #: presentation/templates/_mobile_list_card_client.html:57
+#: presentation/templates/_mobile_list_card_instalacion.html:33
 #: presentation/templates/clients.html:246
 #: presentation/templates/fiche_incident.html:22
+#: presentation/templates/instalaciones/detalle.html:15
+#: presentation/templates/instalaciones/detalle.html:16
+#: presentation/templates/instalaciones/hub.html:229
 msgid "Copiar información"
 msgstr ""
 
 #: presentation/templates/_mobile_list_card_client.html:66
+#: presentation/templates/_mobile_list_card_salida.html:44
 #: presentation/templates/clients.html:253
-#: presentation/templates/fiche_client.html:504
-#: presentation/templates/fiche_client.html:684
-#: presentation/templates/fiche_incident.html:225
+#: presentation/templates/fiche_client.html:513
+#: presentation/templates/fiche_client.html:693
+#: presentation/templates/fiche_incident.html:234
 #: presentation/templates/instalaciones/_traslado_linea.html:20
+#: presentation/templates/materiales/salidas.html:303
+#: presentation/templates/materiales/salidas.html:465
 msgid "Eliminar"
 msgstr "Supprimer"
 
-#: presentation/templates/_mobile_list_card_instalacion.html:12
-#: presentation/templates/dashboard.html:203
-#: presentation/templates/fiche_client.html:589
-#: presentation/templates/instalaciones/detalle.html:116
+#: presentation/templates/_mobile_list_card_instalacion.html:15
+#: presentation/templates/dashboard.html:224
+#: presentation/templates/fiche_client.html:598
+#: presentation/templates/instalaciones/detalle.html:125
 #: presentation/templates/instalaciones/hub.html:160
 msgid "Acciones"
 msgstr "Actions"
 
-#: presentation/templates/_mobile_list_card_instalacion.html:18
-#: presentation/templates/dashboard.html:263
-#: presentation/templates/fiche_client.html:602
-#: presentation/templates/instalaciones/detalle.html:131
+#: presentation/templates/_mobile_list_card_instalacion.html:21
+#: presentation/templates/dashboard.html:284
+#: presentation/templates/fiche_client.html:611
+#: presentation/templates/instalaciones/detalle.html:140
 #: presentation/templates/instalaciones/hub.html:219
 msgid "Ver"
 msgstr "Voir"
 
-#: presentation/templates/_mobile_list_card_instalacion.html:23
-#: presentation/templates/dashboard.html:267
+#: presentation/templates/_mobile_list_card_instalacion.html:26
+#: presentation/templates/dashboard.html:288
 #: presentation/templates/fiche_client.html:13
 #: presentation/templates/fiche_incident.html:31
-#: presentation/templates/instalaciones/detalle.html:12
+#: presentation/templates/instalaciones/detalle.html:19
 #: presentation/templates/instalaciones/hub.html:223
 msgid "Modificar"
 msgstr "Modifier"
 
-#: presentation/templates/dashboard.html:184
+#: presentation/templates/dashboard.html:62
+msgid "Ver todas las incidencias del período"
+msgstr "Voir toutes les incidences de la période"
+
+#: presentation/templates/dashboard.html:81
+msgid "Ver incidencias solucionadas del período"
+msgstr "Voir les incidences résolues de la période"
+
+#: presentation/templates/dashboard.html:100
+msgid "Ver incidencias pendientes del período"
+msgstr "Voir les incidences en attente de la période"
+
+#: presentation/templates/dashboard.html:119
+msgid "Ver incidencias Bitrix del período"
+msgstr "Voir les incidences Bitrix de la période"
+
+#: presentation/templates/dashboard.html:200
 msgid "Instalaciones del día"
 msgstr "Installations du jour"
 
-#: presentation/templates/dashboard.html:197
-#: presentation/templates/fiche_client.html:584
-#: presentation/templates/instalaciones/detalle.html:50
-#: presentation/templates/instalaciones/detalle.html:113
-#: presentation/templates/instalaciones/form.html:41
+#: presentation/templates/dashboard.html:208
+msgid "Ver lista"
+msgstr "Voir la liste"
+
+#: presentation/templates/dashboard.html:218
+#: presentation/templates/fiche_client.html:593
+#: presentation/templates/instalaciones/detalle.html:59
+#: presentation/templates/instalaciones/detalle.html:122
+#: presentation/templates/instalaciones/form.html:43
 #: presentation/templates/instalaciones/hub.html:154
-#: presentation/templates/instalaciones/traslado.html:69
+#: presentation/templates/instalaciones/traslado.html:72
 msgid "Fecha"
 msgstr "Date"
 
-#: presentation/templates/dashboard.html:198
-#: presentation/templates/fiche_client.html:585
-#: presentation/templates/instalaciones/detalle.html:48
-#: presentation/templates/instalaciones/form.html:34
+#: presentation/templates/dashboard.html:219
+#: presentation/templates/fiche_client.html:594
+#: presentation/templates/instalaciones/detalle.html:57
+#: presentation/templates/instalaciones/form.html:36
 #: presentation/templates/instalaciones/hub.html:74
 #: presentation/templates/instalaciones/hub.html:155
 msgid "Tipo"
 msgstr "Type"
 
-#: presentation/templates/dashboard.html:199
-#: presentation/templates/fiche_client.html:587
+#: presentation/templates/dashboard.html:220
+#: presentation/templates/fiche_client.html:596
 #: presentation/templates/incidents.html:238
-#: presentation/templates/instalaciones/detalle.html:51
-#: presentation/templates/instalaciones/detalle.html:114
-#: presentation/templates/instalaciones/form.html:45
-#: presentation/templates/instalaciones/form.html:57
+#: presentation/templates/instalaciones/detalle.html:60
+#: presentation/templates/instalaciones/detalle.html:123
+#: presentation/templates/instalaciones/form.html:47
+#: presentation/templates/instalaciones/form.html:59
 #: presentation/templates/instalaciones/hub.html:52
 #: presentation/templates/instalaciones/hub.html:156
-#: presentation/templates/instalaciones/traslado.html:73
-#: presentation/templates/instalaciones/traslado.html:83
+#: presentation/templates/instalaciones/traslado.html:76
+#: presentation/templates/instalaciones/traslado.html:86
 msgid "Técnico"
 msgstr "Technicien"
 
-#: presentation/templates/dashboard.html:200
-#: presentation/templates/instalaciones/detalle.html:52
-#: presentation/templates/instalaciones/form.html:64
-#: presentation/templates/instalaciones/form.html:83
+#: presentation/templates/dashboard.html:221
+#: presentation/templates/instalaciones/detalle.html:61
+#: presentation/templates/instalaciones/form.html:66
+#: presentation/templates/instalaciones/form.html:85
 #: presentation/templates/instalaciones/hub.html:157
 msgid "Cliente"
 msgstr "Client"
 
-#: presentation/templates/dashboard.html:201
-#: presentation/templates/instalaciones/detalle.html:115
+#: presentation/templates/dashboard.html:222
+#: presentation/templates/instalaciones/detalle.html:124
 #: presentation/templates/instalaciones/hub.html:158
 msgid "Materiales"
 msgstr "Matériaux"
 
-#: presentation/templates/dashboard.html:288
+#: presentation/templates/dashboard.html:311
 msgid "No hay instalaciones registradas hoy"
 msgstr "Aucune installation enregistrée aujourd'hui"
+
+#: presentation/templates/dashboard.html:332
+msgid "Ver clientes"
+msgstr "Voir les clients"
+
+#: presentation/templates/dashboard.html:364
+#: presentation/templates/dashboard.html:476
+msgid "Ver incidencias"
+msgstr "Voir les incidences"
 
 #: presentation/templates/fiche_client.html:6
 #: presentation/templates/fiche_client_pdf.html:166
@@ -474,260 +520,267 @@ msgstr ""
 msgid "Imprimir PDF"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:28
+#: presentation/templates/fiche_client.html:23
+#: presentation/templates/instalaciones/traslado.html:16
+msgid "Clientes"
+msgstr "Clients"
+
+#: presentation/templates/fiche_client.html:37
 #: presentation/templates/fiche_client_pdf.html:172
 msgid "Información del cliente"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:33
+#: presentation/templates/fiche_client.html:42
 #: presentation/templates/fiche_client_pdf.html:175
 msgid "Nombre"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:38
+#: presentation/templates/fiche_client.html:47
 #: presentation/templates/fiche_client_pdf.html:179
-#: presentation/templates/fiche_incident.html:262
+#: presentation/templates/fiche_incident.html:271
 msgid "Teléfono"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:43
-#: presentation/templates/fiche_client.html:586
+#: presentation/templates/fiche_client.html:52
+#: presentation/templates/fiche_client.html:595
 #: presentation/templates/fiche_client_pdf.html:183
-#: presentation/templates/fiche_incident.html:269
-#: presentation/templates/instalaciones/detalle.html:57
-#: presentation/templates/instalaciones/traslado.html:32
+#: presentation/templates/fiche_incident.html:278
+#: presentation/templates/instalaciones/detalle.html:66
+#: presentation/templates/instalaciones/traslado.html:35
 msgid "Dirección"
 msgstr "Adresse"
 
-#: presentation/templates/fiche_client.html:48
+#: presentation/templates/fiche_client.html:57
 #: presentation/templates/fiche_client_pdf.html:187
-#: presentation/templates/fiche_incident.html:276
-#: presentation/templates/instalaciones/traslado.html:47
+#: presentation/templates/fiche_incident.html:285
+#: presentation/templates/instalaciones/traslado.html:50
 msgid "Barrio"
 msgstr "Quartier"
 
-#: presentation/templates/fiche_client.html:67
+#: presentation/templates/fiche_client.html:76
 #: presentation/templates/fiche_client_pdf.html:199
-#: presentation/templates/fiche_incident.html:285
+#: presentation/templates/fiche_incident.html:294
 msgid "IP Router"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:72
+#: presentation/templates/fiche_client.html:81
 #: presentation/templates/fiche_client_pdf.html:203
-#: presentation/templates/fiche_incident.html:296
+#: presentation/templates/fiche_incident.html:305
 msgid "IP Antena"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:88
-#: presentation/templates/fiche_incident.html:100
+#: presentation/templates/fiche_client.html:97
+#: presentation/templates/fiche_incident.html:109
 msgid "Creado por"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:99
-#: presentation/templates/fiche_incident.html:109
+#: presentation/templates/fiche_client.html:108
+#: presentation/templates/fiche_incident.html:118
 msgid "Modificado por"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:120
+#: presentation/templates/fiche_client.html:129
 msgid "Estadisticas de las Incidencias"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:133
+#: presentation/templates/fiche_client.html:142
 #: presentation/templates/fiche_client_pdf.html:220
 msgid "Total"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:141
-#: presentation/templates/fiche_client.html:320
-#: presentation/templates/fiche_client.html:351
+#: presentation/templates/fiche_client.html:150
+#: presentation/templates/fiche_client.html:329
+#: presentation/templates/fiche_client.html:360
 #: presentation/templates/fiche_client_pdf.html:224
 #: presentation/templates/fiche_client_pdf.html:258
 msgid "Solucionadas"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:149
-#: presentation/templates/fiche_client.html:322
-#: presentation/templates/fiche_client.html:353
+#: presentation/templates/fiche_client.html:158
+#: presentation/templates/fiche_client.html:331
+#: presentation/templates/fiche_client.html:362
 #: presentation/templates/fiche_client_pdf.html:228
 #: presentation/templates/fiche_client_pdf.html:260
 msgid "Pendientes"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:297
+#: presentation/templates/fiche_client.html:306
 #: presentation/templates/fiche_client_pdf.html:239
 msgid "Historial de las Incidencias"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:306
+#: presentation/templates/fiche_client.html:315
 #: presentation/templates/fiche_client_pdf.html:244
-#: presentation/templates/fiche_incident.html:59
+#: presentation/templates/fiche_incident.html:68
 msgid "Fecha/Hora"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:307
+#: presentation/templates/fiche_client.html:316
 #: presentation/templates/fiche_client_pdf.html:245
-#: presentation/templates/fiche_incident.html:54
+#: presentation/templates/fiche_incident.html:63
 msgid "Asunto"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:309
+#: presentation/templates/fiche_client.html:318
 #: presentation/templates/fiche_client_pdf.html:247
 msgid "Operador"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:310
+#: presentation/templates/fiche_client.html:319
 #: presentation/templates/fiche_client_pdf.html:248
-#: presentation/templates/fiche_incident.html:119
-#: presentation/templates/instalaciones/detalle.html:74
-#: presentation/templates/instalaciones/form.html:92
-#: presentation/templates/instalaciones/traslado.html:89
+#: presentation/templates/fiche_incident.html:128
+#: presentation/templates/instalaciones/detalle.html:83
+#: presentation/templates/instalaciones/form.html:94
+#: presentation/templates/instalaciones/traslado.html:92
 msgid "Observaciones"
 msgstr "Observations"
 
-#: presentation/templates/fiche_client.html:337
+#: presentation/templates/fiche_client.html:346
 #: presentation/templates/fiche_client_pdf.html:270
-#: presentation/templates/fiche_incident.html:124
+#: presentation/templates/fiche_incident.html:133
 msgid "Ninguna observación"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:395
+#: presentation/templates/fiche_client.html:404
 #: presentation/templates/fiche_client_pdf.html:279
 msgid "No hay incidencias registradas para este cliente."
 msgstr ""
 
-#: presentation/templates/fiche_client.html:407
+#: presentation/templates/fiche_client.html:416
 #: presentation/templates/instalaciones/detalle.html:2
 #: presentation/templates/instalaciones/detalle.html:5
-#: presentation/templates/instalaciones/traslado.html:64
-#: presentation/templates/materiales/salida_detalle.html:41
-#: presentation/templates/materiales/salida_form.html:56
+#: presentation/templates/instalaciones/traslado.html:67
+#: presentation/templates/materiales/salida_detalle.html:43
+#: presentation/templates/materiales/salida_form.html:57
 msgid "Instalación"
 msgstr "Instalación"
 
-#: presentation/templates/fiche_client.html:412
+#: presentation/templates/fiche_client.html:421
 #: presentation/templates/instalaciones/traslado.html:2
 #: presentation/templates/instalaciones/traslado.html:5
-#: presentation/templates/instalaciones/traslado.html:20
+#: presentation/templates/instalaciones/traslado.html:18
 msgid "Traslado"
 msgstr "Transfert"
 
-#: presentation/templates/fiche_client.html:423
+#: presentation/templates/fiche_client.html:432
 msgid "Mapa de la instalación"
 msgstr "Carte de l'installation"
 
-#: presentation/templates/fiche_client.html:432
-#: presentation/templates/fiche_client.html:556
-#: presentation/templates/instalaciones/detalle.html:63
+#: presentation/templates/fiche_client.html:441
+#: presentation/templates/fiche_client.html:565
+#: presentation/templates/instalaciones/detalle.html:72
 msgid "Ver en Google Maps"
 msgstr "Voir sur Google Maps"
 
-#: presentation/templates/fiche_client.html:436
+#: presentation/templates/fiche_client.html:445
 msgid "Actualizado"
 msgstr "Mis à jour"
 
-#: presentation/templates/fiche_client.html:445
+#: presentation/templates/fiche_client.html:454
 msgid "Aún no hay coordenadas GPS."
 msgstr "Pas encore de coordonnées GPS."
 
-#: presentation/templates/fiche_client.html:452
+#: presentation/templates/fiche_client.html:461
 msgid "Pegar coordenadas"
 msgstr "Coller les coordonnées"
 
-#: presentation/templates/fiche_client.html:455
-#: presentation/templates/instalaciones/traslado.html:56
+#: presentation/templates/fiche_client.html:464
+#: presentation/templates/instalaciones/traslado.html:59
 msgid "Formato: latitud, longitud"
 msgstr "Format : latitude, longitude"
 
-#: presentation/templates/fiche_client.html:459
+#: presentation/templates/fiche_client.html:468
 msgid "Latitud"
 msgstr "Latitude"
 
-#: presentation/templates/fiche_client.html:464
+#: presentation/templates/fiche_client.html:473
 msgid "Longitud"
 msgstr "Longitude"
 
-#: presentation/templates/fiche_client.html:471
+#: presentation/templates/fiche_client.html:480
 msgid "Usar mi ubicación"
 msgstr "Utiliser ma position"
 
-#: presentation/templates/fiche_client.html:474
+#: presentation/templates/fiche_client.html:483
 msgid "Guardar GPS"
 msgstr "Enregistrer le GPS"
 
-#: presentation/templates/fiche_client.html:483
+#: presentation/templates/fiche_client.html:492
 msgid "Galería"
 msgstr "Galerie"
 
-#: presentation/templates/fiche_client.html:495
+#: presentation/templates/fiche_client.html:504
 msgid "Foto de la instalación"
 msgstr "Photo de l'installation"
 
-#: presentation/templates/fiche_client.html:513
+#: presentation/templates/fiche_client.html:522
 msgid "No hay fotos de la instalación."
 msgstr "Aucune photo de l'installation."
 
-#: presentation/templates/fiche_client.html:520
+#: presentation/templates/fiche_client.html:529
 msgid "Añadir fotos"
 msgstr "Ajouter des photos"
 
-#: presentation/templates/fiche_client.html:525
+#: presentation/templates/fiche_client.html:534
 #, python-format
 msgid "JPG, PNG o WEBP. Máx. 5 MB por foto. Hasta %(n)s fotos."
 msgstr "JPG, PNG ou WEBP. Max. 5 Mo par photo. Jusqu'à %(n)s photos."
 
-#: presentation/templates/fiche_client.html:527
+#: presentation/templates/fiche_client.html:536
 msgid "Límite alcanzado."
 msgstr "Limite atteinte."
 
-#: presentation/templates/fiche_client.html:529
+#: presentation/templates/fiche_client.html:538
 #, python-format
 msgid "Puede añadir %(n)s más."
 msgstr "Vous pouvez en ajouter %(n)s."
 
-#: presentation/templates/fiche_client.html:536
+#: presentation/templates/fiche_client.html:545
 msgid "Guardar fotos"
 msgstr "Enregistrer les photos"
 
-#: presentation/templates/fiche_client.html:546
+#: presentation/templates/fiche_client.html:555
 msgid "Direcciones anteriores"
 msgstr "Adresses précédentes"
 
-#: presentation/templates/fiche_client.html:552
+#: presentation/templates/fiche_client.html:561
 msgid "hasta"
 msgstr "jusqu'au"
 
-#: presentation/templates/fiche_client.html:559
+#: presentation/templates/fiche_client.html:568
 msgid "fotos"
 msgstr "photos"
 
-#: presentation/templates/fiche_client.html:571
-#: presentation/templates/instalaciones/detalle.html:38
-#: presentation/templates/instalaciones/form.html:17
+#: presentation/templates/fiche_client.html:580
+#: presentation/templates/instalaciones/detalle.html:43
+#: presentation/templates/instalaciones/form.html:16
 #: presentation/templates/instalaciones/hub.html:3
 #: presentation/templates/instalaciones/hub.html:6
-#: presentation/templates/materiales/salida_form.html:21
+#: presentation/templates/materiales/salida_form.html:19
 msgid "Instalaciones"
 msgstr "Installations"
 
-#: presentation/templates/fiche_client.html:612
+#: presentation/templates/fiche_client.html:621
 msgid "No hay instalaciones registradas para este cliente."
 msgstr "Aucune installation enregistrée pour ce client."
 
-#: presentation/templates/fiche_client.html:676
+#: presentation/templates/fiche_client.html:685
 msgid "Eliminar foto"
 msgstr "Supprimer la photo"
 
-#: presentation/templates/fiche_client.html:677
+#: presentation/templates/fiche_client.html:686
+#: presentation/templates/materiales/salidas.html:455
 msgid "Cerrar"
 msgstr ""
 
-#: presentation/templates/fiche_client.html:680
+#: presentation/templates/fiche_client.html:689
 msgid "¿Eliminar esta foto de la instalación?"
 msgstr "Supprimer cette photo de l'installation ?"
 
-#: presentation/templates/fiche_client.html:683
-#: presentation/templates/instalaciones/form.html:121
-#: presentation/templates/instalaciones/traslado.html:126
+#: presentation/templates/fiche_client.html:692
+#: presentation/templates/instalaciones/form.html:123
+#: presentation/templates/instalaciones/traslado.html:129
+#: presentation/templates/materiales/salidas.html:462
 msgid "Cancelar"
 msgstr "Annuler"
 
@@ -741,8 +794,8 @@ msgstr ""
 
 #: presentation/templates/fiche_client_pdf.html:285
 msgid ""
-"Documento generado automaticamente por el portal de registro para atencion "
-"al cliente de CONNEXIA"
+"Documento generado automaticamente por el portal de registro para "
+"atencion al cliente de CONNEXIA"
 msgstr ""
 
 #: presentation/templates/fiche_incident.html:6
@@ -764,90 +817,94 @@ msgstr ""
 msgid "Ping"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:44
+#: presentation/templates/fiche_incident.html:39
+msgid "Incidencias"
+msgstr "Incidencias"
+
+#: presentation/templates/fiche_incident.html:53
 msgid "Detalles de la Incidencia"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:49
+#: presentation/templates/fiche_incident.html:58
 msgid "ID Incidencia"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:112
-#: presentation/templates/fiche_incident.html:147
+#: presentation/templates/fiche_incident.html:121
+#: presentation/templates/fiche_incident.html:156
 msgid "Usuario"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:135
+#: presentation/templates/fiche_incident.html:144
 msgid "Comentarios"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:168
+#: presentation/templates/fiche_incident.html:177
 msgid "No hay comentarios todavía."
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:174
+#: presentation/templates/fiche_incident.html:183
 msgid "Comentario"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:181
+#: presentation/templates/fiche_incident.html:190
 msgid "Escriba un mensaje…"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:184
+#: presentation/templates/fiche_incident.html:193
 msgid "Enviar"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:194
+#: presentation/templates/fiche_incident.html:203
 msgid "Acciones rápidas"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:210
+#: presentation/templates/fiche_incident.html:219
 msgid "Marcar como Solucionada"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:218
+#: presentation/templates/fiche_incident.html:227
 msgid "Modificar Incidencia"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:223
+#: presentation/templates/fiche_incident.html:232
 msgid "¿Está seguro de eliminar esta incidencia?"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:231
+#: presentation/templates/fiche_incident.html:240
 msgid ""
-"No tiene permiso para modificar esta incidencia. Puede añadir comentarios "
-"arriba."
+"No tiene permiso para modificar esta incidencia. Puede añadir comentarios"
+" arriba."
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:242
+#: presentation/templates/fiche_incident.html:251
 msgid "Cliente Afectado"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:307
+#: presentation/templates/fiche_incident.html:316
 msgid "Cuenta PPPoE"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:312
+#: presentation/templates/fiche_incident.html:321
 msgid "No configurada"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:319
+#: presentation/templates/fiche_incident.html:328
 msgid "Ver Ficha Completa del Cliente"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:329
+#: presentation/templates/fiche_incident.html:338
 msgid "Información de tiempo"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:340
+#: presentation/templates/fiche_incident.html:349
 msgid "Tiempo Transcurrido"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:355
+#: presentation/templates/fiche_incident.html:364
 msgid "¡Atención!"
 msgstr ""
 
-#: presentation/templates/fiche_incident.html:356
+#: presentation/templates/fiche_incident.html:365
 msgid "Incidencia pendiente por más de 30 minutos"
 msgstr ""
 
@@ -865,9 +922,9 @@ msgstr ""
 
 #: presentation/templates/instalaciones/_material_linea.html:3
 #: presentation/templates/instalaciones/_traslado_linea.html:4
-#: presentation/templates/instalaciones/detalle.html:158
-#: presentation/templates/instalaciones/form.html:103
-#: presentation/templates/instalaciones/traslado.html:108
+#: presentation/templates/instalaciones/detalle.html:167
+#: presentation/templates/instalaciones/form.html:105
+#: presentation/templates/instalaciones/traslado.html:111
 msgid "Material"
 msgstr "Matériel"
 
@@ -878,80 +935,80 @@ msgstr "Sélectionner"
 
 #: presentation/templates/instalaciones/_material_linea.html:10
 #: presentation/templates/instalaciones/_traslado_linea.html:11
-#: presentation/templates/instalaciones/detalle.html:159
-#: presentation/templates/instalaciones/form.html:104
-#: presentation/templates/instalaciones/traslado.html:109
+#: presentation/templates/instalaciones/detalle.html:168
+#: presentation/templates/instalaciones/form.html:106
+#: presentation/templates/instalaciones/traslado.html:112
 msgid "Cantidad"
 msgstr "Quantité"
 
 #: presentation/templates/instalaciones/_material_linea.html:11
-#: presentation/templates/instalaciones/form.html:58
-#: presentation/templates/instalaciones/form.html:84
-#: presentation/templates/instalaciones/traslado.html:84
+#: presentation/templates/instalaciones/form.html:60
+#: presentation/templates/instalaciones/form.html:86
+#: presentation/templates/instalaciones/traslado.html:87
 msgid "Quitar"
 msgstr "Retirer"
 
 #: presentation/templates/instalaciones/_traslado_linea.html:13
-#: presentation/templates/instalaciones/detalle.html:160
-#: presentation/templates/instalaciones/form.html:105
-#: presentation/templates/instalaciones/traslado.html:110
+#: presentation/templates/instalaciones/detalle.html:169
+#: presentation/templates/instalaciones/form.html:107
+#: presentation/templates/instalaciones/traslado.html:113
 msgid "Acción"
 msgstr "Action"
 
-#: presentation/templates/instalaciones/detalle.html:16
+#: presentation/templates/instalaciones/detalle.html:23
 msgid "¿Marcar la instalación como terminada?"
 msgstr "Marquer l'installation comme terminée ?"
 
-#: presentation/templates/instalaciones/detalle.html:19
+#: presentation/templates/instalaciones/detalle.html:26
 msgid "Terminar"
 msgstr "Terminer"
 
-#: presentation/templates/instalaciones/detalle.html:24
+#: presentation/templates/instalaciones/detalle.html:31
 msgid "¿Reabrir la instalación?"
 msgstr "Rouvrir l'installation ?"
 
-#: presentation/templates/instalaciones/detalle.html:27
+#: presentation/templates/instalaciones/detalle.html:34
 msgid "Reabrir"
 msgstr "Rouvrir"
 
-#: presentation/templates/instalaciones/detalle.html:46
+#: presentation/templates/instalaciones/detalle.html:55
 msgid "Información general"
 msgstr "Informations générales"
 
-#: presentation/templates/instalaciones/detalle.html:60
+#: presentation/templates/instalaciones/detalle.html:69
 msgid "Dirección anterior"
 msgstr "Adresse précédente"
 
-#: presentation/templates/instalaciones/detalle.html:69
+#: presentation/templates/instalaciones/detalle.html:78
 msgid "Dirección de origen"
 msgstr "Adresse d'origine"
 
-#: presentation/templates/instalaciones/detalle.html:78
+#: presentation/templates/instalaciones/detalle.html:87
 msgid "Registrada"
 msgstr "Enregistrée"
 
-#: presentation/templates/instalaciones/detalle.html:89
+#: presentation/templates/instalaciones/detalle.html:98
 msgid "Terminada el"
 msgstr "Terminée le"
 
-#: presentation/templates/instalaciones/detalle.html:101
-#: presentation/templates/instalaciones/form.html:98
+#: presentation/templates/instalaciones/detalle.html:110
+#: presentation/templates/instalaciones/form.html:100
 msgid "Material entregado"
 msgstr "Matériel remis"
 
-#: presentation/templates/instalaciones/detalle.html:103
+#: presentation/templates/instalaciones/detalle.html:112
 msgid "Añadir material"
 msgstr "Ajouter du matériel"
 
-#: presentation/templates/instalaciones/detalle.html:143
+#: presentation/templates/instalaciones/detalle.html:152
 msgid "No hay salidas de material para esta instalación."
 msgstr "Aucune sortie de matériel pour cette installation."
 
-#: presentation/templates/instalaciones/detalle.html:151
+#: presentation/templates/instalaciones/detalle.html:160
 msgid "Material existente del traslado"
 msgstr "Matériel existant du transfert"
 
-#: presentation/templates/instalaciones/detalle.html:179
+#: presentation/templates/instalaciones/detalle.html:188
 msgid "No se indicó material reutilizado ni retirado."
 msgstr "Aucun matériel réutilisé ou retiré n'a été indiqué."
 
@@ -959,50 +1016,50 @@ msgstr "Aucun matériel réutilisé ou retiré n'a été indiqué."
 msgid "Datos de la instalación"
 msgstr "Données de l'installation"
 
-#: presentation/templates/instalaciones/form.html:48
-#: presentation/templates/instalaciones/traslado.html:76
+#: presentation/templates/instalaciones/form.html:50
+#: presentation/templates/instalaciones/traslado.html:79
 msgid "Buscar técnico por nombre o teléfono..."
 msgstr "Rechercher un technicien par nom ou téléphone..."
 
-#: presentation/templates/instalaciones/form.html:69
-#: presentation/templates/materiales/salida_form.html:96
+#: presentation/templates/instalaciones/form.html:71
+#: presentation/templates/materiales/salida_form.html:97
 msgid "no modificable"
 msgstr "non modifiable"
 
-#: presentation/templates/instalaciones/form.html:74
+#: presentation/templates/instalaciones/form.html:76
 msgid "Buscar cliente por nombre, teléfono o ciudad..."
 msgstr "Rechercher un client par nom, téléphone ou ville..."
 
-#: presentation/templates/instalaciones/form.html:87
+#: presentation/templates/instalaciones/form.html:89
 msgid ""
-"La instalación se asocia a la dirección actual del cliente. Para un cambio "
-"de dirección use «Traslado» en la ficha del cliente."
+"La instalación se asocia a la dirección actual del cliente. Para un "
+"cambio de dirección use «Traslado» en la ficha del cliente."
 msgstr ""
 "L'installation est associée à l'adresse actuelle du client. Pour un "
 "changement d'adresse, utilisez « Transfert » sur la fiche client."
 
-#: presentation/templates/instalaciones/form.html:92
-#: presentation/templates/instalaciones/form.html:98
-#: presentation/templates/instalaciones/traslado.html:52
-#: presentation/templates/instalaciones/traslado.html:89
+#: presentation/templates/instalaciones/form.html:94
+#: presentation/templates/instalaciones/form.html:100
+#: presentation/templates/instalaciones/traslado.html:55
+#: presentation/templates/instalaciones/traslado.html:92
 msgid "opcional"
 msgstr "facultatif"
 
-#: presentation/templates/instalaciones/form.html:113
-#: presentation/templates/instalaciones/traslado.html:120
+#: presentation/templates/instalaciones/form.html:115
+#: presentation/templates/instalaciones/traslado.html:123
 msgid "Añadir línea"
 msgstr "Ajouter une ligne"
 
-#: presentation/templates/instalaciones/form.html:116
+#: presentation/templates/instalaciones/form.html:118
 msgid ""
-"La instalación se crea «En curso». Las líneas sin material se ignoran; podrá"
-" añadir más material desde la ficha de la instalación."
+"La instalación se crea «En curso». Las líneas sin material se ignoran; "
+"podrá añadir más material desde la ficha de la instalación."
 msgstr ""
 "L'installation est créée « En cours ». Les lignes sans matériel sont "
 "ignorées ; vous pourrez ajouter du matériel depuis la fiche de "
 "l'installation."
 
-#: presentation/templates/instalaciones/form.html:122
+#: presentation/templates/instalaciones/form.html:124
 msgid "Guardar"
 msgstr "Enregistrer"
 
@@ -1074,53 +1131,53 @@ msgid "Página"
 msgstr "Page"
 
 #: presentation/templates/instalaciones/hub.html:143
-#: presentation/templates/instalaciones/hub.html:291
+#: presentation/templates/instalaciones/hub.html:297
 msgid "de"
 msgstr "sur"
 
-#: presentation/templates/instalaciones/hub.html:240
+#: presentation/templates/instalaciones/hub.html:246
 msgid "Paginación de las instalaciones"
 msgstr "Pagination des installations"
 
-#: presentation/templates/instalaciones/hub.html:245
-#: presentation/templates/instalaciones/hub.html:250
+#: presentation/templates/instalaciones/hub.html:251
+#: presentation/templates/instalaciones/hub.html:256
 msgid "Anterior"
 msgstr "Précédent"
 
-#: presentation/templates/instalaciones/hub.html:277
-#: presentation/templates/instalaciones/hub.html:282
+#: presentation/templates/instalaciones/hub.html:283
+#: presentation/templates/instalaciones/hub.html:288
 msgid "Siguiente"
 msgstr "Suivant"
 
-#: presentation/templates/instalaciones/hub.html:289
+#: presentation/templates/instalaciones/hub.html:295
 msgid "Mostrando"
 msgstr "Affichage de"
 
-#: presentation/templates/instalaciones/hub.html:289
+#: presentation/templates/instalaciones/hub.html:295
 msgid "a"
 msgstr "à"
 
-#: presentation/templates/instalaciones/hub.html:291
+#: presentation/templates/instalaciones/hub.html:297
 msgid "instalaciones"
 msgstr "installations"
 
-#: presentation/templates/instalaciones/hub.html:300
+#: presentation/templates/instalaciones/hub.html:306
 msgid "No se encontraron instalaciones"
 msgstr "Aucune installation trouvée"
 
-#: presentation/templates/instalaciones/hub.html:301
+#: presentation/templates/instalaciones/hub.html:307
 msgid "Intente cambiar los filtros de búsqueda"
 msgstr "Essayez de modifier les filtres de recherche"
 
-#: presentation/templates/instalaciones/hub.html:303
+#: presentation/templates/instalaciones/hub.html:309
 msgid "Limpiar filtros"
 msgstr "Effacer les filtres"
 
-#: presentation/templates/instalaciones/hub.html:306
+#: presentation/templates/instalaciones/hub.html:312
 msgid "No hay instalaciones registradas."
 msgstr "Aucune installation enregistrée."
 
-#: presentation/templates/instalaciones/hub.html:307
+#: presentation/templates/instalaciones/hub.html:313
 msgid "Comience agregando su primera instalación"
 msgstr "Commencez par ajouter votre première installation"
 
@@ -1128,67 +1185,51 @@ msgstr "Commencez par ajouter votre première installation"
 msgid "Cambio de dirección del cliente"
 msgstr "Changement d'adresse du client"
 
-#: presentation/templates/instalaciones/traslado.html:18
-msgid "Clientes"
-msgstr "Clients"
-
-#: presentation/templates/instalaciones/traslado.html:36
+#: presentation/templates/instalaciones/traslado.html:39
 msgid "Dirección actual"
 msgstr "Adresse actuelle"
 
-#: presentation/templates/instalaciones/traslado.html:42
+#: presentation/templates/instalaciones/traslado.html:45
 msgid "Nueva dirección"
 msgstr "Nouvelle adresse"
 
-#: presentation/templates/instalaciones/traslado.html:52
+#: presentation/templates/instalaciones/traslado.html:55
 msgid "Coordenadas GPS"
 msgstr "Coordonnées GPS"
 
-#: presentation/templates/instalaciones/traslado.html:98
+#: presentation/templates/instalaciones/traslado.html:101
 msgid "Material existente"
 msgstr "Matériel existant"
 
-#: presentation/templates/instalaciones/traslado.html:102
+#: presentation/templates/instalaciones/traslado.html:105
 msgid ""
-"Indique el material que se reutiliza en la nueva dirección o que se retira. "
-"Deje la línea vacía si no aplica. El material nuevo se añade después con una"
-" salida de instalación."
+"Indique el material que se reutiliza en la nueva dirección o que se "
+"retira. Deje la línea vacía si no aplica. El material nuevo se añade "
+"después con una salida de instalación."
 msgstr ""
-"Indiquez le matériel réutilisé à la nouvelle adresse ou retiré. Laissez la "
-"ligne vide si non applicable. Le nouveau matériel s'ajoute ensuite avec une "
-"sortie d'installation."
+"Indiquez le matériel réutilisé à la nouvelle adresse ou retiré. Laissez "
+"la ligne vide si non applicable. Le nouveau matériel s'ajoute ensuite "
+"avec une sortie d'installation."
 
-#: presentation/templates/instalaciones/traslado.html:127
+#: presentation/templates/instalaciones/traslado.html:130
 msgid "Registrar traslado"
 msgstr "Enregistrer le transfert"
 
-#: presentation/templates/materiales/salidas.html:396
+#: presentation/templates/materiales/salidas.html:414
 msgid "El material de una instalación se registra desde"
 msgstr "Le matériel d'une installation s'enregistre depuis"
 
-msgid "Ver todas las incidencias del período"
-msgstr "Voir toutes les incidences de la période"
+#: presentation/templates/materiales/salidas.html:454
+msgid "Confirmar la eliminación"
+msgstr "Confirmer la suppression"
 
-msgid "Ver incidencias solucionadas del período"
-msgstr "Voir les incidences résolues de la période"
+#: presentation/templates/materiales/salidas.html:458
+msgid "¿Está seguro de que desea eliminar la salida"
+msgstr "Voulez-vous vraiment supprimer la sortie"
 
-msgid "Ver incidencias pendientes del período"
-msgstr "Voir les incidences en attente de la période"
-
-msgid "Ver incidencias Bitrix del período"
-msgstr "Voir les incidences Bitrix de la période"
-
-msgid "Ver lista"
-msgstr "Voir la liste"
-
-msgid "Ver clientes"
-msgstr "Voir les clients"
-
-msgid "Ver incidencias"
-msgstr "Voir les incidences"
-
-msgid "Incidencias"
-msgstr "Incidencias"
+#: presentation/templates/materiales/salidas.html:459
+msgid "Esta acción es irreversible."
+msgstr "Cette action est irréversible."
 
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "Client ajouté avec succès!"

@@ -35,6 +35,16 @@
                         <i class="fas fa-copy me-2"></i>Copiar información
                     </button>
                 </li>
+                {% if current_user.is_authenticated and current_user.is_admin() %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button type="button" class="dropdown-item text-danger"
+                            data-salida-id="{{ s.id }}"
+                            onclick="confirmerSuppressionSalida(this)">
+                        <i class="fas fa-trash me-2"></i>{{ _('Eliminar') }}
+                    </button>
+                </li>
+                {% endif %}
             </ul>
         </div>
     </div>

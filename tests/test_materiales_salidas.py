@@ -13,10 +13,14 @@ os.environ['WTF_CSRF_ENABLED'] = 'false'
 from flask_login import login_user  # noqa: E402
 from werkzeug.security import generate_password_hash  # noqa: E402
 
+from werkzeug.exceptions import Forbidden  # noqa: E402
+
 from core.app import (  # noqa: E402
     Agencia,
     Ciudad,
+    Material,
     MaterialSalida,
+    MaterialSalidaLinea,
     Operateur,
     app,
     db,
@@ -119,6 +123,51 @@ class MaterialesSalidasPaginationTests(unittest.TestCase):
         self.assertIn('tipo_salida=uso_interno', html)
         self.assertIn('per_page=50', html)
         self.assertIn('Mostrando', html)
+
+    def test_lista_admin_muestra_eliminar(self):
+        html = self._html()
+        self.assertIn('confirmerSuppressionSalida', html)
+        self.assertIn('confirmEliminarSalidaModal', html)
+        self.assertIn('fa-trash', html)
+
+    def test_admin_elimina_salida_y_lineas(self):
+        material = Material(nombre='Router test eliminar', tipo='material_cliente', activo=True)
+        db.session.add(material)
+        db.session.flush()
+        salida = MaterialSalida(
+            fecha=date.today(),
+            id_tecnico=self.tecnico.id,
+            id_client=None,
+            estado='registrada',
+            id_operateur_registro=self.admin.id,
+            tipo_salida='uso_interno',
+        )
+        db.session.add(salida)
+        db.session.flush()
+        db.session.add(MaterialSalidaLinea(id_salida=salida.id, id_material=material.id, cantidad=2))
+        db.session.commit()
+        sid = salida.id
+
+        with self.app.test_request_context(
+            f'/materiales/salidas/{sid}/supprimer',
+            method='POST',
+        ):
+            login_user(self.admin)
+            response = self.app.view_functions['materiales_salida_supprimer'](salida_id=sid)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNone(db.session.get(MaterialSalida, sid))
+        self.assertEqual(MaterialSalidaLinea.query.filter_by(id_salida=sid).count(), 0)
+
+    def test_usuario_no_puede_eliminar_salida(self):
+        salida = MaterialSalida.query.first()
+        with self.app.test_request_context(
+            f'/materiales/salidas/{salida.id}/supprimer',
+            method='POST',
+        ):
+            login_user(self.tecnico)
+            with self.assertRaises(Forbidden):
+                self.app.view_functions['materiales_salida_supprimer'](salida_id=salida.id)
 
 
 if __name__ == '__main__':

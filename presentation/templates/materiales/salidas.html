@@ -292,6 +292,22 @@
 
                                     </button>
 
+                                    {% if current_user.is_authenticated and current_user.is_admin() %}
+
+                                    <button type="button" class="btn btn-sm btn-outline-danger"
+
+                                            data-salida-id="{{ s.id }}"
+
+                                            onclick="confirmerSuppressionSalida(this)"
+
+                                            title="{{ _('Eliminar') }}">
+
+                                        <i class="fas fa-trash"></i>
+
+                                    </button>
+
+                                    {% endif %}
+
                                 </div>
 
                             </td>
@@ -430,11 +446,48 @@
         </div>
     </div>
 </div>
+{% if current_user.is_authenticated and current_user.is_admin() %}
+<div class="modal fade" id="confirmEliminarSalidaModal" tabindex="-1" aria-labelledby="confirmEliminarSalidaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmEliminarSalidaLabel">{{ _('Confirmar la eliminación') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ _('¿Está seguro de que desea eliminar la salida') }} <strong id="salidaEliminarLabel"></strong>?</p>
+                <p class="text-danger mb-0"><small>{{ _('Esta acción es irreversible.') }}</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <form id="deleteSalidaForm" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">{{ _('Eliminar') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
 <script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
+<script>
+function confirmerSuppressionSalida(button) {
+    const salidaId = button.getAttribute('data-salida-id');
+    const label = document.getElementById('salidaEliminarLabel');
+    const form = document.getElementById('deleteSalidaForm');
+    const modalEl = document.getElementById('confirmEliminarSalidaModal');
+    if (!salidaId || !label || !form || !modalEl || !window.bootstrap) {
+        return;
+    }
+    label.textContent = '#' + salidaId;
+    form.action = {{ url_for('materiales_salidas') | tojson }} + '/' + encodeURIComponent(salidaId) + '/supprimer';
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+</script>
 <script>
 (function () {
     const nuevaBaseUrl = {{ url_for('materiales_salida_nueva') | tojson }};

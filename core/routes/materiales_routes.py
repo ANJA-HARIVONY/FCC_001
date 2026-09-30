@@ -32,6 +32,7 @@ from core.services.materiales_service import (
     update_material,
     create_salida,
     update_salida,
+    delete_salida,
     salidas_base_query,
     apply_salida_list_filters,
     clamp_list_per_page,
@@ -297,6 +298,18 @@ def materiales_salida_modificar(salida_id):
         form_action=url_for('materiales_salida_modificar', salida_id=salida.id),
         page_title=f'Modificar salida #{salida.id}',
     )
+
+
+@app.route('/materiales/salidas/<int:salida_id>/supprimer', methods=['POST'])
+@admin_required
+def materiales_salida_supprimer(salida_id):
+    try:
+        delete_salida(salida_id, current_user)
+        flash(gettext('Salida eliminada.'), 'success')
+    except MaterialesValidationError as exc:
+        db.session.rollback()
+        flash(str(exc), 'error')
+    return redirect(url_for('materiales_salidas'))
 
 
 @app.route('/materiales/informe')

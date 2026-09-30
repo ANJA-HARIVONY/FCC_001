@@ -312,7 +312,7 @@
 
                 {% if current_user.is_authenticated and current_user.is_admin() %}
                 <!-- MATERIALES (admin) -->
-                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas">
+                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-toolbox"></i></span>
@@ -328,7 +328,7 @@
                                 <li><i class="fas fa-list"></i><span><strong>Catálogo:</strong> menú <em>Materiales</em> → <em>Gestionar</em>. Tipos: Herramientas y Materiales de cliente.</span></li>
                                 <li><i class="fas fa-plus-circle"></i><span><strong>Nueva salida:</strong> desde el hub o la lista <em>Salidas de material</em>. La ventana solo ofrece <em>Uso interno</em> (sin cliente) o <em>Incidencia</em> (cliente obligatorio).</span></li>
                                 <li><i class="fas fa-building"></i><span><strong>Instalación:</strong> el material de una instalación no se crea desde esa ventana. Se indica en <em>Nueva instalación</em> o con <em>Añadir material</em> en la ficha de la instalación.</span></li>
-                                <li><i class="fas fa-clipboard-list"></i><span><strong>Lista de salidas:</strong> fecha, tipo, técnico, cliente y materiales. Acciones: Ver, Modificar y Copiar. Filtros por búsqueda, tipo, técnico, material y fechas. Imprimir y Excel exportan la página actual (50, 100, 200 o 500 filas).</span></li>
+                                <li><i class="fas fa-clipboard-list"></i><span><strong>Lista de salidas:</strong> fecha, tipo, técnico, cliente y materiales. Acciones: Ver, Modificar, Copiar y, solo para admin, <em>Eliminar</em> (con confirmación). Filtros por búsqueda, tipo, técnico, material y fechas. Imprimir y Excel exportan la página actual (50, 100, 200 o 500 filas).</span></li>
                                 <li><i class="fas fa-chart-bar"></i><span><strong>Informe de salidas:</strong> elija fechas, tipo de salida, técnico y material, luego <em>Generar</em>. Puede exportar el resultado en Excel.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Ficha del técnico:</strong> desde <em>Usuarios</em>, en una cuenta de categoría Técnico, el botón <em>Ficha</em> muestra el material asignado.</span></li>
                             </ul>
@@ -589,6 +589,19 @@
                                     <div id="faq-11" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
                                             En <em>Materiales</em> → <strong>Crear salida</strong> (o <em>Nueva salida</em> en la lista). Elija <em>Uso interno</em> si no hay cliente, o <em>Incidencia</em> si el material va ligado a un cliente. El material de una instalación se registra desde la propia instalación, no desde esta ventana.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="eliminar salida material borrar admin">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-13">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo elimino una salida de material?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-13" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            En <em>Salidas de material</em>, pulse <strong>Eliminar</strong> en la columna Acciones (o en el menú de la tarjeta, en el móvil). Confirme en la ventana. Esta acción es irreversible y solo está disponible para un administrador.
                                         </div>
                                     </div>
                                 </div>

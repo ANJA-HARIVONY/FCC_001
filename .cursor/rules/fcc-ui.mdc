@@ -66,7 +66,7 @@ Toutes les salidas (les 3 `tipo_salida`). Desktop = table ci-dessous. Mobile = `
 | `Técnico` | `s.tecnico.nom` | `—` si absent |
 | `Cliente` | `s.client.nom` | Texte (pas de lien). `uso_interno` sans client → «Uso interno» ; sinon sans client → «Uso general» |
 | `Materiales` | `s.lineas` | `nombre(modelo) x cantidad`, séparés par virgule |
-| `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` |
+| `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` ; `Eliminar` (admin, modale de confirmation) → `materiales_salida_supprimer` |
 
 Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Boutons : Recordar filtros + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
 
