@@ -8,7 +8,7 @@ from flask import render_template, request, redirect, url_for, flash, jsonify, a
 from flask_babel import gettext
 from flask_login import current_user
 
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from core.app import (
     app,
@@ -62,6 +62,32 @@ def _materiales_activos():
     return Material.query.filter_by(activo=True).order_by(Material.tipo, Material.nombre).all()
 
 
+_CATALOGO_SORTS = ('nombre', 'modelo')
+
+
+def _catalogo_sort_params():
+    """Tri de la liste catalogue : nombre ou modelo, asc/desc."""
+    sort_by = (request.args.get('sort') or '').strip()
+    sort_order = (request.args.get('order') or '').strip().lower()
+    if sort_by not in _CATALOGO_SORTS:
+        sort_by = ''
+        sort_order = ''
+    elif sort_order not in ('asc', 'desc'):
+        sort_order = 'asc'
+    return sort_by, sort_order
+
+
+def _apply_catalogo_sort(query, sort_by, sort_order):
+    if sort_by == 'nombre':
+        col = Material.nombre.asc() if sort_order == 'asc' else Material.nombre.desc()
+        return query.order_by(col, Material.id.asc())
+    if sort_by == 'modelo':
+        modelo = func.coalesce(Material.modelo, '')
+        col = modelo.asc() if sort_order == 'asc' else modelo.desc()
+        return query.order_by(col, Material.nombre.asc(), Material.id.asc())
+    return query.order_by(Material.tipo.asc(), Material.nombre.asc(), Material.id.asc())
+
+
 def _informe_filter_url_kwargs(filters):
     """Parámetros de filtro para paginación y export."""
     kwargs = {}
@@ -106,10 +132,13 @@ def materiales_hub():
 @admin_required
 def materiales_catalogo():
     tipo_filter = (request.args.get('tipo') or '').strip()
+    if tipo_filter not in MATERIAL_TIPOS:
+        tipo_filter = ''
+    sort_by, sort_order = _catalogo_sort_params()
     query = Material.query
-    if tipo_filter in MATERIAL_TIPOS:
+    if tipo_filter:
         query = query.filter_by(tipo=tipo_filter)
-    materiales = query.order_by(Material.tipo, Material.nombre).all()
+    materiales = _apply_catalogo_sort(query, sort_by, sort_order).all()
 
     if request.method == 'POST':
         action = (request.form.get('action') or '').strip()
@@ -129,12 +158,19 @@ def materiales_catalogo():
         except MaterialesValidationError as exc:
             db.session.rollback()
             flash(str(exc), 'error')
-        return redirect(url_for('materiales_catalogo', tipo=tipo_filter or None))
+        return redirect(url_for(
+            'materiales_catalogo',
+            tipo=tipo_filter or None,
+            sort=sort_by or None,
+            order=sort_order or None,
+        ))
 
     return render_template(
         'materiales/catalogo.html',
         materiales=materiales,
         tipo_filter=tipo_filter,
+        sort_by=sort_by,
+        sort_order=sort_order,
         material_tipos=MATERIAL_TIPOS,
         tipo_labels=MATERIAL_TIPO_LABELS,
     )
