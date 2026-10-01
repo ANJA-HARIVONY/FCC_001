@@ -3989,3 +3989,33 @@ a.mobile-list-card__chip:focus {
         padding-right: 0.75rem;
     }
 }
+
+.perfil-avatar-btn {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 50%;
+    line-height: 0;
+    cursor: pointer;
+}
+
+.perfil-avatar-btn:hover,
+.perfil-avatar-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.35);
+}
+
+.perfil-avatar-thumb {
+    object-fit: cover;
+    display: block;
+}
+
+.perfil-avatar-preview {
+    background: rgba(15, 20, 28, 0.04);
+}
+
+.perfil-avatar-full {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+}

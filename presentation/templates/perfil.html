@@ -1,50 +1,108 @@
 {% extends "base.html" %}
-{% block title %}Mi perfil{% endblock %}
+{% set default_av = url_for('static', filename='img/default_avatar.png') %}
+{% set av = current_user.avatar_url if current_user.avatar_url else default_av %}
+
+{% block title %}{{ _('Mi perfil') }}{% endblock %}
 
 {% block page_icon %}<i class="fas fa-user-circle" aria-hidden="true"></i>{% endblock %}
-{% block page_title %}Mi perfil{% endblock %}
-{% block page_subtitle %}Avatar y contraseña de la cuenta{% endblock %}
+{% block page_title %}{{ _('Mi perfil') }}{% endblock %}
+{% block page_subtitle %}{{ _('Avatar y contraseña de la cuenta') }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-0">
+    <div class="card shadow-sm border-0 content-card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="ui-icon fas fa-user-circle me-2" aria-hidden="true"></i>{{ _('Cuenta') }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-column flex-sm-row align-items-center align-items-sm-start gap-3">
+                <button type="button"
+                        class="perfil-avatar-btn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#perfilAvatarModal"
+                        title="{{ _('Ver foto') }}"
+                        aria-label="{{ _('Ver foto') }}">
+                    <img src="{{ av }}"
+                         alt=""
+                         class="rounded-circle perfil-avatar-thumb"
+                         width="96"
+                         height="96"
+                         onerror="this.onerror=null;this.src='{{ default_av }}';">
+                </button>
+                <div class="text-center text-sm-start">
+                    <h2 class="h5 mb-1">{{ current_user.nom }}</h2>
+                    <div class="text-muted small mb-2">
+                        <div>{{ current_user.telephone }}</div>
+                        {% if current_user.email %}
+                        <div>{{ current_user.email }}</div>
+                        {% endif %}
+                        <div>{{ current_user.ciudad.nombre if current_user.ciudad else '—' }} / {{ current_user.agencia.nombre if current_user.agencia else '—' }}</div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-start">
+                        <span class="badge bg-{{ 'danger' if current_user.is_admin() else 'secondary' }}">{{ current_user.role }}</span>
+                        <span class="badge bg-info text-dark">{{ categoria_operateur_label(current_user.categoria) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-lg-6">
-            <div class="card content-card mb-4">
-                <div class="card-header">Avatar</div>
+            <div class="card shadow-sm border-0 content-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ui-icon fas fa-camera me-2" aria-hidden="true"></i>{{ _('Avatar') }}</h5>
+                </div>
                 <div class="card-body">
-                    <div class="d-flex align-items-center gap-3 mb-3">
-                        {% set av = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default_avatar.png') %}
-                        <img src="{{ av }}" alt="" class="rounded-circle" width="64" height="64" style="object-fit:cover;">
-                        <div>
-                            <strong>{{ current_user.nom }}</strong><br>
-                            <small class="text-muted">{{ current_user.telephone }}</small>
-                        </div>
-                    </div>
                     <form method="POST" action="{{ url_for('upload_avatar_usuario', user_id=current_user.id) }}" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="file" name="avatar" class="form-control mb-2" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
-                        <button type="submit" class="btn btn-primary btn-sm">Actualizar avatar</button>
+                        <button type="submit" class="btn btn-primary btn-sm">{{ _('Actualizar avatar') }}</button>
                     </form>
                 </div>
             </div>
         </div>
         <div class="col-lg-6">
-            <div class="card content-card">
-                <div class="card-header">Cambiar contraseña</div>
+            <div class="card shadow-sm border-0 content-card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="ui-icon fas fa-key me-2" aria-hidden="true"></i>{{ _('Cambiar contraseña') }}</h5>
+                </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('perfil') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
-                            <label class="form-label">Nueva contraseña</label>
-                            <input type="password" name="password" class="form-control" minlength="6">
+                            <label class="form-label" for="perfil-password">{{ _('Nueva contraseña') }}</label>
+                            <input type="password" id="perfil-password" name="password" class="form-control" minlength="6" autocomplete="new-password">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Confirmar</label>
-                            <input type="password" name="password2" class="form-control" minlength="6">
+                            <label class="form-label" for="perfil-password2">{{ _('Confirmar') }}</label>
+                            <input type="password" id="perfil-password2" name="password2" class="form-control" minlength="6" autocomplete="new-password">
                         </div>
-                        <button type="submit" class="btn btn-outline-danger">Guardar contraseña</button>
+                        <button type="submit" class="btn btn-outline-danger">{{ _('Guardar contraseña') }}</button>
                     </form>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal fade" id="perfilAvatarModal" tabindex="-1" aria-labelledby="perfilAvatarModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="perfilAvatarModalLabel">{{ current_user.nom }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body text-center perfil-avatar-preview">
+                <img src="{{ av }}"
+                     alt=""
+                     class="perfil-avatar-full"
+                     onerror="this.onerror=null;this.src='{{ default_av }}';">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cerrar') }}</button>
             </div>
         </div>
     </div>

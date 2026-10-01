@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 14:48+0100\n"
+"POT-Creation-Date: 2026-10-01 12:09+0100\n"
 "PO-Revision-Date: 2025-05-25 21:36+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -240,20 +240,20 @@ msgstr "Installation photos saved."
 msgid "Foto eliminada."
 msgstr "Photo deleted."
 
-#: core/routes/materiales_routes.py:156
+#: core/routes/materiales_routes.py:192
 msgid "El material de una instalación se registra desde «Nueva instalación»."
 msgstr "Installation material is recorded from “New installation”."
 
-#: core/routes/materiales_routes.py:185
+#: core/routes/materiales_routes.py:221
 #, python-format
 msgid "Añadir material a la instalación #%(id)s"
 msgstr "Add material to installation #%(id)s"
 
-#: core/routes/materiales_routes.py:187
+#: core/routes/materiales_routes.py:223
 msgid "Nueva salida de material"
 msgstr "New material checkout"
 
-#: core/routes/materiales_routes.py:308
+#: core/routes/materiales_routes.py:344
 msgid "Salida eliminada."
 msgstr "Checkout deleted."
 
@@ -768,6 +768,7 @@ msgstr "Delete photo"
 
 #: presentation/templates/fiche_client.html:686
 #: presentation/templates/materiales/salidas.html:455
+#: presentation/templates/perfil.html:96 presentation/templates/perfil.html:105
 msgid "Cerrar"
 msgstr ""
 
@@ -917,6 +918,46 @@ msgstr ""
 #: presentation/templates/incidents.html:65
 msgid "Sin consultar"
 msgstr ""
+
+#: presentation/templates/perfil.html:5 presentation/templates/perfil.html:8
+msgid "Mi perfil"
+msgstr "My profile"
+
+#: presentation/templates/perfil.html:9
+msgid "Avatar y contraseña de la cuenta"
+msgstr "Avatar and account password"
+
+#: presentation/templates/perfil.html:15
+msgid "Cuenta"
+msgstr "Account"
+
+#: presentation/templates/perfil.html:23 presentation/templates/perfil.html:24
+msgid "Ver foto"
+msgstr "View photo"
+
+#: presentation/templates/perfil.html:54
+msgid "Avatar"
+msgstr "Avatar"
+
+#: presentation/templates/perfil.html:60
+msgid "Actualizar avatar"
+msgstr "Update avatar"
+
+#: presentation/templates/perfil.html:68
+msgid "Cambiar contraseña"
+msgstr "Change password"
+
+#: presentation/templates/perfil.html:74
+msgid "Nueva contraseña"
+msgstr "New password"
+
+#: presentation/templates/perfil.html:78
+msgid "Confirmar"
+msgstr "Confirm"
+
+#: presentation/templates/perfil.html:81
+msgid "Guardar contraseña"
+msgstr "Save password"
 
 #: presentation/templates/instalaciones/_material_linea.html:3
 #: presentation/templates/instalaciones/_traslado_linea.html:4

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-30 14:48+0100\n"
+"POT-Creation-Date: 2026-10-01 12:09+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -237,20 +237,20 @@ msgstr ""
 msgid "Foto eliminada."
 msgstr ""
 
-#: core/routes/materiales_routes.py:156
+#: core/routes/materiales_routes.py:192
 msgid "El material de una instalación se registra desde «Nueva instalación»."
 msgstr ""
 
-#: core/routes/materiales_routes.py:185
+#: core/routes/materiales_routes.py:221
 #, python-format
 msgid "Añadir material a la instalación #%(id)s"
 msgstr ""
 
-#: core/routes/materiales_routes.py:187
+#: core/routes/materiales_routes.py:223
 msgid "Nueva salida de material"
 msgstr ""
 
-#: core/routes/materiales_routes.py:308
+#: core/routes/materiales_routes.py:344
 msgid "Salida eliminada."
 msgstr ""
 
@@ -765,6 +765,7 @@ msgstr ""
 
 #: presentation/templates/fiche_client.html:686
 #: presentation/templates/materiales/salidas.html:455
+#: presentation/templates/perfil.html:96 presentation/templates/perfil.html:105
 msgid "Cerrar"
 msgstr ""
 
@@ -913,6 +914,46 @@ msgstr ""
 
 #: presentation/templates/incidents.html:65
 msgid "Sin consultar"
+msgstr ""
+
+#: presentation/templates/perfil.html:5 presentation/templates/perfil.html:8
+msgid "Mi perfil"
+msgstr ""
+
+#: presentation/templates/perfil.html:9
+msgid "Avatar y contraseña de la cuenta"
+msgstr ""
+
+#: presentation/templates/perfil.html:15
+msgid "Cuenta"
+msgstr ""
+
+#: presentation/templates/perfil.html:23 presentation/templates/perfil.html:24
+msgid "Ver foto"
+msgstr ""
+
+#: presentation/templates/perfil.html:54
+msgid "Avatar"
+msgstr ""
+
+#: presentation/templates/perfil.html:60
+msgid "Actualizar avatar"
+msgstr ""
+
+#: presentation/templates/perfil.html:68
+msgid "Cambiar contraseña"
+msgstr ""
+
+#: presentation/templates/perfil.html:74
+msgid "Nueva contraseña"
+msgstr ""
+
+#: presentation/templates/perfil.html:78
+msgid "Confirmar"
+msgstr ""
+
+#: presentation/templates/perfil.html:81
+msgid "Guardar contraseña"
 msgstr ""
 
 #: presentation/templates/instalaciones/_material_linea.html:3
