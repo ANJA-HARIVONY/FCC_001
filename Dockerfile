@@ -30,27 +30,13 @@ WORKDIR /app
 # =============================================================================
 FROM base AS builder
 
-# Installer les dépendances système nécessaires pour WeasyPrint et les packages Python
+# Dépendances système pour compiler les paquets Python (cryptography, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Dépendances de compilation
     build-essential \
     gcc \
-    # Dépendances pour WeasyPrint et PDF
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf-2.0-0 \
     libffi-dev \
-    libcairo2 \
-    libcairo2-dev \
-    libgirepository1.0-dev \
-    gir1.2-pango-1.0 \
-    # Dépendances pour les polices
-    fonts-liberation \
-    fonts-dejavu-core \
-    # Dépendances pour MySQL/MariaDB
     default-libmysqlclient-dev \
     pkg-config \
-    # Utilitaires
     curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -71,16 +57,6 @@ FROM base AS production
 
 # Installer uniquement les dépendances runtime (pas de compilation)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Dépendances runtime pour WeasyPrint
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf-2.0-0 \
-    libcairo2 \
-    gir1.2-pango-1.0 \
-    # Polices pour PDF
-    fonts-liberation \
-    fonts-dejavu-core \
-    fonts-freefont-ttf \
     # Client MySQL (pour debug/connexion)
     default-mysql-client \
     # Utilitaires (healthcheck)

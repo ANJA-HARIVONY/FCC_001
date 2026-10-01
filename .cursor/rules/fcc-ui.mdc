@@ -101,5 +101,5 @@ Même famille que la sidebar (`_sidebar.html` : `nav-menu-icon` + Font Awesome).
 
 Étendre `app-shell.js`, `csrf.js`, `notifications.js`, `bitrix-info.js`, `materiales-*.js`.  
 Labels métier écran : `Incidencias`, `Pendiente`, `Solucionadas`, `Usuarios` — jamais en français.  
-Nouvelle page : ajouter l’endpoint dans `_sidebar.html` **et** `_nav_vars.html`.  
+Nouvelle page : ajouter l’endpoint dans les listes `nav_*` de `_sidebar.html` seulement.  
 Vérifier le flux navigateur (desktop + mobile si layout), pas seulement un screenshot.

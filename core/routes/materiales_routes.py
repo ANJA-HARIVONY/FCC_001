@@ -283,7 +283,6 @@ def materiales_salidas_export_xlsx():
 @admin_required
 def materiales_salida_detalle(salida_id):
     from core.app import MaterialSalida
-    from flask import abort
 
     salida = salidas_base_query(_agencia_scope()).filter(MaterialSalida.id == salida_id).first()
     if not salida:

@@ -27,8 +27,6 @@ SALIDA_TIPO_LABELS = {
     'instalacion': 'Instalación',
 }
 
-INFORME_GROUP_MODES = ('material', 'tecnico')
-
 INFORME_SALIDAS_COUNT_LABELS = {
     'incidencia': 'Nº incidencias',
     'instalacion': 'Nº instalaciones',
@@ -696,10 +694,6 @@ def build_informe_page_data(date_from, date_to, agencia_id=None, filters=None):
     return lineas, resumen
 
 
-def _informe_group_key_material(linea):
-    return linea.id_material or 0
-
-
 def _informe_group_label_material(linea):
     material = linea.material
     if not material:
@@ -708,80 +702,6 @@ def _informe_group_label_material(linea):
     if material.modelo:
         label = f'{label} ({material.modelo})'
     return label
-
-
-def _informe_group_key_tecnico(linea):
-    salida = linea.salida
-    return salida.id_tecnico if salida else 0
-
-
-def _informe_group_label_tecnico(linea):
-    salida = linea.salida
-    if salida and salida.tecnico:
-        return salida.tecnico.nom
-    return 'Técnico desconocido'
-
-
-def _build_informe_display_items_from_lineas(lineas, group_by='material'):
-    if group_by not in INFORME_GROUP_MODES:
-        group_by = 'material'
-
-    if group_by == 'tecnico':
-        lineas.sort(key=lambda linea: (
-            _informe_group_label_tecnico(linea).lower(),
-            linea.salida.fecha if linea.salida else datetime.min.date(),
-            linea.id,
-        ))
-        group_key = _informe_group_key_tecnico
-        group_label = _informe_group_label_tecnico
-    else:
-        lineas.sort(key=lambda linea: (
-            _informe_group_label_material(linea).lower(),
-            linea.salida.fecha if linea.salida else datetime.min.date(),
-            linea.id,
-        ))
-        group_key = _informe_group_key_material
-        group_label = _informe_group_label_material
-
-    items = []
-    current_key = None
-    current_total = 0
-    current_label = ''
-
-    def flush_subtotal():
-        nonlocal current_total
-        if current_key is not None:
-            items.append({
-                'kind': 'subtotal',
-                'label': current_label,
-                'cantidad': current_total,
-            })
-            current_total = 0
-
-    for linea in lineas:
-        key = group_key(linea)
-        if current_key is not None and key != current_key:
-            flush_subtotal()
-        if key != current_key:
-            current_key = key
-            current_label = group_label(linea)
-        items.append({'kind': 'data', 'linea': linea})
-        current_total += linea.cantidad
-
-    flush_subtotal()
-    return items
-
-
-def build_informe_report(date_from, date_to, agencia_id=None, filters=None, group_by=None):
-    """Compatibilidad: devuelve líneas de detalle y resumen (sin subtotales)."""
-    del group_by  # obsoleto — agrupación solo en bloque resumen por material
-    return build_informe_page_data(date_from, date_to, agencia_id, filters=filters)
-
-
-def build_informe_display_items(date_from, date_to, agencia_id=None, group_by='material', filters=None):
-    """Líneas de detalle planas (sin filas de subtotal)."""
-    lineas, _resumen = build_informe_page_data(date_from, date_to, agencia_id, filters=filters)
-    return [{'kind': 'data', 'linea': linea} for linea in lineas]
 
 
 def create_material(form, current_user, foto_file=None):

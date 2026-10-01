@@ -10,7 +10,6 @@
 {% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
 {% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
 {% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
-{% set nav_operateurs = ['operateurs', 'nouveau_operateur', 'modifier_operateur'] %}
 <aside class="app-sidebar sidebar-shadow" id="app-sidebar" aria-label="Navegación principal">
     <div class="scrollbar-sidebar">
         <div class="app-sidebar__inner">
@@ -93,14 +92,6 @@
                         <span class="nav-menu-label">Base de datos</span>
                     </a>
                 </li>
-                <!--<li class="{% if ep in nav_operateurs %}mm-active{% endif %}">
-                    <a href="{{ url_for('operateurs') }}"
-                       class="{% if ep in nav_operateurs %}mm-active active{% endif %}"
-                       {% if ep in nav_operateurs %}aria-current="page"{% endif %}>
-                        <i class="nav-menu-icon fas fa-headset" aria-hidden="true"></i>
-                        <span class="nav-menu-label">Operadores</span>
-                    </a>
-                </li>-->
                 {% endif %}
 
                 <li class="app-sidebar__heading">Cuenta</li>

@@ -16,11 +16,8 @@ FCC_001/
 ├── config/         # ⚙️ Requirements, gunicorn
 ├── config.py       # ⚙️ Configuration multi-environnement
 ├── migrations/     # 🗄️ Migrations schéma
+├── scripts/        # 🛠️ Reprises ponctuelles (schéma déjà couvert par ensure_*)
 ├── data/init/      # 🗄️ Init MariaDB Docker
-├── docs/           # 📚 Documentation
-├── automation/scripts/  # 🔧 Scripts locaux (hors Docker)
-├── tools/          # 🛠️ Outils ponctuels (export, hash, santé DB)
-├── monitoring/     # 📊 Logs / backups
 └── Docker*         # Déploiement conteneur
 ```
 
@@ -29,7 +26,7 @@ FCC_001/
 - 👥 **Gestion des clients** (ajout, modification, recherche)
 - 👨‍💼 **Gestion des opérateurs**
 - 🚨 **Gestion des incidents** (commentaires sur la fiche incidencia, modale d’ajout ; édition réservée au créateur ou à l’admin)
-- 📄 **Impression PDF** des fiches clients
+- 📄 **Impression** des fiches clients (navigateur, Ctrl+P)
 - 🌍 **Interface multilingue** (FR/ES/EN)
 - 📊 **Dashboard** avec statistiques
 
@@ -171,7 +168,6 @@ Vérifier que ces fichiers/dossiers sont présents sur le serveur :
 | Container app redémarre en boucle | Vérifier les logs, la connexion DB et les variables d’environnement |
 | Erreur "env_file .env" | Vérifier que `.env` existe dans le projet sur le serveur |
 | Port déjà utilisé | Changer `APP_PORT` dans `.env` |
-| WeasyPrint / PDF en erreur | Vérifier les logs ; éventuellement mettre `WEASYPRINT_AVAILABLE=false` |
 
 ### Nginx (optionnel)
 

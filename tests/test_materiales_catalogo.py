@@ -5,7 +5,6 @@
 import os
 import unittest
 
-os.environ.setdefault('WEASYPRINT_AVAILABLE', 'false')
 os.environ['FLASK_ENV'] = 'testing'
 os.environ['WTF_CSRF_ENABLED'] = 'false'
 

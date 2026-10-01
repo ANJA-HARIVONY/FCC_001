@@ -64,10 +64,7 @@ Fiche ou formulaire : bloc `page_breadcrumb` (rendu dans le titre de `base.html`
 - Lien vers un écran `@admin_required` : seulement si `current_user.is_admin()`.
 - Carte KPI du Dashboard : lien vers la liste filtrée (état + période), pas une carte sans destination.
 
-Si la page est dans le menu : ajouter l’**endpoint** aux listes `nav_*` dans :
-
-- `presentation/templates/partials/_sidebar.html`
-- `presentation/templates/partials/_nav_vars.html`
+Si la page est dans le menu : ajouter l’**endpoint** aux listes `nav_*` de `presentation/templates/partials/_sidebar.html` seulement. Pas de second partial de navigation.
 
 Ne pas étendre le CRUD legacy `/operateurs`. Ne pas le documenter dans `aide.html` comme entrée de menu.
 

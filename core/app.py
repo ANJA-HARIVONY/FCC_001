@@ -1,10 +1,9 @@
-from ast import Pass
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, AnonymousUserMixin, login_user, logout_user, login_required, current_user
-from flask_babel import Babel, gettext, ngettext, lazy_gettext, get_locale
+from flask_babel import Babel, gettext
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -17,7 +16,6 @@ from logging.handlers import RotatingFileHandler
 from sqlalchemy import func, text, inspect, case
 from sqlalchemy.orm import joinedload
 from config import config
-from io import BytesIO
 from urllib.parse import urlparse, urljoin
 
 # Logger applicatif central : toutes les traces de demarrage et de runtime
@@ -31,26 +29,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%dT%H:%M:%S',
 )
 logger = logging.getLogger('fcc_001')
-
-# Import optionnel de weasyprint
-WEASYPRINT_AVAILABLE = False
-try:
-    # Vérifier si WeasyPrint doit être désactivé via variable d'environnement
-    if os.environ.get('WEASYPRINT_AVAILABLE', 'True').lower() != 'false':
-        import weasyprint
-        # Test de base pour vérifier que WeasyPrint fonctionne
-        test_html = weasyprint.HTML(string='<html><body><h1>Test</h1></body></html>')
-        test_html.write_pdf()
-        WEASYPRINT_AVAILABLE = True
-        logger.info('WeasyPrint disponible - fonctionnalites PDF activees')
-    else:
-        logger.info('WeasyPrint desactive via variable d\'environnement')
-except ImportError as e:
-    WEASYPRINT_AVAILABLE = False
-    logger.warning('WeasyPrint non disponible, fonctionnalites PDF limitees: %s', str(e)[:100])
-except Exception as e:
-    WEASYPRINT_AVAILABLE = False
-    logger.warning('Erreur lors du chargement de WeasyPrint, PDF desactive: %s', str(e)[:100])
 
 # Créer l'application Flask avec chemins corrects
 app = Flask(__name__, 
@@ -274,11 +252,6 @@ TRASLADO_ACCION_LABELS = {
     'retirado': 'Retirado',
 }
 
-INFORME_GROUP_MODES = ('material', 'tecnico')
-INFORME_GROUP_LABELS = {
-    'material': 'Por material',
-    'tecnico': 'Por técnico',
-}
 CORPORATIVO_NOM_KEYWORDS = (
     'ministerio', 'embajada', 'eglng', 'pnud', 'unrco', 'unge',
     'federacion', 'societe general', 'societe',
@@ -330,7 +303,6 @@ def inject_operateur_categoria_labels():
         'INSTALACION_ESTADO_LABELS': INSTALACION_ESTADO_LABELS,
         'INSTALACION_TIPO_LABELS': INSTALACION_TIPO_LABELS,
         'TRASLADO_ACCION_LABELS': TRASLADO_ACCION_LABELS,
-        'INFORME_GROUP_LABELS': INFORME_GROUP_LABELS,
     }
 
 
@@ -2433,10 +2405,6 @@ def recherche():
         incidents = Incident.query.filter(Incident.intitule.contains(query)).all()
         return render_template('recherche.html', clients=clients, incidents=incidents, query=query)
     return redirect(url_for('dashboard'))
-
-@app.route('/edition')
-def edition():
-    return render_template('edition.html')
 
 @app.route('/aide')
 def aide():

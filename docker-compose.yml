@@ -100,9 +100,6 @@ services:
       # Configuration Logs
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       
-      # Configuration WeasyPrint
-      WEASYPRINT_AVAILABLE: ${WEASYPRINT_AVAILABLE:-true}
-      
       # Initialisation : false = base vide + opérateur admin/admin uniquement
       INIT_SAMPLE_DATA: ${INIT_SAMPLE_DATA:-false}
       DEFAULT_ADMIN_USER: ${DEFAULT_ADMIN_USER:-admin}

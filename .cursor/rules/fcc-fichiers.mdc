@@ -1,0 +1,28 @@
+---
+description: Ne pas ajouter de fichier, module ou route qui n'est pas appelé par le programme
+alwaysApply: true
+---
+
+# FCC_001 — pas de fichiers inutiles
+
+Un fichier nouveau doit être importé, rendu ou lancé par un chemin réel (`start_app.py`, Docker, une route, un `{% include %}`).
+
+- Étendre le module du domaine (`core/routes`, `core/services`). Pas de second fichier « au cas où ».
+- Pas de service, script, template ou partial sans appelant.
+- Pas de copie, brouillon ou backup dans le dépôt (`*.bak`, `*_old`, `*_copy`, `test_data.py`).
+- Pas de route dont le template n'existe pas.
+- Navigation : listes `nav_*` uniquement dans `_sidebar.html`.
+- Kimi et WeasyPrint restent hors du code tant qu'ils ne sont pas demandés. L'impression passe par le navigateur.
+- Nouvelle dépendance : `config/requirements.txt` seulement si un import l'utilise.
+- `__pycache__`, `*.pyc`, `instance/*.db` ne se commitent pas (déjà dans `.gitignore`).
+
+```text
+# ❌ BAD
+core/services/kimi_service.py          # jamais importé
+presentation/templates/partials/_nav_vars.html  # jamais inclus
+@app.route('/edition') → edition.html  # template absent
+
+# ✅ GOOD
+from core.routes import materiales_routes
+{% include 'partials/_sidebar.html' %}
+```
