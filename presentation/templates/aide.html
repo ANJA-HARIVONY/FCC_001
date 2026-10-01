@@ -92,7 +92,7 @@
                         <li><a href="#notificaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-bell"></i>Notificaciones</a></li>
                         <li><a href="#perfil" class="aide-toc-link" data-aide-anchor><i class="fas fa-user-circle"></i>Perfil</a></li>
                         <li><a href="#faq" class="aide-toc-link" data-aide-anchor><i class="fas fa-question-circle"></i>Preguntas frecuentes</a></li>
-                        {% if current_user.is_authenticated and current_user.is_admin() %}
+                        {% if current_user.is_authenticated and current_user.is_superadmin() %}
                         <li><a href="#administracion" class="aide-toc-link" data-aide-anchor><i class="fas fa-cog"></i>Administración</a></li>
                         {% endif %}
                         <li><a href="#soporte" class="aide-toc-link" data-aide-anchor><i class="fas fa-life-ring"></i>Contactar al soporte</a></li>
@@ -125,7 +125,7 @@
                                     <li><a href="#notificaciones" class="aide-toc-link" data-aide-anchor><i class="fas fa-bell"></i>Notificaciones</a></li>
                                     <li><a href="#perfil" class="aide-toc-link" data-aide-anchor><i class="fas fa-user-circle"></i>Perfil</a></li>
                                     <li><a href="#faq" class="aide-toc-link" data-aide-anchor><i class="fas fa-question-circle"></i>Preguntas frecuentes</a></li>
-                                    {% if current_user.is_authenticated and current_user.is_admin() %}
+                                    {% if current_user.is_authenticated and current_user.is_superadmin() %}
                                     <li><a href="#administracion" class="aide-toc-link" data-aide-anchor><i class="fas fa-cog"></i>Administración</a></li>
                                     {% endif %}
                                     <li><a href="#soporte" class="aide-toc-link" data-aide-anchor><i class="fas fa-life-ring"></i>Contactar al soporte</a></li>
@@ -204,7 +204,7 @@
                                     <i class="fas fa-bars"></i>
                                     <div>
                                         <strong>Barra lateral (izquierda)</strong>
-                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales e Instalaciones, y Administración (Usuarios, Trazabilidad, Base de datos) para admin{% endif %}. Cuenta: Perfil, Ayuda y Salir.</p>
+                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales e Instalaciones{% endif %}{% if current_user.is_authenticated and current_user.is_superadmin() %}. Administración (Usuarios, Trazabilidad, Base de datos){% endif %}. Cuenta: Perfil, Ayuda y Salir.{% if current_user.is_authenticated and not current_user.is_admin() %} Un usuario ve los clientes de su ciudad y las incidencias de su agencia.{% endif %}</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -276,7 +276,7 @@
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde el listado, con confirmación.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Categoría:</strong> Particular (por defecto) o Corporativo. El icono de corporativo aparece en los listados.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Ficha:</strong> contacto, agencia, ciudad, historial de incidencias e información RADIUS (solo lectura, si el cliente tiene Username RADIUS).</span></li>
-                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador. La lista muestra 50, 100, 200 o 500 filas por página. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.</span></li>
+                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador. La lista muestra 50, 100, 200 o 500 filas por página. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.{% if current_user.is_authenticated and not current_user.is_admin() %} Un usuario solo ve los clientes de su ciudad.{% endif %}</span></li>
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
                                 <li><i class="fas fa-map-marker-alt"></i><span><strong>GPS y fotos:</strong> en la ficha, guarde las coordenadas y hasta 10 fotos (JPG, PNG o WEBP, 5 MB como máximo cada una).</span></li>
                                 <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> un cambio de domicilio no se hace con <em>Modificar</em>. Use el botón <em>Traslado</em> de la ficha. La dirección anterior queda en <em>Direcciones anteriores</em>.</span></li>
@@ -612,17 +612,17 @@
                     </div>
                 </section>
 
-                {% if current_user.is_authenticated and current_user.is_admin() %}
-                <!-- ADMINISTRACION (admin only) -->
-                <section id="administracion" class="aide-section" data-aide-keywords="administracion admin usuarios trazabilidad base de datos mariadb tecnico">
+                {% if current_user.is_authenticated and current_user.is_superadmin() %}
+                <!-- ADMINISTRACION (superadmin) -->
+                <section id="administracion" class="aide-section" data-aide-keywords="administracion superadmin admin usuarios trazabilidad base de datos mariadb tecnico">
                     <div class="aide-section-card aide-section-card-admin">
                         <div class="aide-section-head">
                             <span class="aide-section-icon aide-section-icon-admin"><i class="fas fa-cog"></i></span>
                             <div>
                                 <h2 class="aide-section-title">Administración
-                                    <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo admin</span>
+                                    <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo superadmin</span>
                                 </h2>
-                                <p class="aide-section-lead">Funciones avanzadas reservadas a los administradores.</p>
+                                <p class="aide-section-lead">Usuarios, trazabilidad y base de datos, reservados al SuperAdmin.</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
@@ -631,7 +631,7 @@
                                     <i class="fas fa-users-cog"></i>
                                     <div>
                                         <strong>Usuarios</strong>
-                                        <p>Cuentas con rol administrador o usuario, y categoría Atención al cliente o Técnico. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un administrador no puede desactivarse a sí mismo.</p>
+                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones. El SuperAdmin accede además a Usuarios, Trazabilidad y Base de datos. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">

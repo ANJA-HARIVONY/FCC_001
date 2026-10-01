@@ -64,8 +64,9 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Rol</label>
                                 <select name="role" class="form-select">
-                                    <option value="usuario" {% if user.role == 'usuario' %}selected{% endif %}>usuario</option>
-                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>admin</option>
+                                    {% for role_value in ROLES_OPERATEUR %}
+                                    <option value="{{ role_value }}" {% if user.role == role_value %}selected{% endif %}>{{ ROLE_LABELS[role_value] }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">

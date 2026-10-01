@@ -100,6 +100,10 @@ def build_filtered_incidents_query(current_user, params):
             agencia_filter = ''
             agencia_id = None
 
+    if not current_user.is_admin() and ciudad_id and ciudad_id != current_user.id_ciudad:
+        ciudad_filter = ''
+        ciudad_id = None
+
     query = Incident.query.options(
         joinedload(Incident.client),
         joinedload(Incident.operateur),
@@ -113,7 +117,8 @@ def build_filtered_incidents_query(current_user, params):
             or_(
                 Incident.id_operateur == current_user.id,
                 Incident.id_operateur.in_(same_agency_ids),
-            )
+            ),
+            Incident.client.has(id_ciudad=current_user.id_ciudad),
         )
 
     if status_filter:
@@ -259,14 +264,13 @@ def get_incidents_filter_options(current_user, ciudad_id=None):
             Operateur.actif.is_(True),
         ).order_by(Operateur.nom).all()
     )
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
     if current_user.is_admin():
+        ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
         agencias_query = Agencia.query
         if ciudad_id:
             agencias_query = agencias_query.filter_by(id_ciudad=ciudad_id)
         agencias = agencias_query.order_by(Agencia.nombre).all()
     else:
+        ciudades = Ciudad.query.filter_by(id=current_user.id_ciudad).order_by(Ciudad.nombre).all()
         agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
-        if ciudad_id and agencias and agencias[0].id_ciudad != ciudad_id:
-            agencias = []
     return operateurs, ciudades, agencias

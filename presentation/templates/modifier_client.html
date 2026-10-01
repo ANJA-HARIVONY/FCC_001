@@ -65,8 +65,10 @@
                         {% if ciudades %}
                         <div class="mb-3">
                             <label for="id_ciudad" class="form-label">Ciudad <span class="text-danger">*</span></label>
-                            <select class="form-select" id="id_ciudad" name="id_ciudad" required>
+                            <select class="form-select" id="id_ciudad" name="id_ciudad" required{% if not current_user.is_admin() %} disabled{% endif %}>
+                                {% if current_user.is_admin() %}
                                 <option value="">Seleccione una ciudad</option>
+                                {% endif %}
                                 {% for c in ciudades %}
                                 <option value="{{ c.id }}" {% if client.id_ciudad == c.id or (not client.id_ciudad and default_ciudad_id and c.id == default_ciudad_id) %}selected{% endif %}>{{ c.nombre }}</option>
                                 {% endfor %}

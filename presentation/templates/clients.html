@@ -54,7 +54,9 @@
                                     <i class="fas fa-city me-1"></i>Ciudad
                                 </label>
                                 <select class="form-select form-select-sm" id="ciudad" name="ciudad">
+                                    {% if current_user.is_admin() %}
                                     <option value="">Todas las ciudades</option>
+                                    {% endif %}
                                     {% for c in ciudades|default([]) %}
                                     <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
                                     {% endfor %}

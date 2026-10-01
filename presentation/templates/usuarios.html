@@ -38,6 +38,7 @@
                                 </label>
                                 <select class="form-select form-select-sm" id="role" name="role">
                                     <option value="">Todos</option>
+                                    <option value="superadmin" {% if role_filter == 'superadmin' %}selected{% endif %}>SuperAdmin</option>
                                     <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
                                     <option value="usuario" {% if role_filter == 'usuario' %}selected{% endif %}>Usuario</option>
                                 </select>
@@ -154,7 +155,7 @@
                         <td>
                             <small>{{ u.ciudad.nombre if u.ciudad else '—' }} / {{ u.agencia.nombre if u.agencia else '—' }}</small>
                         </td>
-                        <td><span class="badge bg-{{ 'danger' if u.is_admin() else 'secondary' }}">{{ u.role }}</span></td>
+                        <td><span class="badge bg-{{ 'dark' if u.is_superadmin() else ('danger' if u.is_admin() else 'secondary') }}">{{ ROLE_LABELS.get(u.role, u.role) }}</span></td>
                         <td><span class="badge bg-info text-dark">{{ categoria_operateur_label(u.categoria) }}</span></td>
                         <td>
                             {% if u.actif %}

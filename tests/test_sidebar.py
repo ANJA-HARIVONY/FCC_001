@@ -15,6 +15,7 @@ from flask_login import login_user  # noqa: E402
 from core.app import (  # noqa: E402
     Agencia,
     Ciudad,
+    Client,
     Operateur,
     app,
     db,
@@ -101,7 +102,17 @@ class SidebarRenderTests(unittest.TestCase):
             role='usuario',
             actif=True,
         )
-        db.session.add_all([cls.admin, cls.usuario])
+        cls.superadmin = Operateur(
+            nom='superadmin_test',
+            telephone='240000003',
+            email='superadmin_test@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=ciudad.id,
+            id_agencia=agencia.id,
+            role='superadmin',
+            actif=True,
+        )
+        db.session.add_all([cls.admin, cls.usuario, cls.superadmin])
         db.session.commit()
 
     @classmethod
@@ -126,7 +137,75 @@ class SidebarRenderTests(unittest.TestCase):
         html = self._render_sidebar(self.usuario)
         self.assertNotIn('nav-menu-label">Materiales', html)
         self.assertNotIn('nav-menu-label">Instalaciones', html)
+        self.assertNotIn('nav-menu-label">Usuarios', html)
         self.assertIn('nav-menu-label">Clientes', html)
+        self.assertIn('nav-menu-label">Perfil', html)
+
+    def test_admin_no_ve_administracion(self):
+        html = self._render_sidebar(self.admin)
+        self.assertIn('nav-menu-label">Materiales', html)
+        self.assertNotIn('nav-menu-label">Usuarios', html)
+        self.assertNotIn('nav-menu-label">Trazabilidad', html)
+        self.assertNotIn('nav-menu-label">Base de datos', html)
+        self.assertIn('nav-menu-label">Perfil', html)
+
+    def test_superadmin_ve_administracion(self):
+        html = self._render_sidebar(self.superadmin)
+        self.assertIn('nav-menu-label">Materiales', html)
+        self.assertIn('nav-menu-label">Usuarios', html)
+        self.assertIn('nav-menu-label">Trazabilidad', html)
+        self.assertIn('nav-menu-label">Base de datos', html)
+
+    def test_usuarios_reservado_al_superadmin(self):
+        from werkzeug.exceptions import Forbidden
+
+        with self.app.test_request_context('/usuarios'):
+            login_user(self.admin)
+            with self.assertRaises(Forbidden):
+                self.app.view_functions['usuarios']()
+
+        with self.app.test_request_context('/usuarios'):
+            login_user(self.superadmin)
+            html = self.app.view_functions['usuarios']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('SuperAdmin', html)
+
+    def test_usuario_no_ve_clientes_de_otra_ciudad(self):
+        from werkzeug.exceptions import Forbidden
+
+        otra = Ciudad.query.filter(Ciudad.id != self.usuario.id_ciudad).first()
+        self.assertIsNotNone(otra)
+        ajeno = Client(
+            nom='Cliente ajeno',
+            telephone='240000099',
+            adresse='Otra calle',
+            ville='Otra',
+            id_ciudad=otra.id,
+        )
+        propio = Client(
+            nom='Cliente propio',
+            telephone='240000098',
+            adresse='Mi calle',
+            ville='Mia',
+            id_ciudad=self.usuario.id_ciudad,
+        )
+        db.session.add_all([ajeno, propio])
+        db.session.commit()
+
+        with self.app.test_request_context('/clients'):
+            login_user(self.usuario)
+            html = self.app.view_functions['clients']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('Cliente propio', html)
+            self.assertNotIn('Cliente ajeno', html)
+            self.assertNotIn(otra.nombre, html)
+
+        with self.app.test_request_context(f'/clients/{ajeno.id}/fiche'):
+            login_user(self.usuario)
+            with self.assertRaises(Forbidden):
+                self.app.view_functions['fiche_client'](ajeno.id)
 
     def test_instalaciones_hub_admin_ok_usuario_403(self):
         from werkzeug.exceptions import Forbidden

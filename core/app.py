@@ -213,6 +213,17 @@ CATEGORIA_OPERATEUR_LABELS = {
     'tecnico': 'Técnico',
 }
 
+ROLES_OPERATEUR = ('usuario', 'admin', 'superadmin')
+ROLE_USUARIO = 'usuario'
+ROLE_ADMIN = 'admin'
+ROLE_SUPERADMIN = 'superadmin'
+ROLE_LABELS = {
+    'usuario': 'Usuario',
+    'admin': 'Admin',
+    'superadmin': 'SuperAdmin',
+}
+LEGACY_ADMIN_PROMOTION = 'PROMOTE_LEGACY_ADMIN'
+
 MATERIAL_TIPOS = ('outillage', 'material_cliente')
 MATERIAL_TIPO_LABELS = {
     'outillage': 'Herramientas',
@@ -287,6 +298,12 @@ def normalize_categoria_operateur(value, default=CATEGORIA_OPERATEUR_DEFAULT):
     return default
 
 
+def normalize_role(value, default=ROLE_USUARIO):
+    if value in ROLES_OPERATEUR:
+        return value
+    return default
+
+
 def categoria_operateur_label(value):
     return CATEGORIA_OPERATEUR_LABELS.get(value, CATEGORIA_OPERATEUR_LABELS[CATEGORIA_OPERATEUR_DEFAULT])
 
@@ -296,6 +313,8 @@ def inject_operateur_categoria_labels():
     return {
         'CATEGORIAS_OPERATEUR': CATEGORIAS_OPERATEUR,
         'CATEGORIA_OPERATEUR_LABELS': CATEGORIA_OPERATEUR_LABELS,
+        'ROLES_OPERATEUR': ROLES_OPERATEUR,
+        'ROLE_LABELS': ROLE_LABELS,
         'categoria_operateur_label': categoria_operateur_label,
         'MATERIAL_TIPO_LABELS': MATERIAL_TIPO_LABELS,
         'SALIDA_ESTADO_LABELS': SALIDA_ESTADO_LABELS,
@@ -450,8 +469,12 @@ class Operateur(UserMixin, db.Model):
         foreign_keys='Incident.id_operateur',
     )
 
+    def is_superadmin(self):
+        return (self.role or '') == ROLE_SUPERADMIN
+
     def is_admin(self):
-        return (self.role or '') == 'admin'
+        """Admin et SuperAdmin : materiales, instalaciones et vision globale."""
+        return (self.role or '') in (ROLE_ADMIN, ROLE_SUPERADMIN)
 
     @property
     def is_active(self):
@@ -467,6 +490,9 @@ class AnonymousOperateur(AnonymousUserMixin):
     """Utilisateur non connecté : mêmes méthodes que Operateur pour les templates."""
 
     def is_admin(self):
+        return False
+
+    def is_superadmin(self):
         return False
 
 
@@ -486,9 +512,20 @@ def load_user(user_id):
 
 
 def admin_required(view_fn):
+    """Admin ou SuperAdmin (materiales, instalaciones, fichas)."""
     @wraps(view_fn)
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin():
+            abort(403)
+        return view_fn(*args, **kwargs)
+    return wrapped
+
+
+def superadmin_required(view_fn):
+    """Usuarios, trazabilidad et base de données."""
+    @wraps(view_fn)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_superadmin():
             abort(403)
         return view_fn(*args, **kwargs)
     return wrapped
@@ -536,7 +573,11 @@ def apply_security_headers(response):
 
 
 def apply_incident_visibility(query):
-    """Applique la règle 10.4 de visibilité des incidents."""
+    """Règle 10.4 : admin et superadmin voient tout.
+
+    Un usuario ne voit que les incidencias de son agencia, et seulement
+    celles dont le client est dans sa ciudad.
+    """
     if current_user.is_admin():
         return query
 
@@ -547,8 +588,36 @@ def apply_incident_visibility(query):
         db.or_(
             Incident.id_operateur == current_user.id,
             Incident.id_operateur.in_(same_agency_ids),
-        )
+        ),
+        Incident.client.has(id_ciudad=current_user.id_ciudad),
     )
+
+
+def user_can_access_client(client):
+    """Un usuario ne consulte que les clients de sa ciudad."""
+    if client is None:
+        return False
+    if current_user.is_admin():
+        return True
+    return client.id_ciudad == current_user.id_ciudad
+
+
+def require_client_visible(client):
+    if not user_can_access_client(client):
+        abort(403)
+
+
+def scoped_clients_query():
+    query = Client.query
+    if not current_user.is_admin():
+        query = query.filter(Client.id_ciudad == current_user.id_ciudad)
+    return query
+
+
+def ciudades_for_current_user():
+    if current_user.is_admin():
+        return Ciudad.query.order_by(Ciudad.nombre).all()
+    return Ciudad.query.filter_by(id=current_user.id_ciudad).order_by(Ciudad.nombre).all()
 
 
 def user_can_access_incident(incident):
@@ -1787,12 +1856,50 @@ def ensure_default_admin_operateur():
         mot_de_passe_hash=generate_password_hash(password),
         id_ciudad=malabo.id,
         id_agencia=ag_malabo.id,
-        role='admin',
+        role=ROLE_SUPERADMIN,
         actif=True,
         cree_le=datetime.now(),
     ))
     db.session.commit()
     logger.info('Operateur par defaut cree (identifiant=%s)', username)
+
+
+def ensure_legacy_admins_promoted_to_superadmin():
+    """Promeut une seule fois les role='admin' historiques vers superadmin.
+
+    Le marqueur est une ligne d'audit. Les comptes admin créés ensuite restent admin.
+    Ignoré sous TESTING pour ne pas réécrire les fixtures.
+    """
+    if getattr(ensure_legacy_admins_promoted_to_superadmin, '_done', False):
+        return
+    if app.config.get('TESTING'):
+        ensure_legacy_admins_promoted_to_superadmin._done = True
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('operateur') or not inspector.has_table(AuditLog.__tablename__):
+            return
+        marked = db.session.execute(
+            text(
+                "SELECT 1 FROM audit_log WHERE action = :action LIMIT 1"
+            ),
+            {'action': LEGACY_ADMIN_PROMOTION},
+        ).first() is not None
+        if not marked:
+            db.session.execute(
+                text("UPDATE operateur SET role = 'superadmin' WHERE role = 'admin'")
+            )
+            db.session.add(AuditLog(
+                action=LEGACY_ADMIN_PROMOTION,
+                detail='roles admin historiques',
+                ip_address=request.remote_addr,
+                date_heure=datetime.now(),
+            ))
+            db.session.commit()
+        ensure_legacy_admins_promoted_to_superadmin._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo promover los roles admin a superadmin')
 
 
 @app.errorhandler(403)
@@ -1819,6 +1926,7 @@ def require_authentication():
     ensure_instalaciones_sitio_schema()
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
+    ensure_legacy_admins_promoted_to_superadmin()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -1958,12 +2066,17 @@ def perfil():
 
 @app.route('/api/agencias/<int:id_ciudad>')
 def api_agencias_por_ciudad(id_ciudad):
-    agencias = Agencia.query.filter_by(id_ciudad=id_ciudad).order_by(Agencia.nombre).all()
+    if current_user.is_authenticated and not current_user.is_admin():
+        if id_ciudad != current_user.id_ciudad:
+            return jsonify([])
+        agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
+    else:
+        agencias = Agencia.query.filter_by(id_ciudad=id_ciudad).order_by(Agencia.nombre).all()
     return jsonify([{'id': a.id, 'nombre': a.nombre} for a in agencias])
 
 
 @app.route('/usuarios')
-@admin_required
+@superadmin_required
 def usuarios():
     search_query = (request.args.get('search') or '').strip()
     role_filter = (request.args.get('role') or '').strip()
@@ -1972,7 +2085,7 @@ def usuarios():
     ciudad_filter = (request.args.get('ciudad') or '').strip()
     agencia_filter = (request.args.get('agencia') or '').strip()
 
-    if role_filter not in ('', 'admin', 'usuario'):
+    if role_filter not in ('',) + ROLES_OPERATEUR:
         role_filter = ''
     if categoria_filter and categoria_filter not in CATEGORIAS_OPERATEUR:
         categoria_filter = ''
@@ -2056,7 +2169,7 @@ def usuarios():
 
 
 @app.route('/usuarios/nuevo', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def nuevo_usuario():
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
     if request.method == 'POST':
@@ -2066,10 +2179,8 @@ def nuevo_usuario():
         password = request.form.get('password') or ''
         id_ciudad = request.form.get('id_ciudad', type=int)
         id_agencia = request.form.get('id_agencia', type=int)
-        role = (request.form.get('role') or 'usuario').strip()
+        role = normalize_role((request.form.get('role') or ROLE_USUARIO).strip())
         categoria = normalize_categoria_operateur(request.form.get('categoria'))
-        if role not in ('usuario', 'admin'):
-            role = 'usuario'
         if not nom or not telephone or not id_ciudad or not id_agencia:
             flash(gettext('Nombre, teléfono, ciudad y agencia son obligatorios.'), 'error')
         elif not password:
@@ -2105,7 +2216,7 @@ def nuevo_usuario():
 
 
 @app.route('/usuarios/<int:user_id>/editar', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def editar_usuario(user_id):
     u = Operateur.query.get_or_404(user_id)
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
@@ -2116,10 +2227,8 @@ def editar_usuario(user_id):
         password = request.form.get('password') or ''
         id_ciudad = request.form.get('id_ciudad', type=int)
         id_agencia = request.form.get('id_agencia', type=int)
-        role = (request.form.get('role') or 'usuario').strip()
+        role = normalize_role((request.form.get('role') or ROLE_USUARIO).strip())
         categoria = normalize_categoria_operateur(request.form.get('categoria'))
-        if role not in ('usuario', 'admin'):
-            role = 'usuario'
         if not nom or not telephone or not id_ciudad or not id_agencia:
             flash(gettext('Nombre, teléfono, ciudad y agencia son obligatorios.'), 'error')
         else:
@@ -2156,7 +2265,7 @@ def editar_usuario(user_id):
 
 
 @app.route('/usuarios/<int:user_id>/desactivar', methods=['POST'])
-@admin_required
+@superadmin_required
 def desactivar_usuario(user_id):
     u = Operateur.query.get_or_404(user_id)
     if u.id == current_user.id:
@@ -2177,20 +2286,20 @@ def _allowed_avatar(filename):
 @app.route('/usuarios/<int:user_id>/avatar', methods=['POST'])
 @login_required
 def upload_avatar_usuario(user_id):
-    if not current_user.is_admin() and current_user.id != user_id:
+    if not current_user.is_superadmin() and current_user.id != user_id:
         abort(403)
     u = Operateur.query.get_or_404(user_id)
     f = request.files.get('avatar')
     if not f or not f.filename:
         flash(gettext('Seleccione un archivo.'), 'error')
-        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_superadmin() else url_for('perfil'))
     if not _allowed_avatar(f.filename):
         flash(gettext('Formato no válido (JPG, PNG, WEBP).'), 'error')
-        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_superadmin() else url_for('perfil'))
     data = f.read()
     if len(data) > 2 * 1024 * 1024:
         flash(gettext('Archivo demasiado grande (máx. 2 MB).'), 'error')
-        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_superadmin() else url_for('perfil'))
     ext = secure_filename(f.filename).rsplit('.', 1)[-1].lower()
     av_dir = os.path.join(app.static_folder, 'avatars')
     os.makedirs(av_dir, exist_ok=True)
@@ -2202,13 +2311,13 @@ def upload_avatar_usuario(user_id):
     u.modifie_le = datetime.now()
     db.session.commit()
     flash(gettext('Avatar actualizado.'), 'success')
-    if current_user.is_admin():
+    if current_user.is_superadmin():
         return redirect(url_for('editar_usuario', user_id=user_id))
     return redirect(url_for('dashboard'))
 
 
 @app.route('/audit-log')
-@admin_required
+@superadmin_required
 def audit_log():
     user_id = request.args.get('user_id', type=int)
     date_from = request.args.get('date_from', '')
@@ -2262,7 +2371,7 @@ def audit_log():
 
 
 @app.route('/audit-log/export.txt')
-@admin_required
+@superadmin_required
 def audit_log_export_txt():
     user_id = request.args.get('user_id', type=int)
     date_from = request.args.get('date_from', '')
@@ -2401,8 +2510,10 @@ def recherche():
     query = request.args.get('q', '')
     if query:
         # Recherche dans les clients et incidents
-        clients = Client.query.filter(Client.nom.contains(query)).all()
-        incidents = Incident.query.filter(Incident.intitule.contains(query)).all()
+        clients = scoped_clients_query().filter(Client.nom.contains(query)).all()
+        incidents = apply_incident_visibility(
+            Incident.query.filter(Incident.intitule.contains(query))
+        ).all()
         return render_template('recherche.html', clients=clients, incidents=incidents, query=query)
     return redirect(url_for('dashboard'))
 
@@ -2443,7 +2554,10 @@ def _paginated_clients_from_request():
             ciudad_filter = ''
             ciudad_id = None
 
-    query = Client.query
+    query = scoped_clients_query()
+    if not current_user.is_admin() and ciudad_id and ciudad_id != current_user.id_ciudad:
+        ciudad_filter = ''
+        ciudad_id = None
 
     if search_query:
         query = query.filter(
@@ -2489,9 +2603,9 @@ def _paginated_clients_from_request():
         error_out=False
     )
 
-    villes = db.session.query(Client.ville).distinct().order_by(Client.ville).all()
+    villes = scoped_clients_query().with_entities(Client.ville).distinct().order_by(Client.ville).all()
     villes_list = [ville[0] for ville in villes if ville[0]]
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    ciudades = ciudades_for_current_user()
 
     return {
         'clients': clients_paginated,
@@ -2538,10 +2652,12 @@ def api_clients_export_xlsx():
 
 @app.route('/clients/nouveau', methods=['GET', 'POST'])
 def nouveau_client():
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    ciudades = ciudades_for_current_user()
     default_ciudad_id = current_user.id_ciudad or (ciudades[0].id if ciudades else None)
     if request.method == 'POST':
         id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
+        if not current_user.is_admin():
+            id_ciudad = current_user.id_ciudad
         if not id_ciudad:
             flash(gettext('La ciudad es obligatoria.'), 'error')
             return render_template(
@@ -2586,8 +2702,9 @@ def nouveau_client():
 @app.route('/clients/<int:id>/modifier', methods=['GET', 'POST'])
 def modifier_client(id):
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     next_url = _resolve_next_url()
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    ciudades = ciudades_for_current_user()
     default_ciudad_id = client.id_ciudad or current_user.id_ciudad or (ciudades[0].id if ciudades else None)
 
     if request.method == 'POST':
@@ -2599,7 +2716,10 @@ def modifier_client(id):
         client.ip_router = request.form['ip_router']
         client.ip_antea = request.form['ip_antea']
         client.username_radius = (request.form.get('username_radius') or '').strip() or None
-        client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
+        if current_user.is_admin():
+            client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
+        else:
+            client.id_ciudad = current_user.id_ciudad
         client.categoria = normalize_categoria_cliente(request.form.get('categoria'), default=client.categoria)
         if not client.id_ciudad:
             flash(gettext('La ciudad es obligatoria.'), 'error')
@@ -2644,6 +2764,7 @@ def modifier_client(id):
 @app.route('/clients/<int:id>/supprimer', methods=['POST'])
 def supprimer_client(id):
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     cid = client.id
     db.session.delete(client)
     db.session.commit()
@@ -2655,7 +2776,10 @@ def supprimer_client(id):
 @app.route('/clients/<int:id>/fiche')
 def fiche_client(id):
     client = Client.query.get_or_404(id)
-    incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
+    require_client_visible(client)
+    incidents = apply_incident_visibility(
+        Incident.query.filter_by(id_client=id)
+    ).order_by(Incident.date_heure.desc()).all()
     return_url = _resolve_next_url()
     from core.services.materiales_service import get_client_material_rows
     from core.services.radius_service import get_client_radius_info, radius_enabled
@@ -2701,6 +2825,7 @@ def api_client_radius_info(id):
     from core.services.radius_service import get_client_radius_info, radius_enabled
 
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     if not radius_enabled():
         return jsonify({'ok': False, 'error': 'Integración RADIUS desactivada.'}), 200
 
@@ -2723,7 +2848,10 @@ def api_client_radius_info(id):
 @app.route('/clients/<int:id>/imprimer')
 def imprimer_fiche_client(id):
     client = Client.query.get_or_404(id)
-    incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
+    require_client_visible(client)
+    incidents = apply_incident_visibility(
+        Incident.query.filter_by(id_client=id)
+    ).order_by(Incident.date_heure.desc()).all()
     
     # Pour l'instant, rediriger vers la version HTML pour éviter les problèmes WeasyPrint
     flash(gettext('Generación de PDF temporalmente desactivada. Utilice la impresión del navegador (Ctrl+P).'), 'info')
@@ -2733,7 +2861,10 @@ def imprimer_fiche_client(id):
 @app.route('/clients/<int:id>/imprimer-html')
 def fiche_client_print(id):
     client = Client.query.get_or_404(id)
-    incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
+    require_client_visible(client)
+    incidents = apply_incident_visibility(
+        Incident.query.filter_by(id_client=id)
+    ).order_by(Incident.date_heure.desc()).all()
     return render_template('fiche_client_pdf.html', client=client, incidents=incidents)
 
 # Route pour vérifier la connectivité du client (ping)
@@ -2745,6 +2876,7 @@ def verificar_cliente(id):
     import shutil
     
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     
     # Fonction pour effectuer un ping
     def ping_ip(ip_address, count=10):
@@ -2917,13 +3049,13 @@ def verificar_cliente(id):
 
 # Routes CRUD pour les opérateurs
 @app.route('/operateurs')
-@admin_required
+@superadmin_required
 def operateurs():
     operateurs = Operateur.query.all()
     return render_template('operateurs.html', operateurs=operateurs)
 
 @app.route('/operateurs/nouveau', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def nouveau_operateur():
     if request.method == 'POST':
         operateur = Operateur(
@@ -2937,7 +3069,7 @@ def nouveau_operateur():
     return render_template('nouveau_operateur.html')
 
 @app.route('/operateurs/<int:id>/modifier', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def modifier_operateur(id):
     operateur = Operateur.query.get_or_404(id)
     if request.method == 'POST':
@@ -2949,7 +3081,7 @@ def modifier_operateur(id):
     return render_template('modifier_operateur.html', operateur=operateur)
 
 @app.route('/operateurs/<int:id>/supprimer', methods=['POST'])
-@admin_required
+@superadmin_required
 def supprimer_operateur(id):
     operateur = Operateur.query.get_or_404(id)
     db.session.delete(operateur)
@@ -3040,6 +3172,9 @@ def api_incidents_export_xlsx():
 @app.route('/incidents/nouveau', methods=['GET', 'POST'])
 def nouveau_incident():
     if request.method == 'POST':
+        client = db.session.get(Client, request.form.get('id_client', type=int))
+        if not user_can_access_client(client):
+            abort(403)
         incident = Incident(
             id_client=request.form['id_client'],
             intitule=request.form['intitule'],
@@ -3071,9 +3206,9 @@ def nouveau_incident():
         flash(gettext('Incidencia creada con éxito!'), 'success')
         return redirect(url_for('incidents'))
 
-    clients = Client.query.all()
+    clients = scoped_clients_query().order_by(Client.nom).all()
     preselected_client_id = request.args.get('client', type=int) or request.args.get('id_client', type=int)
-    if preselected_client_id and not db.session.get(Client, preselected_client_id):
+    if preselected_client_id and not user_can_access_client(db.session.get(Client, preselected_client_id)):
         preselected_client_id = None
     return render_template(
         'nouveau_incident.html',
@@ -3182,6 +3317,9 @@ def modifier_incident(id):
 
         old_status = incident.status
         old_ref = incident.ref_bitrix
+        client = db.session.get(Client, request.form.get('id_client', type=int))
+        if not user_can_access_client(client):
+            abort(403)
         incident.id_client = request.form['id_client']
         incident.intitule = request.form['intitule']
         incident.observations = request.form['observations']
@@ -3214,7 +3352,7 @@ def modifier_incident(id):
         flash(gettext('Incidencia modificada con éxito!'), 'success')
         return redirect(next_url)
 
-    clients = Client.query.all()
+    clients = scoped_clients_query().order_by(Client.nom).all()
     ref_bitrix_display = incident.ref_bitrix or (_extract_ref_bitrix(incident.observations) if incident.status == 'Bitrix' else '')
     return render_template('modifier_incident.html', incident=incident, clients=clients, next_url=next_url, ref_bitrix_display=ref_bitrix_display)
 
@@ -3234,7 +3372,7 @@ def supprimer_incident(id):
 @app.route('/api/clients-search')
 def api_clients_search():
     """API pour la recherche de clients avec auto-complétion"""
-    clients = Client.query.all()
+    clients = scoped_clients_query().order_by(Client.nom).all()
     clients_data = []
     
     for client in clients:
@@ -3624,7 +3762,7 @@ def create_sample_data():
             mot_de_passe_hash=generate_password_hash('demo'),
             id_ciudad=mid,
             id_agencia=aid,
-            role='admin',
+            role=ROLE_SUPERADMIN,
             actif=True,
             cree_le=datetime.now(),
         )
@@ -3704,14 +3842,14 @@ def create_sample_data():
 # ─────────────────────────────────────────────────────────────
 
 @app.route('/base-de-datos')
-@admin_required
+@superadmin_required
 def base_de_datos():
     """Page principale de gestion de la base de données (admin uniquement)."""
     return render_template('database.html')
 
 
 @app.route('/base-de-datos/verificar', methods=['POST'])
-@admin_required
+@superadmin_required
 def base_de_datos_verificar():
     """Lance la vérification de la BDD et retourne un rapport JSON."""
     try:
@@ -3813,7 +3951,7 @@ def base_de_datos_verificar():
 
 
 @app.route('/base-de-datos/exportar')
-@admin_required
+@superadmin_required
 def base_de_datos_exportar():
     """Génère et télécharge un fichier .sql compatible HeidiSQL (admin uniquement)."""
     try:

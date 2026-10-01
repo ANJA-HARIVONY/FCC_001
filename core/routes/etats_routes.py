@@ -118,7 +118,10 @@ def etats_generer():
         {'id': 'last_3_months', 'nom': 'Últimos 3 meses'},
         {'id': 'custom', 'nom': 'Período personalizado'}
     ]
-    agencies = Agencia.query.order_by(Agencia.nombre).all()
+    if current_user.is_authenticated and not current_user.is_admin():
+        agencies = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
+    else:
+        agencies = Agencia.query.order_by(Agencia.nombre).all()
     
     return render_template('etats/generer.html',
                          types_etats=types_etats,
@@ -136,6 +139,8 @@ def etats_generer_post():
         titre = request.form.get('titre', '').strip()
         prompt_personnalise = request.form.get('prompt_personnalise', '').strip()
         agence_id = request.form.get('agence_id', '').strip()
+        if current_user.is_authenticated and not current_user.is_admin():
+            agence_id = str(current_user.id_agencia)
         
         # Période personnalisée
         if periode == 'custom':
@@ -647,16 +652,19 @@ def _collect_data_context(etat):
         params = _parse_parametres_dict(etat)
         agence_id = None
         agence_label = 'Todas las agencias'
-        if params.get('agence_id'):
+        if current_user.is_authenticated and not current_user.is_admin():
+            agence_id = current_user.id_agencia
+            query = query.filter(
+                Incident.operateur.has(id_agencia=agence_id),
+                Incident.client.has(id_ciudad=current_user.id_ciudad),
+            )
+            agence_label = current_user.agencia.nombre if current_user.agencia else 'Mi agencia'
+        elif params.get('agence_id'):
             agence_id = int(params.get('agence_id'))
             query = query.filter(Incident.operateur.has(id_agencia=agence_id))
             agence = Agencia.query.get(agence_id)
             if agence:
                 agence_label = agence.nombre
-        elif current_user.is_authenticated and not current_user.is_admin():
-            agence_id = current_user.id_agencia
-            query = query.filter(Incident.operateur.has(id_agencia=agence_id))
-            agence_label = current_user.agencia.nombre if current_user.agencia else 'Mi agencia'
         
         if etat.periode_debut:
             start_datetime = datetime.combine(etat.periode_debut, datetime.min.time())

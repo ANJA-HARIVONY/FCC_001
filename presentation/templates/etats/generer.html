@@ -88,9 +88,11 @@
                             <div class="col-md-6 mb-3">
                                 <label for="agence_id" class="form-label">Agencia</label>
                                 <select class="form-select" id="agence_id" name="agence_id" onchange="updateAgencyPreview()">
+                                    {% if current_user.is_admin() %}
                                     <option value="">Todas las agencias</option>
+                                    {% endif %}
                                     {% for agency in agencies %}
-                                    <option value="{{ agency.id }}">{{ agency.nombre }}</option>
+                                    <option value="{{ agency.id }}" {% if not current_user.is_admin() and agency.id == current_user.id_agencia %}selected{% endif %}>{{ agency.nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -161,7 +163,7 @@
                             </div>
                             <div class="mb-3">
                                 <strong class="small text-uppercase text-muted">Agencia</strong>
-                                <div id="preview-agency" class="text-muted mt-1">Todas las agencias</div>
+                                <div id="preview-agency" class="text-muted mt-1">{% if current_user.is_admin() %}Todas las agencias{% else %}{{ current_user.agencia.nombre if current_user.agencia else 'Mi agencia' }}{% endif %}</div>
                             </div>
                         </div>
 

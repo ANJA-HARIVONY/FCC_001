@@ -63,8 +63,9 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Rol</label>
                                 <select name="role" class="form-select">
-                                    <option value="usuario">usuario</option>
-                                    <option value="admin">admin</option>
+                                    {% for role_value in ROLES_OPERATEUR %}
+                                    <option value="{{ role_value }}">{{ ROLE_LABELS[role_value] }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">

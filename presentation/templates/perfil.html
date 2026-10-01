@@ -39,7 +39,7 @@
                         <div>{{ current_user.ciudad.nombre if current_user.ciudad else '—' }} / {{ current_user.agencia.nombre if current_user.agencia else '—' }}</div>
                     </div>
                     <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-sm-start">
-                        <span class="badge bg-{{ 'danger' if current_user.is_admin() else 'secondary' }}">{{ current_user.role }}</span>
+                        <span class="badge bg-{{ 'dark' if current_user.is_superadmin() else ('danger' if current_user.is_admin() else 'secondary') }}">{{ ROLE_LABELS.get(current_user.role, current_user.role) }}</span>
                         <span class="badge bg-info text-dark">{{ categoria_operateur_label(current_user.categoria) }}</span>
                     </div>
                 </div>

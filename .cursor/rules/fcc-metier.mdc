@@ -11,7 +11,7 @@ Ne **jamais** inventer un statut, une catégorie, un rôle ou un `tipo_salida`. 
 
 - `Incident.status` : `Pendiente` | `Solucionadas` (pluriel) | `Bitrix`
 - `Client.categoria` : `particular` (défaut) | `corporativo` — pas `residencial`
-- `Operateur.role` : `admin` | `usuario` (droits, `is_admin()`)
+- `Operateur.role` : `usuario` | `admin` | `superadmin` (`is_admin()` vrai pour admin et superadmin ; `is_superadmin()` pour Usuarios, Trazabilidad, Base de datos)
 - `Operateur.categoria` : `atencion_cliente` | `tecnico` (métier — un técnico n’est pas admin)
 - Matériel : `outillage` | `material_cliente`
 - Salida : types `uso_interno` | `incidencia` | `instalacion` ; états `registrada` → `modificada`
@@ -35,7 +35,7 @@ Ne pas renommer les colonnes FR : `nom`, `intitule`, `ville`, `date_heure`, `mot
 
 ## Autres domaines
 
-- Materiales / instalaciones / ficha técnico / ficha AC / audit / usuarios CRUD : `@admin_required`
+- Materiales / instalaciones / ficha técnico / ficha AC : `@admin_required` (admin et superadmin). Usuarios, trazabilidad, base de datos : `@superadmin_required`
 - Sitio : `ClientSitio` = adresse physique (GPS + fotos, max 10). **Un seul sitio actif** par client ; `Client.adresse/ville/latitud/longitud` = miroir du sitio actif, écrit uniquement via `instalaciones_service`. Correction d'adresse (`modifier_client`) = met à jour le sitio actif ; déménagement = **Traslado** (`create_traslado`) : ferme le sitio (`activo=False`, `hasta`), en crée un nouveau, crée une `Instalacion` `tipo=traslado`
 - `Instalacion` : 1 client, 1 sitio, 0..N salidas `tipo_salida=instalacion` (`MaterialSalida.id_instalacion`). Saisie unique : `Nueva instalación` (`create_instalacion`) = données + lignes de matériel **facultatives** → crée la 1ʳᵉ salida dans le même enregistrement. Une salida `instalacion` exige `id_instalacion` (matériel additionnel depuis la fiche instalación, client figé) ; sans lui → refus / redirection vers `instalaciones_nueva`. La modale «Nueva salida» n'offre que `uso_interno` / `incidencia`. Client / sitio / tipo non modifiables à l'édition. Terminar sans condition
 - Dashboard «Instalaciones del día» : `Instalacion` du jour (`instalaciones_del_dia`), pas des salidas
