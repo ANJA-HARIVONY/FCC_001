@@ -53,9 +53,26 @@ from core.services.materiales_export_service import (
 
 
 def _agencia_scope():
-    if current_user.is_admin():
+    if current_user.is_superadmin():
         return None
     return current_user.id_agencia
+
+
+def _ciudad_scope():
+    if current_user.is_superadmin():
+        return None
+    return current_user.id_ciudad
+
+
+def _tecnicos_agencia():
+    query = Operateur.query.filter_by(categoria='tecnico', actif=True)
+    agencia_id = _agencia_scope()
+    ciudad_id = _ciudad_scope()
+    if agencia_id:
+        query = query.filter_by(id_agencia=agencia_id)
+    if ciudad_id:
+        query = query.filter_by(id_ciudad=ciudad_id)
+    return query.order_by(Operateur.nom).all()
 
 
 def _materiales_activos():
@@ -100,10 +117,12 @@ def _informe_filter_url_kwargs(filters):
     return kwargs
 
 
-def _informe_tecnicos_query(agencia_id=None):
+def _informe_tecnicos_query(agencia_id=None, ciudad_id=None):
     query = Operateur.query.filter_by(categoria='tecnico', actif=True)
     if agencia_id:
         query = query.filter_by(id_agencia=agencia_id)
+    if ciudad_id:
+        query = query.filter_by(id_ciudad=ciudad_id)
     return query.order_by(Operateur.nom).all()
 
 
@@ -120,7 +139,7 @@ def serve_material_foto(filename):
 @admin_required
 def materiales_hub():
     total_materiales = Material.query.count()
-    total_salidas = salidas_base_query(_agencia_scope()).count()
+    total_salidas = salidas_base_query(_agencia_scope(), _ciudad_scope()).count()
     return render_template(
         'materiales/hub.html',
         total_materiales=total_materiales,
@@ -191,7 +210,9 @@ def materiales_salida_nueva():
         if not instalacion_id:
             flash(gettext('El material de una instalación se registra desde «Nueva instalación».'), 'info')
             return redirect(url_for('instalaciones_nueva'))
-        instalacion = db.session.get(Instalacion, instalacion_id)
+        from core.services.instalaciones_service import scoped_instalaciones_query
+
+        instalacion = scoped_instalaciones_query().filter(Instalacion.id == instalacion_id).first()
         if not instalacion:
             abort(404)
 
@@ -230,14 +251,11 @@ def _paginated_salidas_from_request():
     page = request.args.get('page', 1, type=int)
     per_page = clamp_list_per_page(request.args.get('per_page', type=int))
     agencia_id = _agencia_scope()
-    query = apply_salida_list_filters(salidas_base_query(agencia_id), request.args)
+    ciudad_id = _ciudad_scope()
+    query = apply_salida_list_filters(salidas_base_query(agencia_id, ciudad_id), request.args)
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    materiales_filter = get_salidas_material_filter_options(agencia_id)
-    tecnicos = (
-        Operateur.query.filter_by(categoria='tecnico', actif=True)
-        .order_by(Operateur.nom)
-        .all()
-    )
+    materiales_filter = get_salidas_material_filter_options(agencia_id, ciudad_id)
+    tecnicos = _tecnicos_agencia()
     return {
         'pagination': pagination,
         'salidas': pagination.items,
@@ -284,11 +302,11 @@ def materiales_salidas_export_xlsx():
 def materiales_salida_detalle(salida_id):
     from core.app import MaterialSalida
 
-    salida = salidas_base_query(_agencia_scope()).filter(MaterialSalida.id == salida_id).first()
-    if not salida:
-        salida = MaterialSalida.query.get_or_404(salida_id)
-        if _agencia_scope() and salida.tecnico.id_agencia != _agencia_scope():
-            abort(404)
+    salida = (
+        salidas_base_query(_agencia_scope(), _ciudad_scope())
+        .filter(MaterialSalida.id == salida_id)
+        .first_or_404()
+    )
     return render_template(
         'materiales/salida_detalle.html',
         salida=salida,
@@ -304,7 +322,11 @@ def materiales_salida_detalle(salida_id):
 def materiales_salida_modificar(salida_id):
     from core.app import MaterialSalida
 
-    salida = salidas_base_query(_agencia_scope()).filter(MaterialSalida.id == salida_id).first_or_404()
+    salida = (
+        salidas_base_query(_agencia_scope(), _ciudad_scope())
+        .filter(MaterialSalida.id == salida_id)
+        .first_or_404()
+    )
     linea_ids = [l.id_material for l in salida.lineas]
     query = Material.query
     if linea_ids:
@@ -338,6 +360,11 @@ def materiales_salida_modificar(salida_id):
 @app.route('/materiales/salidas/<int:salida_id>/supprimer', methods=['POST'])
 @admin_required
 def materiales_salida_supprimer(salida_id):
+    from core.app import MaterialSalida
+
+    salidas_base_query(_agencia_scope(), _ciudad_scope()).filter(
+        MaterialSalida.id == salida_id
+    ).first_or_404()
     try:
         delete_salida(salida_id, current_user)
         flash(gettext('Salida eliminada.'), 'success')
@@ -354,6 +381,7 @@ def materiales_informe():
     date_to = (request.args.get('date_to') or '').strip()
     page = request.args.get('page', 1, type=int)
     agencia_id = _agencia_scope()
+    ciudad_id = _ciudad_scope()
     informe_filters = parse_informe_filters(request.args)
 
     if not date_from and not date_to:
@@ -367,7 +395,7 @@ def materiales_informe():
     if date_from and date_to:
         try:
             all_lineas, resumen = build_informe_page_data(
-                date_from, date_to, agencia_id, filters=informe_filters,
+                date_from, date_to, agencia_id, filters=informe_filters, ciudad_id=ciudad_id,
             )
             per_page = 50
             start = (page - 1) * per_page
@@ -388,8 +416,8 @@ def materiales_informe():
         except MaterialesValidationError as exc:
             error = str(exc)
 
-    tecnicos = _informe_tecnicos_query(agencia_id)
-    materiales_filter = get_informe_material_filter_options(date_from, date_to, agencia_id)
+    tecnicos = _informe_tecnicos_query(agencia_id, ciudad_id)
+    materiales_filter = get_informe_material_filter_options(date_from, date_to, agencia_id, ciudad_id)
     filter_url_kwargs = _informe_filter_url_kwargs(informe_filters)
 
     return render_template(
@@ -424,7 +452,7 @@ def materiales_informe_export_xlsx():
 
     try:
         buffer = build_informe_workbook(
-            date_from, date_to, _agencia_scope(), filters=informe_filters,
+            date_from, date_to, _agencia_scope(), filters=informe_filters, ciudad_id=_ciudad_scope(),
         )
         return send_file(
             buffer,
@@ -452,7 +480,11 @@ def tecnico_ficha(tecnico_id):
         flash('Este usuario no es un técnico.', 'error')
         return redirect(url_for('usuarios'))
 
-    rows = get_tecnico_material_rows(tecnico.id, _agencia_scope())
+    if _agencia_scope() and (
+        tecnico.id_agencia != _agencia_scope() or tecnico.id_ciudad != _ciudad_scope()
+    ):
+        abort(404)
+    rows = get_tecnico_material_rows(tecnico.id, _agencia_scope(), ciudad_id=_ciudad_scope())
     return render_template(
         'materiales/tecnico_ficha.html',
         tecnico=tecnico,
@@ -467,8 +499,11 @@ def tecnico_ficha(tecnico_id):
 def api_tecnicos_search():
     query = Operateur.query.filter_by(categoria='tecnico', actif=True)
     agencia_id = _agencia_scope()
+    ciudad_id = _ciudad_scope()
     if agencia_id:
         query = query.filter_by(id_agencia=agencia_id)
+    if ciudad_id:
+        query = query.filter_by(id_ciudad=ciudad_id)
     tecnicos = query.order_by(Operateur.nom).all()
     return jsonify([
         {

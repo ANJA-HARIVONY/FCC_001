@@ -473,7 +473,7 @@ class Operateur(UserMixin, db.Model):
         return (self.role or '') == ROLE_SUPERADMIN
 
     def is_admin(self):
-        """Admin et SuperAdmin : materiales, instalaciones et vision globale."""
+        """Admin et SuperAdmin : materiales, instalaciones, fichas."""
         return (self.role or '') in (ROLE_ADMIN, ROLE_SUPERADMIN)
 
     @property
@@ -572,32 +572,39 @@ def apply_security_headers(response):
     return response
 
 
-def apply_incident_visibility(query):
-    """Règle 10.4 : admin et superadmin voient tout.
+def sees_all_movements():
+    """Seul le superadmin traverse les agencias et les ciudades."""
+    return current_user.is_authenticated and current_user.is_superadmin()
 
-    Un usuario ne voit que les incidencias de son agencia, et seulement
-    celles dont le client est dans sa ciudad.
+
+def apply_incident_visibility(query):
+    """Règle 10.4 : superadmin voit tout.
+
+    Admin et usuario ne voient que les incidencias de leur agencia
+    dont le client est dans leur ciudad.
     """
-    if current_user.is_admin():
+    if sees_all_movements():
         return query
 
     same_agency_ids = db.session.query(Operateur.id).filter(
         Operateur.id_agencia == current_user.id_agencia
     )
     return query.filter(
-        db.or_(
-            Incident.id_operateur == current_user.id,
-            Incident.id_operateur.in_(same_agency_ids),
-        ),
+        Incident.id_operateur.in_(same_agency_ids),
         Incident.client.has(id_ciudad=current_user.id_ciudad),
     )
 
 
 def user_can_access_client(client):
-    """Un usuario ne consulte que les clients de sa ciudad."""
+    """Clients partagés : tout utilisateur connecté consulte n'importe quel client."""
+    return client is not None
+
+
+def client_in_movement_ciudad(client):
+    """Un mouvement (incidencia, salida, instalación) reste dans la ciudad de l'utilisateur."""
     if client is None:
         return False
-    if current_user.is_admin():
+    if sees_all_movements():
         return True
     return client.id_ciudad == current_user.id_ciudad
 
@@ -608,16 +615,11 @@ def require_client_visible(client):
 
 
 def scoped_clients_query():
-    query = Client.query
-    if not current_user.is_admin():
-        query = query.filter(Client.id_ciudad == current_user.id_ciudad)
-    return query
+    return Client.query
 
 
 def ciudades_for_current_user():
-    if current_user.is_admin():
-        return Ciudad.query.order_by(Ciudad.nombre).all()
-    return Ciudad.query.filter_by(id=current_user.id_ciudad).order_by(Ciudad.nombre).all()
+    return Ciudad.query.order_by(Ciudad.nombre).all()
 
 
 def user_can_access_incident(incident):
@@ -2066,7 +2068,7 @@ def perfil():
 
 @app.route('/api/agencias/<int:id_ciudad>')
 def api_agencias_por_ciudad(id_ciudad):
-    if current_user.is_authenticated and not current_user.is_admin():
+    if current_user.is_authenticated and not sees_all_movements():
         if id_ciudad != current_user.id_ciudad:
             return jsonify([])
         agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
@@ -2453,7 +2455,8 @@ def dashboard():
 
     instalaciones_dia = instalaciones_del_dia(
         agencia_id=current_user.id_agencia,
-        all_agencies=current_user.is_admin(),
+        ciudad_id=current_user.id_ciudad,
+        all_agencies=sees_all_movements(),
     )
     
     # Données pour les graphiques selon la période
@@ -2555,9 +2558,6 @@ def _paginated_clients_from_request():
             ciudad_id = None
 
     query = scoped_clients_query()
-    if not current_user.is_admin() and ciudad_id and ciudad_id != current_user.id_ciudad:
-        ciudad_filter = ''
-        ciudad_id = None
 
     if search_query:
         query = query.filter(
@@ -2656,8 +2656,6 @@ def nouveau_client():
     default_ciudad_id = current_user.id_ciudad or (ciudades[0].id if ciudades else None)
     if request.method == 'POST':
         id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
-        if not current_user.is_admin():
-            id_ciudad = current_user.id_ciudad
         if not id_ciudad:
             flash(gettext('La ciudad es obligatoria.'), 'error')
             return render_template(
@@ -2716,10 +2714,7 @@ def modifier_client(id):
         client.ip_router = request.form['ip_router']
         client.ip_antea = request.form['ip_antea']
         client.username_radius = (request.form.get('username_radius') or '').strip() or None
-        if current_user.is_admin():
-            client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
-        else:
-            client.id_ciudad = current_user.id_ciudad
+        client.id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
         client.categoria = normalize_categoria_cliente(request.form.get('categoria'), default=client.categoria)
         if not client.id_ciudad:
             flash(gettext('La ciudad es obligatoria.'), 'error')
@@ -2783,10 +2778,12 @@ def fiche_client(id):
     return_url = _resolve_next_url()
     from core.services.materiales_service import get_client_material_rows
     from core.services.radius_service import get_client_radius_info, radius_enabled
-    from core.services.instalaciones_service import client_instalacion_fotos
+    from core.services.instalaciones_service import client_instalacion_fotos, instalaciones_du_client
 
-    agencia_id = None if current_user.is_admin() else current_user.id_agencia
-    material_rows = get_client_material_rows(id, agencia_id)
+    agencia_id = None if sees_all_movements() else current_user.id_agencia
+    ciudad_id = None if sees_all_movements() else current_user.id_ciudad
+    material_rows = get_client_material_rows(id, agencia_id, ciudad_id=ciudad_id)
+    instalaciones_cliente = instalaciones_du_client(client)
     instalacion_fotos = client_instalacion_fotos(client)
     slots_left = max(0, MAX_INSTALACION_FOTOS - len(instalacion_fotos))
 
@@ -2810,6 +2807,7 @@ def fiche_client(id):
         client=client,
         incidents=incidents,
         material_rows=material_rows,
+        instalaciones_cliente=instalaciones_cliente,
         return_url=return_url,
         radius_info=radius_info,
         radius_enabled=radius_enabled(),
@@ -3175,6 +3173,9 @@ def nouveau_incident():
         client = db.session.get(Client, request.form.get('id_client', type=int))
         if not user_can_access_client(client):
             abort(403)
+        if not client_in_movement_ciudad(client):
+            flash(gettext('Solo puede registrar una incidencia de un cliente de su ciudad.'), 'error')
+            return redirect(url_for('nouveau_incident'))
         incident = Incident(
             id_client=request.form['id_client'],
             intitule=request.form['intitule'],
@@ -3206,7 +3207,10 @@ def nouveau_incident():
         flash(gettext('Incidencia creada con éxito!'), 'success')
         return redirect(url_for('incidents'))
 
-    clients = scoped_clients_query().order_by(Client.nom).all()
+    clients_query = Client.query.order_by(Client.nom)
+    if not sees_all_movements():
+        clients_query = clients_query.filter(Client.id_ciudad == current_user.id_ciudad)
+    clients = clients_query.all()
     preselected_client_id = request.args.get('client', type=int) or request.args.get('id_client', type=int)
     if preselected_client_id and not user_can_access_client(db.session.get(Client, preselected_client_id)):
         preselected_client_id = None
@@ -3320,6 +3324,9 @@ def modifier_incident(id):
         client = db.session.get(Client, request.form.get('id_client', type=int))
         if not user_can_access_client(client):
             abort(403)
+        if not client_in_movement_ciudad(client):
+            flash(gettext('Solo puede registrar una incidencia de un cliente de su ciudad.'), 'error')
+            return redirect(url_for('modifier_incident', id=incident.id))
         incident.id_client = request.form['id_client']
         incident.intitule = request.form['intitule']
         incident.observations = request.form['observations']
@@ -3352,7 +3359,10 @@ def modifier_incident(id):
         flash(gettext('Incidencia modificada con éxito!'), 'success')
         return redirect(next_url)
 
-    clients = scoped_clients_query().order_by(Client.nom).all()
+    clients_query = Client.query.order_by(Client.nom)
+    if not sees_all_movements():
+        clients_query = clients_query.filter(Client.id_ciudad == current_user.id_ciudad)
+    clients = clients_query.all()
     ref_bitrix_display = incident.ref_bitrix or (_extract_ref_bitrix(incident.observations) if incident.status == 'Bitrix' else '')
     return render_template('modifier_incident.html', incident=incident, clients=clients, next_url=next_url, ref_bitrix_display=ref_bitrix_display)
 
@@ -3372,7 +3382,10 @@ def supprimer_incident(id):
 @app.route('/api/clients-search')
 def api_clients_search():
     """API pour la recherche de clients avec auto-complétion"""
-    clients = scoped_clients_query().order_by(Client.nom).all()
+    clients_query = scoped_clients_query()
+    if request.args.get('movimiento') == '1' and not sees_all_movements():
+        clients_query = clients_query.filter(Client.id_ciudad == current_user.id_ciudad)
+    clients = clients_query.order_by(Client.nom).all()
     clients_data = []
     
     for client in clients:

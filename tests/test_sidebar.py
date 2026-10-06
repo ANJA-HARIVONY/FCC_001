@@ -171,9 +171,7 @@ class SidebarRenderTests(unittest.TestCase):
                 html = html.get_data(as_text=True)
             self.assertIn('SuperAdmin', html)
 
-    def test_usuario_no_ve_clientes_de_otra_ciudad(self):
-        from werkzeug.exceptions import Forbidden
-
+    def test_usuario_ve_clientes_de_otra_ciudad(self):
         otra = Ciudad.query.filter(Ciudad.id != self.usuario.id_ciudad).first()
         self.assertIsNotNone(otra)
         ajeno = Client(
@@ -199,13 +197,78 @@ class SidebarRenderTests(unittest.TestCase):
             if hasattr(html, 'get_data'):
                 html = html.get_data(as_text=True)
             self.assertIn('Cliente propio', html)
-            self.assertNotIn('Cliente ajeno', html)
-            self.assertNotIn(otra.nombre, html)
+            self.assertIn('Cliente ajeno', html)
 
         with self.app.test_request_context(f'/clients/{ajeno.id}/fiche'):
             login_user(self.usuario)
-            with self.assertRaises(Forbidden):
-                self.app.view_functions['fiche_client'](ajeno.id)
+            html = self.app.view_functions['fiche_client'](ajeno.id)
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('Cliente ajeno', html)
+
+    def test_admin_no_ve_incidencia_de_otra_agencia(self):
+        from core.app import Incident, apply_incident_visibility
+
+        otra = Agencia.query.filter(Agencia.id_ciudad != self.admin.id_ciudad).first()
+        self.assertIsNotNone(otra)
+        otro = Operateur(
+            nom='otro_agencia',
+            telephone='240000097',
+            email='otro_agencia@example.com',
+            mot_de_passe_hash=generate_password_hash('x'),
+            id_ciudad=otra.id_ciudad,
+            id_agencia=otra.id,
+            role='usuario',
+            actif=True,
+        )
+        client = Client(
+            nom='Cliente otra agencia',
+            telephone='240000096',
+            adresse='Lejos',
+            ville='Lejos',
+            id_ciudad=otra.id_ciudad,
+        )
+        db.session.add_all([otro, client])
+        db.session.commit()
+        ajena = Incident(
+            id_client=client.id,
+            intitule='Incidencia ajena',
+            status='Pendiente',
+            id_operateur=otro.id,
+        )
+        local_client = Client(
+            nom='Cliente local admin',
+            telephone='240000095',
+            adresse='Aqui',
+            ville='Aqui',
+            id_ciudad=self.admin.id_ciudad,
+        )
+        db.session.add(local_client)
+        db.session.commit()
+        propia = Incident(
+            id_client=local_client.id,
+            intitule='Incidencia local',
+            status='Pendiente',
+            id_operateur=self.admin.id,
+        )
+        db.session.add_all([ajena, propia])
+        db.session.commit()
+
+        with self.app.test_request_context('/incidents'):
+            login_user(self.admin)
+            visibles = {
+                row.id for row in apply_incident_visibility(Incident.query).all()
+            }
+            self.assertIn(propia.id, visibles)
+            self.assertNotIn(ajena.id, visibles)
+
+        with self.app.test_request_context('/incidents'):
+            login_user(self.superadmin)
+            visibles = {
+                row.id for row in apply_incident_visibility(Incident.query).all()
+            }
+            self.assertIn(ajena.id, visibles)
+            self.assertIn(propia.id, visibles)
 
     def test_instalaciones_hub_admin_ok_usuario_403(self):
         from werkzeug.exceptions import Forbidden

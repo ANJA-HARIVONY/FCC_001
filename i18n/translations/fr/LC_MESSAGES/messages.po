@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-10-01 12:09+0100\n"
+"POT-Creation-Date: 2026-10-06 12:51+0100\n"
 "PO-Revision-Date: 2025-05-25 21:36+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -18,183 +18,187 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.14.0\n"
 
-#: core/app.py:165
+#: core/app.py:143
 msgid "La sesión de seguridad ha expirado. Vuelva a iniciar sesión."
 msgstr ""
 
-#: core/app.py:1465
+#: core/app.py:1508
 msgid "cliente desconocido"
 msgstr ""
 
-#: core/app.py:1873
+#: core/app.py:1955
 msgid ""
 "Su sesión ha expirado (duración máxima alcanzada). Vuelva a iniciar "
 "sesión."
 msgstr ""
 
-#: core/app.py:1881
+#: core/app.py:1963
 msgid "Ha sido desconectado tras 30 minutos de inactividad."
 msgstr ""
 
-#: core/app.py:1924
+#: core/app.py:2006
 msgid "Introduzca correo o teléfono y contraseña."
 msgstr ""
 
-#: core/app.py:1928
+#: core/app.py:2010
 msgid "Credenciales incorrectas o cuenta desactivada."
 msgstr ""
 
-#: core/app.py:1930
+#: core/app.py:2012
 msgid "Cuenta desactivada."
 msgstr ""
 
-#: core/app.py:1932
+#: core/app.py:2014
 msgid "Su cuenta no tiene contraseña asignada; contacte al administrador."
 msgstr ""
 
-#: core/app.py:1945
+#: core/app.py:2027
 msgid "Credenciales incorrectas."
 msgstr ""
 
-#: core/app.py:1975
+#: core/app.py:2057
 msgid "Las contraseñas no coinciden."
 msgstr ""
 
-#: core/app.py:1977
+#: core/app.py:2059
 msgid "La contraseña debe tener al menos 6 caracteres."
 msgstr ""
 
-#: core/app.py:1982
+#: core/app.py:2064
 msgid "Contraseña actualizada."
 msgstr ""
 
-#: core/app.py:2102 core/app.py:2152
+#: core/app.py:2187 core/app.py:2235
 msgid "Nombre, teléfono, ciudad y agencia son obligatorios."
 msgstr ""
 
-#: core/app.py:2104
+#: core/app.py:2189
 msgid "La contraseña es obligatoria para un nuevo usuario."
 msgstr ""
 
-#: core/app.py:2108 core/app.py:2156
+#: core/app.py:2193 core/app.py:2239
 msgid "La agencia no pertenece a la ciudad seleccionada."
 msgstr ""
 
-#: core/app.py:2110 core/app.py:2160
+#: core/app.py:2195 core/app.py:2243
 msgid "Ya existe un usuario con este correo."
 msgstr ""
 
-#: core/app.py:2112 core/app.py:2164
+#: core/app.py:2197 core/app.py:2247
 msgid "Ya existe un usuario con este teléfono."
 msgstr ""
 
-#: core/app.py:2129
+#: core/app.py:2214
 msgid "Usuario creado."
 msgstr ""
 
-#: core/app.py:2180
+#: core/app.py:2263
 msgid "Usuario actualizado."
 msgstr ""
 
-#: core/app.py:2191
+#: core/app.py:2274
 msgid "No puede desactivar su propia cuenta."
 msgstr ""
 
-#: core/app.py:2197
+#: core/app.py:2280
 msgid "Estado del usuario actualizado."
 msgstr ""
 
-#: core/app.py:2213
+#: core/app.py:2296
 msgid "Seleccione un archivo."
 msgstr ""
 
-#: core/app.py:2216
+#: core/app.py:2299
 msgid "Formato no válido (JPG, PNG, WEBP)."
 msgstr ""
 
-#: core/app.py:2220
+#: core/app.py:2303
 msgid "Archivo demasiado grande (máx. 2 MB)."
 msgstr ""
 
-#: core/app.py:2232
+#: core/app.py:2315
 msgid "Avatar actualizado."
 msgstr ""
 
-#: core/app.py:2259
+#: core/app.py:2342
 msgid "Formato inválido para fecha inicio."
 msgstr ""
 
-#: core/app.py:2265
+#: core/app.py:2348
 msgid "Formato inválido para fecha fin."
 msgstr ""
 
-#: core/app.py:2578 core/app.py:2637
+#: core/app.py:2660 core/app.py:2720
 msgid "La ciudad es obligatoria."
 msgstr ""
 
-#: core/app.py:2607
+#: core/app.py:2689
 msgid "Cliente creado con éxito!"
 msgstr ""
 
-#: core/app.py:2663
+#: core/app.py:2746
 msgid "Cliente modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2683
+#: core/app.py:2767
 msgid "Cliente eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:2761
+#: core/app.py:2855
 msgid ""
 "Generación de PDF temporalmente desactivada. Utilice la impresión del "
 "navegador (Ctrl+P)."
 msgstr ""
 
-#: core/app.py:2967
+#: core/app.py:3065
 msgid "Operador creado con éxito!"
 msgstr ""
 
-#: core/app.py:2979
+#: core/app.py:3077
 msgid "Operador modificado con éxito!"
 msgstr ""
 
-#: core/app.py:2989
+#: core/app.py:3087
 msgid "Operador eliminado con éxito!"
 msgstr ""
 
-#: core/app.py:3103
+#: core/app.py:3177 core/app.py:3328
+msgid "Solo puede registrar una incidencia de un cliente de su ciudad."
+msgstr "Vous ne pouvez enregistrer une incidence que pour un client de votre ville."
+
+#: core/app.py:3207
 msgid "Incidencia creada con éxito!"
 msgstr ""
 
-#: core/app.py:3154
+#: core/app.py:3261
 msgid "El comentario no puede estar vacío."
 msgstr ""
 
-#: core/app.py:3157
+#: core/app.py:3264
 msgid "El comentario no puede superar 1000 caracteres."
 msgstr ""
 
-#: core/app.py:3168
+#: core/app.py:3275
 msgid "Comentario publicado."
 msgstr ""
 
-#: core/app.py:3246
+#: core/app.py:3359
 msgid "Incidencia modificada con éxito!"
 msgstr ""
 
-#: core/app.py:3262
+#: core/app.py:3378
 msgid "Incidencia eliminada con éxito!"
 msgstr ""
 
-#: core/app.py:3445
+#: core/app.py:3564
 msgid "Utilisateur"
 msgstr ""
 
-#: core/routes/instalaciones_routes.py:102
+#: core/routes/instalaciones_routes.py:104
 msgid "Instalación registrada."
 msgstr "Installation enregistrée."
 
-#: core/routes/instalaciones_routes.py:117
+#: core/routes/instalaciones_routes.py:119
 #: presentation/templates/dashboard.html:314
 #: presentation/templates/fiche_client.html:583
 #: presentation/templates/instalaciones/hub.html:10
@@ -203,24 +207,24 @@ msgstr "Installation enregistrée."
 msgid "Nueva instalación"
 msgstr "Nouvelle installation"
 
-#: core/routes/instalaciones_routes.py:135
+#: core/routes/instalaciones_routes.py:137
 msgid "Instalación actualizada."
 msgstr "Installation mise à jour."
 
-#: core/routes/instalaciones_routes.py:147
+#: core/routes/instalaciones_routes.py:149
 #, python-format
 msgid "Modificar instalación #%(id)s"
 msgstr "Modifier l'installation #%(id)s"
 
-#: core/routes/instalaciones_routes.py:157
+#: core/routes/instalaciones_routes.py:159
 msgid "Instalación terminada."
 msgstr "Installation terminée."
 
-#: core/routes/instalaciones_routes.py:170
+#: core/routes/instalaciones_routes.py:172
 msgid "Instalación reabierta."
 msgstr "Installation rouverte."
 
-#: core/routes/instalaciones_routes.py:184
+#: core/routes/instalaciones_routes.py:186
 msgid ""
 "Traslado registrado. Añada el material nuevo con una salida de "
 "instalación."
@@ -228,34 +232,34 @@ msgstr ""
 "Transfert enregistré. Ajoutez le nouveau matériel avec une sortie "
 "d'installation."
 
-#: core/routes/instalaciones_routes.py:223
+#: core/routes/instalaciones_routes.py:225
 msgid "Coordenadas GPS actualizadas."
 msgstr "Coordonnées GPS mises à jour."
 
-#: core/routes/instalaciones_routes.py:236
+#: core/routes/instalaciones_routes.py:238
 msgid "Fotos de la instalación guardadas."
 msgstr "Photos de l'installation enregistrées."
 
-#: core/routes/instalaciones_routes.py:252
+#: core/routes/instalaciones_routes.py:254
 msgid "Foto eliminada."
 msgstr "Photo supprimée."
 
-#: core/routes/materiales_routes.py:192
+#: core/routes/materiales_routes.py:211
 msgid "El material de una instalación se registra desde «Nueva instalación»."
 msgstr ""
 "Le matériel d'une installation s'enregistre depuis « Nouvelle "
 "installation »."
 
-#: core/routes/materiales_routes.py:221
+#: core/routes/materiales_routes.py:242
 #, python-format
 msgid "Añadir material a la instalación #%(id)s"
 msgstr "Ajouter du matériel à l'installation #%(id)s"
 
-#: core/routes/materiales_routes.py:223
+#: core/routes/materiales_routes.py:244
 msgid "Nueva salida de material"
 msgstr "Nouvelle sortie de matériel"
 
-#: core/routes/materiales_routes.py:344
+#: core/routes/materiales_routes.py:370
 msgid "Salida eliminada."
 msgstr "Sortie supprimée."
 
@@ -468,7 +472,7 @@ msgstr "Type"
 
 #: presentation/templates/dashboard.html:220
 #: presentation/templates/fiche_client.html:596
-#: presentation/templates/incidents.html:238
+#: presentation/templates/incidents.html:242
 #: presentation/templates/instalaciones/detalle.html:60
 #: presentation/templates/instalaciones/detalle.html:123
 #: presentation/templates/instalaciones/form.html:47

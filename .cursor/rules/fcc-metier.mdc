@@ -22,9 +22,24 @@ Entité code = `Operateur`. UI = **Usuarios** (`/usuarios`). Ne pas étendre `/o
 
 Ne pas renommer les colonnes FR : `nom`, `intitule`, `ville`, `date_heure`, `mot_de_passe_hash`.
 
+## Périmètre agence et ciudad
+
+Référentiels **partagés** (toutes les agencias ; tout rôle qui a le menu) : Clients, catálogo de material.
+
+Mouvements **limités** à l’`agencia` **et** à la `ciudad` de l’utilisateur. L’`admin` a le même filtre que le `usuario` : il ne voit pas les autres agences ni les autres villes. Seul `superadmin` voit tout.
+Dashboard (KPI et listes du jour), Incidencias, Informes (`/etats`), salidas, informe de materiales, Instalaciones.
+
+## Menus (libellés sidebar)
+
+- `superadmin` : tous les menus, y compris Administración (Usuarios, Trazabilidad, Base de datos)
+- `admin` : Principal (Dashboard, Incidencias, Clientes, Informes), Materiales, Instalaciones, Cuenta (Perfil, Ayuda, Salir)
+- `usuario` : Principal (Dashboard, Incidencias, Clientes, Informes), Cuenta (Perfil, Ayuda, Salir)
+
+`Materiales` dans la sidebar est le hub (catálogo partagé + salidas / informe scopés). Pas de nouvelle entrée Salidas ou Informes de materiales.
+
 ## Incidencias (règle 10.4)
 
-- Liste / KPI / export : toujours `apply_incident_visibility` (admin = tout ; sinon soi ou même agence)
+- Liste / KPI / export : toujours `apply_incident_visibility` (`superadmin` = tout ; sinon agencia de l’utilisateur et client de sa ciudad)
 - Consulter / commenter : `user_can_access_incident`
 - Modifier : quiconque peut la consulter (`user_can_modify_incident` = visibilité 10.4)
 - Supprimer : créateur **ou** admin (`user_can_delete_incident`)

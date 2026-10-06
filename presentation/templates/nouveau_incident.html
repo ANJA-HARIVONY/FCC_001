@@ -121,7 +121,7 @@ let selectedClientId = null;
 // Charger les données des clients depuis l'API
 async function loadClientsData() {
     try {
-        const response = await fetch('/api/clients-search');
+        const response = await fetch('/api/clients-search?movimiento=1');
         if (response.ok) {
             clientsData = await response.json();
         } else {

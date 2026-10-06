@@ -10,7 +10,8 @@ Toute évolution visible (écran, bouton, filtre, statut, flux, droit) met à jo
 - Espagnol, libellés déjà utilisés dans l’UI. Pas de statut, rôle ou menu inventé.
 - Sommaire **deux fois** : sidebar (`#aide-toc`) et accordéon mobile (`#aide-toc-mobile`).
 - Section : `id`, `data-aide-keywords`, et FAQ si le geste est courant.
-- Admin seulement (`Materiales`, `Instalaciones`, `Usuarios`, `Trazabilidad`, `Base de datos`) : `{% if current_user.is_authenticated and current_user.is_admin() %}`.
+- Materiales et Instalaciones : `{% if current_user.is_authenticated and current_user.is_admin() %}`.
+- Usuarios, Trazabilidad, Base de datos : `{% if current_user.is_authenticated and current_user.is_superadmin() %}`.
 - Le menu `Operadores` est masqué : ne pas le documenter comme entrée de navigation.
 - GPS, fotos et `Traslado` sont sur la fiche client ; le hub `/instalaciones` ne les liste pas.
 

@@ -192,6 +192,16 @@ def parse_lineas_form(form):
     return lineas
 
 
+def _restricts_movements():
+    """Vrai dans une requête authentifiée qui n'est pas superadmin."""
+    from flask import has_request_context
+    from flask_login import current_user
+
+    if not has_request_context():
+        return False
+    return bool(getattr(current_user, 'is_authenticated', False)) and not current_user.is_superadmin()
+
+
 def _validate_tecnico(tecnico_id):
     from core.app import Operateur, normalize_categoria_operateur
 
@@ -200,6 +210,11 @@ def _validate_tecnico(tecnico_id):
         raise MaterialesValidationError('Seleccione un técnico válido.')
     if normalize_categoria_operateur(tecnico.categoria) != 'tecnico':
         raise MaterialesValidationError('El usuario seleccionado no es un técnico.')
+    if _restricts_movements():
+        from flask_login import current_user
+
+        if tecnico.id_agencia != current_user.id_agencia or tecnico.id_ciudad != current_user.id_ciudad:
+            raise MaterialesValidationError('El técnico no pertenece a su agencia.')
     return tecnico
 
 
@@ -211,7 +226,29 @@ def _validate_client(client_id):
     client = Client.query.get(client_id)
     if not client:
         raise MaterialesValidationError('Cliente seleccionado no válido.')
+    if _restricts_movements():
+        from flask_login import current_user
+
+        if client.id_ciudad != current_user.id_ciudad:
+            raise MaterialesValidationError('El cliente no pertenece a su ciudad.')
     return client
+
+
+def _filter_salida_ciudad(query, ciudad_id):
+    """Client de la ciudad, ou uso interno du técnico de cette ciudad."""
+    from core.app import MaterialSalida, Operateur, db
+
+    if not ciudad_id:
+        return query
+    return query.filter(
+        db.or_(
+            MaterialSalida.client.has(id_ciudad=ciudad_id),
+            db.and_(
+                MaterialSalida.id_client.is_(None),
+                Operateur.id_ciudad == ciudad_id,
+            ),
+        )
+    )
 
 
 def _validate_materials(lineas, activos_only=True):
@@ -364,7 +401,7 @@ def delete_salida(salida_id, current_user):
     return sid
 
 
-def salidas_base_query(agencia_id=None):
+def salidas_base_query(agencia_id=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = MaterialSalida.query.options(
@@ -377,7 +414,7 @@ def salidas_base_query(agencia_id=None):
 
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
-    return query
+    return _filter_salida_ciudad(query, ciudad_id)
 
 
 LIST_PER_PAGE_CHOICES = (50, 100, 200, 500)
@@ -453,7 +490,7 @@ def apply_salida_list_filters(query, request_args):
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id))
 
 
-def get_salidas_material_filter_options(agencia_id=None):
+def get_salidas_material_filter_options(agencia_id=None, ciudad_id=None):
     from core.app import Material, MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = (
@@ -464,6 +501,7 @@ def get_salidas_material_filter_options(agencia_id=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
 
     rows = (
         query.distinct()
@@ -498,7 +536,7 @@ def salida_resumen_lineas(salida):
     return ', '.join(parts) if parts else '—'
 
 
-def get_client_material_rows(client_id, agencia_id=None):
+def get_client_material_rows(client_id, agencia_id=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = (
@@ -509,10 +547,11 @@ def get_client_material_rows(client_id, agencia_id=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id)).all()
 
 
-def get_tecnico_material_rows(tecnico_id, agencia_id=None):
+def get_tecnico_material_rows(tecnico_id, agencia_id=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = (
@@ -520,10 +559,11 @@ def get_tecnico_material_rows(tecnico_id, agencia_id=None):
         .join(MaterialSalida, MaterialSalidaLinea.id_salida == MaterialSalida.id)
         .filter(MaterialSalida.id_tecnico == tecnico_id)
     )
-    if agencia_id:
-        query = query.join(Operateur, MaterialSalida.id_tecnico == Operateur.id).filter(
-            Operateur.id_agencia == agencia_id
-        )
+    if agencia_id or ciudad_id:
+        query = query.join(Operateur, MaterialSalida.id_tecnico == Operateur.id)
+        if agencia_id:
+            query = query.filter(Operateur.id_agencia == agencia_id)
+        query = _filter_salida_ciudad(query, ciudad_id)
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id)).all()
 
 
@@ -537,7 +577,7 @@ def db_session_query_lineas():
     )
 
 
-def build_informe_rows(date_from, date_to, agencia_id=None, filters=None):
+def build_informe_rows(date_from, date_to, agencia_id=None, filters=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     if not date_from or not date_to:
@@ -561,6 +601,7 @@ def build_informe_rows(date_from, date_to, agencia_id=None, filters=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
 
     query = apply_informe_lineas_filters(query, filters)
 
@@ -613,7 +654,7 @@ def apply_informe_lineas_filters(query, filters):
     return query
 
 
-def get_informe_material_filter_options(date_from, date_to, agencia_id=None):
+def get_informe_material_filter_options(date_from, date_to, agencia_id=None, ciudad_id=None):
     """Materiales con al menos una línea de salida en el período indicado."""
     from core.app import Material, MaterialSalida, MaterialSalidaLinea, Operateur
 
@@ -634,6 +675,7 @@ def get_informe_material_filter_options(date_from, date_to, agencia_id=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
 
     rows = (
         query.distinct()
@@ -686,10 +728,10 @@ def build_informe_resumen(lineas, filters=None):
     }
 
 
-def build_informe_page_data(date_from, date_to, agencia_id=None, filters=None):
+def build_informe_page_data(date_from, date_to, agencia_id=None, filters=None, ciudad_id=None):
     """Datos de la página informe: líneas de detalle + bloque resumen."""
     filters = filters or {}
-    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters)
+    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters, ciudad_id=ciudad_id)
     resumen = build_informe_resumen(lineas, filters)
     return lineas, resumen
 

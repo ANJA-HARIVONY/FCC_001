@@ -83,7 +83,7 @@
                                     <i class="fas fa-city me-1"></i>Ciudad
                                 </label>
                                 <select class="form-select form-select-sm" id="ciudad" name="ciudad">
-                                    {% if current_user.is_admin() %}
+                                    {% if current_user.is_superadmin() %}
                                     <option value="">Todas las ciudades</option>
                                     {% endif %}
                                     {% for c in ciudades|default([]) %}
@@ -97,7 +97,7 @@
                                     <i class="fas fa-building me-1"></i>Agencia
                                 </label>
                                 <select class="form-select form-select-sm" id="agencia" name="agencia">
-                                    {% if current_user.is_admin() %}
+                                    {% if current_user.is_superadmin() %}
                                     <option value="">Todas las agencias</option>
                                     {% endif %}
                                     {% for a in agencias|default([]) %}
@@ -668,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function() {
             agenciaSelect.value = '';
             return;
         }
-        agenciaSelect.innerHTML = {% if current_user.is_admin() %}'<option value="">Todas las agencias</option>'{% else %}''{% endif %};
+        agenciaSelect.innerHTML = {% if current_user.is_superadmin() %}'<option value="">Todas las agencias</option>'{% else %}''{% endif %};
         try {
             const response = await fetch('/api/agencias/' + idCiudad);
             if (!response.ok) {

@@ -31,11 +31,11 @@ from core.services.instalaciones_service import (
     create_instalacion,
     create_traslado,
     delete_instalacion_foto,
-    instalaciones_base_query,
     reabrir_instalacion,
     resolve_instalacion_foto_file,
     save_client_gps,
     save_instalacion_fotos,
+    scoped_instalaciones_query,
     terminar_instalacion,
     update_instalacion,
 )
@@ -46,7 +46,7 @@ def _client_or_404(client_id):
 
 
 def _instalacion_or_404(instalacion_id):
-    instalacion = db.session.get(Instalacion, instalacion_id)
+    instalacion = scoped_instalaciones_query().filter(Instalacion.id == instalacion_id).first()
     if not instalacion:
         abort(404)
     return instalacion
@@ -61,18 +61,20 @@ def _redirect_detalle(instalacion_id):
 
 
 def _tecnicos_activos():
-    return (
-        Operateur.query.filter_by(categoria='tecnico', actif=True)
-        .order_by(Operateur.nom)
-        .all()
-    )
+    query = Operateur.query.filter_by(categoria='tecnico', actif=True)
+    if not current_user.is_superadmin():
+        query = query.filter_by(
+            id_agencia=current_user.id_agencia,
+            id_ciudad=current_user.id_ciudad,
+        )
+    return query.order_by(Operateur.nom).all()
 
 
 @app.route('/instalaciones')
 @admin_required
 def instalaciones_hub():
     """Lista de instalaciones (nueva / traslado) con estado."""
-    query = apply_instalacion_list_filters(instalaciones_base_query(), request.args)
+    query = apply_instalacion_list_filters(scoped_instalaciones_query(), request.args)
     page = request.args.get('page', 1, type=int)
     per_page = clamp_list_per_page(request.args.get('per_page', type=int))
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)

@@ -204,7 +204,7 @@
                                     <i class="fas fa-bars"></i>
                                     <div>
                                         <strong>Barra lateral (izquierda)</strong>
-                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales e Instalaciones{% endif %}{% if current_user.is_authenticated and current_user.is_superadmin() %}. Administración (Usuarios, Trazabilidad, Base de datos){% endif %}. Cuenta: Perfil, Ayuda y Salir.{% if current_user.is_authenticated and not current_user.is_admin() %} Un usuario ve los clientes de su ciudad y las incidencias de su agencia.{% endif %}</p>
+                                        <p>Principal: Dashboard, Incidencias, Clientes, Informes{% if current_user.is_authenticated and current_user.is_admin() %}. Materiales e Instalaciones{% endif %}{% if current_user.is_authenticated and current_user.is_superadmin() %}. Administración (Usuarios, Trazabilidad, Base de datos){% endif %}. Cuenta: Perfil, Ayuda y Salir. Los clientes y el catálogo de material son compartidos.{% if current_user.is_authenticated and current_user.is_superadmin() %} El SuperAdmin ve los movimientos de todas las agencias y ciudades.{% elif current_user.is_authenticated %} El Dashboard, las incidencias, los informes, las salidas y las instalaciones muestran solo su agencia y su ciudad.{% endif %}</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -240,7 +240,7 @@
                             <span class="aide-section-icon"><i class="fas fa-tachometer-alt"></i></span>
                             <div>
                                 <h2 class="aide-section-title">Dashboard</h2>
-                                <p class="aide-section-lead">Una vista global del estado del servicio en tiempo real.</p>
+                                <p class="aide-section-lead">{% if current_user.is_authenticated and current_user.is_superadmin() %}Indicadores de todas las agencias y ciudades.{% else %}Indicadores de su agencia y de su ciudad.{% endif %}</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
@@ -276,7 +276,7 @@
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde el listado, con confirmación.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Categoría:</strong> Particular (por defecto) o Corporativo. El icono de corporativo aparece en los listados.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Ficha:</strong> contacto, agencia, ciudad, historial de incidencias e información RADIUS (solo lectura, si el cliente tiene Username RADIUS).</span></li>
-                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador. La lista muestra 50, 100, 200 o 500 filas por página. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.{% if current_user.is_authenticated and not current_user.is_admin() %} Un usuario solo ve los clientes de su ciudad.{% endif %}</span></li>
+                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador. La lista es compartida entre agencias y muestra 50, 100, 200 o 500 filas por página. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.</span></li>
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
                                 <li><i class="fas fa-map-marker-alt"></i><span><strong>GPS y fotos:</strong> en la ficha, guarde las coordenadas y hasta 10 fotos (JPG, PNG o WEBP, 5 MB como máximo cada una).</span></li>
                                 <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> un cambio de domicilio no se hace con <em>Modificar</em>. Use el botón <em>Traslado</em> de la ficha. La dirección anterior queda en <em>Direcciones anteriores</em>.</span></li>
@@ -320,7 +320,7 @@
                                 <h2 class="aide-section-title">Materiales
                                     <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo admin</span>
                                 </h2>
-                                <p class="aide-section-lead">Catálogo y salidas de herramientas y materiales de cliente.</p>
+                                <p class="aide-section-lead">Catálogo compartido. Las salidas y el informe {% if current_user.is_authenticated and current_user.is_superadmin() %}de todas las agencias{% else %}de su agencia y su ciudad{% endif %}.</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
@@ -345,7 +345,7 @@
                                 <h2 class="aide-section-title">Instalaciones
                                     <span class="aide-admin-pill"><i class="fas fa-shield-alt me-1"></i>Solo admin</span>
                                 </h2>
-                                <p class="aide-section-lead">Instalaciones nuevas y traslados de dirección.</p>
+                                <p class="aide-section-lead">Instalaciones nuevas y traslados de dirección{% if current_user.is_authenticated and not current_user.is_superadmin() %}, de su agencia y su ciudad{% endif %}.</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
@@ -548,7 +548,7 @@
                                     </h3>
                                     <div id="faq-8" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Algunas opciones (Materiales, Instalaciones, Usuarios, Trazabilidad y Base de datos) solo aparecen en la barra lateral para administradores. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
+                                            Materiales e Instalaciones aparecen para Admin y SuperAdmin. Usuarios, Trazabilidad y Base de datos solo para SuperAdmin. Si crees que necesitas acceso, contacta al soporte usando el enlace al final de esta página.
                                         </div>
                                     </div>
                                 </div>
@@ -631,7 +631,7 @@
                                     <i class="fas fa-users-cog"></i>
                                     <div>
                                         <strong>Usuarios</strong>
-                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones. El SuperAdmin accede además a Usuarios, Trazabilidad y Base de datos. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
+                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones, limitados a su agencia y su ciudad. El SuperAdmin ve todos los movimientos y accede además a Usuarios, Trazabilidad y Base de datos. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">

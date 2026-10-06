@@ -424,6 +424,7 @@ def create_traslado(client, form, current_user):
 
     if client is None:
         raise MaterialesValidationError('Cliente no encontrado.')
+    _validate_client(client.id)
     adresse = (form.get('adresse') or '').strip()
     ville = (form.get('ville') or '').strip()
     if not adresse:
@@ -501,7 +502,11 @@ def resolve_instalacion_for_salida(tipo_salida, client_id, form):
     instalacion_id = form.get('id_instalacion', type=int)
     if not instalacion_id:
         raise MaterialesValidationError('El material de una instalación se registra desde «Nueva instalación».')
-    instalacion = _load_instalacion(instalacion_id)
+    from core.app import Instalacion
+
+    instalacion = scoped_instalaciones_query().filter(Instalacion.id == instalacion_id).first()
+    if not instalacion:
+        raise MaterialesValidationError('Instalación no encontrada.')
     if instalacion.id_client != client_id:
         raise MaterialesValidationError('El cliente no coincide con la instalación.')
     return instalacion
@@ -518,7 +523,40 @@ def instalaciones_base_query():
     ).join(Operateur, Instalacion.id_tecnico == Operateur.id)
 
 
-def instalaciones_del_dia(day=None, agencia_id=None, *, all_agencies=False):
+def scoped_instalaciones_query():
+    """Superadmin : tout. Sinon agencia du técnico et ciudad du client."""
+    from flask import has_request_context
+    from flask_login import current_user
+
+    from core.app import Instalacion, Operateur
+
+    query = instalaciones_base_query()
+    if (
+        has_request_context()
+        and getattr(current_user, 'is_authenticated', False)
+        and not current_user.is_superadmin()
+    ):
+        query = query.filter(
+            Operateur.id_agencia == current_user.id_agencia,
+            Instalacion.client.has(id_ciudad=current_user.id_ciudad),
+        )
+    return query
+
+
+def instalaciones_du_client(client):
+    from core.app import Instalacion
+
+    if client is None:
+        return []
+    return (
+        scoped_instalaciones_query()
+        .filter(Instalacion.id_client == client.id)
+        .order_by(desc(Instalacion.fecha), desc(Instalacion.id))
+        .all()
+    )
+
+
+def instalaciones_del_dia(day=None, agencia_id=None, ciudad_id=None, *, all_agencies=False):
     """Instalaciones de un día calendario (dashboard), fuera del filtro de período."""
     from core.app import Instalacion, Operateur
 
@@ -527,6 +565,8 @@ def instalaciones_del_dia(day=None, agencia_id=None, *, all_agencies=False):
     query = instalaciones_base_query().filter(Instalacion.fecha == day)
     if not all_agencies:
         query = query.filter(Operateur.id_agencia == agencia_id)
+        if ciudad_id:
+            query = query.filter(Instalacion.client.has(id_ciudad=ciudad_id))
     return query.order_by(desc(Instalacion.id)).all()
 
 

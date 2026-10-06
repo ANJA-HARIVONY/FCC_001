@@ -58,7 +58,7 @@ def build_filtered_incidents_query(current_user, params):
     Returns:
         tuple: (query, params) con filtros normalizados.
     """
-    from core.app import Agencia, Ciudad, Client, Incident, Operateur, db
+    from core.app import Agencia, Ciudad, Client, Incident, Operateur, apply_incident_visibility, db, sees_all_movements
 
     status_filter = params['status_filter']
     bitrix_status_filter = _normalize_bitrix_status_filter(
@@ -93,33 +93,21 @@ def build_filtered_incidents_query(current_user, params):
             elif ciudad_id and agencia.id_ciudad != ciudad_id:
                 agencia_filter = ''
                 agencia_id = None
-            elif not current_user.is_admin() and agencia_id != current_user.id_agencia:
+            elif not sees_all_movements() and agencia_id != current_user.id_agencia:
                 agencia_filter = ''
                 agencia_id = None
         except (ValueError, TypeError):
             agencia_filter = ''
             agencia_id = None
 
-    if not current_user.is_admin() and ciudad_id and ciudad_id != current_user.id_ciudad:
+    if not sees_all_movements() and ciudad_id and ciudad_id != current_user.id_ciudad:
         ciudad_filter = ''
         ciudad_id = None
 
-    query = Incident.query.options(
+    query = apply_incident_visibility(Incident.query.options(
         joinedload(Incident.client),
         joinedload(Incident.operateur),
-    )
-
-    if not current_user.is_admin():
-        same_agency_ids = db.session.query(Operateur.id).filter(
-            Operateur.id_agencia == current_user.id_agencia
-        )
-        query = query.filter(
-            or_(
-                Incident.id_operateur == current_user.id,
-                Incident.id_operateur.in_(same_agency_ids),
-            ),
-            Incident.client.has(id_ciudad=current_user.id_ciudad),
-        )
+    ))
 
     if status_filter:
         query = query.filter(Incident.status == status_filter)
@@ -131,10 +119,11 @@ def build_filtered_incidents_query(current_user, params):
     if operateur_filter:
         try:
             operateur_id = int(operateur_filter)
-            if not current_user.is_admin():
+            if not sees_all_movements():
                 operateur_is_allowed = db.session.query(Operateur.id).filter(
                     Operateur.id == operateur_id,
                     Operateur.id_agencia == current_user.id_agencia,
+                    Operateur.id_ciudad == current_user.id_ciudad,
                     Operateur.actif.is_(True),
                 ).first()
                 if not operateur_is_allowed:
@@ -258,13 +247,14 @@ def get_incidents_filter_options(current_user, ciudad_id=None):
 
     operateurs = (
         Operateur.query.order_by(Operateur.nom).all()
-        if current_user.is_admin()
+        if current_user.is_superadmin()
         else Operateur.query.filter(
             Operateur.id_agencia == current_user.id_agencia,
+            Operateur.id_ciudad == current_user.id_ciudad,
             Operateur.actif.is_(True),
         ).order_by(Operateur.nom).all()
     )
-    if current_user.is_admin():
+    if current_user.is_superadmin():
         ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
         agencias_query = Agencia.query
         if ciudad_id:

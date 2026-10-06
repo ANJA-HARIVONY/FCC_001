@@ -62,10 +62,10 @@ def _linea_row_values(linea):
     )
 
 
-def build_informe_workbook(date_from, date_to, agencia_id=None, filters=None, group_by=None):
+def build_informe_workbook(date_from, date_to, agencia_id=None, filters=None, group_by=None, ciudad_id=None):
     """Genera un workbook Excel con el detalle filtrado (sin subtotales)."""
     del group_by  # obsoleto
-    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters)
+    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters, ciudad_id=ciudad_id)
 
     wb = Workbook()
     ws = wb.active
