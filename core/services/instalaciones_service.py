@@ -564,7 +564,8 @@ def instalaciones_del_dia(day=None, agencia_id=None, ciudad_id=None, *, all_agen
         day = datetime.now().date()
     query = instalaciones_base_query().filter(Instalacion.fecha == day)
     if not all_agencies:
-        query = query.filter(Operateur.id_agencia == agencia_id)
+        if agencia_id is not None:
+            query = query.filter(Operateur.id_agencia == agencia_id)
         if ciudad_id:
             query = query.filter(Instalacion.client.has(id_ciudad=ciudad_id))
     return query.order_by(desc(Instalacion.id)).all()

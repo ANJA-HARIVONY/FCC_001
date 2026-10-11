@@ -234,13 +234,13 @@
                 </section>
 
                 <!-- DASHBOARD -->
-                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen instalaciones del dia ver lista ver clientes tarjeta indicador operador periodo">
+                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen instalaciones del dia ver lista ver clientes tarjeta indicador operador periodo ciudad agencia filtro">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-tachometer-alt"></i></span>
                             <div>
                                 <h2 class="aide-section-title">Dashboard</h2>
-                                <p class="aide-section-lead">{% if current_user.is_authenticated and current_user.is_superadmin() %}Indicadores de todas las agencias y ciudades.{% else %}Indicadores de su agencia y de su ciudad.{% endif %}</p>
+                                <p class="aide-section-lead">{% if current_user.is_authenticated and current_user.is_superadmin() %}Indicadores de todas las agencias y ciudades, con filtro por ciudad y agencia.{% else %}Indicadores de su agencia y de su ciudad.{% endif %}</p>
                             </div>
                         </div>
                         <div class="aide-section-body">
@@ -251,6 +251,9 @@
                                 <li><i class="fas fa-check"></i><span><strong>Instalaciones del día:</strong> las de la fecha de hoy (tipo, técnico, cliente, materiales y estado). No dependen del período elegido.{% if current_user.is_authenticated and current_user.is_admin() %} <em>Ver lista</em> abre las instalaciones de hoy. Desde aquí puede abrir o modificar la ficha.{% endif %}</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>5 Clientes Recurrentes:</strong> los cinco clientes con más incidencias en el período. <em>Ver clientes</em> abre el listado. El número abre las incidencias de ese cliente en el período.</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>Período:</strong> semana en curso, mes, últimos meses o todos los datos. Puede recordar o reiniciar los filtros.</span></li>
+                                {% if current_user.is_authenticated and current_user.is_superadmin() %}
+                                <li><i class="fas fa-check"></i><span><strong>Ciudad y Agencia:</strong> elija una ciudad para ver solo sus agencias, o una agencia. Los indicadores, los gráficos, los 5 clientes recurrentes y las instalaciones del día siguen ese filtro. Las instalaciones del día siguen siendo las de hoy. Al pulsar una tarjeta se abre Incidencias con la misma ciudad, agencia y período.</span></li>
+                                {% endif %}
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
                                 <li><i class="fas fa-check"></i><span><strong>Nota del día:</strong> el botón <em>Nota del día</em> guarda una apreciación (máximo 120 caracteres, una por día).</span></li>
                                 {% endif %}
@@ -527,6 +530,21 @@
                                     </div>
                                 </div>
 
+                                {% if current_user.is_authenticated and current_user.is_superadmin() %}
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="dashboard ciudad agencia filtro superadmin">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-dashboard-scope">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo veo el Dashboard de una ciudad o de una agencia?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-dashboard-scope" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            En el Dashboard, elija <strong>Ciudad</strong>. La lista <strong>Agencia</strong> muestra solo las agencias de esa ciudad. Sin ciudad, puede elegir cualquier agencia. Los indicadores, los gráficos, los clientes recurrentes y las instalaciones del día siguen la elección. <em>Reiniciar filtros</em> vuelve a todas las ciudades y agencias.
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
                                 <div class="accordion-item aide-faq-item" data-aide-keywords="dashboard tarjeta indicador lista periodo ruta volver titulo">
                                     <h3 class="accordion-header">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-12">
@@ -535,7 +553,7 @@
                                     </h3>
                                     <div id="faq-12" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Pulse una tarjeta del Dashboard (Total de Registrados, Solucionadas, Pendientes o Bitrix): se abre <em>Incidencias</em> con el mismo período y estado. En el gráfico de operadores, pulse un nombre para ver sus incidencias. El número de un cliente recurrente abre las suyas; <em>Ver clientes</em> abre el listado.{% if current_user.is_authenticated and current_user.is_admin() %} <em>Ver lista</em> abre las instalaciones de hoy.{% endif %} Desde una ficha, use la ruta encima del título o el botón <em>Volver</em>. El logotipo vuelve al Dashboard.
+                                            Pulse una tarjeta del Dashboard (Total de Registrados, Solucionadas, Pendientes o Bitrix): se abre <em>Incidencias</em> con el mismo período y estado{% if current_user.is_authenticated and current_user.is_superadmin() %}, y con la misma ciudad y agencia si las eligió{% endif %}. En el gráfico de operadores, pulse un nombre para ver sus incidencias. El número de un cliente recurrente abre las suyas; <em>Ver clientes</em> abre el listado.{% if current_user.is_authenticated and current_user.is_admin() %} <em>Ver lista</em> abre las instalaciones de hoy.{% endif %} Desde una ficha, use la ruta encima del título o el botón <em>Volver</em>. El logotipo vuelve al Dashboard.
                                         </div>
                                     </div>
                                 </div>

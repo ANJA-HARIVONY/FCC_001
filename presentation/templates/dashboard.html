@@ -8,17 +8,35 @@
 {% block page_actions %}
 <div class="dashboard-header-controls d-flex align-items-center flex-wrap gap-3">
     <div class="dashboard-period-group">
-        <label for="period-selector" class="form-label mb-0 me-2 text-muted small">Período:</label>
-        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
-            <option value="current_month">Mes en curso</option>
-            <option value="current_week" selected>Semana en curso</option>
-            <option value="last_week">Semana pasada</option>
-            <option value="last_3_months">Últimos 3 meses</option>
-            <option value="last_month">Mes anterior</option>
-            <option value="last_6_months">Últimos 6 meses</option>
-            <option value="current_year">Año en curso</option>
-            <option value="all_data">Todos los datos</option>
-        </select>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <label for="period-selector" class="form-label mb-0 text-muted small">Período:</label>
+            <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
+                <option value="current_month">Mes en curso</option>
+                <option value="current_week" selected>Semana en curso</option>
+                <option value="last_week">Semana pasada</option>
+                <option value="last_3_months">Últimos 3 meses</option>
+                <option value="last_month">Mes anterior</option>
+                <option value="last_6_months">Últimos 6 meses</option>
+                <option value="current_year">Año en curso</option>
+                <option value="all_data">Todos los datos</option>
+            </select>
+            {% if current_user.is_authenticated and current_user.is_superadmin() %}
+            <label for="dashboard-ciudad" class="form-label mb-0 text-muted small">Ciudad:</label>
+            <select class="form-select form-select-sm" id="dashboard-ciudad">
+                <option value="">Todas las ciudades</option>
+                {% for c in ciudades|default([]) %}
+                <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                {% endfor %}
+            </select>
+            <label for="dashboard-agencia" class="form-label mb-0 text-muted small">Agencia:</label>
+            <select class="form-select form-select-sm" id="dashboard-agencia">
+                <option value="">Todas las agencias</option>
+                {% for a in agencias|default([]) %}
+                <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+        </div>
         <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
             <div class="form-check mb-0">
                 <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
@@ -58,7 +76,7 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
         <div class="col">
             <a class="stat-card-link h-100" data-incident-status=""
-               href="{{ url_for('incidents', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               href="{{ url_for('incidents', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
                aria-label="{{ _('Ver todas las incidencias del período') }}">
                 <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
                     <div class="card-body">
@@ -77,7 +95,7 @@
         </div>
         <div class="col">
             <a class="stat-card-link h-100" data-incident-status="Solucionadas"
-               href="{{ url_for('incidents', status='Solucionadas', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               href="{{ url_for('incidents', status='Solucionadas', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
                aria-label="{{ _('Ver incidencias solucionadas del período') }}">
                 <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
                     <div class="card-body">
@@ -96,7 +114,7 @@
         </div>
         <div class="col">
             <a class="stat-card-link h-100" data-incident-status="Pendiente"
-               href="{{ url_for('incidents', status='Pendiente', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               href="{{ url_for('incidents', status='Pendiente', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
                aria-label="{{ _('Ver incidencias pendientes del período') }}">
                 <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
                     <div class="card-body">
@@ -115,7 +133,7 @@
         </div>
         <div class="col">
             <a class="stat-card-link h-100" data-incident-status="Bitrix"
-               href="{{ url_for('incidents', status='Bitrix', date_from=period_date_from or none, date_to=period_date_to or none) }}"
+               href="{{ url_for('incidents', status='Bitrix', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
                aria-label="{{ _('Ver incidencias Bitrix del período') }}">
                 <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
                     <div class="card-body">
@@ -358,7 +376,7 @@
                                     <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ client.adresse }}</small>
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('incidents', search=client.nom, date_from=period_date_from or none, date_to=period_date_to or none) }}"
+                                    <a href="{{ url_for('incidents', search=client.nom, date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
                                        class="badge badge-rank-{{ loop.index }} text-decoration-none"
                                        data-incident-search="{{ client.nom }}"
                                        title="{{ _('Ver incidencias') }}">{{ client.incidents }}</a>
@@ -473,7 +491,13 @@ const OPERATEUR_CHART_ICONS = {
 };
 const dashboardFilterScope = `dashboard_user_{{ current_user.id if current_user.is_authenticated else 'anonymous' }}`;
 const incidentsListPath = {{ url_for('incidents')|tojson }};
+const dashboardPath = {{ url_for('dashboard')|tojson }};
 const verIncidenciasLabel = {{ _('Ver incidencias')|tojson }};
+const scopeFiltersEnabled = {{ 'true' if current_user.is_authenticated and current_user.is_superadmin() else 'false' }};
+const dashboardAgencias = {{ agencias_catalogo|default([], true)|tojson }};
+let currentCiudad = '';
+let currentAgencia = '';
+let dashboardNavigating = false;
 let periodDateFrom = {{ period_date_from|tojson }};
 let periodDateTo = {{ period_date_to|tojson }};
 
@@ -583,6 +607,7 @@ function restartAutoRefresh() {
 // Ajouter un gestionnaire pour permettre de cliquer sur l'indicateur pour forcer un refresh
 document.addEventListener('DOMContentLoaded', function() {
     initializeFilterPersistence();
+    initializeDashboardScopeFilters();
     initApreciacionModal();
 
     const refreshStatus = document.getElementById('refresh-status');
@@ -603,7 +628,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Erreur init graphiques:', err);
     }
     applyInitialFilters();
-    updateIncidentsChart(currentViewType);
+    if (!dashboardNavigating) {
+        updateIncidentsChart(currentViewType);
+    }
 
     // Démarrer l'auto-refresh seulement si le panneau existe encore dans le DOM
     startAutoRefresh();
@@ -792,7 +819,7 @@ function applyApreciacionPointStyles(data, viewType) {
 function updateIncidentsChart(viewType = 'date') {
     currentViewType = viewType;
     
-    fetch(`/api/incidents-par-date?type=${encodeURIComponent(viewType)}&period=${encodeURIComponent(currentPeriod)}`)
+    fetch(incidentsChartUrl(viewType))
         .then(response => {
             if (!response.ok) {
                 throw new Error('HTTP ' + response.status);
@@ -1142,6 +1169,23 @@ function applyInitialFilters() {
     applyPeriodToUI(currentPeriod);
     applyChartViewToUI(currentViewType);
     applyOperateurChartTypeToUI(currentOperateurChartType);
+
+    const urlHasScope = urlParams.has('ciudad') || urlParams.has('agencia');
+    if (
+        scopeFiltersEnabled &&
+        canUseSavedFilters &&
+        !urlHasScope &&
+        saved &&
+        (saved.ciudad || saved.agencia)
+    ) {
+        currentCiudad = saved.ciudad || '';
+        currentAgencia = saved.agencia || '';
+        dashboardNavigating = true;
+        window.location.replace(dashboardPageUrl());
+        return;
+    }
+    syncDashboardScopeFromSelects();
+
     if (lastOperateursData.length) {
         createOperateursChart(lastOperateursData);
     }
@@ -1184,13 +1228,20 @@ function saveDashboardFilters() {
         enabled: true,
         period: currentPeriod,
         viewType: currentViewType,
-        operatorChartType: currentOperateurChartType
+        operatorChartType: currentOperateurChartType,
+        ciudad: currentCiudad || '',
+        agencia: currentAgencia || ''
     };
     setCookie(dashboardFilterCookieName, JSON.stringify(payload), filterCookieMaxAgeSeconds);
 }
 
 function resetDashboardFilters() {
     clearDashboardFiltersCookie();
+    if (scopeFiltersEnabled && (currentCiudad || currentAgencia)) {
+        dashboardNavigating = true;
+        window.location.assign(dashboardPath);
+        return;
+    }
     currentPeriod = defaultPeriod;
     currentViewType = defaultViewType;
     currentOperateurChartType = defaultOperateurChartType;
@@ -1389,6 +1440,12 @@ function incidentListHref(extra) {
     if (periodDateTo) {
         params.set('date_to', periodDateTo);
     }
+    if (currentCiudad) {
+        params.set('ciudad', currentCiudad);
+    }
+    if (currentAgencia) {
+        params.set('agencia', currentAgencia);
+    }
     if (extra) {
         Object.keys(extra).forEach(function(key) {
             if (extra[key]) {
@@ -1410,8 +1467,86 @@ function syncIncidentPeriodLinks() {
     });
 }
 
+function syncDashboardScopeFromSelects() {
+    const ciudadSelect = document.getElementById('dashboard-ciudad');
+    const agenciaSelect = document.getElementById('dashboard-agencia');
+    currentCiudad = ciudadSelect ? (ciudadSelect.value || '') : '';
+    currentAgencia = agenciaSelect ? (agenciaSelect.value || '') : '';
+}
+
+function dashboardScopeQuery(params) {
+    if (currentCiudad) {
+        params.set('ciudad', currentCiudad);
+    }
+    if (currentAgencia) {
+        params.set('agencia', currentAgencia);
+    }
+    return params;
+}
+
+function dashboardPageUrl() {
+    const params = new URLSearchParams();
+    params.set('period', currentPeriod || defaultPeriod);
+    if (currentViewType && currentViewType !== defaultViewType) {
+        params.set('view', currentViewType);
+    }
+    if (currentOperateurChartType && currentOperateurChartType !== defaultOperateurChartType) {
+        params.set('opchart', currentOperateurChartType);
+    }
+    dashboardScopeQuery(params);
+    return dashboardPath + '?' + params.toString();
+}
+
+function dashboardDataUrl(period) {
+    const params = new URLSearchParams();
+    params.set('period', period);
+    dashboardScopeQuery(params);
+    return '/dashboard-data?' + params.toString();
+}
+
+function incidentsChartUrl(viewType) {
+    const params = new URLSearchParams();
+    params.set('type', viewType);
+    params.set('period', currentPeriod);
+    dashboardScopeQuery(params);
+    return '/api/incidents-par-date?' + params.toString();
+}
+
+function initializeDashboardScopeFilters() {
+    if (!scopeFiltersEnabled) {
+        return;
+    }
+    const ciudadSelect = document.getElementById('dashboard-ciudad');
+    const agenciaSelect = document.getElementById('dashboard-agencia');
+    if (!ciudadSelect || !agenciaSelect) {
+        return;
+    }
+
+    ciudadSelect.addEventListener('change', function() {
+        const ciudadId = this.value || '';
+        const previousAgencia = agenciaSelect.value || '';
+        const stillValid = dashboardAgencias.some(function(agencia) {
+            return String(agencia.id) === String(previousAgencia)
+                && (!ciudadId || String(agencia.id_ciudad) === String(ciudadId));
+        });
+        currentCiudad = ciudadId;
+        currentAgencia = stillValid ? previousAgencia : '';
+        saveDashboardFilters();
+        dashboardNavigating = true;
+        window.location.assign(dashboardPageUrl());
+    });
+
+    agenciaSelect.addEventListener('change', function() {
+        currentCiudad = ciudadSelect.value || '';
+        currentAgencia = this.value || '';
+        saveDashboardFilters();
+        dashboardNavigating = true;
+        window.location.assign(dashboardPageUrl());
+    });
+}
+
 function loadDashboardData(period) {
-    fetch(`/dashboard-data?period=${encodeURIComponent(period)}`)
+    fetch(dashboardDataUrl(period))
         .then(response => response.json())
         .then(data => {
             periodDateFrom = data.period_date_from || '';
@@ -1693,26 +1828,37 @@ function initOperateursChart() {
     transform: scale(1.05);
 }
 
-/* Styles pour le sélecteur de période */
-#period-selector {
+/* Styles pour les sélecteurs du dashboard */
+#period-selector,
+#dashboard-ciudad,
+#dashboard-agencia {
     border: 1px solid #dc3545;
     border-radius: 6px;
     transition: all 0.3s ease;
     font-size: 0.875rem;
 }
 
-#period-selector:focus {
+#period-selector:focus,
+#dashboard-ciudad:focus,
+#dashboard-agencia:focus {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
-#period-selector:hover {
+#period-selector:hover,
+#dashboard-ciudad:hover,
+#dashboard-agencia:hover {
     border-color: #b02a37;
 }
 
 /* Responsive design : scope au dashboard uniquement */
 #period-selector {
     min-width: 200px;
+}
+
+#dashboard-ciudad,
+#dashboard-agencia {
+    min-width: 160px;
 }
 
 #operateur-chart-type {
@@ -1741,7 +1887,9 @@ function initOperateursChart() {
 }
 
 @media (max-width: 575.98px) {
-    #period-selector {
+    #period-selector,
+    #dashboard-ciudad,
+    #dashboard-agencia {
         min-width: 0;
         width: 100%;
     }

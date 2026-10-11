@@ -2430,19 +2430,87 @@ def set_language(language=None):
     return redirect(request.referrer or url_for('dashboard'))
 
 # Routes principales
+def _dashboard_scope_from_request():
+    """Ciudad et agencia du dashboard. Hors superadmin, hors périmètre = ignoré."""
+    from core.services.incidents_list_service import normalize_ciudad_agencia_filters
+
+    return normalize_ciudad_agencia_filters(
+        current_user,
+        request.args.get('ciudad', '', type=str),
+        request.args.get('agencia', '', type=str),
+    )
+
+
+def _apply_dashboard_incident_scope(query, ciudad_id, agencia_id):
+    if ciudad_id:
+        query = query.filter(Incident.client.has(id_ciudad=ciudad_id))
+    if agencia_id:
+        query = query.filter(Incident.operateur.has(id_agencia=agencia_id))
+    return query
+
+
+def _dashboard_period_query(query, start_date, end_date, ciudad_id, agencia_id):
+    if start_date:
+        query = query.filter(Incident.date_heure >= start_date)
+    if end_date:
+        query = query.filter(Incident.date_heure <= end_date)
+    return _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
+
+
+def _dashboard_scope_template_context(ciudad_filter, agencia_filter, ciudad_id):
+    if not sees_all_movements():
+        return {
+            'ciudad_filter': '',
+            'agencia_filter': '',
+            'ciudades': [],
+            'agencias': [],
+            'agencias_catalogo': [],
+        }
+    from core.services.incidents_list_service import get_incidents_filter_options
+
+    _, ciudades, agencias = get_incidents_filter_options(current_user, ciudad_id=ciudad_id)
+    catalogo = [
+        {'id': agencia.id, 'id_ciudad': agencia.id_ciudad}
+        for agencia in Agencia.query.order_by(Agencia.nombre).all()
+    ]
+    return {
+        'ciudad_filter': ciudad_filter,
+        'agencia_filter': agencia_filter,
+        'ciudades': ciudades,
+        'agencias': agencias,
+        'agencias_catalogo': catalogo,
+    }
+
+
+def _instalaciones_dashboard(ciudad_id, agencia_id):
+    from core.services.instalaciones_service import instalaciones_del_dia
+
+    if sees_all_movements():
+        return instalaciones_del_dia(
+            agencia_id=agencia_id,
+            ciudad_id=ciudad_id,
+            all_agencies=not ciudad_id and not agencia_id,
+        )
+    return instalaciones_del_dia(
+        agencia_id=current_user.id_agencia,
+        ciudad_id=current_user.id_ciudad,
+        all_agencies=False,
+    )
+
+
 @app.route('/')
 @login_required
 def dashboard():
     # Obtenir la période depuis les paramètres URL ou utiliser la valeur par défaut
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
+    ciudad_filter, agencia_filter, ciudad_id, agencia_id = _dashboard_scope_from_request()
     
     # Construire la requête selon la période
-    query = apply_incident_visibility(Incident.query)
-    if start_date:
-        query = query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        query = query.filter(Incident.date_heure <= end_date)
+    query = _dashboard_period_query(
+        apply_incident_visibility(Incident.query),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     incidents_periode = query.all()
     
@@ -2451,23 +2519,15 @@ def dashboard():
     incidents_attente = len([i for i in incidents_periode if i.status == 'Pendiente'])
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
 
-    from core.services.instalaciones_service import instalaciones_del_dia
-
-    instalaciones_dia = instalaciones_del_dia(
-        agencia_id=current_user.id_agencia,
-        ciudad_id=current_user.id_ciudad,
-        all_agencies=sees_all_movements(),
-    )
+    instalaciones_dia = _instalaciones_dashboard(ciudad_id, agencia_id)
     
     # Données pour les graphiques selon la période
-    operateurs_query = apply_incident_visibility(db.session.query(
-        Operateur.id, Operateur.nom, func.count(Incident.id)
-    ).join(Incident, Incident.id_operateur == Operateur.id))
-    
-    if start_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure <= end_date)
+    operateurs_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Operateur.id, Operateur.nom, func.count(Incident.id)
+        ).join(Incident, Incident.id_operateur == Operateur.id)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     incidents_par_operateur_raw = operateurs_query.group_by(Operateur.id, Operateur.nom).all()
     
@@ -2475,20 +2535,18 @@ def dashboard():
     incidents_par_operateur = [[nom, count, op_id] for op_id, nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
-    clients_recurrents_query = apply_incident_visibility(db.session.query(
-        Client.id,
-        Client.nom,
-        Client.adresse,
-        Client.categoria,
-        func.count(Incident.id).label('incidents'),
-        func.max(Incident.intitule).label('intitule'),
-        func.max(Incident.date_heure).label('date_heure')
-    ).join(Incident))
-    
-    if start_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure <= end_date)
+    clients_recurrents_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Client.id,
+            Client.nom,
+            Client.adresse,
+            Client.categoria,
+            func.count(Incident.id).label('incidents'),
+            func.max(Incident.intitule).label('intitule'),
+            func.max(Incident.date_heure).label('date_heure')
+        ).join(Incident)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     clients_recurrents = clients_recurrents_query.group_by(
         Client.id, Client.nom, Client.adresse, Client.categoria
@@ -2496,17 +2554,20 @@ def dashboard():
         func.count(Incident.id).desc()
     ).limit(5).all()
     
-    return render_template('dashboard.html',
-                         total_incidents=total_incidents,
-                         incidents_resolus=incidents_resolus,
-                         incidents_attente=incidents_attente,
-                         incidents_bitrix=incidents_bitrix,
-                         instalaciones_dia=instalaciones_dia,
-                         incidents_par_operateur=incidents_par_operateur,
-                         clients_recurrents=clients_recurrents,
-                         current_period=period,
-                         period_date_from=start_date.strftime('%Y-%m-%d') if start_date else '',
-                         period_date_to=end_date.strftime('%Y-%m-%d') if end_date else '')
+    return render_template(
+        'dashboard.html',
+        total_incidents=total_incidents,
+        incidents_resolus=incidents_resolus,
+        incidents_attente=incidents_attente,
+        incidents_bitrix=incidents_bitrix,
+        instalaciones_dia=instalaciones_dia,
+        incidents_par_operateur=incidents_par_operateur,
+        clients_recurrents=clients_recurrents,
+        current_period=period,
+        period_date_from=start_date.strftime('%Y-%m-%d') if start_date else '',
+        period_date_to=end_date.strftime('%Y-%m-%d') if end_date else '',
+        **_dashboard_scope_template_context(ciudad_filter, agencia_filter, ciudad_id),
+    )
 
 @app.route('/recherche')
 def recherche():
@@ -3411,13 +3472,13 @@ def dashboard_data():
     """API pour récupérer les données du dashboard selon la période"""
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
+    _ciudad_filter, _agencia_filter, ciudad_id, agencia_id = _dashboard_scope_from_request()
     
     # Construire la requête selon la période
-    query = apply_incident_visibility(Incident.query)
-    if start_date:
-        query = query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        query = query.filter(Incident.date_heure <= end_date)
+    query = _dashboard_period_query(
+        apply_incident_visibility(Incident.query),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     incidents_periode = query.all()
     
@@ -3428,33 +3489,29 @@ def dashboard_data():
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
     
     # Données par opérateur pour la période
-    operateurs_query = apply_incident_visibility(db.session.query(
-        Operateur.id, Operateur.nom, func.count(Incident.id)
-    ).join(Incident, Incident.id_operateur == Operateur.id))
-    
-    if start_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure <= end_date)
+    operateurs_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Operateur.id, Operateur.nom, func.count(Incident.id)
+        ).join(Incident, Incident.id_operateur == Operateur.id)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     incidents_par_operateur_raw = operateurs_query.group_by(Operateur.id, Operateur.nom).all()
     incidents_par_operateur = [[nom, count, op_id] for op_id, nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
-    clients_recurrents_query = apply_incident_visibility(db.session.query(
-        Client.id,
-        Client.nom,
-        Client.adresse,
-        Client.categoria,
-        func.count(Incident.id).label('incidents'),
-        func.max(Incident.intitule).label('intitule'),
-        func.max(Incident.date_heure).label('date_heure')
-    ).join(Incident))
-    
-    if start_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure <= end_date)
+    clients_recurrents_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Client.id,
+            Client.nom,
+            Client.adresse,
+            Client.categoria,
+            func.count(Incident.id).label('incidents'),
+            func.max(Incident.intitule).label('intitule'),
+            func.max(Incident.date_heure).label('date_heure')
+        ).join(Incident)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     clients_recurrents_raw = clients_recurrents_query.group_by(
         Client.id, Client.nom, Client.adresse, Client.categoria
@@ -3601,6 +3658,7 @@ def api_incidents_par_date():
     """API pour les données des graphiques selon la période"""
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
+    _ciudad_filter, _agencia_filter, ciudad_id, agencia_id = _dashboard_scope_from_request()
     
     # Paramètre pour choisir le type d'affichage
     view_type = request.args.get('type', 'date')  # 'date', 'month', 'year'
@@ -3622,6 +3680,7 @@ def api_incidents_par_date():
         ))
         if base_filter:
             query = query.filter(*base_filter)
+        query = _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
         
         incidents = query.group_by(
             func.date_format(Incident.date_heure, '%Y-%m-01')
@@ -3646,6 +3705,7 @@ def api_incidents_par_date():
         ))
         if base_filter:
             query = query.filter(*base_filter)
+        query = _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
         
         incidents = query.group_by(
             func.date_format(Incident.date_heure, '%Y-01-01')
@@ -3670,6 +3730,7 @@ def api_incidents_par_date():
         ))
         if base_filter:
             query = query.filter(*base_filter)
+        query = _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
         
         incidents = query.group_by(func.date(Incident.date_heure)).order_by(func.date(Incident.date_heure)).all()
 

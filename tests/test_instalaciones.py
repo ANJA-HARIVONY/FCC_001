@@ -3,8 +3,9 @@
 """Tests — instalaciones (hub, estado, traslado, sitios) y reprise de datos."""
 
 import os
+import re
 import unittest
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 os.environ['FLASK_ENV'] = 'testing'
 os.environ['WTF_CSRF_ENABLED'] = 'false'
@@ -18,6 +19,7 @@ from core.app import (  # noqa: E402
     Ciudad,
     Client,
     ClientSitio,
+    Incident,
     Instalacion,
     Material,
     MaterialSalida,
@@ -246,6 +248,143 @@ class InstalacionesHubFilterTests(_InstalacionesBase):
         self.assertNotIn('Cliente Beta', html)
         self.assertNotIn(f'<strong>#{self.inst_b.id}</strong>', html)
         self.assertNotIn('5 últimos registros', html)
+
+    def _dashboard_html_as(self, user, query_string='/'):
+        with self.app.test_request_context(query_string):
+            login_user(user)
+            html = self.app.view_functions['dashboard']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            return html
+
+    def _dashboard_data_as(self, user, query_string='/dashboard-data'):
+        with self.app.test_request_context(query_string):
+            login_user(user)
+            return self.app.view_functions['dashboard_data']().get_json()
+
+    def test_dashboard_superadmin_filtra_ciudad_y_agencia(self):
+        malabo = Ciudad.query.filter_by(nombre='Malabo').one()
+        bata = Ciudad.query.filter_by(nombre='Bata').one()
+        ag_afrimal = Agencia.query.filter_by(nombre='Afrimal').one()
+        ag_bata = Agencia.query.filter_by(nombre='Cocoteros').one()
+        superadmin = Operateur(
+            nom='super_dash',
+            telephone='240100090',
+            email='super_dash@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=malabo.id,
+            id_agencia=ag_afrimal.id,
+            role='superadmin',
+            actif=True,
+        )
+        tecnico_afrimal = Operateur(
+            nom='Tecnico Afrimal',
+            telephone='240100091',
+            email='tec_afrimal@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=malabo.id,
+            id_agencia=ag_afrimal.id,
+            role='usuario',
+            categoria='tecnico',
+            actif=True,
+        )
+        tecnico_bata = Operateur(
+            nom='Tecnico Bata',
+            telephone='240100092',
+            email='tec_bata@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=bata.id,
+            id_agencia=ag_bata.id,
+            role='usuario',
+            categoria='tecnico',
+            actif=True,
+        )
+        client_afrimal = Client(
+            nom='Cliente Afrimal', telephone='240200091', adresse='Calle Afrimal', ville='Malabo',
+            id_ciudad=malabo.id,
+        )
+        client_bata = Client(
+            nom='Cliente Bata Hoy', telephone='240200092', adresse='Calle Bata', ville='Bata',
+            id_ciudad=bata.id,
+        )
+        db.session.add_all([
+            superadmin, tecnico_afrimal, tecnico_bata, client_afrimal, client_bata,
+        ])
+        db.session.commit()
+        today = date.today()
+        inst_afrimal = Instalacion(
+            id_client=client_afrimal.id, fecha=today, id_tecnico=tecnico_afrimal.id,
+            estado='en_curso', tipo='nueva', id_operateur_registro=superadmin.id,
+        )
+        inst_bata = Instalacion(
+            id_client=client_bata.id, fecha=today, id_tecnico=tecnico_bata.id,
+            estado='en_curso', tipo='nueva', id_operateur_registro=superadmin.id,
+        )
+        incident_malabo = Incident(
+            id_client=self.client_a.id, intitule='Aviso Malabo', status='Pendiente',
+            id_operateur=self.tecnico_a.id, date_heure=datetime.now(),
+        )
+        incident_bata = Incident(
+            id_client=client_bata.id, intitule='Aviso Bata', status='Pendiente',
+            id_operateur=tecnico_bata.id, date_heure=datetime.now(),
+        )
+        db.session.add_all([inst_afrimal, inst_bata, incident_malabo, incident_bata])
+        db.session.commit()
+        try:
+            html_admin = self._dashboard_html(f'/?ciudad={bata.id}&agencia={ag_bata.id}')
+            self.assertNotIn('id="dashboard-ciudad"', html_admin)
+            self.assertIn('Cliente Alpha', html_admin)
+            self.assertNotIn('Cliente Bata Hoy', html_admin)
+            self.assertEqual(
+                self._dashboard_data_as(self.admin, f'/dashboard-data?ciudad={bata.id}')['total_incidents'],
+                1,
+            )
+
+            html_all = self._dashboard_html_as(superadmin, '/')
+            self.assertIn('id="dashboard-ciudad"', html_all)
+            self.assertIn('Todas las ciudades', html_all)
+            self.assertIn('Todas las agencias', html_all)
+            self.assertIn('Cliente Alpha', html_all)
+            self.assertIn('Cliente Afrimal', html_all)
+            self.assertIn('Cliente Bata Hoy', html_all)
+            self.assertEqual(self._dashboard_data_as(superadmin, '/dashboard-data')['total_incidents'], 2)
+
+            html_bata = self._dashboard_html_as(superadmin, f'/?ciudad={bata.id}')
+            self.assertIn('Cliente Bata Hoy', html_bata)
+            self.assertNotIn('Cliente Alpha', html_bata)
+            self.assertNotIn('Cliente Afrimal', html_bata)
+            agencia_select = re.search(r'id="dashboard-agencia".*?</select>', html_bata, re.S)
+            self.assertIsNotNone(agencia_select)
+            self.assertIn('Cocoteros', agencia_select.group(0))
+            self.assertNotIn('Afrimal', agencia_select.group(0))
+            self.assertIn(
+                f'ciudad={bata.id}',
+                html_bata,
+            )
+            self.assertEqual(
+                self._dashboard_data_as(superadmin, f'/dashboard-data?ciudad={bata.id}')['total_incidents'],
+                1,
+            )
+
+            html_afrimal = self._dashboard_html_as(superadmin, f'/?agencia={ag_afrimal.id}')
+            self.assertIn('Cliente Afrimal', html_afrimal)
+            self.assertNotIn('Cliente Alpha', html_afrimal)
+            self.assertNotIn('Cliente Bata Hoy', html_afrimal)
+
+            html_mismatch = self._dashboard_html_as(
+                superadmin, f'/?ciudad={malabo.id}&agencia={ag_bata.id}',
+            )
+            self.assertIn('Cliente Alpha', html_mismatch)
+            self.assertIn('Cliente Afrimal', html_mismatch)
+            self.assertNotIn('Cliente Bata Hoy', html_mismatch)
+            self.assertNotIn(f'agencia={ag_bata.id}', html_mismatch)
+        finally:
+            for row in (incident_malabo, incident_bata, inst_afrimal, inst_bata):
+                db.session.delete(row)
+            db.session.commit()
+            for row in (client_afrimal, client_bata, tecnico_afrimal, tecnico_bata, superadmin):
+                db.session.delete(row)
+            db.session.commit()
 
     def test_per_page_invalido_cae_a_50(self):
         html = self._hub_html('/instalaciones?per_page=25')

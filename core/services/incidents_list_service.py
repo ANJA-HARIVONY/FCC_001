@@ -11,6 +11,55 @@ from sqlalchemy.orm import joinedload
 BITRIX_TASK_STATUS_UNFETCHED = '_none'
 
 
+def normalize_ciudad_agencia_filters(current_user, ciudad_filter, agencia_filter):
+    """Valide ciudad et agencia.
+
+    Une agencia qui n'appartient pas à la ciudad choisie est ignorée.
+    Hors superadmin, une valeur hors périmètre est ignorée.
+    L'agencia est contrôlée avant d'écarter une ciudad hors périmètre,
+    pour conserver le même résultat que la liste d'incidencias.
+    """
+    from core.app import Agencia, Ciudad, db, sees_all_movements
+
+    ciudad_filter = '' if ciudad_filter is None else str(ciudad_filter).strip()
+    agencia_filter = '' if agencia_filter is None else str(agencia_filter).strip()
+    ciudad_id = None
+    agencia_id = None
+
+    if ciudad_filter:
+        try:
+            ciudad_id = int(ciudad_filter)
+            if db.session.get(Ciudad, ciudad_id) is None:
+                ciudad_filter = ''
+                ciudad_id = None
+        except (ValueError, TypeError):
+            ciudad_filter = ''
+            ciudad_id = None
+
+    if agencia_filter:
+        try:
+            agencia_id = int(agencia_filter)
+            agencia = db.session.get(Agencia, agencia_id)
+            if agencia is None:
+                agencia_filter = ''
+                agencia_id = None
+            elif ciudad_id and agencia.id_ciudad != ciudad_id:
+                agencia_filter = ''
+                agencia_id = None
+            elif not sees_all_movements() and agencia_id != current_user.id_agencia:
+                agencia_filter = ''
+                agencia_id = None
+        except (ValueError, TypeError):
+            agencia_filter = ''
+            agencia_id = None
+
+    if not sees_all_movements() and ciudad_id and ciudad_id != current_user.id_ciudad:
+        ciudad_filter = ''
+        ciudad_id = None
+
+    return ciudad_filter, agencia_filter, ciudad_id, agencia_id
+
+
 def _normalize_bitrix_status_filter(status_filter, raw):
     """Valide le sous-filtre de tâche Bitrix. Vide si status n'est pas Bitrix."""
     from core.app import BITRIX_STATUS_LABELS
@@ -58,7 +107,7 @@ def build_filtered_incidents_query(current_user, params):
     Returns:
         tuple: (query, params) con filtros normalizados.
     """
-    from core.app import Agencia, Ciudad, Client, Incident, Operateur, apply_incident_visibility, db, sees_all_movements
+    from core.app import Client, Incident, Operateur, apply_incident_visibility, db, sees_all_movements
 
     status_filter = params['status_filter']
     bitrix_status_filter = _normalize_bitrix_status_filter(
@@ -68,41 +117,11 @@ def build_filtered_incidents_query(current_user, params):
     date_from = params['date_from']
     date_to = params['date_to']
     operateur_filter = params['operateur_filter']
-    ciudad_filter = params['ciudad_filter']
-    agencia_filter = params['agencia_filter']
-
-    ciudad_id = None
-    if ciudad_filter:
-        try:
-            ciudad_id = int(ciudad_filter)
-            if not db.session.get(Ciudad, ciudad_id):
-                ciudad_filter = ''
-                ciudad_id = None
-        except (ValueError, TypeError):
-            ciudad_filter = ''
-            ciudad_id = None
-
-    agencia_id = None
-    if agencia_filter:
-        try:
-            agencia_id = int(agencia_filter)
-            agencia = db.session.get(Agencia, agencia_id)
-            if not agencia:
-                agencia_filter = ''
-                agencia_id = None
-            elif ciudad_id and agencia.id_ciudad != ciudad_id:
-                agencia_filter = ''
-                agencia_id = None
-            elif not sees_all_movements() and agencia_id != current_user.id_agencia:
-                agencia_filter = ''
-                agencia_id = None
-        except (ValueError, TypeError):
-            agencia_filter = ''
-            agencia_id = None
-
-    if not sees_all_movements() and ciudad_id and ciudad_id != current_user.id_ciudad:
-        ciudad_filter = ''
-        ciudad_id = None
+    ciudad_filter, agencia_filter, ciudad_id, agencia_id = normalize_ciudad_agencia_filters(
+        current_user,
+        params['ciudad_filter'],
+        params['agencia_filter'],
+    )
 
     query = apply_incident_visibility(Incident.query.options(
         joinedload(Incident.client),
