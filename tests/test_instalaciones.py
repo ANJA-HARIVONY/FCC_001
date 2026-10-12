@@ -333,6 +333,7 @@ class InstalacionesHubFilterTests(_InstalacionesBase):
         try:
             html_admin = self._dashboard_html(f'/?ciudad={bata.id}&agencia={ag_bata.id}')
             self.assertNotIn('id="dashboard-ciudad"', html_admin)
+            self.assertNotIn('id="btn-dashboard-filtrar"', html_admin)
             self.assertIn('Cliente Alpha', html_admin)
             self.assertNotIn('Cliente Bata Hoy', html_admin)
             self.assertEqual(
@@ -341,6 +342,8 @@ class InstalacionesHubFilterTests(_InstalacionesBase):
             )
 
             html_all = self._dashboard_html_as(superadmin, '/')
+            self.assertIn('id="btn-dashboard-filtrar"', html_all)
+            self.assertIn('id="modalDashboardFiltro"', html_all)
             self.assertIn('id="dashboard-ciudad"', html_all)
             self.assertIn('Todas las ciudades', html_all)
             self.assertIn('Todas las agencias', html_all)

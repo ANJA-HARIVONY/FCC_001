@@ -21,20 +21,15 @@
                 <option value="all_data">Todos los datos</option>
             </select>
             {% if current_user.is_authenticated and current_user.is_superadmin() %}
-            <label for="dashboard-ciudad" class="form-label mb-0 text-muted small">Ciudad:</label>
-            <select class="form-select form-select-sm" id="dashboard-ciudad">
-                <option value="">Todas las ciudades</option>
-                {% for c in ciudades|default([]) %}
-                <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
-                {% endfor %}
-            </select>
-            <label for="dashboard-agencia" class="form-label mb-0 text-muted small">Agencia:</label>
-            <select class="form-select form-select-sm" id="dashboard-agencia">
-                <option value="">Todas las agencias</option>
-                {% for a in agencias|default([]) %}
-                <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
-                {% endfor %}
-            </select>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-dashboard-filtrar" data-bs-toggle="modal" data-bs-target="#modalDashboardFiltro">
+                <i class="fas fa-filter me-1" aria-hidden="true"></i>Filtrar
+            </button>
+            {% if ciudad_filter or agencia_filter %}
+            <span class="badge bg-danger" id="dashboard-scope-badge">
+                {%- for c in ciudades if ciudad_filter and c.id|string == ciudad_filter|string -%}{{ c.nombre }}{%- endfor -%}
+                {%- for a in agencias if agencia_filter and a.id|string == agencia_filter|string -%}{% if ciudad_filter %} · {% endif %}{{ a.nombre }}{%- endfor -%}
+            </span>
+            {% endif %}
             {% endif %}
         </div>
         <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
@@ -405,6 +400,46 @@
     </div>
 </div>
 
+{% if current_user.is_authenticated and current_user.is_superadmin() %}
+<div class="modal fade" id="modalDashboardFiltro" tabindex="-1" aria-labelledby="modalDashboardFiltroLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDashboardFiltroLabel">
+                    <i class="fas fa-filter me-2" aria-hidden="true"></i>Filtrar
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="dashboard-ciudad" class="form-label">Ciudad</label>
+                    <select class="form-select" id="dashboard-ciudad">
+                        <option value="">Todas las ciudades</option>
+                        {% for c in ciudades|default([]) %}
+                        <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-0">
+                    <label for="dashboard-agencia" class="form-label">Agencia</label>
+                    <select class="form-select" id="dashboard-agencia">
+                        <option value="">Todas las agencias</option>
+                        {% for a in agencias|default([]) %}
+                        <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">La agencia depende de la ciudad elegida.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary me-auto" id="btn-limpiar-dashboard-filtro">Limpiar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-aplicar-dashboard-filtro">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% if current_user.is_authenticated and current_user.is_admin() %}
 <div class="modal fade" id="modalApreciacionDia" tabindex="-1" aria-labelledby="modalApreciacionDiaLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -1512,37 +1547,71 @@ function incidentsChartUrl(viewType) {
     return '/api/incidents-par-date?' + params.toString();
 }
 
+function refillDashboardAgencias(ciudadId, selectedAgenciaId) {
+    const agenciaSelect = document.getElementById('dashboard-agencia');
+    if (!agenciaSelect) {
+        return;
+    }
+    const list = dashboardAgencias.filter(function(agencia) {
+        return !ciudadId || String(agencia.id_ciudad) === String(ciudadId);
+    });
+    const keep = list.some(function(agencia) {
+        return String(agencia.id) === String(selectedAgenciaId);
+    });
+    agenciaSelect.innerHTML = '<option value="">Todas las agencias</option>';
+    list.forEach(function(agencia) {
+        const option = document.createElement('option');
+        option.value = agencia.id;
+        option.textContent = agencia.nombre;
+        if (keep && String(agencia.id) === String(selectedAgenciaId)) {
+            option.selected = true;
+        }
+        agenciaSelect.appendChild(option);
+    });
+    if (!keep) {
+        agenciaSelect.value = '';
+    }
+}
+
+function applyDashboardScope(ciudadId, agenciaId) {
+    currentCiudad = ciudadId || '';
+    currentAgencia = agenciaId || '';
+    saveDashboardFilters();
+    dashboardNavigating = true;
+    window.location.assign(dashboardPageUrl());
+}
+
 function initializeDashboardScopeFilters() {
     if (!scopeFiltersEnabled) {
         return;
     }
     const ciudadSelect = document.getElementById('dashboard-ciudad');
     const agenciaSelect = document.getElementById('dashboard-agencia');
-    if (!ciudadSelect || !agenciaSelect) {
+    const aplicarBtn = document.getElementById('btn-aplicar-dashboard-filtro');
+    const limpiarBtn = document.getElementById('btn-limpiar-dashboard-filtro');
+    const modalEl = document.getElementById('modalDashboardFiltro');
+    if (!ciudadSelect || !agenciaSelect || !aplicarBtn || !modalEl) {
         return;
     }
 
-    ciudadSelect.addEventListener('change', function() {
-        const ciudadId = this.value || '';
-        const previousAgencia = agenciaSelect.value || '';
-        const stillValid = dashboardAgencias.some(function(agencia) {
-            return String(agencia.id) === String(previousAgencia)
-                && (!ciudadId || String(agencia.id_ciudad) === String(ciudadId));
-        });
-        currentCiudad = ciudadId;
-        currentAgencia = stillValid ? previousAgencia : '';
-        saveDashboardFilters();
-        dashboardNavigating = true;
-        window.location.assign(dashboardPageUrl());
+    modalEl.addEventListener('show.bs.modal', function() {
+        ciudadSelect.value = currentCiudad || '';
+        refillDashboardAgencias(currentCiudad, currentAgencia);
     });
 
-    agenciaSelect.addEventListener('change', function() {
-        currentCiudad = ciudadSelect.value || '';
-        currentAgencia = this.value || '';
-        saveDashboardFilters();
-        dashboardNavigating = true;
-        window.location.assign(dashboardPageUrl());
+    ciudadSelect.addEventListener('change', function() {
+        refillDashboardAgencias(this.value || '', agenciaSelect.value || '');
     });
+
+    aplicarBtn.addEventListener('click', function() {
+        applyDashboardScope(ciudadSelect.value || '', agenciaSelect.value || '');
+    });
+
+    if (limpiarBtn) {
+        limpiarBtn.addEventListener('click', function() {
+            applyDashboardScope('', '');
+        });
+    }
 }
 
 function loadDashboardData(period) {
@@ -1828,37 +1897,26 @@ function initOperateursChart() {
     transform: scale(1.05);
 }
 
-/* Styles pour les sélecteurs du dashboard */
-#period-selector,
-#dashboard-ciudad,
-#dashboard-agencia {
+/* Styles pour le sélecteur de période */
+#period-selector {
     border: 1px solid #dc3545;
     border-radius: 6px;
     transition: all 0.3s ease;
     font-size: 0.875rem;
 }
 
-#period-selector:focus,
-#dashboard-ciudad:focus,
-#dashboard-agencia:focus {
+#period-selector:focus {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
-#period-selector:hover,
-#dashboard-ciudad:hover,
-#dashboard-agencia:hover {
+#period-selector:hover {
     border-color: #b02a37;
 }
 
 /* Responsive design : scope au dashboard uniquement */
 #period-selector {
     min-width: 200px;
-}
-
-#dashboard-ciudad,
-#dashboard-agencia {
-    min-width: 160px;
 }
 
 #operateur-chart-type {
@@ -1887,9 +1945,7 @@ function initOperateursChart() {
 }
 
 @media (max-width: 575.98px) {
-    #period-selector,
-    #dashboard-ciudad,
-    #dashboard-agencia {
+    #period-selector {
         min-width: 0;
         width: 100%;
     }

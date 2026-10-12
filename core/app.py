@@ -2470,7 +2470,7 @@ def _dashboard_scope_template_context(ciudad_filter, agencia_filter, ciudad_id):
 
     _, ciudades, agencias = get_incidents_filter_options(current_user, ciudad_id=ciudad_id)
     catalogo = [
-        {'id': agencia.id, 'id_ciudad': agencia.id_ciudad}
+        {'id': agencia.id, 'nombre': agencia.nombre, 'id_ciudad': agencia.id_ciudad}
         for agencia in Agencia.query.order_by(Agencia.nombre).all()
     ]
     return {
