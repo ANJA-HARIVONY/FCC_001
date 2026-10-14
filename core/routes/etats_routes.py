@@ -15,7 +15,10 @@ from sqlalchemy import desc
 from sqlalchemy.orm import joinedload
 from flask_login import current_user
 
-from core.app import app, db, Etat, Incident, Agencia, ApreciacionDia
+from core.app import (
+    app, db, Etat, Incident, Agencia, ApreciacionDia,
+    apply_apreciacion_visibility, join_apreciaciones_texto,
+)
 from core.utils import parse_informe_json, unwrap_informe_text
 
 # Rédaction IA via Gemini si GEMINI_API_KEY est défini (désactiver : ETATS_USE_AI=false).
@@ -765,23 +768,39 @@ def _collect_data_context(etat):
             if incident.status == 'Bitrix':
                 evolution_map[day_key]['bitrix'] += 1
 
-        notas_query = ApreciacionDia.query
+        notas_query = apply_apreciacion_visibility(
+            ApreciacionDia.query.options(
+                joinedload(ApreciacionDia.ciudad),
+                joinedload(ApreciacionDia.agencia),
+            ),
+            ciudad_id=params.get('ciudad_id'),
+            agencia_id=agence_id,
+        )
         if etat.periode_debut:
             notas_query = notas_query.filter(ApreciacionDia.fecha >= etat.periode_debut)
         if etat.periode_fin:
             notas_query = notas_query.filter(ApreciacionDia.fecha <= etat.periode_fin)
         else:
             notas_query = notas_query.filter(ApreciacionDia.fecha <= datetime.now().date())
-        notas_rows = notas_query.order_by(ApreciacionDia.fecha).all()
-        notas_del_dia = [
-            {
+        notas_rows = notas_query.order_by(ApreciacionDia.fecha, ApreciacionDia.id).all()
+        notas_del_dia = []
+        rows_by_iso = {}
+        for row in notas_rows:
+            fecha_iso = row.fecha.isoformat()
+            ciudad_nombre = row.ciudad.nombre if row.ciudad else ''
+            agencia_nombre = row.agencia.nombre if row.agencia else ''
+            notas_del_dia.append({
                 'fecha': row.fecha.strftime('%d/%m/%Y'),
-                'fecha_iso': row.fecha.isoformat(),
+                'fecha_iso': fecha_iso,
                 'texto': row.texto,
-            }
-            for row in notas_rows
-        ]
-        notes_by_iso = {nota['fecha_iso']: nota['texto'] for nota in notas_del_dia}
+                'ciudad': ciudad_nombre,
+                'agencia': agencia_nombre,
+            })
+            rows_by_iso.setdefault(fecha_iso, []).append(row)
+        notes_by_iso = {
+            fecha_iso: join_apreciaciones_texto(rows)
+            for fecha_iso, rows in rows_by_iso.items()
+        }
 
         evolution = [
             {

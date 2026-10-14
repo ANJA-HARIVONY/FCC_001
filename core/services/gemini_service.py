@@ -456,7 +456,11 @@ Reglas de formato:
         for nota in notas[:60]:
             if not isinstance(nota, dict):
                 continue
-            lines.append(f"- {nota.get('fecha')}: {nota.get('texto')}")
+            lugar = ' · '.join(
+                part for part in (nota.get('ciudad'), nota.get('agencia')) if part
+            )
+            prefix = f'{lugar}: ' if lugar else ''
+            lines.append(f"- {nota.get('fecha')}: {prefix}{nota.get('texto')}")
         omitted = max(len(notas) - 60, 0)
         if omitted:
             lines.append(f'- … y {omitted} nota(s) más')

@@ -234,7 +234,7 @@
                 </section>
 
                 <!-- DASHBOARD -->
-                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen instalaciones del dia ver lista ver clientes tarjeta indicador operador periodo ciudad agencia filtro filtrar modal">
+                <section id="dashboard" class="aide-section" data-aide-keywords="dashboard estadisticas graficos kpi resumen instalaciones del dia ver lista ver clientes tarjeta indicador operador periodo ciudad agencia filtro filtrar modal nota dia apreciacion">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-tachometer-alt"></i></span>
@@ -246,16 +246,16 @@
                         <div class="aide-section-body">
                             <ul class="aide-list">
                                 <li><i class="fas fa-check"></i><span><strong>Indicadores:</strong> Total de Registrados, Solucionadas (remotamente), Pendientes y Bitrix (localmente). Al pulsar una tarjeta se abre la lista de incidencias del mismo período y estado.</span></li>
-                                <li><i class="fas fa-check"></i><span><strong>Evolución de las incidencias:</strong> por día, por mes o por año.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Evolución de las incidencias:</strong> por día, por mes o por año. En la vista por día, un punto naranja muestra {% if current_user.is_authenticated and current_user.is_superadmin() %}las notas del filtro de ciudad y agencia. Sin filtro, muestra las de todas{% else %}la nota de su ciudad y su agencia{% endif %}.</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>Distribución por operador:</strong> gráfico de tarta o de barras. Al pulsar un operador se abre su lista de incidencias del período.</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>Instalaciones del día:</strong> las de la fecha de hoy (tipo, técnico, cliente, materiales y estado). No dependen del período elegido.{% if current_user.is_authenticated and current_user.is_admin() %} <em>Ver lista</em> abre las instalaciones de hoy. Desde aquí puede abrir o modificar la ficha.{% endif %}</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>5 Clientes Recurrentes:</strong> los cinco clientes con más incidencias en el período. <em>Ver clientes</em> abre el listado. El número abre las incidencias de ese cliente en el período.</span></li>
                                 <li><i class="fas fa-check"></i><span><strong>Período:</strong> semana en curso, mes, últimos meses o todos los datos. Puede recordar o reiniciar los filtros.</span></li>
                                 {% if current_user.is_authenticated and current_user.is_superadmin() %}
-                                <li><i class="fas fa-check"></i><span><strong>Ciudad y Agencia:</strong> pulse <em>Filtrar</em>, elija una ciudad (la lista de agencias se limita a esa ciudad) o una agencia, luego <em>Aplicar</em>. Los indicadores, los gráficos, los 5 clientes recurrentes y las instalaciones del día siguen ese filtro. Las instalaciones del día siguen siendo las de hoy. Al pulsar una tarjeta se abre Incidencias con la misma ciudad, agencia y período.</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Ciudad y Agencia:</strong> pulse <em>Filtrar</em>, elija una ciudad (la lista de agencias se limita a esa ciudad) o una agencia, luego <em>Aplicar</em>. Los indicadores, los gráficos, las notas del día, los 5 clientes recurrentes y las instalaciones del día siguen ese filtro. Las instalaciones del día siguen siendo las de hoy. Al pulsar una tarjeta se abre Incidencias con la misma ciudad, agencia y período.</span></li>
                                 {% endif %}
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
-                                <li><i class="fas fa-check"></i><span><strong>Nota del día:</strong> el botón <em>Nota del día</em> guarda una apreciación (máximo 120 caracteres, una por día).</span></li>
+                                <li><i class="fas fa-check"></i><span><strong>Nota del día:</strong> el botón <em>Nota del día</em> guarda una apreciación (máximo 120 caracteres, una por día, ciudad y agencia). {% if current_user.is_authenticated and current_user.is_superadmin() %}Si elige ciudad y agencia, la nota se guarda en esa pareja. Si falta una de las dos, se guarda en su ciudad y su agencia.{% else %}La nota queda en su ciudad y su agencia.{% endif %}</span></li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -367,7 +367,7 @@
                 {% endif %}
 
                 <!-- INFORMES -->
-                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion excel imprimir filtros estado general evolucion actividad analisis personalizado">
+                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion excel imprimir filtros estado general evolucion actividad analisis personalizado nota dia">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-chart-bar"></i></span>
@@ -378,7 +378,7 @@
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-filter"></i><span><strong>Generar:</strong> menú <em>Informes</em> → elija el tipo (Estado General, Evolución de Registros, Actividad por Usuario o Análisis Personalizado), el período y la agencia.</span></li>
+                                <li><i class="fas fa-filter"></i><span><strong>Generar:</strong> menú <em>Informes</em> → elija el tipo (Estado General, Evolución de Registros, Actividad por Usuario o Análisis Personalizado), el período y la agencia. Las notas del día incluidas son las de su ciudad y su agencia; el superadmin ve las de la agencia elegida, o todas si no elige agencia.</span></li>
                                 <li><i class="fas fa-print"></i><span><strong>Imprimir:</strong> desde el detalle del informe, use el botón <em>Imprimir</em> para una versión en papel.</span></li>
                                 <li><i class="fas fa-file-excel"></i><span><strong>Exportación Excel:</strong> desde el detalle de un informe generado, pulse <em>Exportar Excel</em> para descargar los datos en formato .xlsx.</span></li>
                             </ul>
@@ -539,7 +539,7 @@
                                     </h3>
                                     <div id="faq-dashboard-scope" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
                                         <div class="accordion-body">
-                                            Pulse <strong>Filtrar</strong> en el Dashboard. Elija <strong>Ciudad</strong>: la lista <strong>Agencia</strong> muestra solo las agencias de esa ciudad. Sin ciudad, puede elegir cualquier agencia. <em>Aplicar</em> actualiza los indicadores, los gráficos, los clientes recurrentes y las instalaciones del día. <em>Limpiar</em> vuelve a todas las ciudades y agencias. Las instalaciones del día siguen siendo las de hoy.
+                                            Pulse <strong>Filtrar</strong> en el Dashboard. Elija <strong>Ciudad</strong>: la lista <strong>Agencia</strong> muestra solo las agencias de esa ciudad. Sin ciudad, puede elegir cualquier agencia. <em>Aplicar</em> actualiza los indicadores, los gráficos, las notas del día, los clientes recurrentes y las instalaciones del día. <em>Limpiar</em> vuelve a todas las ciudades y agencias. Las instalaciones del día siguen siendo las de hoy.
                                         </div>
                                     </div>
                                 </div>

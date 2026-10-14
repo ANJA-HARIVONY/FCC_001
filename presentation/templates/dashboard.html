@@ -455,6 +455,7 @@
                 <div class="mb-3">
                     <label for="apreciacion-fecha" class="form-label">Fecha</label>
                     <input type="date" class="form-control" id="apreciacion-fecha" required>
+                    <p class="form-text mb-0" id="apreciacion-alcance"></p>
                 </div>
                 <div class="mb-0">
                     <label for="apreciacion-texto" class="form-label">Nota</label>
@@ -466,7 +467,7 @@
                         <option value="Mucho viento"></option>
                         <option value="Problema de luz - Getesa"></option>
                     </datalist>
-                    <div class="form-text">Máximo 120 caracteres. Se muestra al pasar el cursor sobre el gráfico (vista por día).</div>
+                    <div class="form-text">Máximo 120 caracteres, una por día, ciudad y agencia. Se muestra al pasar el cursor sobre el gráfico (vista por día).</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -778,31 +779,11 @@ function initIncidentsChart() {
                                 return '';
                             }
                             const fecha = chartFechas[items[0].dataIndex];
-                            const texto = fecha ? chartApreciaciones[fecha] : '';
-                            if (!texto) {
+                            const lines = apreciacionTooltipLines(fecha);
+                            if (!lines.length) {
                                 return '';
                             }
-                            const maxLen = 42;
-                            if (texto.length <= maxLen) {
-                                return texto;
-                            }
-                            const lines = [];
-                            let line = '';
-                            texto.split(/\s+/).forEach(function(word) {
-                                const next = line ? (line + ' ' + word) : word;
-                                if (next.length > maxLen) {
-                                    if (line) {
-                                        lines.push(line);
-                                    }
-                                    line = word;
-                                } else {
-                                    line = next;
-                                }
-                            });
-                            if (line) {
-                                lines.push(line);
-                            }
-                            return lines;
+                            return lines.length === 1 ? lines[0] : lines;
                         }
                     }
                 }
@@ -866,8 +847,17 @@ function updateIncidentsChart(viewType = 'date') {
                 chartFechas = data.map(item => item.fecha || '');
                 chartApreciaciones = {};
                 data.forEach(item => {
-                    if (item.fecha && item.apreciacion) {
-                        chartApreciaciones[item.fecha] = item.apreciacion;
+                    if (!item.fecha) {
+                        return;
+                    }
+                    if (item.apreciaciones && item.apreciaciones.length) {
+                        chartApreciaciones[item.fecha] = item.apreciaciones;
+                    } else if (item.apreciacion) {
+                        chartApreciaciones[item.fecha] = [{
+                            texto: item.apreciacion,
+                            ciudad: '',
+                            agencia: ''
+                        }];
                     }
                 });
 
@@ -889,6 +879,70 @@ function updateIncidentsChart(viewType = 'date') {
         .catch(error => {
             console.error('Erreur lors du chargement des données:', error);
         });
+}
+
+function wrapTooltipText(texto) {
+    const maxLen = 42;
+    if (!texto) {
+        return [];
+    }
+    if (texto.length <= maxLen) {
+        return [texto];
+    }
+    const lines = [];
+    let line = '';
+    texto.split(/\s+/).forEach(function(word) {
+        const next = line ? (line + ' ' + word) : word;
+        if (next.length > maxLen) {
+            if (line) {
+                lines.push(line);
+            }
+            line = word;
+        } else {
+            line = next;
+        }
+    });
+    if (line) {
+        lines.push(line);
+    }
+    return lines;
+}
+
+function apreciacionTooltipLines(fecha) {
+    const items = fecha ? chartApreciaciones[fecha] : null;
+    if (!items || !items.length) {
+        return [];
+    }
+    if (items.length === 1) {
+        return wrapTooltipText(items[0].texto || items[0]);
+    }
+    const lines = [];
+    items.forEach(function(item) {
+        const where = [item.ciudad, item.agencia].filter(Boolean).join(' · ');
+        const texto = where ? (where + ': ' + (item.texto || '')) : (item.texto || '');
+        wrapTooltipText(texto).forEach(function(line) {
+            lines.push(line);
+        });
+    });
+    return lines;
+}
+
+function apreciacionRequestParams(fecha) {
+    const params = new URLSearchParams();
+    if (fecha) {
+        params.set('fecha', fecha);
+    }
+    dashboardScopeQuery(params);
+    return params;
+}
+
+function setApreciacionAlcance(data) {
+    const el = document.getElementById('apreciacion-alcance');
+    if (!el) {
+        return;
+    }
+    const where = [data && data.ciudad, data && data.agencia].filter(Boolean).join(' · ');
+    el.textContent = where ? ('Se guarda en ' + where + '.') : '';
 }
 
 function todayIsoDate() {
@@ -931,18 +985,20 @@ function loadApreciacionForFecha(fecha) {
         setApreciacionDeleteVisible(false);
         return;
     }
-    fetch(`/api/apreciaciones?fecha=${encodeURIComponent(fecha)}`)
+    fetch('/api/apreciaciones?' + apreciacionRequestParams(fecha).toString())
         .then(response => response.json())
         .then(data => {
             if (textoInput) {
                 textoInput.value = data.texto || '';
             }
+            setApreciacionAlcance(data);
             setApreciacionDeleteVisible(!!data.texto);
         })
         .catch(() => {
             if (textoInput) {
                 textoInput.value = '';
             }
+            setApreciacionAlcance(null);
             setApreciacionDeleteVisible(false);
             setApreciacionFeedback('No se pudo cargar la apreciación.', 'danger');
         });
@@ -1020,7 +1076,12 @@ function saveApreciacionDia() {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ fecha: fecha, texto: texto })
+        body: JSON.stringify({
+            fecha: fecha,
+            texto: texto,
+            ciudad: currentCiudad || '',
+            agencia: currentAgencia || ''
+        })
     })
         .then(response => response.json().then(data => ({ ok: response.ok, data })))
         .then(({ ok, data }) => {
@@ -1048,7 +1109,7 @@ function deleteApreciacionDia() {
         return;
     }
 
-    fetch(`/api/apreciaciones?fecha=${encodeURIComponent(fecha)}`, {
+    fetch('/api/apreciaciones?' + apreciacionRequestParams(fecha).toString(), {
         method: 'DELETE',
         headers: {
             'Accept': 'application/json',

@@ -945,20 +945,90 @@ APRECIACION_TEXTO_MAX = 120
 
 
 class ApreciacionDia(db.Model):
-    """Nota operativa compartida para un día calendario (dashboard)."""
+    """Nota de un día, fijada a la ciudad y la agencia del registro."""
     __tablename__ = 'apreciacion_dia'
+    __table_args__ = (
+        db.UniqueConstraint(
+            'fecha', 'id_ciudad', 'id_agencia',
+            name='uq_apreciacion_dia_fecha_ciudad_agencia',
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date, nullable=False, unique=True, index=True)
+    fecha = db.Column(db.Date, nullable=False, index=True)
     texto = db.Column(db.String(APRECIACION_TEXTO_MAX), nullable=False)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True, index=True)
+    id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=True, index=True)
+    id_agencia = db.Column(db.Integer, db.ForeignKey('agencia.id'), nullable=True, index=True)
     creado_en = db.Column(db.DateTime, nullable=False, default=datetime.now)
     modificado_en = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     operateur = db.relationship('Operateur', backref=db.backref('apreciaciones_dia', lazy=True))
+    ciudad = db.relationship('Ciudad')
+    agencia = db.relationship('Agencia')
 
     def __repr__(self):
-        return f'<ApreciacionDia {self.fecha}>'
+        return f'<ApreciacionDia {self.fecha} ciudad={self.id_ciudad} agencia={self.id_agencia}>'
+
+
+def apply_apreciacion_visibility(query, ciudad_id=None, agencia_id=None):
+    """Superadmin voit tout (filtre dashboard si présent).
+
+    Admin et usuario ne voient que les notes de leur ciudad et de leur agencia.
+    Une note sans périmètre (créateur absent) reste visible du seul superadmin.
+    """
+    if not current_user.is_authenticated:
+        return query.filter(ApreciacionDia.id.is_(None))
+    if not sees_all_movements():
+        return query.filter(
+            ApreciacionDia.id_ciudad == current_user.id_ciudad,
+            ApreciacionDia.id_agencia == current_user.id_agencia,
+        )
+    if ciudad_id:
+        query = query.filter(ApreciacionDia.id_ciudad == ciudad_id)
+    if agencia_id:
+        query = query.filter(ApreciacionDia.id_agencia == agencia_id)
+    return query
+
+
+def apreciacion_write_scope(ciudad_id=None, agencia_id=None):
+    """Paire figée à l'écriture.
+
+    Admin : sa ciudad et son agencia. Superadmin : la paire filtrée si les
+    deux sont choisis et cohérents, sinon la sienne.
+    """
+    if not sees_all_movements():
+        return current_user.id_ciudad, current_user.id_agencia
+    if ciudad_id and agencia_id:
+        agencia = db.session.get(Agencia, agencia_id)
+        if agencia is not None and agencia.id_ciudad == ciudad_id:
+            return ciudad_id, agencia_id
+    return current_user.id_ciudad, current_user.id_agencia
+
+
+def apreciacion_lugar(row):
+    ciudad = row.ciudad.nombre if row.ciudad else ''
+    agencia = row.agencia.nombre if row.agencia else ''
+    return ciudad, agencia
+
+
+def apreciacion_api_item(row):
+    ciudad, agencia = apreciacion_lugar(row)
+    return {'texto': row.texto, 'ciudad': ciudad, 'agencia': agencia}
+
+
+def join_apreciaciones_texto(rows):
+    """Un texte pour la courbe. Plusieurs agences le même jour : préfixe lieu."""
+    if not rows:
+        return None
+    if len(rows) == 1:
+        return rows[0].texto
+    parts = []
+    for row in rows:
+        ciudad, agencia = apreciacion_lugar(row)
+        where = ' · '.join(part for part in (ciudad, agencia) if part)
+        parts.append(f'{where}: {row.texto}' if where else row.texto)
+    return ' | '.join(parts)
 
 
 def write_audit(action, id_operateur=None, detail=None):
@@ -1011,6 +1081,23 @@ def ensure_apreciacion_dia_table():
         ensure_apreciacion_dia_table._done = True
     except Exception:
         app.logger.exception('No se pudo verificar/crear la tabla apreciacion_dia')
+
+
+def ensure_apreciacion_dia_scope_columns():
+    """Añade ciudad y agencia a la nota del día y sustituye la unicidad por fecha."""
+    if getattr(ensure_apreciacion_dia_scope_columns, '_done', False):
+        return
+    try:
+        from core.services.apreciacion_schema import sync_apreciacion_dia_scope
+
+        if not inspect(db.engine).has_table(ApreciacionDia.__tablename__):
+            ensure_apreciacion_dia_scope_columns._done = True
+            return
+        sync_apreciacion_dia_scope(db.engine)
+        ensure_apreciacion_dia_scope_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar el perímetro de apreciacion_dia')
 
 
 def ensure_client_categoria_column():
@@ -1928,6 +2015,7 @@ def require_authentication():
     ensure_instalaciones_sitio_schema()
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
+    ensure_apreciacion_dia_scope_columns()
     ensure_legacy_admins_promoted_to_superadmin()
     if not request.endpoint or request.endpoint == 'static':
         return
@@ -3737,8 +3825,22 @@ def api_incidents_par_date():
         date_keys = [_coerce_chart_date(date_obj) for date_obj, *_rest in incidents]
         notes = {}
         if date_keys:
-            for row in ApreciacionDia.query.filter(ApreciacionDia.fecha.in_(date_keys)).all():
-                notes[row.fecha] = row.texto
+            note_rows = apply_apreciacion_visibility(
+                ApreciacionDia.query.options(
+                    joinedload(ApreciacionDia.ciudad),
+                    joinedload(ApreciacionDia.agencia),
+                ).filter(ApreciacionDia.fecha.in_(date_keys)),
+                ciudad_id,
+                agencia_id,
+            ).all()
+            for row in note_rows:
+                notes.setdefault(row.fecha, []).append(row)
+            for rows in notes.values():
+                rows.sort(key=lambda item: (
+                    item.ciudad.nombre if item.ciudad else '',
+                    item.agencia.nombre if item.agencia else '',
+                    item.id,
+                ))
 
         return jsonify([{
             'date': fecha.strftime('%d/%m'),
@@ -3746,7 +3848,8 @@ def api_incidents_par_date():
             'count': count,
             'solucionadas': int(solucionadas or 0),
             'bitrix': int(bitrix or 0),
-            'apreciacion': notes.get(fecha),
+            'apreciacion': join_apreciaciones_texto(notes.get(fecha, [])),
+            'apreciaciones': [apreciacion_api_item(row) for row in notes.get(fecha, [])],
         } for (date_obj, count, solucionadas, bitrix), fecha in zip(incidents, date_keys)])
 
 def get_date_range_for_period(period):

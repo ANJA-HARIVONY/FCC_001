@@ -33,6 +33,21 @@ KPI_LABELS_ES = {
 HEADER_FONT = Font(bold=True)
 
 
+def _append_notas(ws, row, notas):
+    ws.cell(row=row, column=1, value='Notas del día').font = HEADER_FONT
+    row += 1
+    for col, header in enumerate(('Fecha', 'Ciudad', 'Agencia', 'Nota'), start=1):
+        ws.cell(row=row, column=col, value=header).font = HEADER_FONT
+    row += 1
+    for nota in notas:
+        ws.cell(row=row, column=1, value=nota.get('fecha', ''))
+        ws.cell(row=row, column=2, value=nota.get('ciudad', ''))
+        ws.cell(row=row, column=3, value=nota.get('agencia', ''))
+        ws.cell(row=row, column=4, value=nota.get('texto', ''))
+        row += 1
+    return row
+
+
 def parse_contenu_etat(etat):
     """Parse contenu_ia JSON del informe."""
     if not etat.contenu_ia:
@@ -118,12 +133,7 @@ def _write_summary_datos(ws, contenu):
         row += 2
     notas = contenu.get('notas_del_dia') or []
     if notas:
-        ws.cell(row=row, column=1, value='Notas del día').font = HEADER_FONT
-        row += 1
-        for nota in notas:
-            ws.cell(row=row, column=1, value=nota.get('fecha', ''))
-            ws.cell(row=row, column=2, value=nota.get('texto', ''))
-            row += 1
+        row = _append_notas(ws, row, notas)
     ws.column_dimensions['A'].width = 36
     ws.column_dimensions['B'].width = 24
     ws.freeze_panes = 'A2'
@@ -148,10 +158,7 @@ def _write_analysis_datos(ws, contenu):
     notas = contenu.get('notas_del_dia') or []
     if notas:
         start = len(evolution) + len(contenu.get('tendances_principales') or []) + 5
-        ws.cell(row=start, column=1, value='Notas del día').font = HEADER_FONT
-        for i, nota in enumerate(notas, start=start + 1):
-            ws.cell(row=i, column=1, value=nota.get('fecha', ''))
-            ws.cell(row=i, column=2, value=nota.get('texto', ''))
+        _append_notas(ws, start, notas)
     for col in range(1, 6):
         ws.column_dimensions[chr(64 + col)].width = 18
     ws.column_dimensions['E'].width = 36
@@ -195,13 +202,7 @@ def _write_custom_datos(ws, contenu):
         row += 1
     notas = contenu.get('notas_del_dia') or []
     if notas:
-        row += 1
-        ws.cell(row=row, column=1, value='Notas del día').font = HEADER_FONT
-        row += 1
-        for nota in notas:
-            ws.cell(row=row, column=1, value=nota.get('fecha', ''))
-            ws.cell(row=row, column=2, value=nota.get('texto', ''))
-            row += 1
+        _append_notas(ws, row + 1, notas)
     ws.column_dimensions['A'].width = 80
     ws.column_dimensions['B'].width = 48
     ws.freeze_panes = 'A2'
