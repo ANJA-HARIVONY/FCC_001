@@ -135,6 +135,15 @@ from core.app import (
     create_sample_data,
     ensure_client_categoria_column,
     ensure_client_radius_cache_columns,
+    ensure_client_trazabilidad_columns,
+    ensure_client_gps_columns,
+    ensure_instalacion_foto_table,
+    ensure_instalacion_foto_id_client,
+    ensure_incident_modificacion_columns,
+    ensure_ciudad_agencia_seed,
+    ensure_default_admin_operateur,
+    Client,
+    Operateur,
 )
 
 with app.app_context():
@@ -143,20 +152,25 @@ with app.app_context():
         db.create_all()
         ensure_client_categoria_column()
         ensure_client_radius_cache_columns()
+        ensure_client_trazabilidad_columns()
+        ensure_client_gps_columns()
+        ensure_instalacion_foto_table()
+        ensure_instalacion_foto_id_client()
+        ensure_incident_modificacion_columns()
         print('Tables créées avec succès')
-        
-        # Vérifier si des données existent déjà et INIT_SAMPLE_DATA
-        from core.app import Client
-        init_sample = os.environ.get('INIT_SAMPLE_DATA', 'true').lower() == 'true'
-        if Client.query.count() == 0:
-            if init_sample:
-                print('Base de données vide - création des données exemple...')
-                create_sample_data()
-                print('Données exemple créées')
-            else:
-                print('Base de données vide (INIT_SAMPLE_DATA=false - pas de données exemple)')
+
+        # Référentiel ville/agence + un seul opérateur admin (pas de clients/incidents)
+        ensure_ciudad_agencia_seed()
+        ensure_default_admin_operateur()
+        print(f'Opérateurs: {Operateur.query.count()} (compte par défaut admin/admin si base neuve)')
+
+        init_sample = os.environ.get('INIT_SAMPLE_DATA', 'false').lower() == 'true'
+        if init_sample and Client.query.count() == 0:
+            print('INIT_SAMPLE_DATA=true - création des données exemple...')
+            create_sample_data()
+            print('Données exemple créées')
         else:
-            print(f'Base de données existante avec {Client.query.count()} clients')
+            print(f'Base métier vide (clients: {Client.query.count()}, pas de données exemple)')
             
     except Exception as e:
         print(f'Erreur initialisation: {e}')
@@ -177,10 +191,10 @@ setup_directories() {
     log_info "Configuration des répertoires..."
     
     mkdir -p /app/logs
-    mkdir -p /app/instance
+    mkdir -p /app/instance/uploads/materiales
     mkdir -p /app/monitoring/logs
     mkdir -p /app/monitoring/backups
-    mkdir -p /app/presentation/uploads
+    mkdir -p /app/presentation/uploads/materiales
     
     log_success "Répertoires configurés!"
 }

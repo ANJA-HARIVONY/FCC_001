@@ -1,0 +1,49 @@
+{# Carte mobile de un retraso en ficha de atención al cliente.
+   Variables : row (requis) #}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="mobile-list-card__id">#{{ row.incident_id }}</span>
+            <span class="badge bg-secondary">{{ row.estado_inicial }}</span>
+            <i class="fas fa-arrow-right small text-muted" aria-hidden="true"></i>
+            {% if row.estado_destino == 'Bitrix' %}
+            <span class="badge badge-bitrix">{{ row.estado_destino }}</span>
+            {% elif row.estado_destino == 'Solucionadas' %}
+            <span class="badge badge-resolut">{{ row.estado_destino }}</span>
+            {% else %}
+            <span class="badge badge-attente">{{ row.estado_destino }}</span>
+            {% endif %}
+        </div>
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-hourglass-half me-1"></i>{{ row.retraso_label }}
+        </span>
+    </div>
+    <a class="mobile-list-card__title" href="{{ url_for('fiche_incident', id=row.incident_id) }}">
+        <i class="fas fa-user-tie me-1" aria-hidden="true"></i>{{ row.cliente }}
+    </a>
+    {% if row.asunto %}
+    <p class="mobile-list-card__asunto" title="{{ row.asunto }}">{{ row.asunto }}</p>
+    {% endif %}
+    <div class="mobile-list-card__badges">
+        {% if row.ciudad or row.cliente_ville %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-map-marker-alt me-1"></i>{{ row.ciudad or row.cliente_ville }}
+        </span>
+        {% endif %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-plus-circle me-1"></i>{{ row.fecha_creacion.strftime('%d/%m/%Y %H:%M') if row.fecha_creacion else '—' }}
+        </span>
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-exchange-alt me-1"></i>{{ row.fecha_cambio.strftime('%d/%m/%Y %H:%M') if row.fecha_cambio else '—' }}
+        </span>
+        {% if row.ref_bitrix %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-link me-1"></i>{{ row.ref_bitrix }}
+        </span>
+        {% endif %}
+        <span class="badge rounded-pill mobile-list-card__chip" {% if row.ultimo_comentario %}title="{{ row.ultimo_comentario }}"{% endif %}>
+            <i class="fas fa-comment me-1"></i>{{ row.comentarios_count }}
+            {% if row.ultimo_comentario %} · {{ row.ultimo_comentario }}{% endif %}
+        </span>
+    </div>
+</article>

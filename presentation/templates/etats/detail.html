@@ -205,7 +205,7 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
                             <strong class="etats-activity-kpi__value text-primary">{{ total_bitrix }}</strong>
                         </div>
                     </div>
-                    <div class="table-responsive">
+                    <div class="table-responsive d-none d-lg-block d-print-block">
                         <table class="table table-sm align-middle mb-0 etats-activity-table">
                             <thead>
                                 <tr>
@@ -246,6 +246,12 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
                             </tbody>
                         </table>
                     </div>
+                    <div class="mobile-list d-lg-none d-print-none px-0" id="etats-actividad-mobile">
+                        {% set max_total = (contenu.activite_utilisateurs | map(attribute='total') | max) if contenu.activite_utilisateurs else 0 %}
+                        {% for row in contenu.activite_utilisateurs %}
+                            {% include '_mobile_list_card_etat_actividad.html' %}
+                        {% endfor %}
+                    </div>
                 </section>
                 {% endif %}
 
@@ -273,7 +279,7 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
                         </div>
                     </div>
                     <h3 class="etats-report-section__subtitle">Datos del gráfico</h3>
-                    <div class="table-responsive mb-4">
+                    <div class="table-responsive d-none d-lg-block d-print-block mb-4">
                         <table class="table table-sm align-middle mb-0 etats-evolution-data-table">
                             <thead>
                                 <tr>
@@ -296,6 +302,11 @@ Generado el {{ etat.date_creation.strftime('%d/%m/%Y a las %H:%M') }}
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                    <div class="mobile-list d-lg-none d-print-none px-0 mb-4" id="etats-evolution-mobile">
+                        {% for point in contenu.evolution %}
+                            {% include '_mobile_list_card_etat_evolution.html' %}
+                        {% endfor %}
                     </div>
                     {% endif %}
                     {% if contenu.tendances_principales %}

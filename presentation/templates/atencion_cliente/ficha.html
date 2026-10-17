@@ -12,14 +12,17 @@ Retrasos en cambio de estado (&gt; {{ filters.umbral }} min)
 <a href="{{ url_for('usuarios') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Volver a Usuarios</a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Ficha — {{ usuario.nom }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Ficha — {{ usuario.nom }}</li>
-        </ol>
-    </nav>
 
     <div class="d-flex align-items-center gap-3 mb-4">
         <img
@@ -134,7 +137,8 @@ Retrasos en cambio de estado (&gt; {{ filters.umbral }} min)
             <small class="text-white-50">{{ pagination.total }} resultado{% if pagination.total != 1 %}s{% endif %}</small>
         </div>
         <div class="card-body p-0">
-            <div class="table-responsive">
+            {% if rows %}
+            <div class="table-responsive d-none d-lg-block d-print-block">
                 <table class="table table-hover mb-0 align-middle">
                     <thead>
                         <tr>
@@ -183,16 +187,21 @@ Retrasos en cambio de estado (&gt; {{ filters.umbral }} min)
                                 {% endif %}
                             </td>
                         </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">
-                                No hay incidencias con retraso en este período.
-                            </td>
-                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            <div class="mobile-list d-lg-none d-print-none" id="ac-retrasos-mobile">
+                {% for row in rows %}
+                    {% include '_mobile_list_card_ac_retraso.html' %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay incidencias con retraso en este período.</h5>
+            </div>
+            {% endif %}
         </div>
         {% if pagination.pages > 1 %}
         <div class="card-footer">

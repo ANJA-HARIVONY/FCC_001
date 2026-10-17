@@ -56,7 +56,7 @@
                 </div>
                 <div class="card-body p-0">
                     {% if etats_recents %}
-                    <div class="table-responsive">
+                    <div class="table-responsive d-none d-lg-block d-print-block">
                         <table class="table table-hover mb-0 align-middle">
                             <thead>
                                 <tr>
@@ -144,6 +144,11 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                    <div class="mobile-list d-lg-none d-print-none" id="etats-recents-mobile">
+                        {% for etat in etats_recents %}
+                            {% include '_mobile_list_card_etat.html' %}
+                        {% endfor %}
                     </div>
                     {% else %}
                     <div class="text-center py-5 px-3">

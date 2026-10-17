@@ -22,6 +22,10 @@
     --anim-slow: 300ms;
     --anim-ease: cubic-bezier(0.2, 0, 0, 1);
 
+    /* Icone d'information : meme rendu que .nav-menu-icon de la sidebar */
+    --ui-icon-color: var(--primary-red);
+    --ui-icon-size: 1.25rem;
+
     /* Design tokens UI partages (dashboard + aide.html) */
     --ui-radius: 18px;
     --ui-radius-sm: 12px;
@@ -48,6 +52,14 @@
     --etats-gradient-analysis: var(--kpi-gradient-bitrix);
     --etats-gradient-performance: var(--kpi-gradient-resolved);
     --etats-gradient-custom: var(--kpi-gradient-pending);
+
+    /* Surfaces Informes (surchargees en dark via .etats-page) */
+    --etats-surface: #ffffff;
+    --etats-surface-grad: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    --etats-header-bg: #fff;
+    --etats-header-color: #343a40;
+    --etats-doc-bg: #fff;
+    --etats-lead-bg: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
 
     /* Glass (cartes KPI) */
     --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(248, 249, 250, 0.88) 100%);
@@ -117,20 +129,36 @@ main.page-enter {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
 }
 
-.notification-bell-count {
+.notification-bell-btn:has(.notification-bell-count:not(.d-none)) .fa-bell {
+    transform: translate(-1px, 1px);
+}
+
+/* Spécificité > .btn .badge (Bootstrap : position relative) pour coller
+   le compteur dans le rond, sans le faire déborder. */
+.notification-bell-btn .notification-bell-count.badge {
     position: absolute;
-    top: -6px;
-    right: -6px;
-    min-width: 20px;
-    height: 20px;
-    padding: 3px 5px;
-    font-size: 0.7rem;
+    top: 3px;
+    right: 3px;
+    z-index: 1;
+    box-sizing: border-box;
+    min-width: 1.05rem;
+    width: auto;
+    max-width: calc(100% - 6px);
+    height: 1.05rem;
+    margin: 0;
+    padding: 0 0.28rem;
+    font-size: 0.6rem;
+    font-weight: 700;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .notification-menu {
@@ -168,6 +196,23 @@ main.page-enter {
     box-shadow: 0 0.56875rem 2.3875rem rgba(4, 9, 20, 0.06),
                 0 1.0375rem 1.60625rem rgba(4, 9, 20, 0.05),
                 0 0.35rem 0.73125rem rgba(4, 9, 20, 0.06);
+}
+
+a.stat-card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
+a.stat-card-link:hover,
+a.stat-card-link:focus {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.stat-card-link:focus-visible .stat-card {
+    outline: 2px solid var(--primary-red, #dc3545);
+    outline-offset: 2px;
 }
 
 .stat-card .card-body {
@@ -528,13 +573,127 @@ main.page-enter {
     background-color: var(--primary-blue);
 }
 
+/* Badges rang N° incidencias — 5 clientes recurrentes (dashboard)
+   #1 saturé (primary-red) → #5 dégradé (light-red) */
+.badge-rank-1,
+.badge-rank-2,
+.badge-rank-3,
+.badge-rank-4,
+.badge-rank-5 {
+    border-radius: 999px;
+    padding: 0.35em 0.8em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.badge-rank-1 {
+    background-color: var(--primary-red);
+    color: var(--white);
+}
+
+.badge-rank-2 {
+    background-color: rgba(220, 53, 69, 0.78);
+    color: var(--white);
+}
+
+.badge-rank-3 {
+    background-color: rgba(220, 53, 69, 0.56);
+    color: var(--white);
+}
+
+.badge-rank-4 {
+    background-color: rgba(220, 53, 69, 0.34);
+    color: var(--dark-gray);
+}
+
+.badge-rank-5 {
+    background-color: var(--light-red);
+    color: var(--dark-red);
+}
+
 .bitrix-emoji {
     font-size: 1.5rem;
     line-height: 1;
 }
 
+/* Icone d'information (fiches, cartes de detail).
+   Meme metrique que .nav-menu-icon (sidebar) : 1.25rem, centre, opacity 0.85.
+   Couleur : --ui-icon-color (rouge actif sidebar ; #ff6b7a en theme sombre). */
+.ui-icon {
+    width: var(--ui-icon-size);
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.85;
+    color: var(--ui-icon-color);
+}
+
 .bitrix-info-card {
     max-width: 280px;
+}
+
+/* Carte d'etat (ficha incidencia : Pendiente / Solucionadas / Bitrix) */
+.status-detail-card,
+.bitrix-status-card {
+    max-width: 100%;
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    overflow: hidden;
+}
+
+.status-detail-card .card-header,
+.bitrix-status-card .card-header {
+    padding: 0.55rem 0.85rem;
+    border-radius: 0 !important;
+    font-size: 0.85rem;
+}
+
+.status-detail-card .card-body,
+.bitrix-status-card .card-body {
+    padding: 0.75rem 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.bitrix-status-card .card-body {
+    display: block;
+}
+
+.bitrix-status-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+@media (min-width: 768px) {
+    .bitrix-status-col + .bitrix-status-col {
+        border-left: 1px solid var(--ui-border);
+        padding-left: 1rem;
+    }
+}
+
+.status-detail-card .card-footer,
+.bitrix-status-card .card-footer {
+    padding: 0.45rem 0.85rem;
+}
+
+.bitrix-status-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+}
+
+.bitrix-status-row small {
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+}
+
+.bitrix-extras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
 }
 
 .bitrix-info-card--compact {
@@ -814,8 +973,17 @@ footer {
     line-clamp: 2;
 }
 
-.notification-operador {
+.notification-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: 1px;
+    min-width: 0;
+}
+
+.notification-operador,
+.notification-barrio {
     font-size: 11px;
     line-height: 1.25;
     font-weight: 500;
@@ -823,6 +991,19 @@ footer {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.notification-operador {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.notification-barrio {
+    flex: 0 0 auto;
+    max-width: 50%;
+    min-width: 0;
+    margin-left: auto;
+    text-align: right;
 }
 
 .notification-close {
@@ -954,7 +1135,8 @@ footer {
         font-size: 12px;
     }
 
-    .notification-operador {
+    .notification-operador,
+    .notification-barrio {
         font-size: 10px;
     }
 
@@ -2159,8 +2341,8 @@ body.login-page {
 }
 
 .etats-section-card .card-header {
-    background: #fff !important;
-    color: #343a40 !important;
+    background: var(--etats-header-bg) !important;
+    color: var(--etats-header-color) !important;
     border-bottom: 1px solid var(--ui-border);
     border-radius: 0 !important;
     padding-top: 0.85rem;
@@ -2174,8 +2356,8 @@ body.login-page {
 
 /* Variante dark-header : utilisee surtout en theme sombre (layout-shell) */
 .etats-section-card.etats-section-card--dark-header .card-header {
-    background: #fff !important;
-    color: #343a40 !important;
+    background: var(--etats-header-bg) !important;
+    color: var(--etats-header-color) !important;
     border-bottom: 1px solid var(--ui-border);
     border-radius: 0 !important;
 }
@@ -2235,7 +2417,7 @@ body.login-page {
     padding: 1rem 0.75rem;
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
-    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
+    background: var(--etats-surface-grad);
     box-shadow: var(--ui-shadow-sm);
     transition: transform var(--anim-fast) var(--anim-ease), box-shadow var(--anim-fast) var(--anim-ease);
     cursor: pointer;
@@ -2420,7 +2602,7 @@ body.login-page {
 .etats-content-lead {
     border-radius: var(--ui-radius-sm);
     border: 1px solid rgba(220, 53, 69, 0.2);
-    background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
+    background: var(--etats-lead-bg);
     padding: 1rem 1.1rem;
 }
 
@@ -2462,7 +2644,7 @@ body.login-page {
     padding: 0.55rem 0.75rem;
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: var(--etats-surface-grad);
 }
 
 .etats-custom-prose__meta dt {
@@ -2493,7 +2675,7 @@ body.login-page {
     padding: 0.55rem 0.75rem 0.55rem 1.7rem;
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
-    background: #fff;
+    background: var(--etats-surface);
 }
 
 .etats-custom-prose__list li::before {
@@ -2558,7 +2740,7 @@ body.login-page {
     padding: 0.65rem 0.8rem;
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
-    background: #fff;
+    background: var(--etats-surface);
     margin-bottom: 0.45rem;
 }
 
@@ -2596,8 +2778,9 @@ body.login-page {
     margin-bottom: 0.75rem;
     padding: 0.5rem 0.65rem;
     border-radius: var(--ui-radius-sm);
-    background: var(--light-gray);
+    background: var(--etats-surface);
     border: 1px solid var(--ui-border);
+    color: var(--dark-gray);
 }
 
 .etats-kpi-grid {
@@ -2643,7 +2826,7 @@ body.login-page {
 .etats-activity-kpi {
     border: 1px solid var(--ui-border);
     border-radius: var(--ui-radius-sm);
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: var(--etats-surface-grad);
     padding: 0.7rem 0.85rem;
 }
 
@@ -2722,7 +2905,7 @@ body.login-page {
     padding: 0.85rem 1rem;
     border-radius: var(--ui-radius);
     border: 1px solid var(--ui-border);
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: var(--etats-surface-grad);
     box-shadow: var(--ui-shadow-sm);
 }
 
@@ -2732,7 +2915,7 @@ body.login-page {
 
 /* Documento informe (ArchitectUI / A4) */
 .etats-report-doc {
-    background: #fff;
+    background: var(--etats-doc-bg);
     border: 1px solid var(--ui-border);
     border-radius: 16px;
     box-shadow: 0 0.46875rem 2.1875rem rgba(4, 9, 20, 0.03),
@@ -2832,7 +3015,7 @@ body.login-page {
     border: 1px solid var(--ui-border);
     border-radius: 12px;
     padding: 0.95rem 1.05rem 0.7rem;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: var(--etats-surface-grad);
     margin-bottom: 1rem;
 }
 
@@ -3184,7 +3367,7 @@ body.login-page {
 .etats-report-kpi-card {
     border-radius: var(--ui-radius-sm);
     border: 1px solid var(--ui-border);
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: var(--etats-surface-grad);
     padding: 1rem 1.1rem;
     box-shadow: var(--ui-shadow-sm);
     transition: box-shadow var(--anim-fast) var(--anim-ease), transform var(--anim-fast) var(--anim-ease);
@@ -3401,6 +3584,10 @@ body.login-page {
     padding: 0.85rem 0.95rem;
 }
 
+.mobile-list-card--inactive {
+    background: #f8f9fa;
+}
+
 .mobile-list-card__head {
     display: flex;
     align-items: flex-start;
@@ -3450,6 +3637,19 @@ body.login-page {
     min-height: 2.5rem;
     display: flex;
     align-items: center;
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+}
+
+.mobile-list-card__menu form {
+    margin: 0;
+}
+
+span.mobile-list-card__title:hover,
+span.mobile-list-card__title:focus {
+    color: var(--dark-gray);
 }
 
 .mobile-list-card__title {
@@ -3488,8 +3688,15 @@ body.login-page {
 .mobile-list-card__badges {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 0.35rem;
     margin-top: 0.55rem;
+}
+
+.mobile-list-card__chip--date {
+    margin-left: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .mobile-list-card__chip {
@@ -3520,12 +3727,14 @@ a.mobile-list-card__chip:focus {
     white-space: nowrap;
 }
 
-.content-card:has(.mobile-list) {
+.content-card:has(.mobile-list),
+.etats-section-card:has(.mobile-list) {
     overflow: visible;
 }
 
 @media (min-width: 992px) {
-    .content-card:has(.mobile-list) {
+    .content-card:has(.mobile-list),
+    .etats-section-card:has(.mobile-list) {
         overflow: hidden;
     }
 }
@@ -3779,4 +3988,34 @@ a.mobile-list-card__chip:focus {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
+}
+
+.perfil-avatar-btn {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 50%;
+    line-height: 0;
+    cursor: pointer;
+}
+
+.perfil-avatar-btn:hover,
+.perfil-avatar-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.35);
+}
+
+.perfil-avatar-thumb {
+    object-fit: cover;
+    display: block;
+}
+
+.perfil-avatar-preview {
+    background: rgba(15, 20, 28, 0.04);
+}
+
+.perfil-avatar-full {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
 }

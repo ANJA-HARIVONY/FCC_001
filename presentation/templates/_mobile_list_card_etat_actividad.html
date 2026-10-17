@@ -1,0 +1,23 @@
+{# Carte mobile de actividad por usuario (informe performance).
+   Variables : row (requis), max_total (optionnel) #}
+{% set eficacia = ((row.solucionadas / row.total) * 100) if row.total else 0 %}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="etats-user-dot"></span>
+            {% if max_total is defined and row.total == max_total and max_total > 0 %}
+            <span class="badge bg-warning text-dark">Top</span>
+            {% endif %}
+        </div>
+        <span class="badge rounded-pill mobile-list-card__chip">{{ eficacia|round(1) }}%</span>
+    </div>
+    <span class="mobile-list-card__title">{{ row.usuario }}</span>
+    <div class="mobile-list-card__badges">
+        <span class="badge rounded-pill mobile-list-card__chip">Total {{ row.total }}</span>
+        <span class="badge rounded-pill mobile-list-card__chip text-success">Solucionadas {{ row.solucionadas }}</span>
+        <span class="badge rounded-pill mobile-list-card__chip text-primary">Bitrix {{ row.bitrix }}</span>
+    </div>
+    <div class="progress etats-efficacy-progress mt-2" style="max-width:100%">
+        <div class="progress-bar bg-success" style="width: {{ eficacia }}%;"></div>
+    </div>
+</article>

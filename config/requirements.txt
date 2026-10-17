@@ -19,9 +19,6 @@ Babel==2.14.0
 pytz==2023.3
 openpyxl>=3.1.0
 
-# PDF (WeasyPrint) : optionnel — voir config/requirements-pdf.txt
-# Désactiver côté app : WEASYPRINT_AVAILABLE=false
-
 # Development dependencies (comment out for production)
 # flask-debugtoolbar==0.15.1
 # pytest==7.4.3

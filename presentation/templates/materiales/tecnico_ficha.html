@@ -8,15 +8,17 @@
 <a href="{{ url_for('usuarios') }}" class="btn btn-secondary btn-sm">Volver a usuarios</a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ tecnico.nom }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ tecnico.nom }}</li>
-        </ol>
-    </nav>
-
     <div class="card content-card mb-4">
         <div class="card-header"><h5 class="mb-0">Datos del técnico</h5></div>
         <div class="card-body">
@@ -31,7 +33,8 @@
     <div class="card content-card">
         <div class="card-header"><h5 class="mb-0"><i class="fas fa-toolbox me-2"></i>Materiales asignados</h5></div>
         <div class="card-body p-0">
-            <div class="table-responsive">
+            {% if rows %}
+            <div class="table-responsive d-none d-lg-block d-print-block">
                 <table class="table table-hover mb-0 align-middle">
                     <thead>
                         <tr>
@@ -52,12 +55,22 @@
                             <td class="text-end">{{ row.cantidad }}</td>
                             <td>{{ salida.client.nom if salida and salida.client else 'Uso general' }}</td>
                         </tr>
-                        {% else %}
-                        <tr><td colspan="5" class="text-center text-muted py-4">No hay materiales registrados para este técnico.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
+            <div class="mobile-list d-lg-none d-print-none" id="tecnico-materiales-mobile">
+                {% for row in rows %}
+                    {% set variant = 'tecnico' %}
+                    {% include '_mobile_list_card_material_asignado.html' %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5 px-3">
+                <i class="fas fa-toolbox fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No hay materiales registrados para este técnico.</h5>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

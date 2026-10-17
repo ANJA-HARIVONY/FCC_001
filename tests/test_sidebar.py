@@ -1,0 +1,305 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Tests unitaires — navigation sidebar (endpoints valides, droits admin)."""
+
+import os
+import re
+import unittest
+
+os.environ['FLASK_ENV'] = 'testing'
+os.environ['WTF_CSRF_ENABLED'] = 'false'
+
+from flask import render_template  # noqa: E402
+from flask_login import login_user  # noqa: E402
+
+from core.app import (  # noqa: E402
+    Agencia,
+    Ciudad,
+    Client,
+    Operateur,
+    app,
+    db,
+    ensure_ciudad_agencia_seed,
+)
+from werkzeug.security import generate_password_hash  # noqa: E402
+
+_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+_SIDEBAR = os.path.join(_ROOT, 'presentation', 'templates', 'partials', '_sidebar.html')
+_URL_FOR_RE = re.compile(r"url_for\(\s*'([^']+)'")
+
+
+def _sidebar_endpoints():
+    with open(_SIDEBAR, encoding='utf-8') as handle:
+        return _URL_FOR_RE.findall(handle.read())
+
+
+def _sidebar_source():
+    with open(_SIDEBAR, encoding='utf-8') as handle:
+        return handle.read()
+
+
+class SidebarTemplateTests(unittest.TestCase):
+    def test_sidebar_url_for_endpoints_existen(self):
+        endpoints = _sidebar_endpoints()
+        self.assertTrue(endpoints)
+        missing = [ep for ep in endpoints if ep not in app.view_functions]
+        self.assertEqual(
+            missing,
+            [],
+            f'url_for en _sidebar.html apunta a rutas inexistentes: {missing}',
+        )
+
+    def test_instalaciones_no_reutiliza_nav_materiales(self):
+        source = _sidebar_source()
+        self.assertIn('nav-menu-label">Instalaciones', source)
+        prefix = source.split('nav-menu-label">Instalaciones', 1)[0]
+        block = prefix[prefix.rfind('<li '):]
+        self.assertNotIn(
+            'nav_materiales',
+            block,
+            'El ítem Instalaciones no debe reutilizar nav_materiales '
+            '(Materiales y Instalaciones quedarían activos a la vez).',
+        )
+        self.assertIn('nav_instalaciones', block)
+
+    def test_materiales_e_instalaciones_tienen_hubs_distintos(self):
+        source = _sidebar_source()
+        self.assertIn("url_for('materiales_hub')", source)
+        self.assertIn("url_for('instalaciones_hub')", source)
+        self.assertIn('instalaciones_hub', app.view_functions)
+
+
+class SidebarRenderTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.app = app
+        cls.app.config['TESTING'] = True
+        cls.app.config['WTF_CSRF_ENABLED'] = False
+        cls.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        cls.ctx = cls.app.app_context()
+        cls.ctx.push()
+        db.create_all()
+        ensure_ciudad_agencia_seed()
+        ciudad = Ciudad.query.first()
+        agencia = Agencia.query.first()
+        cls.admin = Operateur(
+            nom='admin_test',
+            telephone='240000001',
+            email='admin_test@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=ciudad.id,
+            id_agencia=agencia.id,
+            role='admin',
+            actif=True,
+        )
+        cls.usuario = Operateur(
+            nom='usuario_test',
+            telephone='240000002',
+            email='usuario_test@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=ciudad.id,
+            id_agencia=agencia.id,
+            role='usuario',
+            actif=True,
+        )
+        cls.superadmin = Operateur(
+            nom='superadmin_test',
+            telephone='240000003',
+            email='superadmin_test@example.com',
+            mot_de_passe_hash=generate_password_hash('secret'),
+            id_ciudad=ciudad.id,
+            id_agencia=agencia.id,
+            role='superadmin',
+            actif=True,
+        )
+        db.session.add_all([cls.admin, cls.usuario, cls.superadmin])
+        db.session.commit()
+
+    @classmethod
+    def tearDownClass(cls):
+        db.session.remove()
+        db.drop_all()
+        cls.ctx.pop()
+
+    def _render_sidebar(self, user):
+        with self.app.test_request_context('/'):
+            login_user(user)
+            return render_template('partials/_sidebar.html')
+
+    def test_admin_sidebar_materiales_e_instalaciones(self):
+        html = self._render_sidebar(self.admin)
+        self.assertIn('nav-menu-label">Materiales', html)
+        self.assertIn('/materiales', html)
+        self.assertIn('nav-menu-label">Instalaciones', html)
+        self.assertIn('/instalaciones', html)
+
+    def test_usuario_no_ve_materiales_ni_instalaciones(self):
+        html = self._render_sidebar(self.usuario)
+        self.assertNotIn('nav-menu-label">Materiales', html)
+        self.assertNotIn('nav-menu-label">Instalaciones', html)
+        self.assertNotIn('nav-menu-label">Usuarios', html)
+        self.assertIn('nav-menu-label">Clientes', html)
+        self.assertIn('nav-menu-label">Perfil', html)
+
+    def test_admin_no_ve_administracion(self):
+        html = self._render_sidebar(self.admin)
+        self.assertIn('nav-menu-label">Materiales', html)
+        self.assertNotIn('nav-menu-label">Usuarios', html)
+        self.assertNotIn('nav-menu-label">Trazabilidad', html)
+        self.assertNotIn('nav-menu-label">Base de datos', html)
+        self.assertIn('nav-menu-label">Perfil', html)
+
+    def test_superadmin_ve_administracion(self):
+        html = self._render_sidebar(self.superadmin)
+        self.assertIn('nav-menu-label">Materiales', html)
+        self.assertIn('nav-menu-label">Usuarios', html)
+        self.assertIn('nav-menu-label">Trazabilidad', html)
+        self.assertIn('nav-menu-label">Base de datos', html)
+
+    def test_usuarios_reservado_al_superadmin(self):
+        from werkzeug.exceptions import Forbidden
+
+        with self.app.test_request_context('/usuarios'):
+            login_user(self.admin)
+            with self.assertRaises(Forbidden):
+                self.app.view_functions['usuarios']()
+
+        with self.app.test_request_context('/usuarios'):
+            login_user(self.superadmin)
+            html = self.app.view_functions['usuarios']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('SuperAdmin', html)
+
+    def test_usuario_ve_clientes_de_otra_ciudad(self):
+        otra = Ciudad.query.filter(Ciudad.id != self.usuario.id_ciudad).first()
+        self.assertIsNotNone(otra)
+        ajeno = Client(
+            nom='Cliente ajeno',
+            telephone='240000099',
+            adresse='Otra calle',
+            ville='Otra',
+            id_ciudad=otra.id,
+        )
+        propio = Client(
+            nom='Cliente propio',
+            telephone='240000098',
+            adresse='Mi calle',
+            ville='Mia',
+            id_ciudad=self.usuario.id_ciudad,
+        )
+        db.session.add_all([ajeno, propio])
+        db.session.commit()
+
+        with self.app.test_request_context('/clients'):
+            login_user(self.usuario)
+            html = self.app.view_functions['clients']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('Cliente propio', html)
+            self.assertIn('Cliente ajeno', html)
+
+        with self.app.test_request_context(f'/clients/{ajeno.id}/fiche'):
+            login_user(self.usuario)
+            html = self.app.view_functions['fiche_client'](ajeno.id)
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('Cliente ajeno', html)
+
+    def test_admin_no_ve_incidencia_de_otra_agencia(self):
+        from core.app import Incident, apply_incident_visibility
+
+        otra = Agencia.query.filter(Agencia.id_ciudad != self.admin.id_ciudad).first()
+        self.assertIsNotNone(otra)
+        otro = Operateur(
+            nom='otro_agencia',
+            telephone='240000097',
+            email='otro_agencia@example.com',
+            mot_de_passe_hash=generate_password_hash('x'),
+            id_ciudad=otra.id_ciudad,
+            id_agencia=otra.id,
+            role='usuario',
+            actif=True,
+        )
+        client = Client(
+            nom='Cliente otra agencia',
+            telephone='240000096',
+            adresse='Lejos',
+            ville='Lejos',
+            id_ciudad=otra.id_ciudad,
+        )
+        db.session.add_all([otro, client])
+        db.session.commit()
+        ajena = Incident(
+            id_client=client.id,
+            intitule='Incidencia ajena',
+            status='Pendiente',
+            id_operateur=otro.id,
+        )
+        local_client = Client(
+            nom='Cliente local admin',
+            telephone='240000095',
+            adresse='Aqui',
+            ville='Aqui',
+            id_ciudad=self.admin.id_ciudad,
+        )
+        db.session.add(local_client)
+        db.session.commit()
+        propia = Incident(
+            id_client=local_client.id,
+            intitule='Incidencia local',
+            status='Pendiente',
+            id_operateur=self.admin.id,
+        )
+        db.session.add_all([ajena, propia])
+        db.session.commit()
+
+        with self.app.test_request_context('/incidents'):
+            login_user(self.admin)
+            visibles = {
+                row.id for row in apply_incident_visibility(Incident.query).all()
+            }
+            self.assertIn(propia.id, visibles)
+            self.assertNotIn(ajena.id, visibles)
+
+        with self.app.test_request_context('/incidents'):
+            login_user(self.superadmin)
+            visibles = {
+                row.id for row in apply_incident_visibility(Incident.query).all()
+            }
+            self.assertIn(ajena.id, visibles)
+            self.assertIn(propia.id, visibles)
+
+    def test_instalaciones_hub_admin_ok_usuario_403(self):
+        from werkzeug.exceptions import Forbidden
+
+        with self.app.test_request_context('/instalaciones'):
+            login_user(self.admin)
+            html = self.app.view_functions['instalaciones_hub']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+            self.assertIn('Nueva instalación', html)
+            self.assertIn('/instalaciones/nueva', html)
+            self.assertIn('name="estado"', html)
+            self.assertIn('Filtros de búsqueda', html)
+            self.assertIn('name="per_page"', html)
+            self.assertIn('name="search"', html)
+            self.assertIn('name="tecnico"', html)
+            self.assertIn('name="date_from"', html)
+            self.assertIn('name="date_to"', html)
+
+        with self.app.test_request_context('/instalaciones'):
+            login_user(self.usuario)
+            with self.assertRaises(Forbidden):
+                self.app.view_functions['instalaciones_hub']()
+
+    def test_nueva_salida_instalacion_sin_instalacion_redirige(self):
+        with self.app.test_request_context('/materiales/salida/nueva?tipo=instalacion'):
+            login_user(self.admin)
+            resp = self.app.view_functions['materiales_salida_nueva']()
+            self.assertEqual(resp.status_code, 302)
+            self.assertIn('/instalaciones/nueva', resp.location)
+
+
+if __name__ == '__main__':
+    unittest.main()

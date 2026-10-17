@@ -1,0 +1,41 @@
+{# Carte mobile de un operador (lista legacy).
+   Variables : operateur (requis) #}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            <span class="mobile-list-card__id">#{{ operateur.id }}</span>
+            <span class="badge bg-secondary">{{ operateur.incidents|length }} incidencias</span>
+        </div>
+        <div class="dropdown mobile-list-card__menu">
+            <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button"
+                    data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false"
+                    aria-label="Acciones">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ url_for('modifier_operateur', id=operateur.id) }}">
+                        <i class="fas fa-edit me-2"></i>Modificar
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button type="button" class="dropdown-item text-danger"
+                            data-operateur-id="{{ operateur.id }}"
+                            data-operateur-nom="{{ operateur.nom }}"
+                            onclick="confirmerSuppression(this)">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <span class="mobile-list-card__title">{{ operateur.nom }}</span>
+    <div class="mobile-list-card__badges">
+        {% if operateur.telephone %}
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-phone me-1"></i>{{ operateur.telephone }}
+        </span>
+        {% endif %}
+    </div>
+</article>

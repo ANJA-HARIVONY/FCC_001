@@ -11,16 +11,17 @@
 </a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('incidents') }}">Incidencias</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Nueva Incidencia</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('incidents') }}">Incidencias</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Nueva Incidencia</li>
-        </ol>
-    </nav>
-
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card content-card">
@@ -83,9 +84,9 @@
                         </div>
                         
                         <div class="mb-3" id="ref_bitrix_group" style="display:none;">
-                            <label for="ref_bitrix" class="form-label">Referencia Bitrix (5 dígitos)</label>
+                            <label for="ref_bitrix" class="form-label">Referencia Bitrix</label>
                             <input type="text" class="form-control" id="ref_bitrix" name="ref_bitrix" 
-                                   placeholder="Ej: 82255" maxlength="10" pattern="[0-9]{5}" title="5 dígitos numéricos">
+                                   placeholder="Ej: 8225512345" maxlength="10" pattern="[0-9]{1,10}" title="Hasta 10 dígitos numéricos" inputmode="numeric">
                             <small class="form-text text-muted">Aqui se pone la referencia de Bitrix</small>
                         </div>
                         
@@ -120,7 +121,7 @@ let selectedClientId = null;
 // Charger les données des clients depuis l'API
 async function loadClientsData() {
     try {
-        const response = await fetch('/api/clients-search');
+        const response = await fetch('/api/clients-search?movimiento=1');
         if (response.ok) {
             clientsData = await response.json();
         } else {

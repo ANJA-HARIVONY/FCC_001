@@ -1,0 +1,3 @@
+{# Badge estado de instalación. Variable : s (Instalacion) #}
+{% set instalacion_estado_badge = {'en_curso': 'bg-warning text-dark', 'terminada': 'bg-success'} %}
+<span class="badge {{ instalacion_estado_badge.get(s.estado, 'bg-secondary') }}">{{ INSTALACION_ESTADO_LABELS.get(s.estado, s.estado) }}</span>

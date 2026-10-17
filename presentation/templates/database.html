@@ -55,7 +55,7 @@
                             <h6 class="fw-semibold text-muted text-uppercase small mb-2">
                                 <i class="fas fa-table me-1"></i>Tablas y Registros
                             </h6>
-                            <div class="table-responsive">
+                            <div class="table-responsive d-none d-lg-block">
                                 <table class="table table-sm table-hover mb-0">
                                     <thead class="table-light">
                                         <tr>
@@ -66,6 +66,7 @@
                                     <tbody id="tabla-conteos"></tbody>
                                 </table>
                             </div>
+                            <div class="mobile-list d-lg-none d-print-none px-0" id="tabla-conteos-mobile"></div>
                         </div>
 
                         <!-- Intégrité -->
@@ -243,7 +244,11 @@ function renderVerificacion(d) {
 
     // Conteos
     const tbodyConteos = document.getElementById('tabla-conteos');
+    const mobileConteos = document.getElementById('tabla-conteos-mobile');
     tbodyConteos.innerHTML = '';
+    if (mobileConteos) {
+        mobileConteos.innerHTML = '';
+    }
     if (d.tables && d.tables.length > 0) {
         d.tables.forEach(t => {
             const count = d.counts[t] !== undefined ? d.counts[t] : '—';
@@ -252,9 +257,23 @@ function renderVerificacion(d) {
                     <td><i class="fas fa-table text-muted me-1 small"></i>${t}</td>
                     <td class="text-end fw-semibold">${count}</td>
                 </tr>`;
+            if (mobileConteos) {
+                mobileConteos.innerHTML += `
+                    <article class="mobile-list-card">
+                        <div class="mobile-list-card__head">
+                            <div class="mobile-list-card__meta">
+                                <span class="mobile-list-card__title">${t}</span>
+                            </div>
+                            <span class="badge bg-light text-dark">${count}</span>
+                        </div>
+                    </article>`;
+            }
         });
     } else {
         tbodyConteos.innerHTML = '<tr><td colspan="2" class="text-muted text-center">No se encontraron tablas</td></tr>';
+        if (mobileConteos) {
+            mobileConteos.innerHTML = '<p class="text-muted text-center mb-0">No se encontraron tablas</p>';
+        }
     }
 
     // Intégrité

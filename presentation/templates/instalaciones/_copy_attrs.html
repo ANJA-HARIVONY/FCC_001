@@ -1,0 +1,4 @@
+{# Attributs du bouton Copiar. Variable : s (Instalacion) #}
+data-client-nom="{{ s.client.nom if s.client else '' }}"
+data-tecnico="{{ s.tecnico.nom if s.tecnico else '' }}"
+data-materiales="{% for linea in s.lineas_material %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %} | {% endif %}{% endfor %}"

@@ -1,0 +1,33 @@
+---
+description: Auth, CSRF, sessions, secrets et intégrations lecture seule (Bitrix, RADIUS)
+alwaysApply: true
+---
+
+# FCC_001 — sécurité et intégrations
+
+## Auth / session / CSRF
+
+- Gate globale `require_authentication()` sauf `login`, `set_language`, `static`
+- Login : email (case-insensitive) **ou** téléphone **ou** nom unique. `actif=False` refusé
+- Session : 12 h max, idle 30 min, alerte 2 min (`session-timeout.js`, `POST /api/session/ping`)
+- CSRF partout : `{{ csrf_token() }}` ; fetch → `X-CSRFToken` (`js/csrf.js` / `window.fcc`)
+- Redirect `next` : uniquement `_safe_redirect_target` (même hôte)
+- Mots de passe : `werkzeug.security` uniquement
+- Un admin ne peut pas se désactiver lui-même
+- Cookies : `HttpOnly`, `SameSite=Lax` ; `Secure` **en prod seulement** (en local ça casse le login CSRF)
+
+## Secrets et headers
+
+- Secrets dans `.env` uniquement. Jamais dans le code, un template, un commit ou un log
+- Ne pas retirer `apply_security_headers` (CSP, frame, nosniff, Referrer-Policy, HSTS si HTTPS)
+- Nouveau CDN → mettre à jour `_CSP_DIRECTIVES`
+- XSS : échapper avant `Markup` (`nl2br`). Pas de HTML utilisateur en `|safe`
+- Logger `fcc_001` : pas de mot de passe, pas d’URI complète
+
+## Intégrations — lecture + cache, jamais d’écriture
+
+- **Bitrix24** : cache `bitrix_*`, TTL ~600 s, statut `'5'` → `bitrix_fetch_locked`. Pas d’écriture API
+- **RADIUS** : lecture via `username_radius`, cache ~300 s. Pas d’écriture RADIUS
+- **Gemini** : uniquement informes (`etats_routes`). Prompts en espagnol
+- **Odoo / Kimi / WeasyPrint** : ne pas les activer sans demande
+- Flags `BITRIX24_*` / `RADIUS_ENABLED` : si off, message ES clair, pas d’exception brute

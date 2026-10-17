@@ -27,8 +27,6 @@ SALIDA_TIPO_LABELS = {
     'instalacion': 'Instalación',
 }
 
-INFORME_GROUP_MODES = ('material', 'tecnico')
-
 INFORME_SALIDAS_COUNT_LABELS = {
     'incidencia': 'Nº incidencias',
     'instalacion': 'Nº instalaciones',
@@ -50,21 +48,35 @@ def _allowed_material_foto(filename):
 
 
 def _project_root():
-    from core.app import app
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-    return os.path.abspath(os.path.join(app.root_path, '..'))
+
+def _material_foto_search_dirs():
+    """Dossiers où une photo peut se trouver (écriture = premier)."""
+    root = _project_root()
+    return [
+        os.path.join(root, 'presentation', 'uploads', 'materiales'),
+        os.path.join(root, 'instance', 'uploads', 'materiales'),
+        os.path.join(root, 'presentation', 'static', 'materiales'),
+    ]
 
 
 def _material_foto_dir():
-    foto_dir = os.path.join(_project_root(), 'instance', 'uploads', 'materiales')
+    foto_dir = _material_foto_search_dirs()[0]
     os.makedirs(foto_dir, exist_ok=True)
     return foto_dir
 
 
-def _legacy_static_foto_dir():
-    from core.app import app
-
-    return os.path.abspath(os.path.join(app.root_path, app.static_folder, 'materiales'))
+def resolve_material_foto_file(filename):
+    """Chemin disque d'une photo, ou None si absente / nom invalide."""
+    safe_name = secure_filename(filename or '')
+    if not safe_name or safe_name != filename:
+        return None
+    for directory in _material_foto_search_dirs():
+        path = os.path.join(directory, safe_name)
+        if os.path.isfile(path):
+            return path
+    return None
 
 
 def material_foto_filename(foto_path):
@@ -90,11 +102,10 @@ def material_foto_url(foto_path):
 
 
 def migrate_material_fotos_storage():
-    """Déplace les photos vers instance/uploads et normalise les chemins en base."""
+    """Regroupe les photos vers le dossier d'uploads persistant et normalise les chemins."""
     from core.app import Material, db
 
     upload_dir = _material_foto_dir()
-    legacy_dir = _legacy_static_foto_dir()
     changed = False
 
     for material in Material.query.filter(Material.foto.isnot(None)).all():
@@ -106,12 +117,12 @@ def migrate_material_fotos_storage():
 
         dst = os.path.join(upload_dir, fname)
         if not os.path.isfile(dst):
-            for src_dir in (legacy_dir, upload_dir):
-                src = os.path.join(src_dir, fname)
-                if os.path.isfile(src):
-                    if src != dst:
-                        shutil.copy2(src, dst)
-                    break
+            src = resolve_material_foto_file(fname)
+            if src and src != dst:
+                shutil.copy2(src, dst)
+
+        if not os.path.isfile(dst):
+            continue
 
         new_path = f'/uploads/materiales/{fname}'
         if material.foto != new_path:
@@ -124,7 +135,7 @@ def migrate_material_fotos_storage():
 
 def _remove_material_foto_files(material_id):
     fname_pattern = f'material_{material_id}.*'
-    for base_dir in (_material_foto_dir(), _legacy_static_foto_dir()):
+    for base_dir in _material_foto_search_dirs():
         for path in glob.glob(os.path.join(base_dir, fname_pattern)):
             try:
                 os.remove(path)
@@ -181,6 +192,16 @@ def parse_lineas_form(form):
     return lineas
 
 
+def _restricts_movements():
+    """Vrai dans une requête authentifiée qui n'est pas superadmin."""
+    from flask import has_request_context
+    from flask_login import current_user
+
+    if not has_request_context():
+        return False
+    return bool(getattr(current_user, 'is_authenticated', False)) and not current_user.is_superadmin()
+
+
 def _validate_tecnico(tecnico_id):
     from core.app import Operateur, normalize_categoria_operateur
 
@@ -189,6 +210,11 @@ def _validate_tecnico(tecnico_id):
         raise MaterialesValidationError('Seleccione un técnico válido.')
     if normalize_categoria_operateur(tecnico.categoria) != 'tecnico':
         raise MaterialesValidationError('El usuario seleccionado no es un técnico.')
+    if _restricts_movements():
+        from flask_login import current_user
+
+        if tecnico.id_agencia != current_user.id_agencia or tecnico.id_ciudad != current_user.id_ciudad:
+            raise MaterialesValidationError('El técnico no pertenece a su agencia.')
     return tecnico
 
 
@@ -200,7 +226,29 @@ def _validate_client(client_id):
     client = Client.query.get(client_id)
     if not client:
         raise MaterialesValidationError('Cliente seleccionado no válido.')
+    if _restricts_movements():
+        from flask_login import current_user
+
+        if client.id_ciudad != current_user.id_ciudad:
+            raise MaterialesValidationError('El cliente no pertenece a su ciudad.')
     return client
+
+
+def _filter_salida_ciudad(query, ciudad_id):
+    """Client de la ciudad, ou uso interno du técnico de cette ciudad."""
+    from core.app import MaterialSalida, Operateur, db
+
+    if not ciudad_id:
+        return query
+    return query.filter(
+        db.or_(
+            MaterialSalida.client.has(id_ciudad=ciudad_id),
+            db.and_(
+                MaterialSalida.id_client.is_(None),
+                Operateur.id_ciudad == ciudad_id,
+            ),
+        )
+    )
 
 
 def _validate_materials(lineas, activos_only=True):
@@ -270,11 +318,16 @@ def create_salida(form, current_user):
     lineas = parse_lineas_form(form)
     _validate_materials(lineas)
 
+    from core.services.instalaciones_service import resolve_instalacion_for_salida
+
+    instalacion = resolve_instalacion_for_salida(tipo_salida, client_id, form)
+
     salida = MaterialSalida(
         fecha=fecha,
         id_tecnico=tecnico_id,
         id_client=client_id,
         tipo_salida=tipo_salida,
+        id_instalacion=instalacion.id if instalacion else None,
         observaciones=parse_observaciones_form(form),
         estado='registrada',
         id_operateur_registro=current_user.id,
@@ -311,6 +364,8 @@ def update_salida(salida_id, form, current_user):
     )
     if client_id:
         _validate_client(client_id)
+    if salida.instalacion is not None and salida.instalacion.id_client != client_id:
+        raise MaterialesValidationError('El cliente no coincide con la instalación.')
     lineas = parse_lineas_form(form)
     _validate_materials(lineas, activos_only=False)
 
@@ -331,7 +386,22 @@ def update_salida(salida_id, form, current_user):
     return salida
 
 
-def salidas_base_query(agencia_id=None):
+def delete_salida(salida_id, current_user):
+    """Supprime une salida et ses lignes. Les photos d'installation restent (id_salida → NULL)."""
+    from core.app import MaterialSalida, db, write_audit
+
+    salida = db.session.get(MaterialSalida, salida_id)
+    if not salida:
+        raise MaterialesValidationError('Salida no encontrada.')
+
+    sid = salida.id
+    db.session.delete(salida)
+    db.session.commit()
+    write_audit('DELETE_MATERIAL_SALIDA', id_operateur=current_user.id, detail=f'salida_id={sid}')
+    return sid
+
+
+def salidas_base_query(agencia_id=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = MaterialSalida.query.options(
@@ -344,11 +414,26 @@ def salidas_base_query(agencia_id=None):
 
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
-    return query
+    return _filter_salida_ciudad(query, ciudad_id)
+
+
+LIST_PER_PAGE_CHOICES = (50, 100, 200, 500)
+DEFAULT_LIST_PER_PAGE = 50
+
+
+def clamp_list_per_page(value, default=DEFAULT_LIST_PER_PAGE):
+    """Alinea per_page con las listas clientes / incidencias (50, 100, 200, 500)."""
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    if parsed in LIST_PER_PAGE_CHOICES:
+        return parsed
+    return default
 
 
 def apply_salida_list_filters(query, request_args):
-    from core.app import MaterialSalida, SALIDA_TIPOS
+    from core.app import Client, Material, MaterialSalida, MaterialSalidaLinea, Operateur, SALIDA_TIPOS, db
 
     estado = (request_args.get('estado') or '').strip()
     if estado in SALIDA_ESTADO_LABELS:
@@ -383,10 +468,29 @@ def apply_salida_list_filters(query, request_args):
     if material_id:
         query = query.filter(MaterialSalida.lineas.any(id_material=material_id))
 
+    search = (request_args.get('search') or '').strip()
+    if search:
+        clauses = [
+            Operateur.nom.contains(search),
+            MaterialSalida.observaciones.contains(search),
+            MaterialSalida.client.has(
+                db.or_(
+                    Client.nom.contains(search),
+                    Client.telephone.contains(search),
+                )
+            ),
+            MaterialSalida.lineas.any(
+                MaterialSalidaLinea.material.has(Material.nombre.contains(search))
+            ),
+        ]
+        if search.isdigit():
+            clauses.append(MaterialSalida.id == int(search))
+        query = query.filter(db.or_(*clauses))
+
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id))
 
 
-def get_salidas_material_filter_options(agencia_id=None):
+def get_salidas_material_filter_options(agencia_id=None, ciudad_id=None):
     from core.app import Material, MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = (
@@ -397,6 +501,7 @@ def get_salidas_material_filter_options(agencia_id=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
 
     rows = (
         query.distinct()
@@ -431,7 +536,7 @@ def salida_resumen_lineas(salida):
     return ', '.join(parts) if parts else '—'
 
 
-def get_client_material_rows(client_id, agencia_id=None):
+def get_client_material_rows(client_id, agencia_id=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = (
@@ -442,10 +547,11 @@ def get_client_material_rows(client_id, agencia_id=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id)).all()
 
 
-def get_tecnico_material_rows(tecnico_id, agencia_id=None):
+def get_tecnico_material_rows(tecnico_id, agencia_id=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     query = (
@@ -453,10 +559,11 @@ def get_tecnico_material_rows(tecnico_id, agencia_id=None):
         .join(MaterialSalida, MaterialSalidaLinea.id_salida == MaterialSalida.id)
         .filter(MaterialSalida.id_tecnico == tecnico_id)
     )
-    if agencia_id:
-        query = query.join(Operateur, MaterialSalida.id_tecnico == Operateur.id).filter(
-            Operateur.id_agencia == agencia_id
-        )
+    if agencia_id or ciudad_id:
+        query = query.join(Operateur, MaterialSalida.id_tecnico == Operateur.id)
+        if agencia_id:
+            query = query.filter(Operateur.id_agencia == agencia_id)
+        query = _filter_salida_ciudad(query, ciudad_id)
     return query.order_by(desc(MaterialSalida.fecha), desc(MaterialSalida.id)).all()
 
 
@@ -470,7 +577,7 @@ def db_session_query_lineas():
     )
 
 
-def build_informe_rows(date_from, date_to, agencia_id=None, filters=None):
+def build_informe_rows(date_from, date_to, agencia_id=None, filters=None, ciudad_id=None):
     from core.app import MaterialSalida, MaterialSalidaLinea, Operateur
 
     if not date_from or not date_to:
@@ -494,6 +601,7 @@ def build_informe_rows(date_from, date_to, agencia_id=None, filters=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
 
     query = apply_informe_lineas_filters(query, filters)
 
@@ -546,7 +654,7 @@ def apply_informe_lineas_filters(query, filters):
     return query
 
 
-def get_informe_material_filter_options(date_from, date_to, agencia_id=None):
+def get_informe_material_filter_options(date_from, date_to, agencia_id=None, ciudad_id=None):
     """Materiales con al menos una línea de salida en el período indicado."""
     from core.app import Material, MaterialSalida, MaterialSalidaLinea, Operateur
 
@@ -567,6 +675,7 @@ def get_informe_material_filter_options(date_from, date_to, agencia_id=None):
     )
     if agencia_id:
         query = query.filter(Operateur.id_agencia == agencia_id)
+    query = _filter_salida_ciudad(query, ciudad_id)
 
     rows = (
         query.distinct()
@@ -619,16 +728,12 @@ def build_informe_resumen(lineas, filters=None):
     }
 
 
-def build_informe_page_data(date_from, date_to, agencia_id=None, filters=None):
+def build_informe_page_data(date_from, date_to, agencia_id=None, filters=None, ciudad_id=None):
     """Datos de la página informe: líneas de detalle + bloque resumen."""
     filters = filters or {}
-    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters)
+    lineas = build_informe_rows(date_from, date_to, agencia_id, filters=filters, ciudad_id=ciudad_id)
     resumen = build_informe_resumen(lineas, filters)
     return lineas, resumen
-
-
-def _informe_group_key_material(linea):
-    return linea.id_material or 0
 
 
 def _informe_group_label_material(linea):
@@ -639,80 +744,6 @@ def _informe_group_label_material(linea):
     if material.modelo:
         label = f'{label} ({material.modelo})'
     return label
-
-
-def _informe_group_key_tecnico(linea):
-    salida = linea.salida
-    return salida.id_tecnico if salida else 0
-
-
-def _informe_group_label_tecnico(linea):
-    salida = linea.salida
-    if salida and salida.tecnico:
-        return salida.tecnico.nom
-    return 'Técnico desconocido'
-
-
-def _build_informe_display_items_from_lineas(lineas, group_by='material'):
-    if group_by not in INFORME_GROUP_MODES:
-        group_by = 'material'
-
-    if group_by == 'tecnico':
-        lineas.sort(key=lambda linea: (
-            _informe_group_label_tecnico(linea).lower(),
-            linea.salida.fecha if linea.salida else datetime.min.date(),
-            linea.id,
-        ))
-        group_key = _informe_group_key_tecnico
-        group_label = _informe_group_label_tecnico
-    else:
-        lineas.sort(key=lambda linea: (
-            _informe_group_label_material(linea).lower(),
-            linea.salida.fecha if linea.salida else datetime.min.date(),
-            linea.id,
-        ))
-        group_key = _informe_group_key_material
-        group_label = _informe_group_label_material
-
-    items = []
-    current_key = None
-    current_total = 0
-    current_label = ''
-
-    def flush_subtotal():
-        nonlocal current_total
-        if current_key is not None:
-            items.append({
-                'kind': 'subtotal',
-                'label': current_label,
-                'cantidad': current_total,
-            })
-            current_total = 0
-
-    for linea in lineas:
-        key = group_key(linea)
-        if current_key is not None and key != current_key:
-            flush_subtotal()
-        if key != current_key:
-            current_key = key
-            current_label = group_label(linea)
-        items.append({'kind': 'data', 'linea': linea})
-        current_total += linea.cantidad
-
-    flush_subtotal()
-    return items
-
-
-def build_informe_report(date_from, date_to, agencia_id=None, filters=None, group_by=None):
-    """Compatibilidad: devuelve líneas de detalle y resumen (sin subtotales)."""
-    del group_by  # obsoleto — agrupación solo en bloque resumen por material
-    return build_informe_page_data(date_from, date_to, agencia_id, filters=filters)
-
-
-def build_informe_display_items(date_from, date_to, agencia_id=None, group_by='material', filters=None):
-    """Líneas de detalle planas (sin filas de subtotal)."""
-    lineas, _resumen = build_informe_page_data(date_from, date_to, agencia_id, filters=filters)
-    return [{'kind': 'data', 'linea': linea} for linea in lineas]
 
 
 def create_material(form, current_user, foto_file=None):

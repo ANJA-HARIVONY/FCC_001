@@ -30,27 +30,13 @@ WORKDIR /app
 # =============================================================================
 FROM base AS builder
 
-# Installer les dépendances système nécessaires pour WeasyPrint et les packages Python
+# Dépendances système pour compiler les paquets Python (cryptography, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Dépendances de compilation
     build-essential \
     gcc \
-    # Dépendances pour WeasyPrint et PDF
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf-2.0-0 \
     libffi-dev \
-    libcairo2 \
-    libcairo2-dev \
-    libgirepository1.0-dev \
-    gir1.2-pango-1.0 \
-    # Dépendances pour les polices
-    fonts-liberation \
-    fonts-dejavu-core \
-    # Dépendances pour MySQL/MariaDB
     default-libmysqlclient-dev \
     pkg-config \
-    # Utilitaires
     curl \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -71,22 +57,14 @@ FROM base AS production
 
 # Installer uniquement les dépendances runtime (pas de compilation)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Dépendances runtime pour WeasyPrint
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libgdk-pixbuf-2.0-0 \
-    libcairo2 \
-    gir1.2-pango-1.0 \
-    # Polices pour PDF
-    fonts-liberation \
-    fonts-dejavu-core \
-    fonts-freefont-ttf \
     # Client MySQL (pour debug/connexion)
     default-mysql-client \
     # Utilitaires (healthcheck)
     curl \
     # Utilitaire réseau pour la fonction de ping
     iputils-ping \
+    # Bash requis par docker-entrypoint.sh (shebang #!/bin/bash)
+    bash \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -98,12 +76,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 COPY --chown=appuser:appgroup . /app/
 
 # Créer les répertoires nécessaires
-RUN mkdir -p /app/logs /app/instance /app/monitoring/logs /app/monitoring/backups /app/presentation/uploads && \
+RUN mkdir -p /app/logs /app/instance/uploads/materiales /app/monitoring/logs /app/monitoring/backups /app/presentation/uploads/materiales /app/presentation/uploads/instalaciones && \
     chown -R appuser:appgroup /app
 
 # Copier et configurer le script d'entrée
+# sed retire les \r (CRLF Windows) : sinon exec échoue avec "no such file or directory"
 COPY --chown=appuser:appgroup docker-entrypoint.sh /app/docker-entrypoint.sh
-RUN chmod +x /app/docker-entrypoint.sh
+RUN sed -i 's/\r$//' /app/docker-entrypoint.sh && chmod +x /app/docker-entrypoint.sh
 
 # Changer vers l'utilisateur non-root
 USER appuser

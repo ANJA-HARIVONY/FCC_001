@@ -1,0 +1,36 @@
+{# Carte mobile de una línea de detalle del informe de salidas.
+   Variables : row (requis), salida_tipo_badge, salida_tipo_labels #}
+{% set salida = row.salida %}
+<article class="mobile-list-card">
+    <div class="mobile-list-card__head">
+        <div class="mobile-list-card__meta">
+            {% if salida %}
+            <span class="badge {{ salida_tipo_badge.get(salida.tipo_salida, 'bg-secondary') }}">
+                {{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}
+            </span>
+            {% endif %}
+            <span class="badge bg-light text-dark">×{{ row.cantidad }}</span>
+        </div>
+        <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--date">
+            <i class="fas fa-clock me-1"></i>{{ salida.fecha.strftime('%d/%m/%Y') if salida else '—' }}
+        </span>
+    </div>
+    <span class="mobile-list-card__title">
+        {{ row.material.nombre if row.material else '—' }}{% if row.material and row.material.modelo %} ({{ row.material.modelo }}){% endif %}
+    </span>
+    <div class="mobile-list-card__badges">
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-user-cog me-1"></i>{{ salida.tecnico.nom if salida and salida.tecnico else '—' }}
+        </span>
+        <span class="badge rounded-pill mobile-list-card__chip">
+            <i class="fas fa-user-tie me-1"></i>
+            {% if salida and salida.client %}
+                {{ salida.client.nom }}
+            {% elif salida and salida.tipo_salida == 'uso_interno' %}
+                Uso interno
+            {% else %}
+                Uso general
+            {% endif %}
+        </span>
+    </div>
+</article>

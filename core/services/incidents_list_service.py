@@ -8,6 +8,79 @@ from sqlalchemy import func, or_
 from sqlalchemy.orm import joinedload
 
 
+BITRIX_TASK_STATUS_UNFETCHED = '_none'
+
+
+def normalize_ciudad_agencia_filters(current_user, ciudad_filter, agencia_filter):
+    """Valide ciudad et agencia.
+
+    Une agencia qui n'appartient pas à la ciudad choisie est ignorée.
+    Hors superadmin, une valeur hors périmètre est ignorée.
+    L'agencia est contrôlée avant d'écarter une ciudad hors périmètre,
+    pour conserver le même résultat que la liste d'incidencias.
+    """
+    from core.app import Agencia, Ciudad, db, sees_all_movements
+
+    ciudad_filter = '' if ciudad_filter is None else str(ciudad_filter).strip()
+    agencia_filter = '' if agencia_filter is None else str(agencia_filter).strip()
+    ciudad_id = None
+    agencia_id = None
+
+    if ciudad_filter:
+        try:
+            ciudad_id = int(ciudad_filter)
+            if db.session.get(Ciudad, ciudad_id) is None:
+                ciudad_filter = ''
+                ciudad_id = None
+        except (ValueError, TypeError):
+            ciudad_filter = ''
+            ciudad_id = None
+
+    if agencia_filter:
+        try:
+            agencia_id = int(agencia_filter)
+            agencia = db.session.get(Agencia, agencia_id)
+            if agencia is None:
+                agencia_filter = ''
+                agencia_id = None
+            elif ciudad_id and agencia.id_ciudad != ciudad_id:
+                agencia_filter = ''
+                agencia_id = None
+            elif not sees_all_movements() and agencia_id != current_user.id_agencia:
+                agencia_filter = ''
+                agencia_id = None
+        except (ValueError, TypeError):
+            agencia_filter = ''
+            agencia_id = None
+
+    if not sees_all_movements() and ciudad_id and ciudad_id != current_user.id_ciudad:
+        ciudad_filter = ''
+        ciudad_id = None
+
+    return ciudad_filter, agencia_filter, ciudad_id, agencia_id
+
+
+def _normalize_bitrix_status_filter(status_filter, raw):
+    """Valide le sous-filtre de tâche Bitrix. Vide si status n'est pas Bitrix."""
+    from core.app import BITRIX_STATUS_LABELS
+
+    raw = (raw or '').strip()
+    if status_filter != 'Bitrix':
+        return ''
+    if raw == BITRIX_TASK_STATUS_UNFETCHED:
+        return raw
+    if raw in BITRIX_STATUS_LABELS:
+        return raw
+    return ''
+
+
+def get_bitrix_status_filter_choices():
+    """Options du sous-filtre (codes Bitrix24 littéraux, jamais inventés)."""
+    from core.app import BITRIX_STATUS_LABELS
+
+    return list(BITRIX_STATUS_LABELS.items())
+
+
 def get_incidents_list_params(request):
     """Lee parámetros de la URL de /incidents."""
     return {
@@ -16,6 +89,7 @@ def get_incidents_list_params(request):
         'sort_by': request.args.get('sort', 'fecha'),
         'sort_order': request.args.get('order', 'desc'),
         'status_filter': request.args.get('status', ''),
+        'bitrix_status_filter': request.args.get('bitrix_status', ''),
         'search_query': request.args.get('search', ''),
         'date_from': request.args.get('date_from', ''),
         'date_to': request.args.get('date_to', ''),
@@ -33,71 +107,42 @@ def build_filtered_incidents_query(current_user, params):
     Returns:
         tuple: (query, params) con filtros normalizados.
     """
-    from core.app import Agencia, Ciudad, Client, Incident, Operateur, db
+    from core.app import Client, Incident, Operateur, apply_incident_visibility, db, sees_all_movements
 
     status_filter = params['status_filter']
+    bitrix_status_filter = _normalize_bitrix_status_filter(
+        status_filter, params.get('bitrix_status_filter', ''),
+    )
     search_query = params['search_query']
     date_from = params['date_from']
     date_to = params['date_to']
     operateur_filter = params['operateur_filter']
-    ciudad_filter = params['ciudad_filter']
-    agencia_filter = params['agencia_filter']
-
-    ciudad_id = None
-    if ciudad_filter:
-        try:
-            ciudad_id = int(ciudad_filter)
-            if not db.session.get(Ciudad, ciudad_id):
-                ciudad_filter = ''
-                ciudad_id = None
-        except (ValueError, TypeError):
-            ciudad_filter = ''
-            ciudad_id = None
-
-    agencia_id = None
-    if agencia_filter:
-        try:
-            agencia_id = int(agencia_filter)
-            agencia = db.session.get(Agencia, agencia_id)
-            if not agencia:
-                agencia_filter = ''
-                agencia_id = None
-            elif ciudad_id and agencia.id_ciudad != ciudad_id:
-                agencia_filter = ''
-                agencia_id = None
-            elif not current_user.is_admin() and agencia_id != current_user.id_agencia:
-                agencia_filter = ''
-                agencia_id = None
-        except (ValueError, TypeError):
-            agencia_filter = ''
-            agencia_id = None
-
-    query = Incident.query.options(
-        joinedload(Incident.client),
-        joinedload(Incident.operateur),
+    ciudad_filter, agencia_filter, ciudad_id, agencia_id = normalize_ciudad_agencia_filters(
+        current_user,
+        params['ciudad_filter'],
+        params['agencia_filter'],
     )
 
-    if not current_user.is_admin():
-        same_agency_ids = db.session.query(Operateur.id).filter(
-            Operateur.id_agencia == current_user.id_agencia
-        )
-        query = query.filter(
-            or_(
-                Incident.id_operateur == current_user.id,
-                Incident.id_operateur.in_(same_agency_ids),
-            )
-        )
+    query = apply_incident_visibility(Incident.query.options(
+        joinedload(Incident.client),
+        joinedload(Incident.operateur),
+    ))
 
     if status_filter:
         query = query.filter(Incident.status == status_filter)
+        if bitrix_status_filter == BITRIX_TASK_STATUS_UNFETCHED:
+            query = query.filter(Incident.bitrix_task_status.is_(None))
+        elif bitrix_status_filter:
+            query = query.filter(Incident.bitrix_task_status == bitrix_status_filter)
 
     if operateur_filter:
         try:
             operateur_id = int(operateur_filter)
-            if not current_user.is_admin():
+            if not sees_all_movements():
                 operateur_is_allowed = db.session.query(Operateur.id).filter(
                     Operateur.id == operateur_id,
                     Operateur.id_agencia == current_user.id_agencia,
+                    Operateur.id_ciudad == current_user.id_ciudad,
                     Operateur.actif.is_(True),
                 ).first()
                 if not operateur_is_allowed:
@@ -144,8 +189,13 @@ def build_filtered_incidents_query(current_user, params):
             )
             date_to = ''
 
+    sort_by = params.get('sort_by') or 'fecha'
+    if sort_by == 'tecnico' and status_filter != 'Bitrix':
+        sort_by = 'fecha'
+
     params.update({
         'status_filter': status_filter,
+        'bitrix_status_filter': bitrix_status_filter,
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,
@@ -154,6 +204,7 @@ def build_filtered_incidents_query(current_user, params):
         'agencia_filter': agencia_filter,
         'ciudad_id': ciudad_id,
         'agencia_id': agencia_id,
+        'sort_by': sort_by,
     })
     return query, params
 
@@ -170,13 +221,18 @@ def apply_incidents_sort(query, sort_by, sort_order):
             Incident.intitule.asc() if sort_order == 'asc' else Incident.intitule.desc()
         )
     if sort_by == 'operador':
-        return query.join(Operateur).order_by(
+        return query.join(Operateur, Incident.id_operateur == Operateur.id).order_by(
             Operateur.nom.asc() if sort_order == 'asc' else Operateur.nom.desc()
         )
     if sort_by == 'fecha':
         return query.order_by(
             Incident.date_heure.asc() if sort_order == 'asc' else Incident.date_heure.desc()
         )
+    if sort_by == 'tecnico':
+        col = Incident.bitrix_responsible
+        if sort_order == 'asc':
+            return query.order_by(col.is_(None), col.asc(), Incident.date_heure.desc())
+        return query.order_by(col.is_(None), col.desc(), Incident.date_heure.desc())
     return query.order_by(Incident.date_heure.desc())
 
 
@@ -210,20 +266,20 @@ def get_incidents_filter_options(current_user, ciudad_id=None):
 
     operateurs = (
         Operateur.query.order_by(Operateur.nom).all()
-        if current_user.is_admin()
+        if current_user.is_superadmin()
         else Operateur.query.filter(
             Operateur.id_agencia == current_user.id_agencia,
+            Operateur.id_ciudad == current_user.id_ciudad,
             Operateur.actif.is_(True),
         ).order_by(Operateur.nom).all()
     )
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
-    if current_user.is_admin():
+    if current_user.is_superadmin():
+        ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
         agencias_query = Agencia.query
         if ciudad_id:
             agencias_query = agencias_query.filter_by(id_ciudad=ciudad_id)
         agencias = agencias_query.order_by(Agencia.nombre).all()
     else:
+        ciudades = Ciudad.query.filter_by(id=current_user.id_ciudad).order_by(Ciudad.nombre).all()
         agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
-        if ciudad_id and agencias and agencias[0].id_ciudad != ciudad_id:
-            agencias = []
     return operateurs, ciudades, agencias

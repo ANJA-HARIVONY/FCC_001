@@ -11,16 +11,17 @@
 </a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('incidents') }}">Incidencias</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Modificar Incidencia</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('incidents') }}">Incidencias</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Modificar Incidencia</li>
-        </ol>
-    </nav>
-
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card content-card">
@@ -47,7 +48,8 @@
                                 </select>
                             </div>
                         </div>
-                        <p class="small text-muted mb-3"><i class="fas fa-user me-1"></i>Operador al guardar: <strong>{{ current_user.nom }}</strong></p>
+                        <p class="small text-muted mb-1"><i class="fas fa-user me-1"></i>Creado por: <strong>{{ incident.operateur.nom }}</strong></p>
+                        <p class="small text-muted mb-3"><i class="fas fa-user-edit me-1"></i>Se registrará como modificado por: <strong>{{ current_user.nom }}</strong></p>
                         
                         <div class="mb-3">
                             <label for="intitule" class="form-label">Asunto de la incidencia <span class="text-danger">*</span></label>
@@ -66,10 +68,10 @@
                         </div>
                         
                         <div class="mb-3" id="ref_bitrix_group" style="{% if incident.status != 'Bitrix' %}display:none;{% endif %}">
-                            <label for="ref_bitrix" class="form-label">Referencia Bitrix (5 dígitos)</label>
+                            <label for="ref_bitrix" class="form-label">Referencia Bitrix</label>
                             <input type="text" class="form-control" id="ref_bitrix" name="ref_bitrix" 
-                                   value="{{ ref_bitrix_display|default(incident.ref_bitrix or '') }}" placeholder="Ej: 82255" maxlength="10"
-                                   pattern="[0-9]{5}" title="5 dígitos numéricos">
+                                   value="{{ ref_bitrix_display|default(incident.ref_bitrix or '') }}" placeholder="Ej: 8225512345" maxlength="10"
+                                   pattern="[0-9]{1,10}" title="Hasta 10 dígitos numéricos" inputmode="numeric">
                             <small class="form-text text-muted">Aqui se pone la referencia de Bitrix</small>
                         </div>
                         

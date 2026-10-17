@@ -1,10 +1,9 @@
-from ast import Pass
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, make_response, abort, send_file
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager, UserMixin, AnonymousUserMixin, login_user, logout_user, login_required, current_user
-from flask_babel import Babel, gettext, ngettext, lazy_gettext, get_locale
+from flask_babel import Babel, gettext
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -17,7 +16,6 @@ from logging.handlers import RotatingFileHandler
 from sqlalchemy import func, text, inspect, case
 from sqlalchemy.orm import joinedload
 from config import config
-from io import BytesIO
 from urllib.parse import urlparse, urljoin
 
 # Logger applicatif central : toutes les traces de demarrage et de runtime
@@ -31,26 +29,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%dT%H:%M:%S',
 )
 logger = logging.getLogger('fcc_001')
-
-# Import optionnel de weasyprint
-WEASYPRINT_AVAILABLE = False
-try:
-    # Vérifier si WeasyPrint doit être désactivé via variable d'environnement
-    if os.environ.get('WEASYPRINT_AVAILABLE', 'True').lower() != 'false':
-        import weasyprint
-        # Test de base pour vérifier que WeasyPrint fonctionne
-        test_html = weasyprint.HTML(string='<html><body><h1>Test</h1></body></html>')
-        test_html.write_pdf()
-        WEASYPRINT_AVAILABLE = True
-        logger.info('WeasyPrint disponible - fonctionnalites PDF activees')
-    else:
-        logger.info('WeasyPrint desactive via variable d\'environnement')
-except ImportError as e:
-    WEASYPRINT_AVAILABLE = False
-    logger.warning('WeasyPrint non disponible, fonctionnalites PDF limitees: %s', str(e)[:100])
-except Exception as e:
-    WEASYPRINT_AVAILABLE = False
-    logger.warning('Erreur lors du chargement de WeasyPrint, PDF desactive: %s', str(e)[:100])
 
 # Créer l'application Flask avec chemins corrects
 app = Flask(__name__, 
@@ -235,6 +213,17 @@ CATEGORIA_OPERATEUR_LABELS = {
     'tecnico': 'Técnico',
 }
 
+ROLES_OPERATEUR = ('usuario', 'admin', 'superadmin')
+ROLE_USUARIO = 'usuario'
+ROLE_ADMIN = 'admin'
+ROLE_SUPERADMIN = 'superadmin'
+ROLE_LABELS = {
+    'usuario': 'Usuario',
+    'admin': 'Admin',
+    'superadmin': 'SuperAdmin',
+}
+LEGACY_ADMIN_PROMOTION = 'PROMOTE_LEGACY_ADMIN'
+
 MATERIAL_TIPOS = ('outillage', 'material_cliente')
 MATERIAL_TIPO_LABELS = {
     'outillage': 'Herramientas',
@@ -254,11 +243,26 @@ SALIDA_TIPO_LABELS = {
     'instalacion': 'Instalación',
 }
 
-INFORME_GROUP_MODES = ('material', 'tecnico')
-INFORME_GROUP_LABELS = {
-    'material': 'Por material',
-    'tecnico': 'Por técnico',
+INSTALACION_ESTADOS = ('en_curso', 'terminada')
+INSTALACION_ESTADO_DEFAULT = 'en_curso'
+INSTALACION_ESTADO_LABELS = {
+    'en_curso': 'En curso',
+    'terminada': 'Terminada',
 }
+
+INSTALACION_TIPOS = ('nueva', 'traslado')
+INSTALACION_TIPO_DEFAULT = 'nueva'
+INSTALACION_TIPO_LABELS = {
+    'nueva': 'Nueva',
+    'traslado': 'Traslado',
+}
+
+TRASLADO_ACCIONES = ('reutilizado', 'retirado')
+TRASLADO_ACCION_LABELS = {
+    'reutilizado': 'Reutilizado',
+    'retirado': 'Retirado',
+}
+
 CORPORATIVO_NOM_KEYWORDS = (
     'ministerio', 'embajada', 'eglng', 'pnud', 'unrco', 'unge',
     'federacion', 'societe general', 'societe',
@@ -294,6 +298,12 @@ def normalize_categoria_operateur(value, default=CATEGORIA_OPERATEUR_DEFAULT):
     return default
 
 
+def normalize_role(value, default=ROLE_USUARIO):
+    if value in ROLES_OPERATEUR:
+        return value
+    return default
+
+
 def categoria_operateur_label(value):
     return CATEGORIA_OPERATEUR_LABELS.get(value, CATEGORIA_OPERATEUR_LABELS[CATEGORIA_OPERATEUR_DEFAULT])
 
@@ -303,11 +313,15 @@ def inject_operateur_categoria_labels():
     return {
         'CATEGORIAS_OPERATEUR': CATEGORIAS_OPERATEUR,
         'CATEGORIA_OPERATEUR_LABELS': CATEGORIA_OPERATEUR_LABELS,
+        'ROLES_OPERATEUR': ROLES_OPERATEUR,
+        'ROLE_LABELS': ROLE_LABELS,
         'categoria_operateur_label': categoria_operateur_label,
         'MATERIAL_TIPO_LABELS': MATERIAL_TIPO_LABELS,
         'SALIDA_ESTADO_LABELS': SALIDA_ESTADO_LABELS,
         'SALIDA_TIPO_LABELS': SALIDA_TIPO_LABELS,
-        'INFORME_GROUP_LABELS': INFORME_GROUP_LABELS,
+        'INSTALACION_ESTADO_LABELS': INSTALACION_ESTADO_LABELS,
+        'INSTALACION_TIPO_LABELS': INSTALACION_TIPO_LABELS,
+        'TRASLADO_ACCION_LABELS': TRASLADO_ACCION_LABELS,
     }
 
 
@@ -324,11 +338,111 @@ class Client(db.Model):
     categoria = db.Column(db.String(20), nullable=False, default=CATEGORIA_CLIENTE_DEFAULT, index=True)
     radius_cache_json = db.Column(db.Text, nullable=True)
     radius_cache_at = db.Column(db.DateTime, nullable=True)
+    id_operateur = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    id_operateur_modificacion = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    modifie_le = db.Column(db.DateTime, nullable=True)
+    latitud = db.Column(db.Numeric(10, 7), nullable=True)
+    longitud = db.Column(db.Numeric(10, 7), nullable=True)
+    gps_actualizado_le = db.Column(db.DateTime, nullable=True)
+    id_operateur_gps = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
     ciudad_row = db.relationship('Ciudad', backref=db.backref('clients', lazy=True))
     incidents = db.relationship('Incident', backref='client', lazy=True)
+    cree_par = db.relationship('Operateur', foreign_keys=[id_operateur])
+    modifie_par = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
+    gps_actualizado_por = db.relationship('Operateur', foreign_keys=[id_operateur_gps])
+    fotos_instalacion = db.relationship(
+        'InstalacionFoto',
+        foreign_keys='InstalacionFoto.id_client',
+        backref='client',
+        lazy=True,
+        cascade='all, delete-orphan',
+        order_by='InstalacionFoto.id',
+    )
+
+    @property
+    def has_gps(self):
+        return self.latitud is not None and self.longitud is not None
+
+    @property
+    def google_maps_url(self):
+        if not self.has_gps:
+            return None
+        return f'https://www.google.com/maps?q={float(self.latitud)},{float(self.longitud)}'
+
+    @property
+    def google_maps_embed_url(self):
+        if not self.has_gps:
+            return None
+        return (
+            f'https://maps.google.com/maps?q={float(self.latitud)},{float(self.longitud)}'
+            '&z=16&output=embed'
+        )
+
+    @property
+    def sitio_activo(self):
+        return next((s for s in (self.sitios or []) if s.activo), None)
+
+    @property
+    def sitios_anteriores(self):
+        return [s for s in (self.sitios or []) if not s.activo]
 
     def __repr__(self):
         return f'<Client {self.nom}>'
+
+
+class ClientSitio(db.Model):
+    """Dirección física del cliente. Un solo sitio activo; los anteriores quedan como historial (traslados)."""
+    __tablename__ = 'client_sitio'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(
+        db.Integer, db.ForeignKey('client.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    adresse = db.Column(db.String(200), nullable=False)
+    ville = db.Column(db.String(100), nullable=False)
+    latitud = db.Column(db.Numeric(10, 7), nullable=True)
+    longitud = db.Column(db.Numeric(10, 7), nullable=True)
+    gps_actualizado_le = db.Column(db.DateTime, nullable=True)
+    id_operateur_gps = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    activo = db.Column(db.Boolean, nullable=False, default=True, index=True)
+    desde = db.Column(db.Date, nullable=True)
+    hasta = db.Column(db.Date, nullable=True)
+    creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    client = db.relationship(
+        'Client',
+        backref=db.backref(
+            'sitios', lazy=True, cascade='all, delete-orphan', order_by='ClientSitio.id.desc()'
+        ),
+    )
+    gps_actualizado_por = db.relationship('Operateur', foreign_keys=[id_operateur_gps])
+    fotos = db.relationship(
+        'InstalacionFoto',
+        foreign_keys='InstalacionFoto.id_sitio',
+        backref='sitio',
+        lazy=True,
+        order_by='InstalacionFoto.id',
+    )
+
+    @property
+    def has_gps(self):
+        return self.latitud is not None and self.longitud is not None
+
+    @property
+    def google_maps_url(self):
+        if not self.has_gps:
+            return None
+        return f'https://www.google.com/maps?q={float(self.latitud)},{float(self.longitud)}'
+
+    def __repr__(self):
+        return f'<ClientSitio client={self.id_client} activo={self.activo}>'
 
 
 class Operateur(UserMixin, db.Model):
@@ -348,10 +462,19 @@ class Operateur(UserMixin, db.Model):
 
     ciudad = db.relationship('Ciudad', backref=db.backref('operateurs', lazy=True))
     agencia = db.relationship('Agencia', backref=db.backref('operateurs', lazy=True))
-    incidents = db.relationship('Incident', backref='operateur', lazy=True)
+    incidents = db.relationship(
+        'Incident',
+        backref='operateur',
+        lazy=True,
+        foreign_keys='Incident.id_operateur',
+    )
+
+    def is_superadmin(self):
+        return (self.role or '') == ROLE_SUPERADMIN
 
     def is_admin(self):
-        return (self.role or '') == 'admin'
+        """Admin et SuperAdmin : materiales, instalaciones, fichas."""
+        return (self.role or '') in (ROLE_ADMIN, ROLE_SUPERADMIN)
 
     @property
     def is_active(self):
@@ -367,6 +490,9 @@ class AnonymousOperateur(AnonymousUserMixin):
     """Utilisateur non connecté : mêmes méthodes que Operateur pour les templates."""
 
     def is_admin(self):
+        return False
+
+    def is_superadmin(self):
         return False
 
 
@@ -386,9 +512,20 @@ def load_user(user_id):
 
 
 def admin_required(view_fn):
+    """Admin ou SuperAdmin (materiales, instalaciones, fichas)."""
     @wraps(view_fn)
     def wrapped(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin():
+            abort(403)
+        return view_fn(*args, **kwargs)
+    return wrapped
+
+
+def superadmin_required(view_fn):
+    """Usuarios, trazabilidad et base de données."""
+    @wraps(view_fn)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_superadmin():
             abort(403)
         return view_fn(*args, **kwargs)
     return wrapped
@@ -404,6 +541,7 @@ _CSP_DIRECTIVES = (
     "font-src 'self' https://cdnjs.cloudflare.com data:; "
     "img-src 'self' data: blob:; "
     "connect-src 'self'; "
+    "frame-src 'self' https://www.google.com https://maps.google.com; "
     "frame-ancestors 'none'; "
     "base-uri 'self'; "
     "form-action 'self'"
@@ -423,7 +561,7 @@ def apply_security_headers(response):
     response.headers.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
     response.headers.setdefault(
         'Permissions-Policy',
-        'geolocation=(), microphone=(), camera=(), payment=()',
+        'geolocation=(self), microphone=(), camera=(), payment=()',
     )
     response.headers.setdefault('Content-Security-Policy', _CSP_DIRECTIVES)
     if request.is_secure:
@@ -434,20 +572,54 @@ def apply_security_headers(response):
     return response
 
 
+def sees_all_movements():
+    """Seul le superadmin traverse les agencias et les ciudades."""
+    return current_user.is_authenticated and current_user.is_superadmin()
+
+
 def apply_incident_visibility(query):
-    """Applique la règle 10.4 de visibilité des incidents."""
-    if current_user.is_admin():
+    """Règle 10.4 : superadmin voit tout.
+
+    Admin et usuario ne voient que les incidencias de leur agencia
+    dont le client est dans leur ciudad.
+    """
+    if sees_all_movements():
         return query
 
     same_agency_ids = db.session.query(Operateur.id).filter(
         Operateur.id_agencia == current_user.id_agencia
     )
     return query.filter(
-        db.or_(
-            Incident.id_operateur == current_user.id,
-            Incident.id_operateur.in_(same_agency_ids),
-        )
+        Incident.id_operateur.in_(same_agency_ids),
+        Incident.client.has(id_ciudad=current_user.id_ciudad),
     )
+
+
+def user_can_access_client(client):
+    """Clients partagés : tout utilisateur connecté consulte n'importe quel client."""
+    return client is not None
+
+
+def client_in_movement_ciudad(client):
+    """Un mouvement (incidencia, salida, instalación) reste dans la ciudad de l'utilisateur."""
+    if client is None:
+        return False
+    if sees_all_movements():
+        return True
+    return client.id_ciudad == current_user.id_ciudad
+
+
+def require_client_visible(client):
+    if not user_can_access_client(client):
+        abort(403)
+
+
+def scoped_clients_query():
+    return Client.query
+
+
+def ciudades_for_current_user():
+    return Ciudad.query.order_by(Ciudad.nombre).all()
 
 
 def user_can_access_incident(incident):
@@ -458,6 +630,15 @@ def user_can_access_incident(incident):
 
 
 def user_can_modify_incident(incident):
+    """Toute personne qui peut consulter l'incidencia peut la modifier (règle 10.4).
+
+    La propriété (`id_operateur`) reste au créateur : l'édition trace
+    seulement `id_operateur_modificacion` / `modifie_le`.
+    """
+    return user_can_access_incident(incident)
+
+
+def user_can_delete_incident(incident):
     """Créateur de l'incident ou administrateur."""
     return current_user.is_admin() or incident.id_operateur == current_user.id
 
@@ -468,15 +649,27 @@ class Incident(db.Model):
     intitule = db.Column(db.String(200), nullable=False)
     observations = db.Column(db.Text)
     status = db.Column(db.String(20), nullable=False, default='Pendiente')  # Résolut, En atente, Bitrix
-    ref_bitrix = db.Column(db.String(10), nullable=True)  # Ref Bitrix (5 chiffres) - visible si status=Bitrix
+    ref_bitrix = db.Column(db.String(10), nullable=True)  # Ref Bitrix (hasta 10 cifras) - visible si status=Bitrix
     bitrix_task_status = db.Column(db.String(2), nullable=True)
     bitrix_status_label = db.Column(db.String(80), nullable=True)
     bitrix_status_emoji = db.Column(db.String(10), nullable=True)
     bitrix_responsible = db.Column(db.String(120), nullable=True)
     bitrix_fetched_at = db.Column(db.DateTime, nullable=True)
     bitrix_fetch_locked = db.Column(db.Boolean, nullable=False, default=False)
+    bitrix_deadline = db.Column(db.DateTime, nullable=True)
+    bitrix_created_at = db.Column(db.DateTime, nullable=True)
+    bitrix_closed_at = db.Column(db.DateTime, nullable=True)
+    bitrix_changed_at = db.Column(db.DateTime, nullable=True)
+    bitrix_priority = db.Column(db.String(2), nullable=True)
+    bitrix_moved_at = db.Column(db.DateTime, nullable=True)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
     date_heure = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    id_operateur_modificacion = db.Column(
+        db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True
+    )
+    modifie_le = db.Column(db.DateTime, nullable=True)
+
+    modifie_par = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
 
     comentarios = db.relationship(
         'IncidentComentario',
@@ -590,6 +783,9 @@ class MaterialSalida(db.Model):
     fecha_modificacion = db.Column(db.DateTime, nullable=True)
     observaciones = db.Column(db.Text, nullable=True)
     tipo_salida = db.Column(db.String(20), nullable=False, default='uso_interno', index=True)
+    id_instalacion = db.Column(
+        db.Integer, db.ForeignKey('instalacion.id', ondelete='SET NULL'), nullable=True, index=True
+    )
 
     tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico], backref=db.backref('salidas_tecnico', lazy=True))
     client = db.relationship('Client', backref=db.backref('salidas_material', lazy=True))
@@ -601,9 +797,47 @@ class MaterialSalida(db.Model):
         lazy=True,
         cascade='all, delete-orphan',
     )
+    fotos_instalacion = db.relationship(
+        'InstalacionFoto',
+        foreign_keys='InstalacionFoto.id_salida',
+        backref='salida',
+        lazy=True,
+        order_by='InstalacionFoto.id',
+    )
 
     def __repr__(self):
         return f'<MaterialSalida {self.id}>'
+
+
+MAX_INSTALACION_FOTOS = 10
+
+
+class InstalacionFoto(db.Model):
+    __tablename__ = 'instalacion_foto'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(
+        db.Integer, db.ForeignKey('client.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    id_salida = db.Column(
+        db.Integer, db.ForeignKey('material_salida.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    id_sitio = db.Column(
+        db.Integer, db.ForeignKey('client_sitio.id', ondelete='CASCADE'), nullable=True, index=True
+    )
+    fichier = db.Column(db.String(255), nullable=False)
+    id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True)
+    creado_le = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    operateur = db.relationship('Operateur', foreign_keys=[id_operateur])
+
+    @property
+    def filename(self):
+        if not self.fichier:
+            return None
+        return self.fichier.rsplit('/', 1)[-1]
+
+    def __repr__(self):
+        return f'<InstalacionFoto client={self.id_client} {self.fichier}>'
 
 
 class MaterialSalidaLinea(db.Model):
@@ -615,6 +849,84 @@ class MaterialSalidaLinea(db.Model):
 
     def __repr__(self):
         return f'<MaterialSalidaLinea salida={self.id_salida} material={self.id_material}>'
+
+
+class Instalacion(db.Model):
+    """Intervención en un sitio del cliente (nueva o traslado). El material sale por MaterialSalida."""
+    __tablename__ = 'instalacion'
+    id = db.Column(db.Integer, primary_key=True)
+    id_client = db.Column(
+        db.Integer, db.ForeignKey('client.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    id_sitio = db.Column(
+        db.Integer, db.ForeignKey('client_sitio.id', ondelete='SET NULL'), nullable=True, index=True
+    )
+    id_sitio_origen = db.Column(
+        db.Integer, db.ForeignKey('client_sitio.id', ondelete='SET NULL'), nullable=True
+    )
+    tipo = db.Column(db.String(20), nullable=False, default=INSTALACION_TIPO_DEFAULT, index=True)
+    estado = db.Column(db.String(20), nullable=False, default=INSTALACION_ESTADO_DEFAULT, index=True)
+    fecha = db.Column(db.Date, nullable=False, index=True)
+    id_tecnico = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False, index=True)
+    observaciones = db.Column(db.Text, nullable=True)
+    id_operateur_registro = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=False)
+    fecha_registro = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    id_operateur_modificacion = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
+    fecha_modificacion = db.Column(db.DateTime, nullable=True)
+    terminada_le = db.Column(db.DateTime, nullable=True)
+    id_operateur_terminada = db.Column(db.Integer, db.ForeignKey('operateur.id'), nullable=True)
+
+    client = db.relationship(
+        'Client',
+        backref=db.backref(
+            'instalaciones', lazy=True, cascade='all, delete-orphan',
+            order_by='[Instalacion.fecha.desc(), Instalacion.id.desc()]',
+        ),
+    )
+    sitio = db.relationship('ClientSitio', foreign_keys=[id_sitio])
+    sitio_origen = db.relationship('ClientSitio', foreign_keys=[id_sitio_origen])
+    tecnico = db.relationship('Operateur', foreign_keys=[id_tecnico])
+    registrado_por = db.relationship('Operateur', foreign_keys=[id_operateur_registro])
+    modificado_por = db.relationship('Operateur', foreign_keys=[id_operateur_modificacion])
+    terminada_por = db.relationship('Operateur', foreign_keys=[id_operateur_terminada])
+    salidas = db.relationship(
+        'MaterialSalida',
+        foreign_keys='MaterialSalida.id_instalacion',
+        backref='instalacion',
+        lazy=True,
+        order_by='MaterialSalida.id',
+    )
+    lineas_traslado = db.relationship(
+        'InstalacionTrasladoLinea',
+        backref='instalacion',
+        lazy=True,
+        cascade='all, delete-orphan',
+        order_by='InstalacionTrasladoLinea.id',
+    )
+
+    @property
+    def lineas_material(self):
+        return [linea for salida in (self.salidas or []) for linea in (salida.lineas or [])]
+
+    def __repr__(self):
+        return f'<Instalacion {self.id} {self.tipo} {self.estado}>'
+
+
+class InstalacionTrasladoLinea(db.Model):
+    """Material existente reutilizado o retirado durante un traslado."""
+    __tablename__ = 'instalacion_traslado_linea'
+    id = db.Column(db.Integer, primary_key=True)
+    id_instalacion = db.Column(
+        db.Integer, db.ForeignKey('instalacion.id', ondelete='CASCADE'), nullable=False, index=True
+    )
+    id_material = db.Column(db.Integer, db.ForeignKey('material.id'), nullable=False)
+    cantidad = db.Column(db.Integer, nullable=False)
+    accion = db.Column(db.String(20), nullable=False)
+
+    material = db.relationship('Material')
+
+    def __repr__(self):
+        return f'<InstalacionTrasladoLinea inst={self.id_instalacion} {self.accion}>'
 
 
 class AuditLog(db.Model):
@@ -633,20 +945,90 @@ APRECIACION_TEXTO_MAX = 120
 
 
 class ApreciacionDia(db.Model):
-    """Nota operativa compartida para un día calendario (dashboard)."""
+    """Nota de un día, fijada a la ciudad y la agencia del registro."""
     __tablename__ = 'apreciacion_dia'
+    __table_args__ = (
+        db.UniqueConstraint(
+            'fecha', 'id_ciudad', 'id_agencia',
+            name='uq_apreciacion_dia_fecha_ciudad_agencia',
+        ),
+    )
 
     id = db.Column(db.Integer, primary_key=True)
-    fecha = db.Column(db.Date, nullable=False, unique=True, index=True)
+    fecha = db.Column(db.Date, nullable=False, index=True)
     texto = db.Column(db.String(APRECIACION_TEXTO_MAX), nullable=False)
     id_operateur = db.Column(db.Integer, db.ForeignKey('operateur.id', ondelete='SET NULL'), nullable=True, index=True)
+    id_ciudad = db.Column(db.Integer, db.ForeignKey('ciudad.id'), nullable=True, index=True)
+    id_agencia = db.Column(db.Integer, db.ForeignKey('agencia.id'), nullable=True, index=True)
     creado_en = db.Column(db.DateTime, nullable=False, default=datetime.now)
     modificado_en = db.Column(db.DateTime, nullable=False, default=datetime.now, onupdate=datetime.now)
 
     operateur = db.relationship('Operateur', backref=db.backref('apreciaciones_dia', lazy=True))
+    ciudad = db.relationship('Ciudad')
+    agencia = db.relationship('Agencia')
 
     def __repr__(self):
-        return f'<ApreciacionDia {self.fecha}>'
+        return f'<ApreciacionDia {self.fecha} ciudad={self.id_ciudad} agencia={self.id_agencia}>'
+
+
+def apply_apreciacion_visibility(query, ciudad_id=None, agencia_id=None):
+    """Superadmin voit tout (filtre dashboard si présent).
+
+    Admin et usuario ne voient que les notes de leur ciudad et de leur agencia.
+    Une note sans périmètre (créateur absent) reste visible du seul superadmin.
+    """
+    if not current_user.is_authenticated:
+        return query.filter(ApreciacionDia.id.is_(None))
+    if not sees_all_movements():
+        return query.filter(
+            ApreciacionDia.id_ciudad == current_user.id_ciudad,
+            ApreciacionDia.id_agencia == current_user.id_agencia,
+        )
+    if ciudad_id:
+        query = query.filter(ApreciacionDia.id_ciudad == ciudad_id)
+    if agencia_id:
+        query = query.filter(ApreciacionDia.id_agencia == agencia_id)
+    return query
+
+
+def apreciacion_write_scope(ciudad_id=None, agencia_id=None):
+    """Paire figée à l'écriture.
+
+    Admin : sa ciudad et son agencia. Superadmin : la paire filtrée si les
+    deux sont choisis et cohérents, sinon la sienne.
+    """
+    if not sees_all_movements():
+        return current_user.id_ciudad, current_user.id_agencia
+    if ciudad_id and agencia_id:
+        agencia = db.session.get(Agencia, agencia_id)
+        if agencia is not None and agencia.id_ciudad == ciudad_id:
+            return ciudad_id, agencia_id
+    return current_user.id_ciudad, current_user.id_agencia
+
+
+def apreciacion_lugar(row):
+    ciudad = row.ciudad.nombre if row.ciudad else ''
+    agencia = row.agencia.nombre if row.agencia else ''
+    return ciudad, agencia
+
+
+def apreciacion_api_item(row):
+    ciudad, agencia = apreciacion_lugar(row)
+    return {'texto': row.texto, 'ciudad': ciudad, 'agencia': agencia}
+
+
+def join_apreciaciones_texto(rows):
+    """Un texte pour la courbe. Plusieurs agences le même jour : préfixe lieu."""
+    if not rows:
+        return None
+    if len(rows) == 1:
+        return rows[0].texto
+    parts = []
+    for row in rows:
+        ciudad, agencia = apreciacion_lugar(row)
+        where = ' · '.join(part for part in (ciudad, agencia) if part)
+        parts.append(f'{where}: {row.texto}' if where else row.texto)
+    return ' | '.join(parts)
 
 
 def write_audit(action, id_operateur=None, detail=None):
@@ -699,6 +1081,23 @@ def ensure_apreciacion_dia_table():
         ensure_apreciacion_dia_table._done = True
     except Exception:
         app.logger.exception('No se pudo verificar/crear la tabla apreciacion_dia')
+
+
+def ensure_apreciacion_dia_scope_columns():
+    """Añade ciudad y agencia a la nota del día y sustituye la unicidad por fecha."""
+    if getattr(ensure_apreciacion_dia_scope_columns, '_done', False):
+        return
+    try:
+        from core.services.apreciacion_schema import sync_apreciacion_dia_scope
+
+        if not inspect(db.engine).has_table(ApreciacionDia.__tablename__):
+            ensure_apreciacion_dia_scope_columns._done = True
+            return
+        sync_apreciacion_dia_scope(db.engine)
+        ensure_apreciacion_dia_scope_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar el perímetro de apreciacion_dia')
 
 
 def ensure_client_categoria_column():
@@ -895,6 +1294,18 @@ def ensure_incident_bitrix_cache_columns():
             statements.append('ALTER TABLE incident ADD COLUMN bitrix_fetched_at DATETIME NULL')
         if 'bitrix_fetch_locked' not in columns:
             statements.append('ALTER TABLE incident ADD COLUMN bitrix_fetch_locked INTEGER NOT NULL DEFAULT 0')
+        if 'bitrix_deadline' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_deadline DATETIME NULL')
+        if 'bitrix_created_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_created_at DATETIME NULL')
+        if 'bitrix_closed_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_closed_at DATETIME NULL')
+        if 'bitrix_changed_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_changed_at DATETIME NULL')
+        if 'bitrix_priority' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_priority VARCHAR(2) NULL')
+        if 'bitrix_moved_at' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN bitrix_moved_at DATETIME NULL')
         if statements:
             with db.engine.begin() as conn:
                 for sql in statements:
@@ -903,6 +1314,58 @@ def ensure_incident_bitrix_cache_columns():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar/crear columnas cache Bitrix en incident')
+
+
+def ensure_incident_modificacion_columns():
+    """Añade columnas de trazabilidad de modificación en incident si faltan."""
+    if getattr(ensure_incident_modificacion_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('incident'):
+            ensure_incident_modificacion_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('incident')}
+        statements = []
+        if 'id_operateur_modificacion' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN id_operateur_modificacion INTEGER NULL')
+        if 'modifie_le' not in columns:
+            statements.append('ALTER TABLE incident ADD COLUMN modifie_le DATETIME NULL')
+        if statements:
+            with db.engine.begin() as conn:
+                for sql in statements:
+                    conn.execute(text(sql))
+        ensure_incident_modificacion_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas de modificación en incident')
+
+
+def ensure_client_trazabilidad_columns():
+    """Añade columnas de creador / modificador en client si faltan."""
+    if getattr(ensure_client_trazabilidad_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('client'):
+            ensure_client_trazabilidad_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('client')}
+        statements = []
+        if 'id_operateur' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN id_operateur INTEGER NULL')
+        if 'id_operateur_modificacion' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN id_operateur_modificacion INTEGER NULL')
+        if 'modifie_le' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN modifie_le DATETIME NULL')
+        if statements:
+            with db.engine.begin() as conn:
+                for sql in statements:
+                    conn.execute(text(sql))
+        ensure_client_trazabilidad_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas de trazabilidad en client')
 
 
 def ensure_client_radius_cache_columns():
@@ -941,6 +1404,163 @@ def ensure_client_radius_cache_columns():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar/crear columnas RADIUS en client')
+
+
+def ensure_client_gps_columns():
+    """Añade columnas GPS en client si faltan (arranque sin migración)."""
+    if getattr(ensure_client_gps_columns, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('client'):
+            ensure_client_gps_columns._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns('client')}
+        statements = []
+        if 'latitud' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN latitud DECIMAL(10,7) NULL')
+        if 'longitud' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN longitud DECIMAL(10,7) NULL')
+        if 'gps_actualizado_le' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN gps_actualizado_le DATETIME NULL')
+        if 'id_operateur_gps' not in columns:
+            statements.append('ALTER TABLE client ADD COLUMN id_operateur_gps INTEGER NULL')
+        if statements:
+            with db.engine.begin() as conn:
+                for sql in statements:
+                    conn.execute(text(sql))
+        ensure_client_gps_columns._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear columnas GPS en client')
+
+
+def ensure_instalacion_foto_table():
+    """Crea la tabla instalacion_foto si falta (arranque sin migración)."""
+    if getattr(ensure_instalacion_foto_table, '_done', False):
+        return
+    try:
+        if not inspect(db.engine).has_table(InstalacionFoto.__tablename__):
+            InstalacionFoto.__table__.create(db.engine)
+        ensure_instalacion_foto_table._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear la tabla instalacion_foto')
+
+
+def ensure_instalacion_foto_id_client():
+    """Añade id_client y deja id_salida nullable (arranque sin migración)."""
+    if getattr(ensure_instalacion_foto_id_client, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('instalacion_foto'):
+            ensure_instalacion_foto_id_client._done = True
+            return
+        columns = {col['name']: col for col in inspector.get_columns('instalacion_foto')}
+        dialect = db.engine.dialect.name
+        fks = inspector.get_foreign_keys('instalacion_foto')
+        with db.engine.begin() as conn:
+            if 'id_client' not in columns:
+                conn.execute(text('ALTER TABLE instalacion_foto ADD COLUMN id_client INTEGER NULL'))
+                try:
+                    conn.execute(text(
+                        'CREATE INDEX ix_instalacion_foto_id_client ON instalacion_foto (id_client)'
+                    ))
+                except Exception:
+                    pass
+            if inspector.has_table('material_salida'):
+                conn.execute(text(
+                    'UPDATE instalacion_foto SET id_client = ('
+                    'SELECT material_salida.id_client FROM material_salida '
+                    'WHERE material_salida.id = instalacion_foto.id_salida'
+                    ') WHERE id_client IS NULL AND id_salida IS NOT NULL'
+                ))
+            col = columns.get('id_salida')
+            if col is not None and not col.get('nullable', True) and dialect != 'sqlite':
+                conn.execute(text(
+                    'ALTER TABLE instalacion_foto MODIFY COLUMN id_salida INTEGER NULL'
+                ))
+            if dialect != 'sqlite':
+                has_client_fk = any(
+                    list(fk.get('constrained_columns') or []) == ['id_client'] for fk in fks
+                )
+                if not has_client_fk and inspector.has_table('client'):
+                    try:
+                        conn.execute(text(
+                            'ALTER TABLE instalacion_foto ADD CONSTRAINT fk_instalacion_foto_id_client '
+                            'FOREIGN KEY (id_client) REFERENCES client(id) ON DELETE CASCADE'
+                        ))
+                    except Exception:
+                        pass
+                for fk in fks:
+                    if list(fk.get('constrained_columns') or []) != ['id_salida']:
+                        continue
+                    ondelete = ((fk.get('options') or {}).get('ondelete') or '').upper()
+                    name = fk.get('name')
+                    if name and ondelete == 'CASCADE':
+                        try:
+                            conn.execute(text(
+                                f'ALTER TABLE instalacion_foto DROP FOREIGN KEY {name}'
+                            ))
+                            conn.execute(text(
+                                'ALTER TABLE instalacion_foto ADD CONSTRAINT fk_instalacion_foto_id_salida '
+                                'FOREIGN KEY (id_salida) REFERENCES material_salida(id) ON DELETE SET NULL'
+                            ))
+                        except Exception:
+                            pass
+        ensure_instalacion_foto_id_client._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear id_client en instalacion_foto')
+
+
+def ensure_instalaciones_sitio_schema():
+    """Tablas client_sitio / instalacion / traslado, columnas de enlace y reprise (arranque sin migración)."""
+    if getattr(ensure_instalaciones_sitio_schema, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not all(inspector.has_table(t) for t in ('client', 'material_salida', 'instalacion_foto')):
+            ensure_instalaciones_sitio_schema._done = True
+            return
+        for model in (ClientSitio, Instalacion, InstalacionTrasladoLinea):
+            if not inspector.has_table(model.__tablename__):
+                model.__table__.create(db.engine)
+
+        dialect = db.engine.dialect.name
+        salida_cols = {col['name'] for col in inspector.get_columns('material_salida')}
+        foto_cols = {col['name'] for col in inspector.get_columns('instalacion_foto')}
+        with db.engine.begin() as conn:
+            if 'id_instalacion' not in salida_cols:
+                conn.execute(text('ALTER TABLE material_salida ADD COLUMN id_instalacion INTEGER NULL'))
+                conn.execute(text(
+                    'CREATE INDEX ix_material_salida_id_instalacion ON material_salida (id_instalacion)'
+                ))
+                if dialect != 'sqlite':
+                    conn.execute(text(
+                        'ALTER TABLE material_salida ADD CONSTRAINT fk_material_salida_id_instalacion '
+                        'FOREIGN KEY (id_instalacion) REFERENCES instalacion(id) ON DELETE SET NULL'
+                    ))
+            if 'id_sitio' not in foto_cols:
+                conn.execute(text('ALTER TABLE instalacion_foto ADD COLUMN id_sitio INTEGER NULL'))
+                conn.execute(text(
+                    'CREATE INDEX ix_instalacion_foto_id_sitio ON instalacion_foto (id_sitio)'
+                ))
+                if dialect != 'sqlite':
+                    conn.execute(text(
+                        'ALTER TABLE instalacion_foto ADD CONSTRAINT fk_instalacion_foto_id_sitio '
+                        'FOREIGN KEY (id_sitio) REFERENCES client_sitio(id) ON DELETE CASCADE'
+                    ))
+
+        from core.services.instalaciones_backfill import run_instalaciones_backfill
+
+        with db.engine.begin() as conn:
+            run_instalaciones_backfill(conn)
+        ensure_instalaciones_sitio_schema._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear el esquema de sitios e instalaciones')
 
 
 def build_comment_notification_message(actor_name, client_name):
@@ -997,13 +1617,13 @@ def mark_incident_notifications_read(incident_id, user_id):
 
 
 def _extract_ref_bitrix(observations):
-    """Extrait la ref Bitrix (5 chiffres) des observations. Prend la derniere si plusieurs."""
+    """Extrait la ref Bitrix (5 a 10 chiffres) des observations. Prend la derniere si plusieurs."""
     if not observations or not str(observations).strip():
         return None
     obs = str(observations).strip()
-    if re.match(r'^(\d{5})$', obs):
+    if re.match(r'^(\d{5,10})$', obs):
         return obs
-    matches = re.findall(r'\b(\d{5})\b', obs)
+    matches = re.findall(r'\b(\d{5,10})\b', obs)
     return matches[-1] if matches else None
 
 
@@ -1014,6 +1634,32 @@ BITRIX_STATUS_LABELS = {
     '4': ('En espera de control', '👀'),
     '5': ('Terminada', '✅'),
     '6': ('Aplazada', '⏸️'),
+}
+
+# Statuts où le vencimiento, la prioridad et le retard ont un sens métier.
+# '5' Terminada : tâche fermée. '6' Aplazada : ajournée volontairement, pas un retard.
+BITRIX_OVERDUE_STATUSES = ('2', '3', '4')
+
+# Prioridad Bitrix24 (tasks.task.get) - en español + emoji
+BITRIX_PRIORITY_LABELS = {
+    '0': ('Baja', '🔽'),
+    '1': ('Media', '➖'),
+    '2': ('Alta', '🔺'),
+}
+
+# Icônes Font Awesome (ficha) : même famille que la sidebar, pas d'emoji.
+BITRIX_STATUS_ICONS = {
+    '2': 'fa-hourglass-start',
+    '3': 'fa-spinner',
+    '4': 'fa-user-check',
+    '5': 'fa-check-circle',
+    '6': 'fa-pause-circle',
+}
+BITRIX_STATUS_ICON_DEFAULT = 'fa-tasks'
+BITRIX_PRIORITY_ICONS = {
+    '0': 'fa-angle-down',
+    '1': 'fa-minus',
+    '2': 'fa-angle-double-up',
 }
 
 BITRIX_ERROR_DNS = (
@@ -1093,6 +1739,8 @@ def _get_bitrix_task_info(api_base_url, task_id):
     """
     from urllib.parse import urlparse
 
+    from core.services.bitrix_cache_service import parse_bitrix_datetime
+
     api_base_url = (api_base_url or '').strip()
     parsed = urlparse(api_base_url)
     if not parsed.scheme or not parsed.netloc:
@@ -1109,7 +1757,10 @@ def _get_bitrix_task_info(api_base_url, task_id):
         url = f"{api_base_url.rstrip('/')}/tasks.task.get"
         payload = {
             "taskId": int(task_id),
-            "select": ["ID", "TITLE", "STATUS", "REAL_STATUS", "RESPONSIBLE_ID", "RESPONSIBLE"]
+            "select": [
+                "ID", "TITLE", "STATUS", "REAL_STATUS", "RESPONSIBLE_ID", "RESPONSIBLE",
+                "DEADLINE", "CREATED_DATE", "CLOSED_DATE", "CHANGED_DATE", "PRIORITY",
+            ]
         }
         data = json.dumps(payload).encode('utf-8')
         req = urllib.request.Request(
@@ -1133,12 +1784,24 @@ def _get_bitrix_task_info(api_base_url, task_id):
         responsible_name = responsible.get('name', '') if isinstance(responsible, dict) else str(responsible)
         if not responsible_name and responsible_id:
             responsible_name = f"ID: {responsible_id}"
+        priority = str(task_data.get('priority', task_data.get('PRIORITY', '')) or '')
         return {
             'task_status': status,
             'status_label': status_label,
             'status_emoji': status_emoji,
             'responsible_name': responsible_name or '(no definido)',
             'title': task_data.get('title', task_data.get('TITLE', '')),
+            'priority': priority,
+            'deadline': parse_bitrix_datetime(task_data.get('deadline', task_data.get('DEADLINE'))),
+            'created_date': parse_bitrix_datetime(
+                task_data.get('createdDate', task_data.get('CREATED_DATE'))
+            ),
+            'closed_date': parse_bitrix_datetime(
+                task_data.get('closedDate', task_data.get('CLOSED_DATE'))
+            ),
+            'changed_date': parse_bitrix_datetime(
+                task_data.get('changedDate', task_data.get('CHANGED_DATE'))
+            ),
         }
     except Exception as e:
         friendly = _format_bitrix_connection_error(e)
@@ -1215,6 +1878,7 @@ class Etat(db.Model):
 # Importar las rutas de los informes IA
 from core.routes import etats_routes
 from core.routes import materiales_routes
+from core.routes import instalaciones_routes
 from core.routes import atencion_cliente_routes
 from core.routes import apreciaciones_routes
 
@@ -1262,6 +1926,71 @@ def ensure_ciudad_agencia_seed():
     db.session.commit()
 
 
+def ensure_default_admin_operateur():
+    """Crée un unique opérateur admin si la table est vide (identifiant/mot de passe admin)."""
+    if Operateur.query.count() > 0:
+        return
+    ensure_ciudad_agencia_seed()
+    malabo = Ciudad.query.filter_by(nombre='Malabo').first()
+    ag_malabo = Agencia.query.filter_by(nombre='Malabo II Cede').first()
+    if not malabo or not ag_malabo:
+        logger.warning('Impossible de creer l\'operateur par defaut: ciudad/agencia manquantes')
+        return
+    username = (os.environ.get('DEFAULT_ADMIN_USER') or 'admin').strip() or 'admin'
+    password = os.environ.get('DEFAULT_ADMIN_PASSWORD') or 'admin'
+    db.session.add(Operateur(
+        nom=username,
+        telephone=username,
+        email=username,
+        mot_de_passe_hash=generate_password_hash(password),
+        id_ciudad=malabo.id,
+        id_agencia=ag_malabo.id,
+        role=ROLE_SUPERADMIN,
+        actif=True,
+        cree_le=datetime.now(),
+    ))
+    db.session.commit()
+    logger.info('Operateur par defaut cree (identifiant=%s)', username)
+
+
+def ensure_legacy_admins_promoted_to_superadmin():
+    """Promeut une seule fois les role='admin' historiques vers superadmin.
+
+    Le marqueur est une ligne d'audit. Les comptes admin créés ensuite restent admin.
+    Ignoré sous TESTING pour ne pas réécrire les fixtures.
+    """
+    if getattr(ensure_legacy_admins_promoted_to_superadmin, '_done', False):
+        return
+    if app.config.get('TESTING'):
+        ensure_legacy_admins_promoted_to_superadmin._done = True
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table('operateur') or not inspector.has_table(AuditLog.__tablename__):
+            return
+        marked = db.session.execute(
+            text(
+                "SELECT 1 FROM audit_log WHERE action = :action LIMIT 1"
+            ),
+            {'action': LEGACY_ADMIN_PROMOTION},
+        ).first() is not None
+        if not marked:
+            db.session.execute(
+                text("UPDATE operateur SET role = 'superadmin' WHERE role = 'admin'")
+            )
+            db.session.add(AuditLog(
+                action=LEGACY_ADMIN_PROMOTION,
+                detail='roles admin historiques',
+                ip_address=request.remote_addr,
+                date_heure=datetime.now(),
+            ))
+            db.session.commit()
+        ensure_legacy_admins_promoted_to_superadmin._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo promover los roles admin a superadmin')
+
+
 @app.errorhandler(403)
 def acceso_denegado(_e):
     return render_template('403.html'), 403
@@ -1277,9 +2006,17 @@ def require_authentication():
     ensure_salida_observaciones_column()
     ensure_salida_tipo_column()
     ensure_incident_bitrix_cache_columns()
+    ensure_incident_modificacion_columns()
     ensure_client_radius_cache_columns()
+    ensure_client_trazabilidad_columns()
+    ensure_client_gps_columns()
+    ensure_instalacion_foto_table()
+    ensure_instalacion_foto_id_client()
+    ensure_instalaciones_sitio_schema()
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
+    ensure_apreciacion_dia_scope_columns()
+    ensure_legacy_admins_promoted_to_superadmin()
     if not request.endpoint or request.endpoint == 'static':
         return
     if request.endpoint in ('login', 'set_language'):
@@ -1317,7 +2054,7 @@ def require_authentication():
 
 
 def _find_operateur_for_login(ident_raw):
-    """Connexion par email (insensible à la casse) ou téléphone (égalité ou sans espaces)."""
+    """Connexion par email (insensible à la casse), téléphone ou nom unique."""
     ident = (ident_raw or '').strip()
     if not ident:
         return None
@@ -1327,6 +2064,9 @@ def _find_operateur_for_login(ident_raw):
     user = Operateur.query.filter(Operateur.telephone == ident).first()
     if user:
         return user
+    nom_matches = Operateur.query.filter(func.lower(Operateur.nom) == ident.lower()).all()
+    if len(nom_matches) == 1:
+        return nom_matches[0]
     compact = re.sub(r'[\s\-]+', '', ident)
     if compact and compact != ident:
         for op in Operateur.query.all():
@@ -1416,12 +2156,17 @@ def perfil():
 
 @app.route('/api/agencias/<int:id_ciudad>')
 def api_agencias_por_ciudad(id_ciudad):
-    agencias = Agencia.query.filter_by(id_ciudad=id_ciudad).order_by(Agencia.nombre).all()
+    if current_user.is_authenticated and not sees_all_movements():
+        if id_ciudad != current_user.id_ciudad:
+            return jsonify([])
+        agencias = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
+    else:
+        agencias = Agencia.query.filter_by(id_ciudad=id_ciudad).order_by(Agencia.nombre).all()
     return jsonify([{'id': a.id, 'nombre': a.nombre} for a in agencias])
 
 
 @app.route('/usuarios')
-@admin_required
+@superadmin_required
 def usuarios():
     search_query = (request.args.get('search') or '').strip()
     role_filter = (request.args.get('role') or '').strip()
@@ -1430,7 +2175,7 @@ def usuarios():
     ciudad_filter = (request.args.get('ciudad') or '').strip()
     agencia_filter = (request.args.get('agencia') or '').strip()
 
-    if role_filter not in ('', 'admin', 'usuario'):
+    if role_filter not in ('',) + ROLES_OPERATEUR:
         role_filter = ''
     if categoria_filter and categoria_filter not in CATEGORIAS_OPERATEUR:
         categoria_filter = ''
@@ -1514,7 +2259,7 @@ def usuarios():
 
 
 @app.route('/usuarios/nuevo', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def nuevo_usuario():
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
     if request.method == 'POST':
@@ -1524,10 +2269,8 @@ def nuevo_usuario():
         password = request.form.get('password') or ''
         id_ciudad = request.form.get('id_ciudad', type=int)
         id_agencia = request.form.get('id_agencia', type=int)
-        role = (request.form.get('role') or 'usuario').strip()
+        role = normalize_role((request.form.get('role') or ROLE_USUARIO).strip())
         categoria = normalize_categoria_operateur(request.form.get('categoria'))
-        if role not in ('usuario', 'admin'):
-            role = 'usuario'
         if not nom or not telephone or not id_ciudad or not id_agencia:
             flash(gettext('Nombre, teléfono, ciudad y agencia son obligatorios.'), 'error')
         elif not password:
@@ -1563,7 +2306,7 @@ def nuevo_usuario():
 
 
 @app.route('/usuarios/<int:user_id>/editar', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def editar_usuario(user_id):
     u = Operateur.query.get_or_404(user_id)
     ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
@@ -1574,10 +2317,8 @@ def editar_usuario(user_id):
         password = request.form.get('password') or ''
         id_ciudad = request.form.get('id_ciudad', type=int)
         id_agencia = request.form.get('id_agencia', type=int)
-        role = (request.form.get('role') or 'usuario').strip()
+        role = normalize_role((request.form.get('role') or ROLE_USUARIO).strip())
         categoria = normalize_categoria_operateur(request.form.get('categoria'))
-        if role not in ('usuario', 'admin'):
-            role = 'usuario'
         if not nom or not telephone or not id_ciudad or not id_agencia:
             flash(gettext('Nombre, teléfono, ciudad y agencia son obligatorios.'), 'error')
         else:
@@ -1614,7 +2355,7 @@ def editar_usuario(user_id):
 
 
 @app.route('/usuarios/<int:user_id>/desactivar', methods=['POST'])
-@admin_required
+@superadmin_required
 def desactivar_usuario(user_id):
     u = Operateur.query.get_or_404(user_id)
     if u.id == current_user.id:
@@ -1635,20 +2376,20 @@ def _allowed_avatar(filename):
 @app.route('/usuarios/<int:user_id>/avatar', methods=['POST'])
 @login_required
 def upload_avatar_usuario(user_id):
-    if not current_user.is_admin() and current_user.id != user_id:
+    if not current_user.is_superadmin() and current_user.id != user_id:
         abort(403)
     u = Operateur.query.get_or_404(user_id)
     f = request.files.get('avatar')
     if not f or not f.filename:
         flash(gettext('Seleccione un archivo.'), 'error')
-        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_superadmin() else url_for('perfil'))
     if not _allowed_avatar(f.filename):
         flash(gettext('Formato no válido (JPG, PNG, WEBP).'), 'error')
-        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_superadmin() else url_for('perfil'))
     data = f.read()
     if len(data) > 2 * 1024 * 1024:
         flash(gettext('Archivo demasiado grande (máx. 2 MB).'), 'error')
-        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_admin() else url_for('perfil'))
+        return redirect(url_for('editar_usuario', user_id=user_id) if current_user.is_superadmin() else url_for('perfil'))
     ext = secure_filename(f.filename).rsplit('.', 1)[-1].lower()
     av_dir = os.path.join(app.static_folder, 'avatars')
     os.makedirs(av_dir, exist_ok=True)
@@ -1660,13 +2401,13 @@ def upload_avatar_usuario(user_id):
     u.modifie_le = datetime.now()
     db.session.commit()
     flash(gettext('Avatar actualizado.'), 'success')
-    if current_user.is_admin():
+    if current_user.is_superadmin():
         return redirect(url_for('editar_usuario', user_id=user_id))
     return redirect(url_for('dashboard'))
 
 
 @app.route('/audit-log')
-@admin_required
+@superadmin_required
 def audit_log():
     user_id = request.args.get('user_id', type=int)
     date_from = request.args.get('date_from', '')
@@ -1720,7 +2461,7 @@ def audit_log():
 
 
 @app.route('/audit-log/export.txt')
-@admin_required
+@superadmin_required
 def audit_log_export_txt():
     user_id = request.args.get('user_id', type=int)
     date_from = request.args.get('date_from', '')
@@ -1777,19 +2518,87 @@ def set_language(language=None):
     return redirect(request.referrer or url_for('dashboard'))
 
 # Routes principales
+def _dashboard_scope_from_request():
+    """Ciudad et agencia du dashboard. Hors superadmin, hors périmètre = ignoré."""
+    from core.services.incidents_list_service import normalize_ciudad_agencia_filters
+
+    return normalize_ciudad_agencia_filters(
+        current_user,
+        request.args.get('ciudad', '', type=str),
+        request.args.get('agencia', '', type=str),
+    )
+
+
+def _apply_dashboard_incident_scope(query, ciudad_id, agencia_id):
+    if ciudad_id:
+        query = query.filter(Incident.client.has(id_ciudad=ciudad_id))
+    if agencia_id:
+        query = query.filter(Incident.operateur.has(id_agencia=agencia_id))
+    return query
+
+
+def _dashboard_period_query(query, start_date, end_date, ciudad_id, agencia_id):
+    if start_date:
+        query = query.filter(Incident.date_heure >= start_date)
+    if end_date:
+        query = query.filter(Incident.date_heure <= end_date)
+    return _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
+
+
+def _dashboard_scope_template_context(ciudad_filter, agencia_filter, ciudad_id):
+    if not sees_all_movements():
+        return {
+            'ciudad_filter': '',
+            'agencia_filter': '',
+            'ciudades': [],
+            'agencias': [],
+            'agencias_catalogo': [],
+        }
+    from core.services.incidents_list_service import get_incidents_filter_options
+
+    _, ciudades, agencias = get_incidents_filter_options(current_user, ciudad_id=ciudad_id)
+    catalogo = [
+        {'id': agencia.id, 'nombre': agencia.nombre, 'id_ciudad': agencia.id_ciudad}
+        for agencia in Agencia.query.order_by(Agencia.nombre).all()
+    ]
+    return {
+        'ciudad_filter': ciudad_filter,
+        'agencia_filter': agencia_filter,
+        'ciudades': ciudades,
+        'agencias': agencias,
+        'agencias_catalogo': catalogo,
+    }
+
+
+def _instalaciones_dashboard(ciudad_id, agencia_id):
+    from core.services.instalaciones_service import instalaciones_del_dia
+
+    if sees_all_movements():
+        return instalaciones_del_dia(
+            agencia_id=agencia_id,
+            ciudad_id=ciudad_id,
+            all_agencies=not ciudad_id and not agencia_id,
+        )
+    return instalaciones_del_dia(
+        agencia_id=current_user.id_agencia,
+        ciudad_id=current_user.id_ciudad,
+        all_agencies=False,
+    )
+
+
 @app.route('/')
 @login_required
 def dashboard():
     # Obtenir la période depuis les paramètres URL ou utiliser la valeur par défaut
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
+    ciudad_filter, agencia_filter, ciudad_id, agencia_id = _dashboard_scope_from_request()
     
     # Construire la requête selon la période
-    query = apply_incident_visibility(Incident.query)
-    if start_date:
-        query = query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        query = query.filter(Incident.date_heure <= end_date)
+    query = _dashboard_period_query(
+        apply_incident_visibility(Incident.query),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     incidents_periode = query.all()
     
@@ -1797,42 +2606,35 @@ def dashboard():
     incidents_resolus = len([i for i in incidents_periode if i.status == 'Solucionadas'])
     incidents_attente = len([i for i in incidents_periode if i.status == 'Pendiente'])
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
-    
-    # 5 derniers incidents
-    derniers_incidents = apply_incident_visibility(
-        Incident.query.options(joinedload(Incident.client), joinedload(Incident.operateur))
-    ).order_by(Incident.date_heure.desc()).limit(5).all()
+
+    instalaciones_dia = _instalaciones_dashboard(ciudad_id, agencia_id)
     
     # Données pour les graphiques selon la période
-    operateurs_query = apply_incident_visibility(db.session.query(
-        Operateur.nom, func.count(Incident.id)
-    ).join(Incident))
+    operateurs_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Operateur.id, Operateur.nom, func.count(Incident.id)
+        ).join(Incident, Incident.id_operateur == Operateur.id)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
-    if start_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure <= end_date)
+    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.id, Operateur.nom).all()
     
-    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.nom).all()
-    
-    # Convertir en liste de listes pour la sérialisation JSON
-    incidents_par_operateur = [[nom, count] for nom, count in incidents_par_operateur_raw]
+    # [nom, count, id] : le clic du graphique ouvre la liste filtrée sur cet opérateur
+    incidents_par_operateur = [[nom, count, op_id] for op_id, nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
-    clients_recurrents_query = apply_incident_visibility(db.session.query(
-        Client.id,
-        Client.nom,
-        Client.adresse,
-        Client.categoria,
-        func.count(Incident.id).label('incidents'),
-        func.max(Incident.intitule).label('intitule'),
-        func.max(Incident.date_heure).label('date_heure')
-    ).join(Incident))
-    
-    if start_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure <= end_date)
+    clients_recurrents_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Client.id,
+            Client.nom,
+            Client.adresse,
+            Client.categoria,
+            func.count(Incident.id).label('incidents'),
+            func.max(Incident.intitule).label('intitule'),
+            func.max(Incident.date_heure).label('date_heure')
+        ).join(Incident)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     clients_recurrents = clients_recurrents_query.group_by(
         Client.id, Client.nom, Client.adresse, Client.categoria
@@ -1840,29 +2642,32 @@ def dashboard():
         func.count(Incident.id).desc()
     ).limit(5).all()
     
-    return render_template('dashboard.html',
-                         total_incidents=total_incidents,
-                         incidents_resolus=incidents_resolus,
-                         incidents_attente=incidents_attente,
-                         incidents_bitrix=incidents_bitrix,
-                         derniers_incidents=derniers_incidents,
-                         incidents_par_operateur=incidents_par_operateur,
-                         clients_recurrents=clients_recurrents,
-                         current_period=period)
+    return render_template(
+        'dashboard.html',
+        total_incidents=total_incidents,
+        incidents_resolus=incidents_resolus,
+        incidents_attente=incidents_attente,
+        incidents_bitrix=incidents_bitrix,
+        instalaciones_dia=instalaciones_dia,
+        incidents_par_operateur=incidents_par_operateur,
+        clients_recurrents=clients_recurrents,
+        current_period=period,
+        period_date_from=start_date.strftime('%Y-%m-%d') if start_date else '',
+        period_date_to=end_date.strftime('%Y-%m-%d') if end_date else '',
+        **_dashboard_scope_template_context(ciudad_filter, agencia_filter, ciudad_id),
+    )
 
 @app.route('/recherche')
 def recherche():
     query = request.args.get('q', '')
     if query:
         # Recherche dans les clients et incidents
-        clients = Client.query.filter(Client.nom.contains(query)).all()
-        incidents = Incident.query.filter(Incident.intitule.contains(query)).all()
+        clients = scoped_clients_query().filter(Client.nom.contains(query)).all()
+        incidents = apply_incident_visibility(
+            Incident.query.filter(Incident.intitule.contains(query))
+        ).all()
         return render_template('recherche.html', clients=clients, incidents=incidents, query=query)
     return redirect(url_for('dashboard'))
-
-@app.route('/edition')
-def edition():
-    return render_template('edition.html')
 
 @app.route('/aide')
 def aide():
@@ -1901,7 +2706,7 @@ def _paginated_clients_from_request():
             ciudad_filter = ''
             ciudad_id = None
 
-    query = Client.query
+    query = scoped_clients_query()
 
     if search_query:
         query = query.filter(
@@ -1947,9 +2752,9 @@ def _paginated_clients_from_request():
         error_out=False
     )
 
-    villes = db.session.query(Client.ville).distinct().order_by(Client.ville).all()
+    villes = scoped_clients_query().with_entities(Client.ville).distinct().order_by(Client.ville).all()
     villes_list = [ville[0] for ville in villes if ville[0]]
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    ciudades = ciudades_for_current_user()
 
     return {
         'clients': clients_paginated,
@@ -1996,7 +2801,7 @@ def api_clients_export_xlsx():
 
 @app.route('/clients/nouveau', methods=['GET', 'POST'])
 def nouveau_client():
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    ciudades = ciudades_for_current_user()
     default_ciudad_id = current_user.id_ciudad or (ciudades[0].id if ciudades else None)
     if request.method == 'POST':
         id_ciudad = request.form.get('id_ciudad', type=int) or default_ciudad_id
@@ -2021,6 +2826,7 @@ def nouveau_client():
             username_radius=(request.form.get('username_radius') or '').strip() or None,
             id_ciudad=id_ciudad,
             categoria=categoria,
+            id_operateur=current_user.id,
         )
         db.session.add(client)
         db.session.commit()
@@ -2043,8 +2849,9 @@ def nouveau_client():
 @app.route('/clients/<int:id>/modifier', methods=['GET', 'POST'])
 def modifier_client(id):
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     next_url = _resolve_next_url()
-    ciudades = Ciudad.query.order_by(Ciudad.nombre).all()
+    ciudades = ciudades_for_current_user()
     default_ciudad_id = client.id_ciudad or current_user.id_ciudad or (ciudades[0].id if ciudades else None)
 
     if request.method == 'POST':
@@ -2073,6 +2880,12 @@ def modifier_client(id):
         if old_username_radius != (client.username_radius or '').strip():
             client.radius_cache_json = None
             client.radius_cache_at = None
+        sitio = client.sitio_activo
+        if sitio is not None:
+            sitio.adresse = client.adresse
+            sitio.ville = client.ville
+        client.id_operateur_modificacion = current_user.id
+        client.modifie_le = datetime.now()
         db.session.commit()
         write_audit(
             'UPDATE_CLIENT',
@@ -2095,6 +2908,7 @@ def modifier_client(id):
 @app.route('/clients/<int:id>/supprimer', methods=['POST'])
 def supprimer_client(id):
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     cid = client.id
     db.session.delete(client)
     db.session.commit()
@@ -2106,13 +2920,21 @@ def supprimer_client(id):
 @app.route('/clients/<int:id>/fiche')
 def fiche_client(id):
     client = Client.query.get_or_404(id)
-    incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
+    require_client_visible(client)
+    incidents = apply_incident_visibility(
+        Incident.query.filter_by(id_client=id)
+    ).order_by(Incident.date_heure.desc()).all()
     return_url = _resolve_next_url()
     from core.services.materiales_service import get_client_material_rows
     from core.services.radius_service import get_client_radius_info, radius_enabled
+    from core.services.instalaciones_service import client_instalacion_fotos, instalaciones_du_client
 
-    agencia_id = None if current_user.is_admin() else current_user.id_agencia
-    material_rows = get_client_material_rows(id, agencia_id)
+    agencia_id = None if sees_all_movements() else current_user.id_agencia
+    ciudad_id = None if sees_all_movements() else current_user.id_ciudad
+    material_rows = get_client_material_rows(id, agencia_id, ciudad_id=ciudad_id)
+    instalaciones_cliente = instalaciones_du_client(client)
+    instalacion_fotos = client_instalacion_fotos(client)
+    slots_left = max(0, MAX_INSTALACION_FOTOS - len(instalacion_fotos))
 
     radius_info = None
     if radius_enabled():
@@ -2134,9 +2956,13 @@ def fiche_client(id):
         client=client,
         incidents=incidents,
         material_rows=material_rows,
+        instalaciones_cliente=instalaciones_cliente,
         return_url=return_url,
         radius_info=radius_info,
         radius_enabled=radius_enabled(),
+        instalacion_fotos=instalacion_fotos,
+        max_fotos=MAX_INSTALACION_FOTOS,
+        slots_left=slots_left,
     )
 
 
@@ -2146,6 +2972,7 @@ def api_client_radius_info(id):
     from core.services.radius_service import get_client_radius_info, radius_enabled
 
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     if not radius_enabled():
         return jsonify({'ok': False, 'error': 'Integración RADIUS desactivada.'}), 200
 
@@ -2168,7 +2995,10 @@ def api_client_radius_info(id):
 @app.route('/clients/<int:id>/imprimer')
 def imprimer_fiche_client(id):
     client = Client.query.get_or_404(id)
-    incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
+    require_client_visible(client)
+    incidents = apply_incident_visibility(
+        Incident.query.filter_by(id_client=id)
+    ).order_by(Incident.date_heure.desc()).all()
     
     # Pour l'instant, rediriger vers la version HTML pour éviter les problèmes WeasyPrint
     flash(gettext('Generación de PDF temporalmente desactivada. Utilice la impresión del navegador (Ctrl+P).'), 'info')
@@ -2178,7 +3008,10 @@ def imprimer_fiche_client(id):
 @app.route('/clients/<int:id>/imprimer-html')
 def fiche_client_print(id):
     client = Client.query.get_or_404(id)
-    incidents = Incident.query.filter_by(id_client=id).order_by(Incident.date_heure.desc()).all()
+    require_client_visible(client)
+    incidents = apply_incident_visibility(
+        Incident.query.filter_by(id_client=id)
+    ).order_by(Incident.date_heure.desc()).all()
     return render_template('fiche_client_pdf.html', client=client, incidents=incidents)
 
 # Route pour vérifier la connectivité du client (ping)
@@ -2190,6 +3023,7 @@ def verificar_cliente(id):
     import shutil
     
     client = Client.query.get_or_404(id)
+    require_client_visible(client)
     
     # Fonction pour effectuer un ping
     def ping_ip(ip_address, count=10):
@@ -2362,13 +3196,13 @@ def verificar_cliente(id):
 
 # Routes CRUD pour les opérateurs
 @app.route('/operateurs')
-@admin_required
+@superadmin_required
 def operateurs():
     operateurs = Operateur.query.all()
     return render_template('operateurs.html', operateurs=operateurs)
 
 @app.route('/operateurs/nouveau', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def nouveau_operateur():
     if request.method == 'POST':
         operateur = Operateur(
@@ -2382,7 +3216,7 @@ def nouveau_operateur():
     return render_template('nouveau_operateur.html')
 
 @app.route('/operateurs/<int:id>/modifier', methods=['GET', 'POST'])
-@admin_required
+@superadmin_required
 def modifier_operateur(id):
     operateur = Operateur.query.get_or_404(id)
     if request.method == 'POST':
@@ -2394,7 +3228,7 @@ def modifier_operateur(id):
     return render_template('modifier_operateur.html', operateur=operateur)
 
 @app.route('/operateurs/<int:id>/supprimer', methods=['POST'])
-@admin_required
+@superadmin_required
 def supprimer_operateur(id):
     operateur = Operateur.query.get_or_404(id)
     db.session.delete(operateur)
@@ -2408,6 +3242,7 @@ def _paginated_incidents_from_request():
     from core.services.incidents_list_service import (
         apply_incidents_sort,
         build_filtered_incidents_query,
+        get_bitrix_status_filter_choices,
         get_incidents_category_counts,
         get_incidents_filter_options,
         get_incidents_list_params,
@@ -2434,6 +3269,8 @@ def _paginated_incidents_from_request():
     return {
         'incidents': incidents_paginated,
         'status_filter': params['status_filter'],
+        'bitrix_status_filter': params.get('bitrix_status_filter', ''),
+        'bitrix_status_choices': get_bitrix_status_filter_choices(),
         'search_query': params['search_query'],
         'date_from': params['date_from'],
         'date_to': params['date_to'],
@@ -2482,6 +3319,12 @@ def api_incidents_export_xlsx():
 @app.route('/incidents/nouveau', methods=['GET', 'POST'])
 def nouveau_incident():
     if request.method == 'POST':
+        client = db.session.get(Client, request.form.get('id_client', type=int))
+        if not user_can_access_client(client):
+            abort(403)
+        if not client_in_movement_ciudad(client):
+            flash(gettext('Solo puede registrar una incidencia de un cliente de su ciudad.'), 'error')
+            return redirect(url_for('nouveau_incident'))
         incident = Incident(
             id_client=request.form['id_client'],
             intitule=request.form['intitule'],
@@ -2513,9 +3356,12 @@ def nouveau_incident():
         flash(gettext('Incidencia creada con éxito!'), 'success')
         return redirect(url_for('incidents'))
 
-    clients = Client.query.all()
+    clients_query = Client.query.order_by(Client.nom)
+    if not sees_all_movements():
+        clients_query = clients_query.filter(Client.id_ciudad == current_user.id_ciudad)
+    clients = clients_query.all()
     preselected_client_id = request.args.get('client', type=int) or request.args.get('id_client', type=int)
-    if preselected_client_id and not db.session.get(Client, preselected_client_id):
+    if preselected_client_id and not user_can_access_client(db.session.get(Client, preselected_client_id)):
         preselected_client_id = None
     return render_template(
         'nouveau_incident.html',
@@ -2525,6 +3371,8 @@ def nouveau_incident():
 
 @app.route('/incidents/<int:id>/fiche_incident')
 def fiche_incident(id):
+    from core.services.bitrix_cache_service import build_bitrix_task_extras
+
     incident = Incident.query.get_or_404(id)
     if not user_can_access_incident(incident):
         abort(403)
@@ -2540,10 +3388,12 @@ def fiche_incident(id):
     abrir_comentario = request.args.get('abrir_comentario') == '1'
     can_modify_incident = user_can_modify_incident(incident)
     bitrix_info = fetch_bitrix_info_for_incident(incident)
+    bitrix_task_extras = build_bitrix_task_extras(incident) if bitrix_info else None
     return render_template(
         'fiche_incident.html',
         incident=incident,
         bitrix_info=bitrix_info,
+        bitrix_task_extras=bitrix_task_extras,
         comentarios=comentarios,
         can_modify_incident=can_modify_incident,
         abrir_comentario=abrir_comentario,
@@ -2578,6 +3428,8 @@ def agregar_comentario_incident(id):
 @app.route('/api/incidents/<int:id>/bitrix-info')
 def api_incident_bitrix_info(id):
     """API pour récupérer les infos Bitrix d'un incident (AJAX)."""
+    from core.services.bitrix_cache_service import build_bitrix_task_extras
+
     incident = Incident.query.get_or_404(id)
     if not user_can_access_incident(incident):
         abort(403)
@@ -2593,7 +3445,12 @@ def api_incident_bitrix_info(id):
     if 'error' in info:
         return jsonify({'ok': False, 'error': info['error']}), 200
 
-    payload = {k: v for k, v in info.items() if k not in ('from_cache', 'task_status')}
+    # Les datetime bruts ne sont pas sérialisés lisiblement par jsonify : on expose les labels.
+    omitted = ('from_cache', 'task_status', 'deadline', 'created_date', 'closed_date', 'changed_date')
+    payload = {k: v for k, v in info.items() if k not in omitted}
+    extras = build_bitrix_task_extras(incident)
+    if extras:
+        payload.update({k: v for k, v in extras.items() if k != 'deadline'})
     return jsonify({
         'ok': True,
         'data': payload,
@@ -2613,11 +3470,18 @@ def modifier_incident(id):
 
         old_status = incident.status
         old_ref = incident.ref_bitrix
+        client = db.session.get(Client, request.form.get('id_client', type=int))
+        if not user_can_access_client(client):
+            abort(403)
+        if not client_in_movement_ciudad(client):
+            flash(gettext('Solo puede registrar una incidencia de un cliente de su ciudad.'), 'error')
+            return redirect(url_for('modifier_incident', id=incident.id))
         incident.id_client = request.form['id_client']
         incident.intitule = request.form['intitule']
         incident.observations = request.form['observations']
         incident.status = request.form['status']
-        incident.id_operateur = current_user.id
+        incident.id_operateur_modificacion = current_user.id
+        incident.modifie_le = datetime.now()
         if request.form.get('status') == 'Bitrix':
             ref = request.form.get('ref_bitrix', '').strip()[:10]
             if not ref:
@@ -2644,14 +3508,17 @@ def modifier_incident(id):
         flash(gettext('Incidencia modificada con éxito!'), 'success')
         return redirect(next_url)
 
-    clients = Client.query.all()
+    clients_query = Client.query.order_by(Client.nom)
+    if not sees_all_movements():
+        clients_query = clients_query.filter(Client.id_ciudad == current_user.id_ciudad)
+    clients = clients_query.all()
     ref_bitrix_display = incident.ref_bitrix or (_extract_ref_bitrix(incident.observations) if incident.status == 'Bitrix' else '')
     return render_template('modifier_incident.html', incident=incident, clients=clients, next_url=next_url, ref_bitrix_display=ref_bitrix_display)
 
 @app.route('/incidents/<int:id>/supprimer', methods=['POST'])
 def supprimer_incident(id):
     incident = Incident.query.get_or_404(id)
-    if not user_can_modify_incident(incident):
+    if not user_can_delete_incident(incident):
         abort(403)
     iid = incident.id
     db.session.delete(incident)
@@ -2664,7 +3531,10 @@ def supprimer_incident(id):
 @app.route('/api/clients-search')
 def api_clients_search():
     """API pour la recherche de clients avec auto-complétion"""
-    clients = Client.query.all()
+    clients_query = scoped_clients_query()
+    if request.args.get('movimiento') == '1' and not sees_all_movements():
+        clients_query = clients_query.filter(Client.id_ciudad == current_user.id_ciudad)
+    clients = clients_query.order_by(Client.nom).all()
     clients_data = []
     
     for client in clients:
@@ -2690,13 +3560,13 @@ def dashboard_data():
     """API pour récupérer les données du dashboard selon la période"""
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
+    _ciudad_filter, _agencia_filter, ciudad_id, agencia_id = _dashboard_scope_from_request()
     
     # Construire la requête selon la période
-    query = apply_incident_visibility(Incident.query)
-    if start_date:
-        query = query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        query = query.filter(Incident.date_heure <= end_date)
+    query = _dashboard_period_query(
+        apply_incident_visibility(Incident.query),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     incidents_periode = query.all()
     
@@ -2706,62 +3576,30 @@ def dashboard_data():
     incidents_attente = len([i for i in incidents_periode if i.status == 'Pendiente'])
     incidents_bitrix = len([i for i in incidents_periode if i.status == 'Bitrix'])
     
-    # 5 derniers incidents de la période
-    derniers_query = apply_incident_visibility(Incident.query)
-    if start_date:
-        derniers_query = derniers_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        derniers_query = derniers_query.filter(Incident.date_heure <= end_date)
-    
-    derniers_incidents = derniers_query.options(
-        joinedload(Incident.client),
-        joinedload(Incident.operateur),
-    ).order_by(Incident.date_heure.desc()).limit(5).all()
-    
-    # Formater les derniers incidents pour l'API
-    derniers_incidents_data = []
-    for incident in derniers_incidents:
-        derniers_incidents_data.append({
-            'id': incident.id,
-            'intitule': incident.intitule,
-            'status': incident.status,
-            'client_nom': incident.client.nom,
-            'client_adresse': incident.client.adresse or '',
-            'client_categoria': incident.client.categoria,
-            'operateur_nom': incident.operateur.nom,
-            'operateur_avatar_url': incident.operateur.avatar_url,
-            'date_heure_formatted': incident.date_heure.strftime('%d/%m/%Y %H:%M'),
-            'ref_bitrix': incident.ref_bitrix or '',
-        })
-    
     # Données par opérateur pour la période
-    operateurs_query = apply_incident_visibility(db.session.query(
-        Operateur.nom, func.count(Incident.id)
-    ).join(Incident))
+    operateurs_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Operateur.id, Operateur.nom, func.count(Incident.id)
+        ).join(Incident, Incident.id_operateur == Operateur.id)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
-    if start_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        operateurs_query = operateurs_query.filter(Incident.date_heure <= end_date)
-    
-    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.nom).all()
-    incidents_par_operateur = [[nom, count] for nom, count in incidents_par_operateur_raw]
+    incidents_par_operateur_raw = operateurs_query.group_by(Operateur.id, Operateur.nom).all()
+    incidents_par_operateur = [[nom, count, op_id] for op_id, nom, count in incidents_par_operateur_raw]
     
     # Obtenir les 5 clients avec le plus d'incidents dans la période
-    clients_recurrents_query = apply_incident_visibility(db.session.query(
-        Client.id,
-        Client.nom,
-        Client.adresse,
-        Client.categoria,
-        func.count(Incident.id).label('incidents'),
-        func.max(Incident.intitule).label('intitule'),
-        func.max(Incident.date_heure).label('date_heure')
-    ).join(Incident))
-    
-    if start_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure >= start_date)
-    if end_date:
-        clients_recurrents_query = clients_recurrents_query.filter(Incident.date_heure <= end_date)
+    clients_recurrents_query = _dashboard_period_query(
+        apply_incident_visibility(db.session.query(
+            Client.id,
+            Client.nom,
+            Client.adresse,
+            Client.categoria,
+            func.count(Incident.id).label('incidents'),
+            func.max(Incident.intitule).label('intitule'),
+            func.max(Incident.date_heure).label('date_heure')
+        ).join(Incident)),
+        start_date, end_date, ciudad_id, agencia_id,
+    )
     
     clients_recurrents_raw = clients_recurrents_query.group_by(
         Client.id, Client.nom, Client.adresse, Client.categoria
@@ -2787,9 +3625,10 @@ def dashboard_data():
         'incidents_resolus': incidents_resolus,
         'incidents_attente': incidents_attente,
         'incidents_bitrix': incidents_bitrix,
-        'derniers_incidents': derniers_incidents_data,
         'incidents_par_operateur': incidents_par_operateur,
-        'clients_recurrents': clients_recurrents_data
+        'clients_recurrents': clients_recurrents_data,
+        'period_date_from': start_date.strftime('%Y-%m-%d') if start_date else '',
+        'period_date_to': end_date.strftime('%Y-%m-%d') if end_date else '',
     })
 
 # API pour les notifications d'incidents pendientes
@@ -2820,6 +3659,7 @@ def api_incidents_pendientes():
                 'id': incident.id,
                 'intitule': incident.intitule,
                 'client_nom': client.nom,
+                'client_ville': client.ville or '',
                 'operateur_nom': operateur.nom,
                 'tiempo_transcurrido': f"{horas}h {minutos}m",
                 'fecha_creacion': incident.date_heure.strftime('%d/%m/%Y %H:%M')
@@ -2906,6 +3746,7 @@ def api_incidents_par_date():
     """API pour les données des graphiques selon la période"""
     period = request.args.get('period', 'current_week')
     start_date, end_date = get_date_range_for_period(period)
+    _ciudad_filter, _agencia_filter, ciudad_id, agencia_id = _dashboard_scope_from_request()
     
     # Paramètre pour choisir le type d'affichage
     view_type = request.args.get('type', 'date')  # 'date', 'month', 'year'
@@ -2927,6 +3768,7 @@ def api_incidents_par_date():
         ))
         if base_filter:
             query = query.filter(*base_filter)
+        query = _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
         
         incidents = query.group_by(
             func.date_format(Incident.date_heure, '%Y-%m-01')
@@ -2951,6 +3793,7 @@ def api_incidents_par_date():
         ))
         if base_filter:
             query = query.filter(*base_filter)
+        query = _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
         
         incidents = query.group_by(
             func.date_format(Incident.date_heure, '%Y-01-01')
@@ -2975,14 +3818,29 @@ def api_incidents_par_date():
         ))
         if base_filter:
             query = query.filter(*base_filter)
+        query = _apply_dashboard_incident_scope(query, ciudad_id, agencia_id)
         
         incidents = query.group_by(func.date(Incident.date_heure)).order_by(func.date(Incident.date_heure)).all()
 
         date_keys = [_coerce_chart_date(date_obj) for date_obj, *_rest in incidents]
         notes = {}
         if date_keys:
-            for row in ApreciacionDia.query.filter(ApreciacionDia.fecha.in_(date_keys)).all():
-                notes[row.fecha] = row.texto
+            note_rows = apply_apreciacion_visibility(
+                ApreciacionDia.query.options(
+                    joinedload(ApreciacionDia.ciudad),
+                    joinedload(ApreciacionDia.agencia),
+                ).filter(ApreciacionDia.fecha.in_(date_keys)),
+                ciudad_id,
+                agencia_id,
+            ).all()
+            for row in note_rows:
+                notes.setdefault(row.fecha, []).append(row)
+            for rows in notes.values():
+                rows.sort(key=lambda item: (
+                    item.ciudad.nombre if item.ciudad else '',
+                    item.agencia.nombre if item.agencia else '',
+                    item.id,
+                ))
 
         return jsonify([{
             'date': fecha.strftime('%d/%m'),
@@ -2990,7 +3848,8 @@ def api_incidents_par_date():
             'count': count,
             'solucionadas': int(solucionadas or 0),
             'bitrix': int(bitrix or 0),
-            'apreciacion': notes.get(fecha),
+            'apreciacion': join_apreciaciones_texto(notes.get(fecha, [])),
+            'apreciaciones': [apreciacion_api_item(row) for row in notes.get(fecha, [])],
         } for (date_obj, count, solucionadas, bitrix), fecha in zip(incidents, date_keys)])
 
 def get_date_range_for_period(period):
@@ -3030,10 +3889,10 @@ def get_date_range_for_period(period):
         # Mois précédent
         if today.month == 1:
             start_date = datetime(today.year - 1, 12, 1)
-            end_date = datetime(today.year, 1, 1) - timedelta(days=1)
+            end_date = datetime(today.year, 1, 1) - timedelta(seconds=1)
         else:
             start_date = datetime(today.year, today.month - 1, 1)
-            end_date = datetime(today.year, today.month, 1) - timedelta(days=1)
+            end_date = datetime(today.year, today.month, 1) - timedelta(seconds=1)
         return start_date, end_date
         
     elif period == 'last_3_months':
@@ -3080,7 +3939,7 @@ def create_sample_data():
             mot_de_passe_hash=generate_password_hash('demo'),
             id_ciudad=mid,
             id_agencia=aid,
-            role='admin',
+            role=ROLE_SUPERADMIN,
             actif=True,
             cree_le=datetime.now(),
         )
@@ -3160,14 +4019,14 @@ def create_sample_data():
 # ─────────────────────────────────────────────────────────────
 
 @app.route('/base-de-datos')
-@admin_required
+@superadmin_required
 def base_de_datos():
     """Page principale de gestion de la base de données (admin uniquement)."""
     return render_template('database.html')
 
 
 @app.route('/base-de-datos/verificar', methods=['POST'])
-@admin_required
+@superadmin_required
 def base_de_datos_verificar():
     """Lance la vérification de la BDD et retourne un rapport JSON."""
     try:
@@ -3269,7 +4128,7 @@ def base_de_datos_verificar():
 
 
 @app.route('/base-de-datos/exportar')
-@admin_required
+@superadmin_required
 def base_de_datos_exportar():
     """Génère et télécharge un fichier .sql compatible HeidiSQL (admin uniquement)."""
     try:
@@ -3315,8 +4174,14 @@ if __name__ == '__main__':
             logger.info('Initialisation de la base (moteur=%s)', engine)
             db.create_all()
             ensure_client_categoria_column()
+            ensure_client_gps_columns()
+            ensure_instalacion_foto_table()
+            ensure_instalacion_foto_id_client()
+            ensure_instalaciones_sitio_schema()
             ensure_ciudad_agencia_seed()
-            create_sample_data()
+            ensure_default_admin_operateur()
+            if os.environ.get('INIT_SAMPLE_DATA', 'false').lower() == 'true':
+                create_sample_data()
             logger.info('Base de donnees initialisee avec succes')
         except Exception as e:
             logger.error('Erreur lors de l\'initialisation: %s', e)

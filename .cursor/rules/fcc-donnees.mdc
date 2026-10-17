@@ -1,0 +1,22 @@
+---
+description: MariaDB, migrations Alembic DDMMYYYY et fonctions ensure_*
+globs: "migrations/**,core/app.py,config.py,**/*.sql"
+alwaysApply: false
+---
+
+# FCC_001 — données
+
+- Prod / Docker : MariaDB `utf8mb4`. SQLite = secours **dev** uniquement
+- Prod : ne jamais basculer silencieusement vers SQLite si MariaDB est configuré
+- Nouvelle colonne / table : migration Alembic **et** `ensure_*` idempotent (`before_request`)
+- Fichier migration : `DDMMYYYY_description.py` (ex. `24072026_client_radius_cache.py`)
+- Ne pas écraser une migration déjà déployée : en ajouter une nouvelle
+- Ne pas renommer les colonnes FR historiques (`nom`, `intitule`, `date_heure`, …)
+- SQLAlchemy paramétré. Ne pas élargir le DDL `ensure_*` en SQL interpolé utilisateur
+
+```python
+# ❌ BAD : changer Incident.status sans historial ni migration
+# ✅ GOOD : versions/18072026_incident_estado_historial.py
+#           + ensure_incident_estado_historial_table()
+#           + record_incident_estado_change(...)
+```

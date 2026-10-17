@@ -8,15 +8,17 @@
 <a href="{{ url_for('materiales_hub') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Volver</a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Catálogo</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('materiales_hub') }}">Materiales</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Catálogo</li>
-        </ol>
-    </nav>
-
     <div class="row g-4">
         <div class="col-lg-4">
             <div class="card content-card">
@@ -63,23 +65,66 @@
             <div class="card content-card">
                 <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">Lista</h5>
-                    <form method="GET" class="d-flex gap-2 align-items-center">
+                    <form method="GET" class="d-flex gap-2 align-items-center flex-wrap">
+                        {% if sort_by %}
+                        <input type="hidden" name="sort" value="{{ sort_by }}">
+                        <input type="hidden" name="order" value="{{ sort_order }}">
+                        {% endif %}
                         <select name="tipo" class="form-select form-select-sm" onchange="this.form.submit()">
                             <option value="">Todos los tipos</option>
                             {% for t in material_tipos %}
                             <option value="{{ t }}" {% if tipo_filter == t %}selected{% endif %}>{{ tipo_labels[t] }}</option>
                             {% endfor %}
                         </select>
+                        <div class="d-lg-none btn-group btn-group-sm" role="group" aria-label="Ordenar lista">
+                            <a href="{{ url_for('materiales_catalogo', sort='nombre', order='desc' if sort_by == 'nombre' and sort_order == 'asc' else 'asc', tipo=tipo_filter or None) }}"
+                               class="btn btn-outline-secondary{% if sort_by == 'nombre' %} active{% endif %}">
+                                Nombre
+                                {% if sort_by == 'nombre' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}" aria-hidden="true"></i>
+                                {% else %}
+                                <i class="fas fa-sort" aria-hidden="true"></i>
+                                {% endif %}
+                            </a>
+                            <a href="{{ url_for('materiales_catalogo', sort='modelo', order='desc' if sort_by == 'modelo' and sort_order == 'asc' else 'asc', tipo=tipo_filter or None) }}"
+                               class="btn btn-outline-secondary{% if sort_by == 'modelo' %} active{% endif %}">
+                                Modelo
+                                {% if sort_by == 'modelo' %}
+                                <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}" aria-hidden="true"></i>
+                                {% else %}
+                                <i class="fas fa-sort" aria-hidden="true"></i>
+                                {% endif %}
+                            </a>
+                        </div>
                     </form>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    {% if materiales %}
+                    <div class="table-responsive d-none d-lg-block d-print-block">
                         <table class="table table-hover mb-0 align-middle">
                             <thead>
                                 <tr>
                                     <th class="text-white" style="width:52px">Foto</th>
-                                    <th class="text-white">Nombre</th> <!-- Ajouter la fonction trier par nombre ici-->
-                                    <th class="text-white">Modelo</th>
+                                    <th class="text-white">
+                                        <a href="{{ url_for('materiales_catalogo', sort='nombre', order='desc' if sort_by == 'nombre' and sort_order == 'asc' else 'asc', tipo=tipo_filter or None) }}" class="table-sort-link text-decoration-none">
+                                            Nombre
+                                            {% if sort_by == 'nombre' %}
+                                            <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}" aria-hidden="true"></i>
+                                            {% else %}
+                                            <i class="fas fa-sort" aria-hidden="true"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="text-white">
+                                        <a href="{{ url_for('materiales_catalogo', sort='modelo', order='desc' if sort_by == 'modelo' and sort_order == 'asc' else 'asc', tipo=tipo_filter or None) }}" class="table-sort-link text-decoration-none">
+                                            Modelo
+                                            {% if sort_by == 'modelo' %}
+                                            <i class="fas fa-sort-{{ 'up' if sort_order == 'asc' else 'down' }}" aria-hidden="true"></i>
+                                            {% else %}
+                                            <i class="fas fa-sort" aria-hidden="true"></i>
+                                            {% endif %}
+                                        </a>
+                                    </th>
                                     <th class="text-white">Tipo</th>
                                     <th class="text-white">Activo</th>
                                     <th class="text-white text-end">Acciones</th>
@@ -158,12 +203,21 @@
                                         </form>
                                     </td>
                                 </tr>
-                                {% else %}
-                                <tr><td colspan="6" class="text-center text-muted py-4">No hay materiales. Añada el primero con el formulario.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+                    <div class="mobile-list d-lg-none d-print-none" id="catalogo-mobile-list">
+                        {% for m in materiales %}
+                            {% include '_mobile_list_card_material.html' %}
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 px-3">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay materiales. Añada el primero con el formulario.</h5>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

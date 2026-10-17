@@ -132,9 +132,6 @@ class DevelopmentConfig(Config):
     LOG_LEVEL = 'DEBUG'
     SQLALCHEMY_ECHO = True
 
-    # WeasyPrint (optionnel en dev)
-    WEASYPRINT_AVAILABLE = os.environ.get('WEASYPRINT_AVAILABLE', 'True').lower() == 'true'
-
     # HTTP local (localhost) : un cookie Secure n'est pas envoyé par le navigateur,
     # la session CSRF se perd et le login affiche un 403.
     SESSION_COOKIE_SECURE = False

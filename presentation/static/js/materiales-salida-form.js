@@ -16,7 +16,7 @@
 
     async function loadClients() {
         try {
-            const r = await fetch('/api/clients-search');
+            const r = await fetch('/api/clients-search?movimiento=1');
             if (r.ok) clientsData = await r.json();
         } catch (e) {
             console.error('Error cargando clientes', e);
@@ -144,7 +144,9 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function () {
-        const form = document.getElementById('salidaForm');
+        const form = document.getElementById('salidaForm')
+            || document.getElementById('instalacionForm')
+            || document.getElementById('trasladoForm');
         const tipoSalida = form ? (form.dataset.tipoSalida || '') : '';
 
         await Promise.all([loadTecnicos(), loadClients()]);

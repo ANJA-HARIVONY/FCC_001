@@ -1,0 +1,7 @@
+# Forcer LF pour les scripts exécutés dans Linux/Docker
+# (évite "exec ... no such file or directory" à cause du CRLF Windows)
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf

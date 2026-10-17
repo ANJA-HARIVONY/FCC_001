@@ -8,4 +8,4 @@ services:
       FLASK_ENV: development
       SESSION_COOKIE_SECURE: "false"
       LOG_LEVEL: DEBUG
-      INIT_SAMPLE_DATA: "true"
+      INIT_SAMPLE_DATA: "false"

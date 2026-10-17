@@ -11,16 +11,17 @@
 </a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('clients') }}">Clientes</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Nuevo Cliente</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ url_for('clients') }}">Clientes</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Nuevo Cliente</li>
-        </ol>
-    </nav>
-
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card content-card">

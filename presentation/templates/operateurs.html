@@ -24,7 +24,7 @@
                 </div>
                 <div class="card-body p-0">
                     {% if operateurs %}
-                    <div class="table-responsive">
+                    <div class="table-responsive d-none d-lg-block d-print-block">
                         <table class="table table-hover mb-0">
                             <thead>
                                 <tr>
@@ -66,6 +66,11 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+                    <div class="mobile-list d-lg-none d-print-none" id="operateurs-mobile-list">
+                        {% for operateur in operateurs %}
+                            {% include '_mobile_list_card_operateur.html' %}
+                        {% endfor %}
                     </div>
                     {% else %}
                     <div class="text-center py-5">

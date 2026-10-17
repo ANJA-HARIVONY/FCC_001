@@ -2,23 +2,36 @@
 
 {% block title %}Dashboard - Atención al cliente{% endblock %}
 
-{% block page_icon %}<i class="fa fa-tachometer-alt" aria-hidden="true"></i>{% endblock %}
+{% block page_icon %}<i class="fas fa-tachometer-alt" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Dashboard — <span id="period-title">Semana en curso</span>{% endblock %}
 {% block page_subtitle %}Vista general de las incidencias y estadísticas{% endblock %}
 {% block page_actions %}
 <div class="dashboard-header-controls d-flex align-items-center flex-wrap gap-3">
     <div class="dashboard-period-group">
-        <label for="period-selector" class="form-label mb-0 me-2 text-muted small">Período:</label>
-        <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
-            <option value="current_month">Mes en curso</option>
-            <option value="current_week" selected>Semana en curso</option>
-            <option value="last_week">Semana pasada</option>
-            <option value="last_3_months">Últimos 3 meses</option>
-            <option value="last_month">Mes anterior</option>
-            <option value="last_6_months">Últimos 6 meses</option>
-            <option value="current_year">Año en curso</option>
-            <option value="all_data">Todos los datos</option>
-        </select>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <label for="period-selector" class="form-label mb-0 text-muted small">Período:</label>
+            <select class="form-select form-select-sm" id="period-selector" onchange="changePeriod()">
+                <option value="current_month">Mes en curso</option>
+                <option value="current_week" selected>Semana en curso</option>
+                <option value="last_week">Semana pasada</option>
+                <option value="last_3_months">Últimos 3 meses</option>
+                <option value="last_month">Mes anterior</option>
+                <option value="last_6_months">Últimos 6 meses</option>
+                <option value="current_year">Año en curso</option>
+                <option value="all_data">Todos los datos</option>
+            </select>
+            {% if current_user.is_authenticated and current_user.is_superadmin() %}
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-dashboard-filtrar" data-bs-toggle="modal" data-bs-target="#modalDashboardFiltro">
+                <i class="fas fa-filter me-1" aria-hidden="true"></i>Filtrar
+            </button>
+            {% if ciudad_filter or agencia_filter %}
+            <span class="badge bg-danger" id="dashboard-scope-badge">
+                {%- for c in ciudades if ciudad_filter and c.id|string == ciudad_filter|string -%}{{ c.nombre }}{%- endfor -%}
+                {%- for a in agencias if agencia_filter and a.id|string == agencia_filter|string -%}{% if ciudad_filter %} · {% endif %}{{ a.nombre }}{%- endfor -%}
+            </span>
+            {% endif %}
+            {% endif %}
+        </div>
         <div class="d-flex align-items-center gap-3 mt-2 flex-wrap">
             <div class="form-check mb-0">
                 <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
@@ -57,64 +70,80 @@
     <!-- Cartes de statistiques — widget ArchitectUI (icone a gauche, libelle + valeur) -->
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
         <div class="col">
-            <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--registered" aria-hidden="true">
-                            <i class="fa fa-ticket"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Total de Registrados</div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
+            <a class="stat-card-link h-100" data-incident-status=""
+               href="{{ url_for('incidents', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
+               aria-label="{{ _('Ver todas las incidencias del período') }}">
+                <div class="card stat-card stat-card--registered h-100 stagger-in delay-1">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--registered" aria-hidden="true">
+                                <i class="fas fa-ticket"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Total de Registrados</div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ total_incidents }}">{{ total_incidents }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col">
-            <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--resolved" aria-hidden="true">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Solucionadas <small class="text-italic">(remotamente)</small></div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
+            <a class="stat-card-link h-100" data-incident-status="Solucionadas"
+               href="{{ url_for('incidents', status='Solucionadas', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
+               aria-label="{{ _('Ver incidencias solucionadas del período') }}">
+                <div class="card stat-card stat-card--resolved h-100 stagger-in delay-2">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--resolved" aria-hidden="true">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Solucionadas <small class="text-italic">(remotamente)</small></div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ incidents_resolus }}">{{ incidents_resolus }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col">
-            <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--pending" aria-hidden="true">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Pendientes</div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
+            <a class="stat-card-link h-100" data-incident-status="Pendiente"
+               href="{{ url_for('incidents', status='Pendiente', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
+               aria-label="{{ _('Ver incidencias pendientes del período') }}">
+                <div class="card stat-card stat-card--pending h-100 stagger-in delay-3">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--pending" aria-hidden="true">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Pendientes</div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ incidents_attente }}">{{ incidents_attente }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col">
-            <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
-                <div class="card-body">
-                    <div class="stat-card-inner">
-                        <div class="stat-card-icon stat-card-icon--bitrix" aria-hidden="true">
-                            <i class="fas fa-cog"></i>
-                        </div>
-                        <div class="stat-card-copy">
-                            <div class="stat-label">Bitrix <small class="text-italic">(localmente)</small></div>
-                            <div class="stat-number stat-card-value" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
+            <a class="stat-card-link h-100" data-incident-status="Bitrix"
+               href="{{ url_for('incidents', status='Bitrix', date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
+               aria-label="{{ _('Ver incidencias Bitrix del período') }}">
+                <div class="card stat-card stat-card--bitrix h-100 stagger-in delay-4">
+                    <div class="card-body">
+                        <div class="stat-card-inner">
+                            <div class="stat-card-icon stat-card-icon--bitrix" aria-hidden="true">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="stat-card-copy">
+                                <div class="stat-label">Bitrix <small class="text-italic">(localmente)</small></div>
+                                <div class="stat-number stat-card-value" data-stat-target="{{ incidents_bitrix }}">{{ incidents_bitrix }}</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -174,95 +203,130 @@
         </div>
     </div>
 
-    <!-- Tableau des derniers incidents -->
+    <!-- Instalaciones del día : jour calendaire, indépendant du filtre de période -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card content-card">
-                <div class="card-header">
+            <div class="card content-card" id="instalaciones-dia-card">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>
-                        5 últimos registros
+                        <i class="fas fa-building me-2" aria-hidden="true"></i>
+                        {{ _('Instalaciones del día') }}
+                        {% if instalaciones_dia %}
+                        <span class="text-muted fw-normal">({{ instalaciones_dia|length }})</span>
+                        {% endif %}
                     </h5>
+                    {% if current_user.is_admin() %}
+                    {% set hoy = moment.now().strftime('%Y-%m-%d') %}
+                    <a href="{{ url_for('instalaciones_hub', date_from=hoy, date_to=hoy) }}"
+                       class="btn btn-sm btn-outline-secondary">{{ _('Ver lista') }}</a>
+                    {% endif %}
                 </div>
                 <div class="card-body p-0">
-                    {% if derniers_incidents %}
+                    {% if instalaciones_dia %}
                     <div class="table-responsive d-none d-lg-block d-print-block">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0 align-middle">
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
-                                    <th>Cliente</th>
-                                    <th>Asuntos</th>
-                                    <th>Estado</th>
-                                    <th>Operador</th>
-                                    <th>Fecha</th>
-                                    <th>Acciones</th>
+                                    <th>{{ _('Fecha') }}</th>
+                                    <th>{{ _('Tipo') }}</th>
+                                    <th>{{ _('Técnico') }}</th>
+                                    <th>{{ _('Cliente') }}</th>
+                                    <th>{{ _('Materiales') }}</th>
+                                    <th>{{ _('Estado') }}</th>
+                                    <th>{{ _('Acciones') }}</th>
                                 </tr>
                             </thead>
-                            <tbody id="derniers-incidents-tbody">
-                                {% for incident in derniers_incidents %}
+                            <tbody>
+                                {% for s in instalaciones_dia %}
+                                {% set lineas = s.lineas_material %}
                                 <tr>
-                                    <td><strong>#{{ incident.id }}</strong></td>
-                                    <td class="col-categoria-icon text-center">
-                                        {% with client=incident.client %}
-                                        {% include '_cliente_corporativo_icon.html' %}
-                                        {% endwith %}
-                                    </td>
+                                    <td><strong>#{{ s.id }}</strong></td>
+                                    <td>{{ s.fecha.strftime('%d/%m/%Y') if s.fecha else '—' }}</td>
+                                    <td>{% include 'instalaciones/_tipo_badge.html' %}</td>
                                     <td>
-                                        <a href="{{ url_for('fiche_incident', id=incident.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ incident.client.nom }}</a>
-                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ incident.client.adresse }}</small>
-                                    </td>
-                                    <td>{{ incident.intitule[:50] }}{% if incident.intitule|length > 50 %}...{% endif %}</td>
-                                    <td>
-                                        {% if incident.status == 'Solucionadas' %}
-                                            <span class="badge badge-resolut">{{ incident.status }} ✅​ </span>
-                                        {% elif incident.status == 'Pendiente' %}
-                                            <span class="badge badge-attente">{{ incident.status }} ⏳​ </span>
-                                        {% else %}
-                                            <span class="badge badge-bitrix">{{ incident.status }} 🔗​ </span>
-                                                <small class="text-muted ms-1 fst-italic"><a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a></small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
+                                        {% if s.tecnico %}
                                         <div class="d-flex align-items-center gap-2">
                                             <img
-                                                src="{{ incident.operateur.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
-                                                alt="Avatar de {{ incident.operateur.nom }}"
+                                                src="{{ s.tecnico.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
+                                                alt="{{ s.tecnico.nom }}"
                                                 class="rounded-circle"
                                                 width="28"
                                                 height="28"
                                                 onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';"
                                             >
-                                            <span>{{ incident.operateur.nom }}</span>
+                                            <span>{{ s.tecnico.nom }}</span>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if s.client %}
+                                        <span class="d-inline-flex align-items-center gap-1">
+                                            {% with client=s.client %}
+                                            {% include '_cliente_corporativo_icon.html' %}
+                                            {% endwith %}
+                                            <i class="fas fa-user-tie me-1" aria-hidden="true"></i>
+                                            <a href="{{ url_for('fiche_client', id=s.client.id) }}" class="text-decoration-none text-dark">{{ s.client.nom }}</a>
+                                        </span>
+                                        {% set direccion = s.sitio.adresse if s.sitio else s.client.adresse %}
+                                        {% if direccion %}
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ direccion }}</small>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate small text-muted" style="max-width: 220px;"
+                                             title="{% for linea in lineas %}{{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}{% endfor %}">
+                                            {% for linea in lineas %}
+                                            {{ linea.material.nombre if linea.material else '?' }}
+                                            x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
+                                            {% else %}
+                                            —
+                                            {% endfor %}
                                         </div>
                                     </td>
-                                    <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>{% include 'instalaciones/_estado_badge.html' %}</td>
                                     <td>
-                                        <a href="{{ url_for('modifier_incident', id=incident.id) }}" 
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
+                                        {% if current_user.is_admin() %}
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('instalaciones_detalle', instalacion_id=s.id) }}"
+                                               class="btn btn-sm btn-outline-secondary" title="{{ _('Ver') }}">
+                                                <i class="fas fa-eye" aria-hidden="true"></i>
+                                            </a>
+                                            <a href="{{ url_for('instalaciones_modificar', instalacion_id=s.id) }}"
+                                               class="btn btn-sm btn-outline-primary" title="{{ _('Modificar') }}">
+                                                <i class="fas fa-edit" aria-hidden="true"></i>
+                                            </a>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <div class="mobile-list d-lg-none d-print-none" id="derniers-incidents-cards">
-                        {% for incident in derniers_incidents %}
-                            {% with actions='edit' %}
-                            {% include '_mobile_list_card_incident.html' %}
+                    <div class="mobile-list d-lg-none d-print-none">
+                        {% for s in instalaciones_dia %}
+                            {% with show_instalacion_actions=current_user.is_admin() %}
+                            {% include '_mobile_list_card_instalacion.html' %}
                             {% endwith %}
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No hay incidencias registradas</p>
-                        <a href="{{ url_for('nouveau_incident') }}" class="btn btn-primary">
-                            <i class="fas fa-plus me-1"></i>Añadir incidencia
+                    <div class="text-center py-5">
+                        <i class="fas fa-building fa-3x text-muted mb-3" aria-hidden="true"></i>
+                        <h5 class="text-muted">{{ _('No hay instalaciones registradas hoy') }}</h5>
+                        {% if current_user.is_admin() %}
+                        <a href="{{ url_for('instalaciones_nueva') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Nueva instalación') }}
                         </a>
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -273,11 +337,12 @@
     <div class="row">
         <div class="col-12">
             <div class="card content-card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                     <h5 class="mb-0">
                         <i class="fas fa-list me-2"></i>
                         5 Clientes Recurrentes
                     </h5>
+                    <a href="{{ url_for('clients') }}" class="btn btn-sm btn-outline-secondary">{{ _('Ver clientes') }}</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive d-none d-lg-block d-print-block">
@@ -285,7 +350,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th class="text-center col-categoria-icon" title="Cliente corporativo"></th>
+                                <th class="text-center col-categoria-icon" title="Cliente corporativo">Categoría</th>
                                 <th>Cliente</th>
                                 <th>N° de Incidencias</th>
                                 <th>Asuntos</th>
@@ -297,13 +362,20 @@
                             <tr>
                                 <td><strong># {{loop.index}}</strong></td>
                                 <td class="col-categoria-icon text-center">
+                                    {% with client=client %}
                                     {% include '_cliente_corporativo_icon.html' %}
+                                    {% endwith %}
                                 </td>
                                 <td>
-                                    <a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
-                                    <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">{{ client.adresse }}</small>
+                                    <i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="{{ url_for('fiche_client', id=client.id) }}" class="text-decoration-none text-dark hover:text-primary">{{ client.nom }}</a>
+                                    <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ client.adresse }}</small>
                                 </td>
-                                <td>{{ client.incidents }}</td>
+                                <td>
+                                    <a href="{{ url_for('incidents', search=client.nom, date_from=period_date_from or none, date_to=period_date_to or none, ciudad=ciudad_filter or none, agencia=agencia_filter or none) }}"
+                                       class="badge badge-rank-{{ loop.index }} text-decoration-none"
+                                       data-incident-search="{{ client.nom }}"
+                                       title="{{ _('Ver incidencias') }}">{{ client.incidents }}</a>
+                                </td>
                                 <td>{{ client.intitule }}</td>
                                 <!--<td>{{ client.date_heure.strftime('%d/%m/%Y %H:%M') if client.date_heure else '' }}</td> -->
                             </tr>
@@ -328,6 +400,46 @@
     </div>
 </div>
 
+{% if current_user.is_authenticated and current_user.is_superadmin() %}
+<div class="modal fade" id="modalDashboardFiltro" tabindex="-1" aria-labelledby="modalDashboardFiltroLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDashboardFiltroLabel">
+                    <i class="fas fa-filter me-2" aria-hidden="true"></i>Filtrar
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="dashboard-ciudad" class="form-label">Ciudad</label>
+                    <select class="form-select" id="dashboard-ciudad">
+                        <option value="">Todas las ciudades</option>
+                        {% for c in ciudades|default([]) %}
+                        <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-0">
+                    <label for="dashboard-agencia" class="form-label">Agencia</label>
+                    <select class="form-select" id="dashboard-agencia">
+                        <option value="">Todas las agencias</option>
+                        {% for a in agencias|default([]) %}
+                        <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">La agencia depende de la ciudad elegida.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary me-auto" id="btn-limpiar-dashboard-filtro">Limpiar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btn-aplicar-dashboard-filtro">Aplicar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% if current_user.is_authenticated and current_user.is_admin() %}
 <div class="modal fade" id="modalApreciacionDia" tabindex="-1" aria-labelledby="modalApreciacionDiaLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -343,6 +455,7 @@
                 <div class="mb-3">
                     <label for="apreciacion-fecha" class="form-label">Fecha</label>
                     <input type="date" class="form-control" id="apreciacion-fecha" required>
+                    <p class="form-text mb-0" id="apreciacion-alcance"></p>
                 </div>
                 <div class="mb-0">
                     <label for="apreciacion-texto" class="form-label">Nota</label>
@@ -354,7 +467,7 @@
                         <option value="Mucho viento"></option>
                         <option value="Problema de luz - Getesa"></option>
                     </datalist>
-                    <div class="form-text">Máximo 120 caracteres. Se muestra al pasar el cursor sobre el gráfico (vista por día).</div>
+                    <div class="form-text">Máximo 120 caracteres, una por día, ciudad y agencia. Se muestra al pasar el cursor sobre el gráfico (vista por día).</div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -373,6 +486,9 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
+<script src="{{ url_for('static', filename='js/instalaciones-copy.js') }}"></script>
 <script>
 let incidentsChart = null;
 let operateursChart = null;
@@ -410,6 +526,16 @@ const OPERATEUR_CHART_ICONS = {
     bar: 'fa-chart-bar'
 };
 const dashboardFilterScope = `dashboard_user_{{ current_user.id if current_user.is_authenticated else 'anonymous' }}`;
+const incidentsListPath = {{ url_for('incidents')|tojson }};
+const dashboardPath = {{ url_for('dashboard')|tojson }};
+const verIncidenciasLabel = {{ _('Ver incidencias')|tojson }};
+const scopeFiltersEnabled = {{ 'true' if current_user.is_authenticated and current_user.is_superadmin() else 'false' }};
+const dashboardAgencias = {{ agencias_catalogo|default([], true)|tojson }};
+let currentCiudad = '';
+let currentAgencia = '';
+let dashboardNavigating = false;
+let periodDateFrom = {{ period_date_from|tojson }};
+let periodDateTo = {{ period_date_to|tojson }};
 
 // Configuration des titres de période
 const periodTitles = {
@@ -517,6 +643,7 @@ function restartAutoRefresh() {
 // Ajouter un gestionnaire pour permettre de cliquer sur l'indicateur pour forcer un refresh
 document.addEventListener('DOMContentLoaded', function() {
     initializeFilterPersistence();
+    initializeDashboardScopeFilters();
     initApreciacionModal();
 
     const refreshStatus = document.getElementById('refresh-status');
@@ -537,7 +664,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Erreur init graphiques:', err);
     }
     applyInitialFilters();
-    updateIncidentsChart(currentViewType);
+    if (!dashboardNavigating) {
+        updateIncidentsChart(currentViewType);
+    }
 
     // Démarrer l'auto-refresh seulement si le panneau existe encore dans le DOM
     startAutoRefresh();
@@ -650,31 +779,11 @@ function initIncidentsChart() {
                                 return '';
                             }
                             const fecha = chartFechas[items[0].dataIndex];
-                            const texto = fecha ? chartApreciaciones[fecha] : '';
-                            if (!texto) {
+                            const lines = apreciacionTooltipLines(fecha);
+                            if (!lines.length) {
                                 return '';
                             }
-                            const maxLen = 42;
-                            if (texto.length <= maxLen) {
-                                return texto;
-                            }
-                            const lines = [];
-                            let line = '';
-                            texto.split(/\s+/).forEach(function(word) {
-                                const next = line ? (line + ' ' + word) : word;
-                                if (next.length > maxLen) {
-                                    if (line) {
-                                        lines.push(line);
-                                    }
-                                    line = word;
-                                } else {
-                                    line = next;
-                                }
-                            });
-                            if (line) {
-                                lines.push(line);
-                            }
-                            return lines;
+                            return lines.length === 1 ? lines[0] : lines;
                         }
                     }
                 }
@@ -726,7 +835,7 @@ function applyApreciacionPointStyles(data, viewType) {
 function updateIncidentsChart(viewType = 'date') {
     currentViewType = viewType;
     
-    fetch(`/api/incidents-par-date?type=${encodeURIComponent(viewType)}&period=${encodeURIComponent(currentPeriod)}`)
+    fetch(incidentsChartUrl(viewType))
         .then(response => {
             if (!response.ok) {
                 throw new Error('HTTP ' + response.status);
@@ -738,8 +847,17 @@ function updateIncidentsChart(viewType = 'date') {
                 chartFechas = data.map(item => item.fecha || '');
                 chartApreciaciones = {};
                 data.forEach(item => {
-                    if (item.fecha && item.apreciacion) {
-                        chartApreciaciones[item.fecha] = item.apreciacion;
+                    if (!item.fecha) {
+                        return;
+                    }
+                    if (item.apreciaciones && item.apreciaciones.length) {
+                        chartApreciaciones[item.fecha] = item.apreciaciones;
+                    } else if (item.apreciacion) {
+                        chartApreciaciones[item.fecha] = [{
+                            texto: item.apreciacion,
+                            ciudad: '',
+                            agencia: ''
+                        }];
                     }
                 });
 
@@ -761,6 +879,70 @@ function updateIncidentsChart(viewType = 'date') {
         .catch(error => {
             console.error('Erreur lors du chargement des données:', error);
         });
+}
+
+function wrapTooltipText(texto) {
+    const maxLen = 42;
+    if (!texto) {
+        return [];
+    }
+    if (texto.length <= maxLen) {
+        return [texto];
+    }
+    const lines = [];
+    let line = '';
+    texto.split(/\s+/).forEach(function(word) {
+        const next = line ? (line + ' ' + word) : word;
+        if (next.length > maxLen) {
+            if (line) {
+                lines.push(line);
+            }
+            line = word;
+        } else {
+            line = next;
+        }
+    });
+    if (line) {
+        lines.push(line);
+    }
+    return lines;
+}
+
+function apreciacionTooltipLines(fecha) {
+    const items = fecha ? chartApreciaciones[fecha] : null;
+    if (!items || !items.length) {
+        return [];
+    }
+    if (items.length === 1) {
+        return wrapTooltipText(items[0].texto || items[0]);
+    }
+    const lines = [];
+    items.forEach(function(item) {
+        const where = [item.ciudad, item.agencia].filter(Boolean).join(' · ');
+        const texto = where ? (where + ': ' + (item.texto || '')) : (item.texto || '');
+        wrapTooltipText(texto).forEach(function(line) {
+            lines.push(line);
+        });
+    });
+    return lines;
+}
+
+function apreciacionRequestParams(fecha) {
+    const params = new URLSearchParams();
+    if (fecha) {
+        params.set('fecha', fecha);
+    }
+    dashboardScopeQuery(params);
+    return params;
+}
+
+function setApreciacionAlcance(data) {
+    const el = document.getElementById('apreciacion-alcance');
+    if (!el) {
+        return;
+    }
+    const where = [data && data.ciudad, data && data.agencia].filter(Boolean).join(' · ');
+    el.textContent = where ? ('Se guarda en ' + where + '.') : '';
 }
 
 function todayIsoDate() {
@@ -803,18 +985,20 @@ function loadApreciacionForFecha(fecha) {
         setApreciacionDeleteVisible(false);
         return;
     }
-    fetch(`/api/apreciaciones?fecha=${encodeURIComponent(fecha)}`)
+    fetch('/api/apreciaciones?' + apreciacionRequestParams(fecha).toString())
         .then(response => response.json())
         .then(data => {
             if (textoInput) {
                 textoInput.value = data.texto || '';
             }
+            setApreciacionAlcance(data);
             setApreciacionDeleteVisible(!!data.texto);
         })
         .catch(() => {
             if (textoInput) {
                 textoInput.value = '';
             }
+            setApreciacionAlcance(null);
             setApreciacionDeleteVisible(false);
             setApreciacionFeedback('No se pudo cargar la apreciación.', 'danger');
         });
@@ -892,7 +1076,12 @@ function saveApreciacionDia() {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ fecha: fecha, texto: texto })
+        body: JSON.stringify({
+            fecha: fecha,
+            texto: texto,
+            ciudad: currentCiudad || '',
+            agencia: currentAgencia || ''
+        })
     })
         .then(response => response.json().then(data => ({ ok: response.ok, data })))
         .then(({ ok, data }) => {
@@ -920,7 +1109,7 @@ function deleteApreciacionDia() {
         return;
     }
 
-    fetch(`/api/apreciaciones?fecha=${encodeURIComponent(fecha)}`, {
+    fetch('/api/apreciaciones?' + apreciacionRequestParams(fecha).toString(), {
         method: 'DELETE',
         headers: {
             'Accept': 'application/json',
@@ -1076,6 +1265,23 @@ function applyInitialFilters() {
     applyPeriodToUI(currentPeriod);
     applyChartViewToUI(currentViewType);
     applyOperateurChartTypeToUI(currentOperateurChartType);
+
+    const urlHasScope = urlParams.has('ciudad') || urlParams.has('agencia');
+    if (
+        scopeFiltersEnabled &&
+        canUseSavedFilters &&
+        !urlHasScope &&
+        saved &&
+        (saved.ciudad || saved.agencia)
+    ) {
+        currentCiudad = saved.ciudad || '';
+        currentAgencia = saved.agencia || '';
+        dashboardNavigating = true;
+        window.location.replace(dashboardPageUrl());
+        return;
+    }
+    syncDashboardScopeFromSelects();
+
     if (lastOperateursData.length) {
         createOperateursChart(lastOperateursData);
     }
@@ -1118,13 +1324,20 @@ function saveDashboardFilters() {
         enabled: true,
         period: currentPeriod,
         viewType: currentViewType,
-        operatorChartType: currentOperateurChartType
+        operatorChartType: currentOperateurChartType,
+        ciudad: currentCiudad || '',
+        agencia: currentAgencia || ''
     };
     setCookie(dashboardFilterCookieName, JSON.stringify(payload), filterCookieMaxAgeSeconds);
 }
 
 function resetDashboardFilters() {
     clearDashboardFiltersCookie();
+    if (scopeFiltersEnabled && (currentCiudad || currentAgencia)) {
+        dashboardNavigating = true;
+        window.location.assign(dashboardPath);
+        return;
+    }
     currentPeriod = defaultPeriod;
     currentViewType = defaultViewType;
     currentOperateurChartType = defaultOperateurChartType;
@@ -1192,7 +1405,7 @@ function showLoadingIndicator() {
         card.classList.add('is-loading');
     });
 
-    document.querySelectorAll('.content-card').forEach(card => {
+    document.querySelectorAll('.content-card:not(#instalaciones-dia-card)').forEach(card => {
         card.classList.add('is-loading');
     });
 
@@ -1268,7 +1481,6 @@ function animateCount(el, targetValue, duration = 500) {
 }
 
 const CORPORATIVO_ICON_URL = "{{ url_for('static', filename='img/icon-cliente-corporativo.png') }}";
-const DEFAULT_AVATAR_URL = "{{ url_for('static', filename='img/default_avatar.png') }}";
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -1286,73 +1498,19 @@ function corporativoIconHtml(categoria) {
     return '';
 }
 
-function incidentStatusBadgesHtml(incident) {
-    if (incident.status === 'Solucionadas') {
-        return `<span class="badge badge-resolut">${escapeHtml(incident.status)} ✅</span>`;
-    }
-    if (incident.status === 'Pendiente') {
-        return `<span class="badge badge-attente">${escapeHtml(incident.status)} ⏳</span>`;
-    }
-    let html = `<span class="badge badge-bitrix">Bitrix 🔗</span>`;
-    if (incident.ref_bitrix) {
-        html += `<a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/${encodeURIComponent(incident.ref_bitrix)}/" target="_blank" rel="noopener noreferrer" class="badge bg-light text-dark text-decoration-none">${escapeHtml(incident.ref_bitrix)} <i class="fas fa-external-link-alt"></i></a>`;
-    }
-    return html;
-}
-
-function lastIncidentCardHtml(incident) {
-    const avatar = incident.operateur_avatar_url || DEFAULT_AVATAR_URL;
-    const adresse = incident.client_adresse
-        ? `<p class="mobile-list-card__subtitle">${escapeHtml(incident.client_adresse)}</p>`
+function clientNameCellHtml(name, href, adresse) {
+    const adresseHtml = adresse
+        ? `<br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>${escapeHtml(adresse)}</small>`
         : '';
-    const asunto = incident.intitule
-        ? `<p class="mobile-list-card__asunto">${escapeHtml(incident.intitule)}</p>`
-        : '';
-    return `
-    <article class="mobile-list-card">
-        <div class="mobile-list-card__head">
-            <div class="mobile-list-card__meta">
-                <span class="mobile-list-card__id">#${escapeHtml(incident.id)}</span>
-                ${incidentStatusBadgesHtml(incident)}
-                ${corporativoIconHtml(incident.client_categoria)}
-            </div>
-            <div class="dropdown mobile-list-card__menu">
-                <button class="btn btn-sm btn-outline-secondary mobile-list-card__menu-btn" type="button" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" aria-label="Acciones">
-                    <i class="fas fa-ellipsis-v"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="/incidents/${incident.id}/modifier">
-                            <i class="fas fa-edit me-2"></i>Editar
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <a class="mobile-list-card__title" href="/incidents/${incident.id}/fiche_incident">${escapeHtml(incident.client_nom)}</a>
-        ${adresse}
-        ${asunto}
-        <div class="mobile-list-card__badges">
-            <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--user">
-                <img src="${escapeHtml(avatar)}" alt="" class="rounded-circle" width="18" height="18" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_URL}';">
-                ${escapeHtml(incident.operateur_nom)}
-            </span>
-            <span class="badge rounded-pill mobile-list-card__chip">
-                <i class="fas fa-clock me-1"></i>${escapeHtml(incident.date_heure_formatted)}
-            </span>
-        </div>
-    </article>`;
+    return `<i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="${href}" class="text-decoration-none text-dark hover:text-primary">${escapeHtml(name)}</a>${adresseHtml}`;
 }
 
 function recurrentClientCardHtml(client, rank) {
     const adresse = client.adresse
-        ? `<p class="mobile-list-card__subtitle">${escapeHtml(client.adresse)}</p>`
+        ? `<p class="mobile-list-card__subtitle"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>${escapeHtml(client.adresse)}</p>`
         : '';
     const asunto = client.intitule
         ? `<span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--asunto" title="${escapeHtml(client.intitule)}">${escapeHtml(client.intitule)}</span>`
-        : '';
-    const corporativoBadge = client.categoria === 'corporativo'
-        ? '<span class="badge bg-dark">Corporativo</span>'
         : '';
     return `
     <article class="mobile-list-card">
@@ -1360,26 +1518,172 @@ function recurrentClientCardHtml(client, rank) {
             <div class="mobile-list-card__meta">
                 <span class="mobile-list-card__id">#${rank}</span>
                 ${corporativoIconHtml(client.categoria)}
-                ${corporativoBadge}
-                <span class="badge bg-secondary">${escapeHtml(client.incidents)} incidencias</span>
             </div>
+            <a class="badge badge-rank-${rank} text-decoration-none ms-auto" data-incident-search="${escapeHtml(client.nom)}" href="${incidentListHref({ search: client.nom })}" title="${escapeHtml(verIncidenciasLabel)}">${escapeHtml(client.incidents)}</a>
         </div>
-        <a class="mobile-list-card__title" href="/clients/${client.id}/fiche">${escapeHtml(client.nom)}</a>
+        <a class="mobile-list-card__title" href="/clients/${client.id}/fiche"><i class="fas fa-user-tie me-1" aria-hidden="true"></i>${escapeHtml(client.nom)}</a>
         ${adresse}
         <div class="mobile-list-card__badges">${asunto}</div>
     </article>`;
 }
 
 // Fonction pour charger les données du dashboard selon la période
+function incidentListHref(extra) {
+    const params = new URLSearchParams();
+    if (periodDateFrom) {
+        params.set('date_from', periodDateFrom);
+    }
+    if (periodDateTo) {
+        params.set('date_to', periodDateTo);
+    }
+    if (currentCiudad) {
+        params.set('ciudad', currentCiudad);
+    }
+    if (currentAgencia) {
+        params.set('agencia', currentAgencia);
+    }
+    if (extra) {
+        Object.keys(extra).forEach(function(key) {
+            if (extra[key]) {
+                params.set(key, extra[key]);
+            }
+        });
+    }
+    const qs = params.toString();
+    return qs ? (incidentsListPath + '?' + qs) : incidentsListPath;
+}
+
+function syncIncidentPeriodLinks() {
+    document.querySelectorAll('[data-incident-status]').forEach(function(el) {
+        const status = el.getAttribute('data-incident-status') || '';
+        el.href = incidentListHref(status ? { status: status } : {});
+    });
+    document.querySelectorAll('[data-incident-search]').forEach(function(el) {
+        el.href = incidentListHref({ search: el.getAttribute('data-incident-search') || '' });
+    });
+}
+
+function syncDashboardScopeFromSelects() {
+    const ciudadSelect = document.getElementById('dashboard-ciudad');
+    const agenciaSelect = document.getElementById('dashboard-agencia');
+    currentCiudad = ciudadSelect ? (ciudadSelect.value || '') : '';
+    currentAgencia = agenciaSelect ? (agenciaSelect.value || '') : '';
+}
+
+function dashboardScopeQuery(params) {
+    if (currentCiudad) {
+        params.set('ciudad', currentCiudad);
+    }
+    if (currentAgencia) {
+        params.set('agencia', currentAgencia);
+    }
+    return params;
+}
+
+function dashboardPageUrl() {
+    const params = new URLSearchParams();
+    params.set('period', currentPeriod || defaultPeriod);
+    if (currentViewType && currentViewType !== defaultViewType) {
+        params.set('view', currentViewType);
+    }
+    if (currentOperateurChartType && currentOperateurChartType !== defaultOperateurChartType) {
+        params.set('opchart', currentOperateurChartType);
+    }
+    dashboardScopeQuery(params);
+    return dashboardPath + '?' + params.toString();
+}
+
+function dashboardDataUrl(period) {
+    const params = new URLSearchParams();
+    params.set('period', period);
+    dashboardScopeQuery(params);
+    return '/dashboard-data?' + params.toString();
+}
+
+function incidentsChartUrl(viewType) {
+    const params = new URLSearchParams();
+    params.set('type', viewType);
+    params.set('period', currentPeriod);
+    dashboardScopeQuery(params);
+    return '/api/incidents-par-date?' + params.toString();
+}
+
+function refillDashboardAgencias(ciudadId, selectedAgenciaId) {
+    const agenciaSelect = document.getElementById('dashboard-agencia');
+    if (!agenciaSelect) {
+        return;
+    }
+    const list = dashboardAgencias.filter(function(agencia) {
+        return !ciudadId || String(agencia.id_ciudad) === String(ciudadId);
+    });
+    const keep = list.some(function(agencia) {
+        return String(agencia.id) === String(selectedAgenciaId);
+    });
+    agenciaSelect.innerHTML = '<option value="">Todas las agencias</option>';
+    list.forEach(function(agencia) {
+        const option = document.createElement('option');
+        option.value = agencia.id;
+        option.textContent = agencia.nombre;
+        if (keep && String(agencia.id) === String(selectedAgenciaId)) {
+            option.selected = true;
+        }
+        agenciaSelect.appendChild(option);
+    });
+    if (!keep) {
+        agenciaSelect.value = '';
+    }
+}
+
+function applyDashboardScope(ciudadId, agenciaId) {
+    currentCiudad = ciudadId || '';
+    currentAgencia = agenciaId || '';
+    saveDashboardFilters();
+    dashboardNavigating = true;
+    window.location.assign(dashboardPageUrl());
+}
+
+function initializeDashboardScopeFilters() {
+    if (!scopeFiltersEnabled) {
+        return;
+    }
+    const ciudadSelect = document.getElementById('dashboard-ciudad');
+    const agenciaSelect = document.getElementById('dashboard-agencia');
+    const aplicarBtn = document.getElementById('btn-aplicar-dashboard-filtro');
+    const limpiarBtn = document.getElementById('btn-limpiar-dashboard-filtro');
+    const modalEl = document.getElementById('modalDashboardFiltro');
+    if (!ciudadSelect || !agenciaSelect || !aplicarBtn || !modalEl) {
+        return;
+    }
+
+    modalEl.addEventListener('show.bs.modal', function() {
+        ciudadSelect.value = currentCiudad || '';
+        refillDashboardAgencias(currentCiudad, currentAgencia);
+    });
+
+    ciudadSelect.addEventListener('change', function() {
+        refillDashboardAgencias(this.value || '', agenciaSelect.value || '');
+    });
+
+    aplicarBtn.addEventListener('click', function() {
+        applyDashboardScope(ciudadSelect.value || '', agenciaSelect.value || '');
+    });
+
+    if (limpiarBtn) {
+        limpiarBtn.addEventListener('click', function() {
+            applyDashboardScope('', '');
+        });
+    }
+}
+
 function loadDashboardData(period) {
-    fetch(`/dashboard-data?period=${period}`)
+    fetch(dashboardDataUrl(period))
         .then(response => response.json())
         .then(data => {
+            periodDateFrom = data.period_date_from || '';
+            periodDateTo = data.period_date_to || '';
+            syncIncidentPeriodLinks();
             // Mettre à jour les statistiques
             updateStatistics(data);
-            
-            // Mettre à jour le tableau des derniers incidents
-            updateLastIncidents(data.derniers_incidents);
             
             // Mettre à jour la liste des clients récurrents
             updateClientsRecurrents(data.clients_recurrents);
@@ -1422,63 +1726,6 @@ function updateStatistics(data) {
     });
 }
 
-// Fonction pour mettre à jour le tableau des derniers incidents
-function updateLastIncidents(incidents) {
-    const tableBody = document.getElementById('derniers-incidents-tbody');
-    const cards = document.getElementById('derniers-incidents-cards');
-    const noDataDiv = document.querySelector('.text-center.py-4');
-    
-    if (incidents.length > 0) {
-        if (noDataDiv) noDataDiv.style.display = 'none';
-        
-        if (tableBody) {
-            tableBody.innerHTML = incidents.map(incident => `
-                <tr>
-                    <td><strong>#${incident.id}</strong></td>
-                    <td class="col-categoria-icon text-center">${corporativoIconHtml(incident.client_categoria)}</td>
-                    <td>
-                        <a href="/incidents/${incident.id}/fiche_incident" class="text-decoration-none text-dark hover:text-primary">${incident.client_nom}</a>
-                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${incident.client_adresse || ''}</small>
-                    </td>
-                    <td>${incident.intitule.length > 50 ? incident.intitule.substring(0, 50) + '...' : incident.intitule}</td>
-                    <td>
-                        <span class="badge badge-${incident.status === 'Solucionadas' ? 'resolut' : 
-                                                     incident.status === 'Pendiente' ? 'attente' : 'bitrix'}">
-                            ${incident.status}
-                        </span>
-                    </td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <img
-                                src="${incident.operateur_avatar_url || DEFAULT_AVATAR_URL}"
-                                alt="Avatar de ${incident.operateur_nom}"
-                                class="rounded-circle"
-                                width="28"
-                                height="28"
-                                onerror="this.onerror=null;this.src='${DEFAULT_AVATAR_URL}';"
-                            >
-                            <span>${incident.operateur_nom}</span>
-                        </div>
-                    </td>
-                    <td>${incident.date_heure_formatted}</td>
-                    <td>
-                        <a href="/incidents/${incident.id}/modifier" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                    </td>
-                </tr>
-            `).join('');
-        }
-        if (cards) {
-            cards.innerHTML = incidents.map(lastIncidentCardHtml).join('');
-        }
-    } else {
-        if (tableBody) tableBody.innerHTML = '';
-        if (cards) cards.innerHTML = '';
-        if (noDataDiv) noDataDiv.style.display = 'block';
-    }
-}
-
 // Fonction pour mettre à jour la liste des clients récurrents
 function updateClientsRecurrents(clients) {
     const tbody = document.getElementById('clients-recurrents-tbody');
@@ -1500,10 +1747,9 @@ function updateClientsRecurrents(clients) {
                     <td><strong># ${i + 1}</strong></td>
                     <td class="col-categoria-icon text-center">${corporativoIconHtml(client.categoria)}</td>
                     <td>
-                        <a href="/clients/${client.id}/fiche" class="text-decoration-none text-dark hover:text-primary">${client.nom}</a>
-                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;">${client.adresse || ''}</small>
+                        ${clientNameCellHtml(client.nom, `/clients/${client.id}/fiche`, client.adresse)}
                     </td>
-                    <td>${client.incidents}</td>
+                    <td><a href="${incidentListHref({ search: client.nom })}" class="badge badge-rank-${i + 1} text-decoration-none" data-incident-search="${escapeHtml(client.nom)}" title="${escapeHtml(verIncidenciasLabel)}">${escapeHtml(client.incidents)}</a></td>
                     <td>${client.intitule || ''}</td>
                 </tr>
             `).join('');
@@ -1566,7 +1812,24 @@ function buildOperateursChartSpec(data) {
     const commonOptions = {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: 4 }
+        layout: { padding: 4 },
+        onHover: function(evt, elements) {
+            const canvas = evt.native && evt.native.target;
+            if (canvas) {
+                canvas.style.cursor = elements.length ? 'pointer' : 'default';
+            }
+        },
+        onClick: function(evt, elements) {
+            if (!elements.length) {
+                return;
+            }
+            const row = lastOperateursData[elements[0].index];
+            const operateurId = row && row[2];
+            if (!operateurId) {
+                return;
+            }
+            window.location.href = incidentListHref({ operateur: String(operateurId) });
+        }
     };
     const cartesianScales = {
         x: {

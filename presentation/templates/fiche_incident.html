@@ -9,6 +9,19 @@
 <a href="{{ url_for('incidents') }}" class="btn btn-secondary btn-sm">
     <i class="fas fa-arrow-left me-1"></i>{{ _('Volver') }}
 </a>
+<button type="button" class="btn btn-outline-success btn-sm"
+        data-incident-intitule="{{ incident.intitule }}"
+        data-incident-observations="{{ incident.observations or '' }}"
+        data-client-nom="{{ incident.client.nom }}"
+        data-client-telephone="{{ incident.client.telephone }}"
+        data-client-adresse="{{ incident.client.adresse }}"
+        data-client-ip-router="{{ incident.client.ip_router }}"
+        data-client-ip-antea="{{ incident.client.ip_antea }}"
+        data-client-pppoe="{{ incident.client.username_radius or '' }}"
+        onclick="copierIncident(this)"
+        title="{{ _('Copiar información') }}">
+    <i class="fas fa-copy me-1"></i>{{ _('Copiar') }}
+</button>
 <button type="button" class="btn btn-success btn-sm" id="btnVerificar" onclick="verificarCliente()">
     <i class="fas fa-check" id="iconVerificar"></i>
     <span id="textVerificar">{{ _('Ping') }}</span>
@@ -18,6 +31,15 @@
     <i class="fas fa-edit me-1"></i>{{ _('Modificar') }}
 </a>
 {% endif %}
+{% endblock %}
+
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('incidents') }}">{{ _('Incidencias') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">#{{ incident.id }}</li>
+    </ol>
+</nav>
 {% endblock %}
 
 {% block content %}
@@ -52,27 +74,56 @@
                         </div>
                     </div>
                     <hr>
-                    <div class="row mb-3">
-                        <div class="col-sm-3"><strong>{{ _('Estado') }}:</strong></div>
-                        <div class="col-sm-9">
-                            {% if incident.status == 'Solucionadas' %}
-                                <span class="badge bg-success"><i class="fas fa-check-circle"></i> {{ _('Solucionadas') }}</span>
-                            {% elif incident.status == 'Pendiente' %}
-                                <span class="badge bg-warning"><i class="fas fa-hourglass-half"></i> {{ _('Pendientes') }}</span>
-                            {% elif incident.status == 'Bitrix' %}
-                                {% include '_bitrix_status.html' %}
-                            {% endif %}
-                        </div>
+                    <div class="mb-3">
+                        {% if incident.status == 'Bitrix' %}
+                            {% include '_bitrix_status.html' %}
+                        {% else %}
+                            <div class="card status-detail-card shadow-sm">
+                                <div class="card-header d-flex align-items-center">
+                                    <span class="d-inline-flex align-items-center fw-semibold">
+                                        <i class="ui-icon fas fa-info-circle me-2" aria-hidden="true"></i>{{ _('Estado') }}
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="bitrix-status-row">
+                                        {% if incident.status == 'Solucionadas' %}
+                                        <i class="ui-icon fas fa-check-circle" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Estado') }}</small>
+                                            <div><span class="badge badge-resolut">{{ incident.status }}</span></div>
+                                        </div>
+                                        {% else %}
+                                        <i class="ui-icon fas fa-hourglass-half" aria-hidden="true"></i>
+                                        <div>
+                                            <small class="text-uppercase text-muted">{{ _('Estado') }}</small>
+                                            <div><span class="badge badge-attente">{{ incident.status }}</span></div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
                     </div>
                     <hr>
                     <div class="row mb-3">
-                        <div class="col-sm-3"><strong>{{ _('Operador Asignado') }}:</strong></div>
+                        <div class="col-sm-3"><strong>{{ _('Creado por') }}:</strong></div>
                         <div class="col-sm-9">
                             <i class="fas fa-user text-primary"></i> 
                             <strong>{{ incident.operateur.nom }}</strong>
                         </div>
                     </div>
                     <hr>
+                    {% if incident.modifie_le %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3"><strong>{{ _('Modificado por') }}:</strong></div>
+                        <div class="col-sm-9">
+                            <i class="fas fa-user-edit text-muted"></i> 
+                            <strong>{{ incident.modifie_par.nom if incident.modifie_par else _('Usuario') }}</strong>
+                            <span class="text-muted ms-1">{{ incident.modifie_le.strftime('%d/%m/%Y %H:%M') }}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
                     <div class="row mb-3">
                         <div class="col-sm-3"><strong>{{ _('Observaciones') }}:</strong></div>
                         <div class="col-sm-9">
@@ -163,7 +214,6 @@
                                 <input type="hidden" name="id_client" value="{{ incident.id_client }}">
                                 <input type="hidden" name="intitule" value="{{ incident.intitule }}">
                                 <textarea name="observations" style="display: none;">{{ incident.observations|replace('<br>', '\n')|replace('<br/>', '\n')|replace('<br />', '\n')|striptags }}</textarea>
-                                <input type="hidden" name="id_operateur" value="{{ incident.id_operateur }}">
                                 <input type="hidden" name="ref_bitrix" value="">
                                 <button type="submit" class="btn btn-success w-100">
                                     <i class="fas fa-check-circle"></i> {{ _('Marcar como Solucionada') }}
@@ -187,7 +237,7 @@
                         </div>
                     </div>
                     {% else %}
-                    <p class="text-muted small mb-0">{{ _('Solo el creador o un administrador puede modificar esta incidencia. Puede añadir comentarios arriba.') }}</p>
+                    <p class="text-muted small mb-0">{{ _('No tiene permiso para modificar esta incidencia. Puede añadir comentarios arriba.') }}</p>
                     {% endif %}
                 </div>
             </div>
@@ -250,7 +300,7 @@
                         </code>
                     </div>
                     
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <i class="fas fa-satellite-dish text-muted"></i> 
                         <strong>{{ _('IP Antena') }}:</strong>
                         <br>
@@ -259,6 +309,17 @@
                                 {{ incident.client.ip_antea }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i>
                             </a>
                         </code>
+                    </div>
+
+                    <div class="mb-3">
+                        <i class="fas fa-user-lock text-muted"></i> 
+                        <strong>{{ _('Cuenta PPPoE') }}:</strong>
+                        <br>
+                        {% if incident.client.username_radius %}
+                        <code class="ms-4">{{ incident.client.username_radius }}</code>
+                        {% else %}
+                        <span class="ms-4 text-muted fst-italic">{{ _('No configurada') }}</span>
+                        {% endif %}
                     </div>
                     
                     <hr>
@@ -617,6 +678,8 @@ function verificarCliente() {
 
 </script>
 <script src="{{ url_for('static', filename='js/bitrix-info.js') }}"></script>
+<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
+<script src="{{ url_for('static', filename='js/incident-copy.js') }}"></script>
 <style>
 .border-left-danger { border-left: 5px solid #dc3545; }
 .border-left-warning { border-left: 5px solid #ffc107; }

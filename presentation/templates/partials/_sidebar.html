@@ -2,13 +2,14 @@
 {# Variables locales obligatoires : un {% include %} ne propage pas les {% set %} vers le parent Jinja2 #}
 {% set ep = request.endpoint or '' %}
 {% set nav_incidents = ['incidents', 'nouveau_incident', 'fiche_incident', 'modifier_incident'] %}
-{% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print'] %}
+{% set nav_clients = ['clients', 'nouveau_client', 'modifier_client', 'fiche_client', 'imprimer_fiche_client', 'fiche_client_print', 'client_gps_actualizar', 'client_fotos_agregar', 'client_foto_eliminar', 'client_traslado'] %}
 {% set nav_etats = ['etats', 'etats_generer', 'etats_generer_post', 'etats_detail', 'etats_regenerer', 'etats_supprimer'] %}
-{% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+{% set nav_materiales = ['materiales_hub', 'materiales_catalogo', 'materiales_salida_nueva', 'materiales_salidas', 'materiales_salidas_export_xlsx', 'materiales_salida_detalle', 'materiales_salida_modificar', 'materiales_informe', 'materiales_informe_export_xlsx'] %}
+{% set nav_instalaciones = ['instalaciones_hub', 'instalaciones_nueva', 'instalaciones_detalle', 'instalaciones_modificar', 'instalaciones_terminar', 'instalaciones_reabrir'] %}
+{% set inst_nueva = ep == 'materiales_salida_nueva' and request.args.get('tipo') == 'instalacion' %}
 {% set nav_usuarios = ['usuarios', 'nuevo_usuario', 'editar_usuario', 'desactivar_usuario', 'upload_avatar_usuario', 'atencion_cliente_ficha', 'atencion_cliente_ficha_export', 'tecnico_ficha'] %}
 {% set nav_audit = ['audit_log', 'audit_log_export_txt'] %}
 {% set nav_bdd = ['base_de_datos', 'base_de_datos_verificar', 'base_de_datos_exportar'] %}
-{% set nav_operateurs = ['operateurs', 'nouveau_operateur', 'modifier_operateur'] %}
 <aside class="app-sidebar sidebar-shadow" id="app-sidebar" aria-label="Navegación principal">
     <div class="scrollbar-sidebar">
         <div class="app-sidebar__inner">
@@ -49,15 +50,25 @@
 
                 {% if current_user.is_admin() %}
                 <li class="app-sidebar__heading">Materiales</li>
-                <li class="{% if ep in nav_materiales %}mm-active{% endif %}">
+                <li class="{% if ep in nav_materiales and not inst_nueva %}mm-active{% endif %}">
                     <a href="{{ url_for('materiales_hub') }}"
-                       class="{% if ep in nav_materiales %}mm-active active{% endif %}"
-                       {% if ep in nav_materiales %}aria-current="page"{% endif %}>
+                       class="{% if ep in nav_materiales and not inst_nueva %}mm-active active{% endif %}"
+                       {% if ep in nav_materiales and not inst_nueva %}aria-current="page"{% endif %}>
                         <i class="nav-menu-icon fas fa-toolbox" aria-hidden="true"></i>
                         <span class="nav-menu-label">Materiales</span>
                     </a>
                 </li>
+                <li class="{% if ep in nav_instalaciones or inst_nueva %}mm-active{% endif %}">
+                    <a href="{{ url_for('instalaciones_hub') }}"
+                       class="{% if ep in nav_instalaciones or inst_nueva %}mm-active active{% endif %}"
+                       {% if ep in nav_instalaciones or inst_nueva %}aria-current="page"{% endif %}>
+                        <i class="nav-menu-icon fas fa-building" aria-hidden="true"></i>
+                        <span class="nav-menu-label">Instalaciones</span>
+                    </a>
+                </li>
+                {% endif %}
 
+                {% if current_user.is_superadmin() %}
                 <li class="app-sidebar__heading">Administración</li>
                 <li class="{% if ep in nav_usuarios %}mm-active{% endif %}">
                     <a href="{{ url_for('usuarios') }}"
@@ -83,14 +94,6 @@
                         <span class="nav-menu-label">Base de datos</span>
                     </a>
                 </li>
-                <!--<li class="{% if ep in nav_operateurs %}mm-active{% endif %}">
-                    <a href="{{ url_for('operateurs') }}"
-                       class="{% if ep in nav_operateurs %}mm-active active{% endif %}"
-                       {% if ep in nav_operateurs %}aria-current="page"{% endif %}>
-                        <i class="nav-menu-icon fas fa-headset" aria-hidden="true"></i>
-                        <span class="nav-menu-label">Operadores</span>
-                    </a>
-                </li>-->
                 {% endif %}
 
                 <li class="app-sidebar__heading">Cuenta</li>

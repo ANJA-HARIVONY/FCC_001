@@ -10,14 +10,17 @@
 </a>
 {% endblock %}
 
+{% block page_breadcrumb %}
+<nav aria-label="breadcrumb" class="app-breadcrumb page-title-breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ user.nom }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid px-0">
-    <nav aria-label="breadcrumb" class="app-breadcrumb mb-3">
-        <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a href="{{ url_for('usuarios') }}">Usuarios</a></li>
-            <li class="breadcrumb-item active" aria-current="page">{{ user.nom }}</li>
-        </ol>
-    </nav>
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card content-card mb-4">
@@ -61,8 +64,9 @@
                             <div class="col-md-4 mb-3">
                                 <label class="form-label">Rol</label>
                                 <select name="role" class="form-select">
-                                    <option value="usuario" {% if user.role == 'usuario' %}selected{% endif %}>usuario</option>
-                                    <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>admin</option>
+                                    {% for role_value in ROLES_OPERATEUR %}
+                                    <option value="{{ role_value }}" {% if user.role == role_value %}selected{% endif %}>{{ ROLE_LABELS[role_value] }}</option>
+                                    {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-4 mb-3">

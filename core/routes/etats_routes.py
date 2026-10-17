@@ -8,13 +8,17 @@ Rutas para la gestión de los informes generados por IA.
 
 import json
 
-from flask import render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
+from flask import abort, render_template, request, redirect, url_for, flash, jsonify, current_app, send_file
+from werkzeug.exceptions import HTTPException
 from datetime import datetime, timedelta
 from sqlalchemy import desc
 from sqlalchemy.orm import joinedload
 from flask_login import current_user
 
-from core.app import app, db, Etat, Incident, Agencia, ApreciacionDia
+from core.app import (
+    app, db, Etat, Incident, Agencia, ApreciacionDia,
+    apply_apreciacion_visibility, join_apreciaciones_texto,
+)
 from core.utils import parse_informe_json, unwrap_informe_text
 
 # Rédaction IA via Gemini si GEMINI_API_KEY est défini (désactiver : ETATS_USE_AI=false).
@@ -74,16 +78,29 @@ def get_types_etats():
     ]
 
 
+def _etats_visibles_query():
+    """Superadmin : tous les informes. Sinon ceux de son agencia."""
+    query = Etat.query
+    if current_user.is_authenticated and current_user.is_superadmin():
+        return query
+    needle = f'"agence_id": {int(current_user.id_agencia)}'
+    return query.filter(Etat.parametres.contains(needle))
+
+
+def _load_etat_visible(etat_id):
+    etat = _etats_visibles_query().filter(Etat.id == etat_id).first()
+    if not etat:
+        abort(404)
+    return etat
+
+
 @app.route('/etats')
 def etats():
     """Page principale des États IA"""
     try:
-        # Obtener los últimos 20 informes
-        etats_recents = Etat.query.order_by(desc(Etat.date_creation)).limit(20).all()
-        
-        # Statistiques rapides
-        total_etats = Etat.query.count()
-        etats_aujourd_hui = Etat.query.filter(
+        etats_recents = _etats_visibles_query().order_by(desc(Etat.date_creation)).limit(20).all()
+        total_etats = _etats_visibles_query().count()
+        etats_aujourd_hui = _etats_visibles_query().filter(
             Etat.date_creation >= datetime.now().date()
         ).count()
         
@@ -118,7 +135,10 @@ def etats_generer():
         {'id': 'last_3_months', 'nom': 'Últimos 3 meses'},
         {'id': 'custom', 'nom': 'Período personalizado'}
     ]
-    agencies = Agencia.query.order_by(Agencia.nombre).all()
+    if current_user.is_authenticated and not current_user.is_superadmin():
+        agencies = Agencia.query.filter_by(id=current_user.id_agencia).order_by(Agencia.nombre).all()
+    else:
+        agencies = Agencia.query.order_by(Agencia.nombre).all()
     
     return render_template('etats/generer.html',
                          types_etats=types_etats,
@@ -136,6 +156,8 @@ def etats_generer_post():
         titre = request.form.get('titre', '').strip()
         prompt_personnalise = request.form.get('prompt_personnalise', '').strip()
         agence_id = request.form.get('agence_id', '').strip()
+        if current_user.is_authenticated and not current_user.is_superadmin():
+            agence_id = str(current_user.id_agencia)
         
         # Période personnalisée
         if periode == 'custom':
@@ -163,6 +185,11 @@ def etats_generer_post():
             'periode': periode,
             'prompt_personnalise': prompt_personnalise,
             'agence_id': int(agence_id) if agence_id.isdigit() else None,
+            'ciudad_id': (
+                current_user.id_ciudad
+                if current_user.is_authenticated and not current_user.is_superadmin()
+                else None
+            ),
             'date_generation': datetime.now().isoformat()
         }
         
@@ -192,7 +219,7 @@ def etats_generer_post():
 def etats_detail(id):
     """Page de détail d'un état"""
     try:
-        etat = Etat.query.get_or_404(id)
+        etat = _load_etat_visible(id)
         
         # Si l'état est en cours de génération, essayer de le générer
         if etat.statut == 'generating':
@@ -204,7 +231,9 @@ def etats_detail(id):
                 db.session.commit()
         
         return render_template('etats/detail.html', etat=etat)
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         flash(f'Error al cargar el informe: {str(e)}', 'error')
         return redirect(url_for('etats'))
@@ -214,7 +243,7 @@ def etats_detail(id):
 def etats_regenerer(id):
     """Régénérer un état existant"""
     try:
-        etat = Etat.query.get_or_404(id)
+        etat = _load_etat_visible(id)
         
         # Marquer comme en cours de génération
         etat.statut = 'generating'
@@ -232,7 +261,9 @@ def etats_regenerer(id):
             flash('Error durante la regeneración', 'error')
         
         return redirect(url_for('etats_detail', id=id))
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         flash(f'Error durante la regeneración: {str(e)}', 'error')
         return redirect(url_for('etats_detail', id=id))
@@ -242,7 +273,7 @@ def etats_regenerer(id):
 def etats_supprimer(id):
     """Supprimer un état"""
     try:
-        etat = Etat.query.get_or_404(id)
+        etat = _load_etat_visible(id)
         titre = etat.titre
         
         db.session.delete(etat)
@@ -250,7 +281,9 @@ def etats_supprimer(id):
         
         flash(f'Informe "{titre}" eliminado con éxito', 'success')
         return redirect(url_for('etats'))
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         flash(f'Error durante la eliminación: {str(e)}', 'error')
         return redirect(url_for('etats'))
@@ -260,7 +293,7 @@ def etats_supprimer(id):
 def api_etats_export(id):
     """API pour exporter un état en JSON"""
     try:
-        etat = Etat.query.get_or_404(id)
+        etat = _load_etat_visible(id)
         
         export_data = {
             'etat': etat.to_dict(),
@@ -272,7 +305,9 @@ def api_etats_export(id):
         }
         
         return jsonify(export_data)
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -283,7 +318,7 @@ def api_etats_export_xlsx(id):
     from core.services.etats_export_service import build_etat_workbook, build_export_filename
 
     try:
-        etat = Etat.query.get_or_404(id)
+        etat = _load_etat_visible(id)
         if etat.statut != 'generated' or not etat.contenu_ia:
             flash(
                 'No se puede exportar: el informe no está generado o no tiene contenido.',
@@ -299,6 +334,8 @@ def api_etats_export_xlsx(id):
             as_attachment=True,
             download_name=filename,
         )
+    except HTTPException:
+        raise
     except ValueError as e:
         flash(str(e), 'error')
         return redirect(url_for('etats_detail', id=id))
@@ -647,16 +684,19 @@ def _collect_data_context(etat):
         params = _parse_parametres_dict(etat)
         agence_id = None
         agence_label = 'Todas las agencias'
-        if params.get('agence_id'):
+        if current_user.is_authenticated and not current_user.is_superadmin():
+            agence_id = current_user.id_agencia
+            query = query.filter(
+                Incident.operateur.has(id_agencia=agence_id),
+                Incident.client.has(id_ciudad=current_user.id_ciudad),
+            )
+            agence_label = current_user.agencia.nombre if current_user.agencia else 'Mi agencia'
+        elif params.get('agence_id'):
             agence_id = int(params.get('agence_id'))
             query = query.filter(Incident.operateur.has(id_agencia=agence_id))
             agence = Agencia.query.get(agence_id)
             if agence:
                 agence_label = agence.nombre
-        elif current_user.is_authenticated and not current_user.is_admin():
-            agence_id = current_user.id_agencia
-            query = query.filter(Incident.operateur.has(id_agencia=agence_id))
-            agence_label = current_user.agencia.nombre if current_user.agencia else 'Mi agencia'
         
         if etat.periode_debut:
             start_datetime = datetime.combine(etat.periode_debut, datetime.min.time())
@@ -728,23 +768,39 @@ def _collect_data_context(etat):
             if incident.status == 'Bitrix':
                 evolution_map[day_key]['bitrix'] += 1
 
-        notas_query = ApreciacionDia.query
+        notas_query = apply_apreciacion_visibility(
+            ApreciacionDia.query.options(
+                joinedload(ApreciacionDia.ciudad),
+                joinedload(ApreciacionDia.agencia),
+            ),
+            ciudad_id=params.get('ciudad_id'),
+            agencia_id=agence_id,
+        )
         if etat.periode_debut:
             notas_query = notas_query.filter(ApreciacionDia.fecha >= etat.periode_debut)
         if etat.periode_fin:
             notas_query = notas_query.filter(ApreciacionDia.fecha <= etat.periode_fin)
         else:
             notas_query = notas_query.filter(ApreciacionDia.fecha <= datetime.now().date())
-        notas_rows = notas_query.order_by(ApreciacionDia.fecha).all()
-        notas_del_dia = [
-            {
+        notas_rows = notas_query.order_by(ApreciacionDia.fecha, ApreciacionDia.id).all()
+        notas_del_dia = []
+        rows_by_iso = {}
+        for row in notas_rows:
+            fecha_iso = row.fecha.isoformat()
+            ciudad_nombre = row.ciudad.nombre if row.ciudad else ''
+            agencia_nombre = row.agencia.nombre if row.agencia else ''
+            notas_del_dia.append({
                 'fecha': row.fecha.strftime('%d/%m/%Y'),
-                'fecha_iso': row.fecha.isoformat(),
+                'fecha_iso': fecha_iso,
                 'texto': row.texto,
-            }
-            for row in notas_rows
-        ]
-        notes_by_iso = {nota['fecha_iso']: nota['texto'] for nota in notas_del_dia}
+                'ciudad': ciudad_nombre,
+                'agencia': agencia_nombre,
+            })
+            rows_by_iso.setdefault(fecha_iso, []).append(row)
+        notes_by_iso = {
+            fecha_iso: join_apreciaciones_texto(rows)
+            for fecha_iso, rows in rows_by_iso.items()
+        }
 
         evolution = [
             {
