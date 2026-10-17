@@ -104,3 +104,6 @@ ehthumbs.db
 .mypy_cache/
 .dmypy.json
 dmypy.json
+# Claude Code (fichiers personnels)
+.claude/settings.local.json
+CLAUDE.local.md

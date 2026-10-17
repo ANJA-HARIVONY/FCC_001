@@ -1,0 +1,104 @@
+---
+paths:
+  - "presentation/**"
+---
+
+# FCC_001 — UI (cohérence)
+
+Réutiliser les classes et partials existants. Ne pas inventer une palette, un shell ou un composant parallèle.
+
+## Shell
+
+- App authentifiée : `{% extends "base.html" %}` + blocs `title`, `page_icon`, `page_title`, `page_subtitle`, `page_actions`, `content`. Partials `_header` `_sidebar` `_footer`.
+- Login **seulement** : `login.html` (`body.login-page`, `login-aside` / `app-login-box`) — n’hérite pas de `base.html`.
+- Contenu : `<div class="container-fluid px-0">`.
+- Fil d’Ariane formulaires : `nav.app-breadcrumb`.
+- CSS : tokens `style.css` + `layout-shell.css` (`--primary-red: #dc3545`, `--shell-top`, `--ui-radius`, `--kpi-*`). Typo `--bs-body-font-size: 0.88rem`. Pas de 14 px forcé sur `html`.
+- Thème sidebar : `data-sidebar-theme` / `localStorage` (`sidebarTheme`, `sidebarCollapsed`).
+
+## Cartes et KPI
+
+- Blocs métier : `card shadow-sm border-0 content-card` (filtres, listes, fiches, formulaires).
+- Rubrique **Estado** (ficha incidencia) : carte `status-detail-card` (alias `bitrix-status-card`). Bitrix → partial `_bitrix_status.html`. Pas de ligne `col-sm-3` / `col-sm-9`.
+- Estado Bitrix : grille 2 colonnes (`bitrix-status-grid`) — gauche tâche (Estado, Responsable, Prioridad), droite fechas (`Creada el`, Vencimiento ou Cerrada el, Última modificación).
+- KPI (dashboard / informes) : `card stat-card stat-card--registered|resolved|pending|bitrix` + `stat-card-icon` / `stat-card-value`. Grille `row-cols-1 row-cols-sm-2 row-cols-lg-4`.
+- Action principale du titre : `btn btn-primary btn-sm` dans `page_actions`.
+- Retour / reset : `btn btn-outline-secondary btn-sm` (`Volver`, `Limpiar`).
+- Dangereux : `btn-danger` dans une **modale** (Cancelar `btn-secondary` + Eliminar).
+
+## Listes
+
+Desktop ≥992px : `table-responsive d-none d-lg-block` + `table table-hover mb-0`.  
+Mobile : `d-lg-none` + `{% include '_mobile_list_card_incident.html' %}` ou `_mobile_list_card_client.html` (ou `_mobile_list_card_salida.html`).  
+Vide : `text-center py-5` + icône `fa-3x text-muted` + CTA.
+
+Filtres (clients, incidencias, instalaciones, salidas) : carte `card shadow-sm border-0 content-card`, header «Filtros de búsqueda», formulaire GET (`form-control-sm` / `form-select-sm`). `per_page` **50 / 100 / 200 / 500** (défaut 50, `clamp_list_per_page`). Boutons Recordar filtros + Buscar + Reiniciar ; Imprimir / Excel seulement s’ils existent déjà sur la liste (clients, incidencias, salidas). Pas de nouvel export Excel ailleurs sans demande.
+
+Pagination : `iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2)`, Anterior / Siguiente, «Mostrando X a Y de Z». Reprendre les filtres dans chaque `url_for`. Header liste : total + «Página Y de Z».
+
+### Lista de instalaciones (`/instalaciones`, `instalaciones/hub.html`)
+
+Header carte : «Lista de instalaciones». Desktop = table ci-dessous. Mobile = `_mobile_list_card_instalacion.html` (pas de GPS/fotos). Ne pas ajouter de colonnes (GPS, fotos) sans demande.
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `ID` | `Instalacion.id` | `<strong>#id</strong>` comme Incidencias |
+| `Fecha` | `Instalacion.fecha` | `%d/%m/%Y` |
+| `Tipo` | `Instalacion.tipo` | `instalaciones/_tipo_badge.html` : `nueva` → `bg-primary` ; `traslado` → `bg-info text-dark` |
+| `Técnico` | `s.tecnico.nom` | Avatar 28px + nom (comme Usuario en Incidencias) ; `—` si absent |
+| `Cliente` | `s.client.nom` | Icône corporativo + `fa-user-tie` + lien `fiche_client` (`text-decoration-none text-dark`) + adresse du sitio en petit |
+| `Materiales` | `s.lineas_material` | lignes de toutes ses salidas, `nombre x cantidad`, `text-truncate` max 220px |
+| `Estado` | `Instalacion.estado` | `instalaciones/_estado_badge.html` : `en_curso` → `bg-warning text-dark` ; `terminada` → `bg-success` |
+| `Acciones` | — | `btn-group` : `Ver` → `instalaciones_detalle` ; `Modificar` → `instalaciones_modificar` ; Copiar → `instalaciones-copy.js` (`title` Copiar información, même ligne) |
+
+Filtres GET : `search` (cliente / teléfono / técnico / material / id), `tecnico`, `estado`, `tipo`, `date_from`, `date_to`, `per_page`. Cookie `instalaciones_filters_v2`. CTA titre : `Nueva instalación` → `instalaciones_nueva` (formulaire unique avec section «Material entregado» facultative, `instalaciones/_material_linea.html`, sans `required`). Détail : `Terminar` (en curso) / `Reabrir` (admin, terminada) + `Añadir material` → `materiales_salida_nueva?tipo=instalacion&instalacion=<id>`. Fiche client : bouton `Traslado` → `client_traslado`, carte «Instalaciones», «Direcciones anteriores».
+
+### Salidas de material (`/materiales/salidas`, `materiales/salidas.html`)
+
+Toutes les salidas (les 3 `tipo_salida`). Desktop = table ci-dessous. Mobile = `_mobile_list_card_salida.html`. Colonne `Estado` commentée : ne pas la réactiver sans demande.
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `#` | `MaterialSalida.id` | Identifiant de la salida |
+| `Fecha` | `MaterialSalida.fecha` | `%d/%m/%Y` |
+| `Tipo` | `tipo_salida` | Badge `uso_interno` → `bg-success` ; `incidencia` → `bg-warning text-dark` ; `instalacion` → `bg-primary`. Labels `SALIDA_TIPO_LABELS` |
+| `Técnico` | `s.tecnico.nom` | `—` si absent |
+| `Cliente` | `s.client.nom` | Texte (pas de lien). `uso_interno` sans client → «Uso interno» ; sinon sans client → «Uso general» |
+| `Materiales` | `s.lineas` | `nombre(modelo) x cantidad`, séparés par virgule |
+| `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` ; `Eliminar` (admin, modale de confirmation) → `materiales_salida_supprimer` |
+
+Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Boutons : Recordar filtros + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
+
+États incidencia (classes dédiées, pas `bg-success` générique) :
+
+- `badge badge-attente` → Pendiente
+- `badge badge-resolut` → Solucionadas
+- `badge badge-bitrix` → Bitrix (ou partial `_bitrix_status.html`)
+
+Corporativo : `_cliente_corporativo_icon.html`.
+
+## Icônes
+
+Même famille que la sidebar (`_sidebar.html` : `nav-menu-icon` + Font Awesome).
+
+- Sidebar : `<i class="nav-menu-icon fas fa-…" aria-hidden="true"></i>`
+- Fiches / cartes de détail : `<i class="ui-icon fas fa-…" aria-hidden="true"></i>`
+- `.ui-icon` = même métrique que `.nav-menu-icon` (1.25rem, centré, opacity 0.85). Couleur `--ui-icon-color` : `--primary-red` en thème clair, `#ff6b7a` en thème sombre (comme l’item actif de la sidebar).
+- Tokens dans `style.css` (`--ui-icon-size`, `--ui-icon-color`) ; le thème sombre les surcharge dans `layout-shell.css`.
+- Pas d’emoji pour un libellé de fiche (Estado, Responsable, Prioridad, Creada el, Vencimiento). Les emoji Bitrix restent acceptés en **liste compacte** (`icon_only`).
+- Nouvel icône d’information : Font Awesome déjà utilisé dans la sidebar si un équivalent existe (`fa-user`, `fa-clock`, `fa-check-circle`, `fa-hourglass-half`…).
+
+## Formulaires
+
+- Carte centrée `col-lg-8` + `card-header` titre icône.
+- CSRF : `{{ csrf_token() }}`. Champs `form-control` / `form-select` ; filtres en `*-sm`.
+- Labels filtres : `form-label small text-dark text-uppercase fw-semibold`.
+- Obligatoire : ` <span class="text-danger">*</span>`.
+- Flash : `success` | `error` | `info` (error → `alert-danger`). Textes **espagnol**.
+
+## JS / i18n / vérif
+
+Étendre `app-shell.js`, `csrf.js`, `notifications.js`, `bitrix-info.js`, `materiales-*.js`.  
+Labels métier écran : `Incidencias`, `Pendiente`, `Solucionadas`, `Usuarios` — jamais en français.  
+Nouvelle page : ajouter l’endpoint dans les listes `nav_*` de `_sidebar.html` seulement.  
+Vérifier le flux navigateur (desktop + mobile si layout), pas seulement un screenshot.

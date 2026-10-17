@@ -1,0 +1,32 @@
+---
+paths:
+  - "**/*.py"
+---
+
+# FCC_001 — Python
+
+- Flask 3, SQLAlchemy 2 : `db.session.get`, pas `Query.get`
+- Routes : `@app.route` sur `app` importé de `core.app`. Pas de Blueprints
+- Admin : `@admin_required`. Incidencias : `apply_incident_visibility` / `user_can_*`
+- JSON : `{ 'ok': True/False, 'error': '…en español' }` (403, 400 CSRF, 404)
+- Pagination listes métier (clients, incidencias, instalaciones, salidas) : `per_page` 50/100/200/500 via `clamp_list_per_page` (défaut 50). Autres listes : défaut 10, max 100 (`config.py`) sauf déjà cadré autrement
+- Dates : `datetime.now()` comme le reste du dépôt
+- Helpers existants : `normalize_categoria_*`, `write_audit`, `record_incident_estado_change`
+- Jointure vers `operateur` : **toujours** avec `onclause`. `incident` (`id_operateur`, `id_operateur_modificacion`) et `material_salida` (`id_tecnico`, `id_operateur_registro`, `id_operateur_modificacion`) ont plusieurs FK vers `operateur` → une jointure implicite lève `AmbiguousForeignKeysError`
+- Logique materiales / delays / caches / exports → `core/services/`, ne pas dupliquer
+- Nouvelle dépendance → `config/requirements.txt` + justification
+- Logger `logging.getLogger('fcc_001')`, pas de `print()` runtime
+
+```python
+# ❌ BAD
+Incident.query.get(id)
+query.filter(Incident.status == 'Pending')
+db.session.query(Operateur.nom, func.count(Incident.id)).join(Incident)
+
+# ✅ GOOD
+db.session.get(Incident, id)
+query = apply_incident_visibility(Incident.query.filter(Incident.status == 'Pendiente'))
+db.session.query(Operateur.nom, func.count(Incident.id)).join(
+    Incident, Incident.id_operateur == Operateur.id
+)
+```

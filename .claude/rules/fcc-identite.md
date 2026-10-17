@@ -1,0 +1,30 @@
+# FCC_001 — identité et architecture
+
+App Flask **Atención al Cliente** (Connexia, FAI). UI métier en **espagnol**. Locale Babel : `es`.
+
+Périmètre : clientes (référentiel partagé), incidencias, usuarios (`Operateur`, superadmin), materiales (admin : catálogo partagé, salidas scopées agencia+ciudad), instalaciones (admin, hub `/instalaciones` = entités `Instalacion` (estado, traslado, salidas liées) ; GPS/fotos sur la fiche client), informes (`/etats` + Gemini), ficha AC (admin), apreciaciones, audit (superadmin).
+
+Hors périmètre : Odoo (`.env` seulement), Kimi (non branché), WeasyPrint (PDF désactivé → HTML). Ne pas les brancher sans demande.
+
+## Architecture — ne pas réinventer
+
+Monolithe **sans** `create_app` et **sans** Blueprints.
+
+- Nouvelles routes → `core/routes/<domaine>_routes.py` (`from core.app import app, db, …`)
+- Logique réutilisable → `core/services/`
+- Ne pas gonfler `core/app.py` si un module existe déjà (`materiales`, `etats`, `atencion_cliente`, `apreciaciones`)
+- Local : `python start_app.py` port **5001**. Docker : **8089**
+
+## Langues
+
+| Surface | Langue |
+|---|---|
+| UI, flash, erreurs, prompts Gemini | **Espagnol** + `gettext` / `{{ _('…') }}` |
+| Commits Git | **Français**, Conventional Commits |
+| Réponses assistant | **Français** |
+
+Ne jamais franciser `Incidencias`, `Pendiente`, `Solucionadas`. Après nouvelles chaînes : catalogues `i18n/translations/{es,fr,en}/`.
+
+## Méthode
+
+Lire routes + service + template du même domaine avant d’éditer. Diff minimal. Règle métier ambiguë → **demander**, ne pas inventer un statut ou un droit.

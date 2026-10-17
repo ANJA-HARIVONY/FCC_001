@@ -1,0 +1,60 @@
+# FCC_001 — métier (littéraux exacts)
+
+Ne **jamais** inventer un statut, une catégorie, un rôle ou un `tipo_salida`. Utiliser les tuples et `normalize_*` de `core/app.py`.
+
+## Littéraux
+
+- `Incident.status` : `Pendiente` | `Solucionadas` (pluriel) | `Bitrix`
+- `Client.categoria` : `particular` (défaut) | `corporativo` — pas `residencial`
+- `Operateur.role` : `usuario` | `admin` | `superadmin` (`is_admin()` vrai pour admin et superadmin ; `is_superadmin()` pour Usuarios, Trazabilidad, Base de datos)
+- `Operateur.categoria` : `atencion_cliente` | `tecnico` (métier — un técnico n’est pas admin)
+- Matériel : `outillage` | `material_cliente`
+- Salida : types `uso_interno` | `incidencia` | `instalacion` ; états `registrada` → `modificada`
+- `Instalacion.estado` : `en_curso` → `terminada` (réouverture admin seulement) ; `Instalacion.tipo` : `nueva` | `traslado`
+- `InstalacionTrasladoLinea.accion` : `reutilizado` | `retirado`
+
+Entité code = `Operateur`. UI = **Usuarios** (`/usuarios`). Ne pas étendre `/operateurs`.
+
+Ne pas renommer les colonnes FR : `nom`, `intitule`, `ville`, `date_heure`, `mot_de_passe_hash`.
+
+## Périmètre agence et ciudad
+
+Référentiels **partagés** (toutes les agencias ; tout rôle qui a le menu) : Clients, catálogo de material.
+
+Mouvements **limités** à l’`agencia` **et** à la `ciudad` de l’utilisateur. L’`admin` a le même filtre que le `usuario` : il ne voit pas les autres agences ni les autres villes. Seul `superadmin` voit tout.
+Dashboard (KPI et listes du jour), Incidencias, Informes (`/etats`), salidas, informe de materiales, Instalaciones.
+
+## Menus (libellés sidebar)
+
+- `superadmin` : tous les menus, y compris Administración (Usuarios, Trazabilidad, Base de datos)
+- `admin` : Principal (Dashboard, Incidencias, Clientes, Informes), Materiales, Instalaciones, Cuenta (Perfil, Ayuda, Salir)
+- `usuario` : Principal (Dashboard, Incidencias, Clientes, Informes), Cuenta (Perfil, Ayuda, Salir)
+
+`Materiales` dans la sidebar est le hub (catálogo partagé + salidas / informe scopés). Pas de nouvelle entrée Salidas ou Informes de materiales.
+
+## Incidencias (règle 10.4)
+
+- Liste / KPI / export : toujours `apply_incident_visibility` (`superadmin` = tout ; sinon agencia de l’utilisateur et client de sa ciudad)
+- Consulter / commenter : `user_can_access_incident`
+- Modifier : quiconque peut la consulter (`user_can_modify_incident` = visibilité 10.4)
+- Supprimer : créateur **ou** admin (`user_can_delete_incident`)
+- `id_operateur` = créateur, **immuable** après création. L'édition renseigne `id_operateur_modificacion` + `modifie_le`
+- Mutation de `status` : **obligatoire** `record_incident_estado_change` ; clear cache Bitrix si status/`ref_bitrix` change
+- `Bitrix` → `ref_bitrix` max 10 chiffres ; sinon `ref_bitrix = None`
+- Commentaire ≤ 1000 car. Notifier créateur + commentateurs antérieurs
+
+## Autres domaines
+
+- Materiales / instalaciones / ficha técnico / ficha AC : `@admin_required` (admin et superadmin). Usuarios, trazabilidad, base de datos : `@superadmin_required`
+- Sitio : `ClientSitio` = adresse physique (GPS + fotos, max 10). **Un seul sitio actif** par client ; `Client.adresse/ville/latitud/longitud` = miroir du sitio actif, écrit uniquement via `instalaciones_service`. Correction d'adresse (`modifier_client`) = met à jour le sitio actif ; déménagement = **Traslado** (`create_traslado`) : ferme le sitio (`activo=False`, `hasta`), en crée un nouveau, crée une `Instalacion` `tipo=traslado`
+- `Instalacion` : 1 client, 1 sitio, 0..N salidas `tipo_salida=instalacion` (`MaterialSalida.id_instalacion`). Saisie unique : `Nueva instalación` (`create_instalacion`) = données + lignes de matériel **facultatives** → crée la 1ʳᵉ salida dans le même enregistrement. Une salida `instalacion` exige `id_instalacion` (matériel additionnel depuis la fiche instalación, client figé) ; sans lui → refus / redirection vers `instalaciones_nueva`. La modale «Nueva salida» n'offre que `uso_interno` / `incidencia`. Client / sitio / tipo non modifiables à l'édition. Terminar sans condition
+- Dashboard «Instalaciones del día» : `Instalacion` du jour (`instalaciones_del_dia`), pas des salidas
+- Hub `/instalaciones` : liste des `Instalacion` ; filtres `search`, `tecnico`, `estado`, `tipo`, `date_from`, `date_to` + pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
+- Table «Lista de instalaciones» : `ID` \| `Fecha` \| `Tipo` \| `Técnico` \| `Cliente` \| `Materiales` \| `Estado` \| `Acciones` (Ver / Modificar). GPS/fotos restent sur la fiche client, pas sur cette liste
+- Table «Salidas de material» (`/materiales/salidas`) : `#` \| `Fecha` \| `Tipo` \| `Técnico` \| `Cliente` \| `Materiales` \| `Acciones` (Ver / Modificar / Copiar). Colonne `Estado` masquée. Les 3 `tipo_salida` ; pagination comme clients/incidencias (`clamp_list_per_page` 50/100/200/500)
+- `uso_interno` → `id_client` NULL ; `incidencia`/`instalacion` → client obligatoire ; `tipo_salida` non modifiable à l’édition
+- Apreciaciones : snapshot `id_ciudad` + `id_agencia` à l'écriture (`id_operateur` immuable) ; max 120 car. ; 1 / jour / ciudad / agencia. GET connecté. PUT/DELETE admin
+- Lecture : superadmin = tout (filtre dashboard ciudad/agencia si présent ; filtre informe `agence_id` / `ciudad_id` si présent) ; admin et usuario = leur ciudad et leur agencia. Note sans créateur : superadmin seul
+- Écriture : admin sur sa paire ; superadmin sur la paire filtrée si ciudad et agencia sont choisies, sinon sa paire. La paire ne change pas à l'édition
+- Excel clients / incidents / salidas = **page courante** seulement
+- `write_audit` best-effort (ne jamais faire échouer la requête métier)
