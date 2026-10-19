@@ -3,9 +3,9 @@
   "private": true,
   "description": "Monorepo de réécriture FCC_001. Le Flask historique reste à la racine.",
   "scripts": {
-    "build": "npm run build -w @fcc/domain && npm run prisma:generate -w @fcc/api && npm run build -w @fcc/api",
-    "test": "npm run build -w @fcc/domain && npm test -w @fcc/domain && npm run prisma:generate -w @fcc/api && npm test -w @fcc/api",
-    "typecheck": "npm run typecheck -w @fcc/domain && npm run build -w @fcc/domain && npm run prisma:generate -w @fcc/api && npm run typecheck -w @fcc/api"
+    "build": "npm run build -w @fcc/domain && npm run prisma:generate -w @fcc/api && npm run build -w @fcc/api && npm run build -w @fcc/web",
+    "test": "npm run build -w @fcc/domain && npm test -w @fcc/domain && npm run prisma:generate -w @fcc/api && npm test -w @fcc/api && npm test -w @fcc/web",
+    "typecheck": "npm run typecheck -w @fcc/domain && npm run build -w @fcc/domain && npm run prisma:generate -w @fcc/api && npm run typecheck -w @fcc/api && npm run typecheck -w @fcc/web"
   },
   "workspaces": [
     "packages/*",
