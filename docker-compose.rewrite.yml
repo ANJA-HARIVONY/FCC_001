@@ -1,0 +1,22 @@
+# API de réécriture. MariaDB reste celle du compose Flask (réseau fcc_001_network).
+# Ne lance pas de migration. PASSWORD_REHASH reste faux : Flask vérifie encore les hash.
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: "4000"
+      SESSION_COOKIE_SECURE: "false"
+      PASSWORD_REHASH: "false"
+      WEB_ORIGIN: http://localhost:5173
+      DATABASE_URL: mysql://${DB_USER:-fcc_user}:${DB_PASSWORD:-fcc_password}@mariadb:3306/${DB_NAME:-fcc_001_db}
+    networks:
+      - fcc_001_network
+
+networks:
+  fcc_001_network:
+    external: true
+    name: fcc_001_network

@@ -5,7 +5,7 @@
 | Phase | État | Preuve |
 |---|---|---|
 | 0 — Gel du comportement | faite | `docs/parite.md`, `docs/rapports/2026-10-19-phase-0.md` |
-| 1 — Socle | entamée | `packages/domain` (littéraux, visibilité, menus) et ses tests. Auth, NestJS, Prisma et React restent à faire. |
+| 1 — Socle | en cours | Prisma introspecté (18 modèles, aucune migration). API NestJS : login, session, CSRF, hash Werkzeug, audit best-effort. `docs/rapports/2026-10-19-phase-1.md`. React, Redis et les modules métier restent à faire. |
 | 2 à 9 | non commencées | — |
 
 Branche : `feat/reecriture-react-node`.

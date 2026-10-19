@@ -1,0 +1,36 @@
+{
+  "name": "@fcc/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API NestJS FCC_001. Lecture du schéma MariaDB existant, aucune migration au démarrage.",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "test": "npm run build && node --experimental-strip-types --test test/**/*.test.ts",
+    "prisma:generate": "prisma generate",
+    "prisma:pull": "prisma db pull"
+  },
+  "dependencies": {
+    "@fcc/domain": "*",
+    "@nestjs/common": "^11.1.6",
+    "@nestjs/core": "^11.1.6",
+    "@nestjs/platform-express": "^11.1.6",
+    "@node-rs/argon2": "^2.0.2",
+    "@prisma/client": "^6.16.3",
+    "cookie-parser": "^1.4.7",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.1.6",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.9.1",
+    "@types/supertest": "^6.0.3",
+    "prisma": "^6.16.3",
+    "supertest": "^7.1.4",
+    "typescript": "^5.9.3"
+  }
+}

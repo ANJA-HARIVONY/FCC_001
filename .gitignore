@@ -84,6 +84,8 @@ docs/_build/
 
 # Node (réécriture React / Node)
 node_modules/
+packages/domain/dist/
+apps/api/dist/
 
 # Fichiers système
 .DS_Store?

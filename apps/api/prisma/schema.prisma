@@ -1,0 +1,395 @@
+// Schéma introspecté (prisma db pull). Ne pas lancer prisma migrate : aucune modification de la base.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model agencia {
+  id              Int               @id @default(autoincrement())
+  nombre          String            @db.VarChar(100)
+  id_ciudad       Int
+  ciudad          ciudad            @relation(fields: [id_ciudad], references: [id], onUpdate: Restrict, map: "agencia_ibfk_1")
+  apreciacion_dia apreciacion_dia[]
+  operateur       operateur[]
+
+  @@index([id_ciudad], map: "id_ciudad")
+}
+
+model apreciacion_dia {
+  id            Int        @id @default(autoincrement())
+  fecha         DateTime   @db.Date
+  texto         String     @db.VarChar(120)
+  id_operateur  Int?
+  creado_en     DateTime   @db.DateTime(0)
+  modificado_en DateTime   @db.DateTime(0)
+  id_ciudad     Int?
+  id_agencia    Int?
+  operateur     operateur? @relation(fields: [id_operateur], references: [id], onUpdate: Restrict, map: "apreciacion_dia_ibfk_1")
+  agencia       agencia?   @relation(fields: [id_agencia], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_apreciacion_dia_id_agencia")
+  ciudad        ciudad?    @relation(fields: [id_ciudad], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_apreciacion_dia_id_ciudad")
+
+  @@unique([fecha, id_ciudad, id_agencia], map: "uq_apreciacion_dia_fecha_ciudad_agencia")
+  @@index([fecha], map: "ix_apreciacion_dia_fecha")
+  @@index([id_agencia], map: "ix_apreciacion_dia_id_agencia")
+  @@index([id_ciudad], map: "ix_apreciacion_dia_id_ciudad")
+  @@index([id_operateur], map: "ix_apreciacion_dia_id_operateur")
+}
+
+model audit_log {
+  id           Int        @id @default(autoincrement())
+  id_operateur Int?
+  action       String     @db.VarChar(50)
+  detail       String?    @db.Text
+  ip_address   String?    @db.VarChar(45)
+  date_heure   DateTime   @default(now()) @db.DateTime(0)
+  operateur    operateur? @relation(fields: [id_operateur], references: [id], onUpdate: Restrict, map: "fk_audit_operateur")
+
+  @@index([id_operateur], map: "idx_audit_operateur")
+}
+
+model ciudad {
+  id              Int               @id @default(autoincrement())
+  nombre          String            @unique(map: "nombre") @db.VarChar(100)
+  agencia         agencia[]
+  apreciacion_dia apreciacion_dia[]
+  client          client[]
+  operateur       operateur[]
+}
+
+model client {
+  id                        Int                @id @default(autoincrement())
+  nom                       String             @db.VarChar(100)
+  telephone                 String             @db.VarChar(100)
+  adresse                   String             @db.VarChar(200)
+  ville                     String             @db.VarChar(100)
+  ip_router                 String?            @db.VarChar(50)
+  ip_antea                  String?            @db.VarChar(50)
+  id_ciudad                 Int?
+  categoria                 String             @default("particular") @db.VarChar(20)
+  username_radius           String?            @db.VarChar(100)
+  radius_cache_json         String?            @db.Text
+  radius_cache_at           DateTime?          @db.DateTime(0)
+  id_operateur              Int?
+  id_operateur_modificacion Int?
+  modifie_le                DateTime?          @db.DateTime(0)
+  latitud                   Decimal?           @db.Decimal(10, 7)
+  longitud                  Decimal?           @db.Decimal(10, 7)
+  gps_actualizado_le        DateTime?          @db.DateTime(0)
+  id_operateur_gps          Int?
+  ciudad                    ciudad?            @relation(fields: [id_ciudad], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "fk_client_ciudad")
+  client_sitio              client_sitio[]
+  incident                  incident[]
+  instalacion               instalacion[]
+  instalacion_foto          instalacion_foto[]
+  material_salida           material_salida[]
+
+  @@index([id_ciudad], map: "fk_client_ciudad")
+  @@index([nom], map: "idx_client_nom")
+  @@index([ville], map: "idx_client_ville")
+  @@index([categoria], map: "ix_client_categoria")
+  @@index([username_radius], map: "ix_client_username_radius")
+}
+
+model client_sitio {
+  id                                                    Int                @id @default(autoincrement())
+  id_client                                             Int
+  adresse                                               String             @db.VarChar(200)
+  ville                                                 String             @db.VarChar(100)
+  latitud                                               Decimal?           @db.Decimal(10, 7)
+  longitud                                              Decimal?           @db.Decimal(10, 7)
+  gps_actualizado_le                                    DateTime?          @db.DateTime(0)
+  id_operateur_gps                                      Int?
+  activo                                                Boolean
+  desde                                                 DateTime?          @db.Date
+  hasta                                                 DateTime?          @db.Date
+  creado_le                                             DateTime           @db.DateTime(0)
+  client                                                client             @relation(fields: [id_client], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "client_sitio_ibfk_1")
+  operateur                                             operateur?         @relation(fields: [id_operateur_gps], references: [id], onUpdate: Restrict, map: "client_sitio_ibfk_2")
+  instalacion_instalacion_id_sitioToclient_sitio        instalacion[]      @relation("instalacion_id_sitioToclient_sitio")
+  instalacion_instalacion_id_sitio_origenToclient_sitio instalacion[]      @relation("instalacion_id_sitio_origenToclient_sitio")
+  instalacion_foto                                      instalacion_foto[]
+
+  @@index([id_operateur_gps], map: "id_operateur_gps")
+  @@index([activo], map: "ix_client_sitio_activo")
+  @@index([id_client], map: "ix_client_sitio_id_client")
+}
+
+model etat {
+  id                Int       @id @default(autoincrement())
+  titre             String    @db.VarChar(255)
+  type_etat         String    @db.VarChar(50)
+  periode_debut     DateTime? @db.Date
+  periode_fin       DateTime? @db.Date
+  contenu_ia        String?   @db.Text
+  graphiques_data   String?   @db.LongText
+  parametres        String?   @db.LongText
+  statut            String    @db.VarChar(20)
+  utilisateur       String?   @db.VarChar(100)
+  hash_cache        String?   @db.VarChar(64)
+  date_creation     DateTime  @db.DateTime(0)
+  date_modification DateTime  @db.DateTime(0)
+
+  @@index([date_creation], map: "ix_etat_date_creation")
+  @@index([hash_cache], map: "ix_etat_hash_cache")
+  @@index([periode_debut], map: "ix_etat_periode_debut")
+  @@index([periode_fin], map: "ix_etat_periode_fin")
+  @@index([statut], map: "ix_etat_statut")
+  @@index([titre], map: "ix_etat_titre")
+  @@index([type_etat], map: "ix_etat_type_etat")
+}
+
+model incident {
+  id                        Int                         @id @default(autoincrement())
+  id_client                 Int
+  intitule                  String                      @db.VarChar(200)
+  observations              String?                     @db.Text
+  status                    String                      @default("Pendiente") @db.VarChar(20)
+  id_operateur              Int
+  date_heure                DateTime                    @default(now()) @db.DateTime(0)
+  ref_bitrix                String?                     @db.VarChar(10)
+  bitrix_task_status        String?                     @db.VarChar(2)
+  bitrix_status_label       String?                     @db.VarChar(80)
+  bitrix_status_emoji       String?                     @db.VarChar(10)
+  bitrix_responsible        String?                     @db.VarChar(120)
+  bitrix_fetched_at         DateTime?                   @db.DateTime(0)
+  bitrix_fetch_locked       Boolean                     @default(false)
+  id_operateur_modificacion Int?
+  modifie_le                DateTime?                   @db.DateTime(0)
+  bitrix_deadline           DateTime?                   @db.DateTime(0)
+  bitrix_created_at         DateTime?                   @db.DateTime(0)
+  bitrix_closed_at          DateTime?                   @db.DateTime(0)
+  bitrix_changed_at         DateTime?                   @db.DateTime(0)
+  bitrix_priority           String?                     @db.VarChar(2)
+  bitrix_moved_at           DateTime?                   @db.DateTime(0)
+  client                    client                      @relation(fields: [id_client], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "incident_ibfk_1")
+  operateur                 operateur                   @relation(fields: [id_operateur], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "incident_ibfk_2")
+  incident_comentario       incident_comentario[]
+  incident_estado_historial incident_estado_historial[]
+  incident_notification     incident_notification[]
+
+  @@index([id_client], map: "idx_incident_client")
+  @@index([date_heure], map: "idx_incident_date")
+  @@index([id_operateur], map: "idx_incident_operateur")
+  @@index([status], map: "idx_incident_status")
+}
+
+model incident_comentario {
+  id           Int        @id @default(autoincrement())
+  id_incident  Int
+  id_operateur Int?
+  contenido    String     @db.VarChar(1000)
+  creado_en    DateTime   @db.DateTime(0)
+  incident     incident   @relation(fields: [id_incident], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "fk_incident_comentario_incident")
+  operateur    operateur? @relation(fields: [id_operateur], references: [id], onUpdate: Restrict, map: "fk_incident_comentario_operateur")
+
+  @@index([id_operateur], map: "fk_incident_comentario_operateur")
+  @@index([id_incident], map: "ix_incident_comentario_incident")
+}
+
+model incident_estado_historial {
+  id              Int        @id @default(autoincrement())
+  id_incident     Int
+  estado_anterior String?    @db.VarChar(20)
+  estado_nuevo    String     @db.VarChar(20)
+  id_operateur    Int?
+  cambiado_en     DateTime   @db.DateTime(0)
+  ref_bitrix      String?    @db.VarChar(10)
+  incident        incident   @relation(fields: [id_incident], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "incident_estado_historial_ibfk_1")
+  operateur       operateur? @relation(fields: [id_operateur], references: [id], onUpdate: Restrict, map: "incident_estado_historial_ibfk_2")
+
+  @@index([cambiado_en], map: "ix_incident_estado_historial_cambiado_en")
+  @@index([id_incident], map: "ix_incident_estado_historial_id_incident")
+  @@index([id_operateur], map: "ix_incident_estado_historial_id_operateur")
+}
+
+model incident_notification {
+  id                                                         Int        @id @default(autoincrement())
+  id_incident                                                Int
+  id_destinataire                                            Int
+  id_auteur                                                  Int?
+  message                                                    String     @db.VarChar(255)
+  lue                                                        Boolean
+  cree_le                                                    DateTime   @db.DateTime(0)
+  lue_le                                                     DateTime?  @db.DateTime(0)
+  incident                                                   incident   @relation(fields: [id_incident], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "incident_notification_ibfk_1")
+  operateur_incident_notification_id_destinataireTooperateur operateur  @relation("incident_notification_id_destinataireTooperateur", fields: [id_destinataire], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "incident_notification_ibfk_2")
+  operateur_incident_notification_id_auteurTooperateur       operateur? @relation("incident_notification_id_auteurTooperateur", fields: [id_auteur], references: [id], onUpdate: Restrict, map: "incident_notification_ibfk_3")
+
+  @@index([cree_le], map: "ix_incident_notification_cree_le")
+  @@index([id_auteur], map: "ix_incident_notification_id_auteur")
+  @@index([id_destinataire], map: "ix_incident_notification_id_destinataire")
+  @@index([id_incident], map: "ix_incident_notification_id_incident")
+  @@index([lue], map: "ix_incident_notification_lue")
+}
+
+model instalacion {
+  id                                                         Int                          @id @default(autoincrement())
+  id_client                                                  Int
+  id_sitio                                                   Int?
+  id_sitio_origen                                            Int?
+  tipo                                                       String                       @db.VarChar(20)
+  estado                                                     String                       @db.VarChar(20)
+  fecha                                                      DateTime                     @db.Date
+  id_tecnico                                                 Int
+  observaciones                                              String?                      @db.Text
+  id_operateur_registro                                      Int
+  fecha_registro                                             DateTime                     @db.DateTime(0)
+  id_operateur_modificacion                                  Int?
+  fecha_modificacion                                         DateTime?                    @db.DateTime(0)
+  terminada_le                                               DateTime?                    @db.DateTime(0)
+  id_operateur_terminada                                     Int?
+  client                                                     client                       @relation(fields: [id_client], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "instalacion_ibfk_1")
+  client_sitio_instalacion_id_sitioToclient_sitio            client_sitio?                @relation("instalacion_id_sitioToclient_sitio", fields: [id_sitio], references: [id], onUpdate: Restrict, map: "instalacion_ibfk_2")
+  client_sitio_instalacion_id_sitio_origenToclient_sitio     client_sitio?                @relation("instalacion_id_sitio_origenToclient_sitio", fields: [id_sitio_origen], references: [id], onUpdate: Restrict, map: "instalacion_ibfk_3")
+  operateur_instalacion_id_tecnicoTooperateur                operateur                    @relation("instalacion_id_tecnicoTooperateur", fields: [id_tecnico], references: [id], onUpdate: Restrict, map: "instalacion_ibfk_4")
+  operateur_instalacion_id_operateur_registroTooperateur     operateur                    @relation("instalacion_id_operateur_registroTooperateur", fields: [id_operateur_registro], references: [id], onUpdate: Restrict, map: "instalacion_ibfk_5")
+  operateur_instalacion_id_operateur_modificacionTooperateur operateur?                   @relation("instalacion_id_operateur_modificacionTooperateur", fields: [id_operateur_modificacion], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "instalacion_ibfk_6")
+  operateur_instalacion_id_operateur_terminadaTooperateur    operateur?                   @relation("instalacion_id_operateur_terminadaTooperateur", fields: [id_operateur_terminada], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "instalacion_ibfk_7")
+  instalacion_traslado_linea                                 instalacion_traslado_linea[]
+  material_salida                                            material_salida[]
+
+  @@index([id_operateur_modificacion], map: "id_operateur_modificacion")
+  @@index([id_operateur_registro], map: "id_operateur_registro")
+  @@index([id_operateur_terminada], map: "id_operateur_terminada")
+  @@index([id_sitio_origen], map: "id_sitio_origen")
+  @@index([estado], map: "ix_instalacion_estado")
+  @@index([fecha], map: "ix_instalacion_fecha")
+  @@index([id_client], map: "ix_instalacion_id_client")
+  @@index([id_sitio], map: "ix_instalacion_id_sitio")
+  @@index([id_tecnico], map: "ix_instalacion_id_tecnico")
+  @@index([tipo], map: "ix_instalacion_tipo")
+}
+
+model instalacion_foto {
+  id              Int              @id @default(autoincrement())
+  id_client       Int?
+  id_salida       Int?
+  id_sitio        Int?
+  fichier         String           @db.VarChar(255)
+  id_operateur    Int?
+  creado_le       DateTime         @db.DateTime(0)
+  client          client?          @relation(fields: [id_client], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "instalacion_foto_ibfk_1")
+  material_salida material_salida? @relation(fields: [id_salida], references: [id], onUpdate: Restrict, map: "instalacion_foto_ibfk_2")
+  client_sitio    client_sitio?    @relation(fields: [id_sitio], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "instalacion_foto_ibfk_3")
+  operateur       operateur?       @relation(fields: [id_operateur], references: [id], onUpdate: Restrict, map: "instalacion_foto_ibfk_4")
+
+  @@index([id_operateur], map: "id_operateur")
+  @@index([id_client], map: "ix_instalacion_foto_id_client")
+  @@index([id_salida], map: "ix_instalacion_foto_id_salida")
+  @@index([id_sitio], map: "ix_instalacion_foto_id_sitio")
+}
+
+model instalacion_traslado_linea {
+  id             Int         @id @default(autoincrement())
+  id_instalacion Int
+  id_material    Int
+  cantidad       Int
+  accion         String      @db.VarChar(20)
+  instalacion    instalacion @relation(fields: [id_instalacion], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "instalacion_traslado_linea_ibfk_1")
+  material       material    @relation(fields: [id_material], references: [id], onUpdate: Restrict, map: "instalacion_traslado_linea_ibfk_2")
+
+  @@index([id_material], map: "id_material")
+  @@index([id_instalacion], map: "ix_instalacion_traslado_linea_id_instalacion")
+}
+
+model material {
+  id                         Int                          @id @default(autoincrement())
+  nombre                     String                       @db.VarChar(120)
+  tipo                       String                       @db.VarChar(30)
+  activo                     Boolean
+  creado_le                  DateTime                     @db.DateTime(0)
+  descripcion                String?                      @db.Text
+  modelo                     String?                      @db.VarChar(100)
+  foto                       String?                      @db.VarChar(255)
+  modificado_le              DateTime?                    @db.DateTime(0)
+  instalacion_traslado_linea instalacion_traslado_linea[]
+  material_salida_linea      material_salida_linea[]
+
+  @@unique([nombre, tipo], map: "uq_material_nombre_tipo")
+  @@index([tipo], map: "ix_material_tipo")
+}
+
+model material_salida {
+  id                                                             Int                     @id @default(autoincrement())
+  fecha                                                          DateTime                @db.Date
+  id_tecnico                                                     Int
+  id_client                                                      Int?
+  estado                                                         String                  @db.VarChar(20)
+  id_operateur_registro                                          Int
+  fecha_registro                                                 DateTime                @db.DateTime(0)
+  id_operateur_modificacion                                      Int?
+  fecha_modificacion                                             DateTime?               @db.DateTime(0)
+  observaciones                                                  String?                 @db.Text
+  tipo_salida                                                    String                  @default("uso_interno") @db.VarChar(20)
+  id_instalacion                                                 Int?
+  instalacion_foto                                               instalacion_foto[]
+  instalacion                                                    instalacion?            @relation(fields: [id_instalacion], references: [id], onUpdate: Restrict, map: "fk_material_salida_id_instalacion")
+  operateur_material_salida_id_tecnicoTooperateur                operateur               @relation("material_salida_id_tecnicoTooperateur", fields: [id_tecnico], references: [id], onUpdate: Restrict, map: "material_salida_ibfk_1")
+  client                                                         client?                 @relation(fields: [id_client], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "material_salida_ibfk_2")
+  operateur_material_salida_id_operateur_registroTooperateur     operateur               @relation("material_salida_id_operateur_registroTooperateur", fields: [id_operateur_registro], references: [id], onUpdate: Restrict, map: "material_salida_ibfk_3")
+  operateur_material_salida_id_operateur_modificacionTooperateur operateur?              @relation("material_salida_id_operateur_modificacionTooperateur", fields: [id_operateur_modificacion], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "material_salida_ibfk_4")
+  material_salida_linea                                          material_salida_linea[]
+
+  @@index([id_operateur_modificacion], map: "id_operateur_modificacion")
+  @@index([id_operateur_registro], map: "id_operateur_registro")
+  @@index([fecha], map: "ix_material_salida_fecha")
+  @@index([id_client], map: "ix_material_salida_id_client")
+  @@index([id_instalacion], map: "ix_material_salida_id_instalacion")
+  @@index([id_tecnico], map: "ix_material_salida_id_tecnico")
+  @@index([tipo_salida], map: "ix_material_salida_tipo_salida")
+}
+
+model material_salida_linea {
+  id              Int             @id @default(autoincrement())
+  id_salida       Int
+  id_material     Int
+  cantidad        Int
+  material_salida material_salida @relation(fields: [id_salida], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "material_salida_linea_ibfk_1")
+  material        material        @relation(fields: [id_material], references: [id], onUpdate: Restrict, map: "material_salida_linea_ibfk_2")
+
+  @@index([id_material], map: "id_material")
+  @@index([id_salida], map: "ix_material_salida_linea_id_salida")
+}
+
+model operateur {
+  id                                                                     Int                         @id @default(autoincrement())
+  nom                                                                    String                      @db.VarChar(100)
+  telephone                                                              String                      @db.VarChar(20)
+  email                                                                  String?                     @unique(map: "uq_operateur_email") @db.VarChar(255)
+  mot_de_passe_hash                                                      String                      @default("") @db.VarChar(255)
+  id_ciudad                                                              Int
+  id_agencia                                                             Int
+  role                                                                   String                      @default("usuario") @db.VarChar(20)
+  avatar_url                                                             String?                     @db.VarChar(500)
+  actif                                                                  Boolean                     @default(true)
+  cree_le                                                                DateTime                    @default(now()) @db.DateTime(0)
+  modifie_le                                                             DateTime?                   @db.DateTime(0)
+  categoria                                                              String                      @default("atencion_cliente") @db.VarChar(20)
+  apreciacion_dia                                                        apreciacion_dia[]
+  audit_log                                                              audit_log[]
+  client_sitio                                                           client_sitio[]
+  incident                                                               incident[]
+  incident_comentario                                                    incident_comentario[]
+  incident_estado_historial                                              incident_estado_historial[]
+  incident_notification_incident_notification_id_destinataireTooperateur incident_notification[]     @relation("incident_notification_id_destinataireTooperateur")
+  incident_notification_incident_notification_id_auteurTooperateur       incident_notification[]     @relation("incident_notification_id_auteurTooperateur")
+  instalacion_instalacion_id_tecnicoTooperateur                          instalacion[]               @relation("instalacion_id_tecnicoTooperateur")
+  instalacion_instalacion_id_operateur_registroTooperateur               instalacion[]               @relation("instalacion_id_operateur_registroTooperateur")
+  instalacion_instalacion_id_operateur_modificacionTooperateur           instalacion[]               @relation("instalacion_id_operateur_modificacionTooperateur")
+  instalacion_instalacion_id_operateur_terminadaTooperateur              instalacion[]               @relation("instalacion_id_operateur_terminadaTooperateur")
+  instalacion_foto                                                       instalacion_foto[]
+  material_salida_material_salida_id_tecnicoTooperateur                  material_salida[]           @relation("material_salida_id_tecnicoTooperateur")
+  material_salida_material_salida_id_operateur_registroTooperateur       material_salida[]           @relation("material_salida_id_operateur_registroTooperateur")
+  material_salida_material_salida_id_operateur_modificacionTooperateur   material_salida[]           @relation("material_salida_id_operateur_modificacionTooperateur")
+  agencia                                                                agencia                     @relation(fields: [id_agencia], references: [id], onUpdate: Restrict, map: "fk_operateur_agencia")
+  ciudad                                                                 ciudad                      @relation(fields: [id_ciudad], references: [id], onUpdate: Restrict, map: "fk_operateur_ciudad")
+
+  @@index([id_agencia], map: "fk_operateur_agencia")
+  @@index([id_ciudad], map: "fk_operateur_ciudad")
+  @@index([nom], map: "idx_operateur_nom")
+  @@index([categoria], map: "ix_operateur_categoria")
+}

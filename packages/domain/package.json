@@ -5,9 +5,13 @@
   "type": "module",
   "description": "Littéraux et règles de visibilité FCC_001, partagés par l'API et le web.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
     "test": "node --experimental-strip-types --test",
     "typecheck": "tsc --noEmit"
   },
