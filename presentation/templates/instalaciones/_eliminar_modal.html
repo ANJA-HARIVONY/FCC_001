@@ -1,0 +1,37 @@
+{# Modal de confirmación para eliminar una instalación (tipo nueva). Botones : data-url + data-instalacion-id. #}
+<div class="modal fade" id="confirmEliminarInstalacionModal" tabindex="-1" aria-labelledby="confirmEliminarInstalacionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmEliminarInstalacionLabel">{{ _('Confirmar la eliminación') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ _('¿Está seguro de que desea eliminar la instalación') }} <strong id="instalacionEliminarLabel"></strong>?</p>
+                <p class="mb-0">{{ _('Las salidas de material vinculadas también se eliminarán.') }}</p>
+                <p class="text-danger mb-0"><small>{{ _('Esta acción es irreversible.') }}</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <form id="deleteInstalacionForm" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">{{ _('Eliminar') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+function confirmerSuppressionInstalacion(button) {
+    const label = document.getElementById('instalacionEliminarLabel');
+    const form = document.getElementById('deleteInstalacionForm');
+    const modalEl = document.getElementById('confirmEliminarInstalacionModal');
+    const url = button.getAttribute('data-url');
+    if (!url || !label || !form || !modalEl || !window.bootstrap) {
+        return;
+    }
+    label.textContent = '#' + button.getAttribute('data-instalacion-id');
+    form.action = url;
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+}
+</script>

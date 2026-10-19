@@ -33,6 +33,7 @@ from core.services.instalaciones_backfill import run_instalaciones_backfill  # n
 from core.services.instalaciones_service import (  # noqa: E402
     create_instalacion,
     create_traslado,
+    delete_instalacion,
     ensure_sitio_activo,
     reabrir_instalacion,
     terminar_instalacion,
@@ -472,6 +473,20 @@ class InstalacionCicloTests(_InstalacionesBase):
         self.assertEqual(salida.id_tecnico, self.tecnico_a.id)
         self.assertEqual([(l.id_material, l.cantidad) for l in salida.lineas], [(self.material.id, 3)])
 
+    def test_eliminar_instalacion_nueva_borra_salidas(self):
+        inst = create_instalacion(self._form(
+            fecha=date.today().isoformat(),
+            id_tecnico=str(self.tecnico_a.id),
+            id_client=str(self.client_a.id),
+            **{'material_id[]': [str(self.material.id)], 'cantidad[]': ['2']},
+        ), self.admin)
+        inst_id = inst.id
+        salida_id = inst.salidas[0].id
+        delete_instalacion(inst_id, self.admin)
+        self.assertIsNone(db.session.get(Instalacion, inst_id))
+        self.assertIsNone(db.session.get(MaterialSalida, salida_id))
+        self.assertEqual(MaterialSalidaLinea.query.filter_by(id_salida=salida_id).count(), 0)
+
     def test_salida_instalacion_con_id_instalacion(self):
         inst = create_instalacion(self._form(
             fecha=date.today().isoformat(),
@@ -570,6 +585,18 @@ class TrasladoTests(_InstalacionesBase):
         self.assertEqual(len(inst.lineas_traslado), 1)
         self.assertEqual(inst.lineas_traslado[0].accion, 'reutilizado')
 
+    def test_traslado_no_se_puede_eliminar(self):
+        client = Client(nom='Cliente Traslado Del', telephone='240200098', adresse='Vieja 9', ville='Malabo')
+        db.session.add(client)
+        db.session.commit()
+        inst = create_traslado(client, self._form(
+            adresse='Nueva 9', ville='Malabo', fecha=date.today().isoformat(),
+            id_tecnico=str(self.tecnico_a.id),
+        ), self.admin)
+        with self.assertRaises(MaterialesValidationError):
+            delete_instalacion(inst.id, self.admin)
+        self.assertIsNotNone(db.session.get(Instalacion, inst.id))
+
     def test_traslado_exige_direccion(self):
         with self.assertRaises(MaterialesValidationError):
             create_traslado(self.client_b, self._form(
@@ -611,9 +638,23 @@ class InstalacionesPaginasTests(_InstalacionesBase):
         self.assertIn('Retirado', html)
         self.assertIn('Calle 1', html)
         self.assertIn('Añadir material', html)
+        self.assertNotIn('confirmerSuppressionInstalacion(this)', html)
 
         html = self._render('instalaciones_modificar', f'/instalaciones/{inst.id}/modificar', instalacion_id=inst.id)
         self.assertIn('instalacionForm', html)
+
+        nueva = create_instalacion(self._form(
+            fecha=date.today().isoformat(),
+            id_tecnico=str(self.tecnico_a.id),
+            id_client=str(self.client_b.id),
+        ), self.admin)
+        html = self._render('instalaciones_detalle', f'/instalaciones/{nueva.id}', instalacion_id=nueva.id)
+        self.assertIn(f'/instalaciones/{nueva.id}/eliminar', html)
+        self.assertIn('confirmEliminarInstalacionModal', html)
+
+        html = self._render('instalaciones_hub', '/instalaciones')
+        self.assertIn(f'/instalaciones/{nueva.id}/eliminar', html)
+        self.assertNotIn(f'/instalaciones/{inst.id}/eliminar', html)
 
         html = self._render('instalaciones_nueva', f'/instalaciones/nueva?client={self.client_a.id}')
         self.assertIn('Cliente Alpha', html)

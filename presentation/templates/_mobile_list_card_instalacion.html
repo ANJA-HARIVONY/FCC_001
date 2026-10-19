@@ -1,5 +1,6 @@
 {# Carte mobile de una instalación. Variable : s (Instalacion).
-   show_instalacion_actions=false : lien vers la ficha client, sans acciones admin. #}
+   show_instalacion_actions=false : lien vers la ficha client, sans acciones admin.
+   show_instalacion_delete=true : ajoute Eliminar (page avec instalaciones/_eliminar_modal.html). #}
 {% set actions_on = show_instalacion_actions|default(true) %}
 <article class="mobile-list-card">
     <div class="mobile-list-card__head">
@@ -33,6 +34,17 @@
                         <i class="fas fa-copy me-2"></i>{{ _('Copiar información') }}
                     </button>
                 </li>
+                {% if show_instalacion_delete|default(false) and s.tipo != 'traslado' %}
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button type="button" class="dropdown-item text-danger"
+                            data-instalacion-id="{{ s.id }}"
+                            data-url="{{ url_for('instalaciones_eliminar', instalacion_id=s.id) }}"
+                            onclick="confirmerSuppressionInstalacion(this)">
+                        <i class="fas fa-trash me-2"></i>{{ _('Eliminar') }}
+                    </button>
+                </li>
+                {% endif %}
             </ul>
         </div>
         {% endif %}

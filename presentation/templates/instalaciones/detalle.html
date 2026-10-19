@@ -35,6 +35,14 @@
     </button>
 </form>
 {% endif %}
+{% if instalacion.tipo != 'traslado' %}
+<button type="button" class="btn btn-outline-danger btn-sm"
+        data-instalacion-id="{{ instalacion.id }}"
+        data-url="{{ url_for('instalaciones_eliminar', instalacion_id=instalacion.id) }}"
+        onclick="confirmerSuppressionInstalacion(this)">
+    <i class="fas fa-trash me-1" aria-hidden="true"></i>{{ _('Eliminar') }}
+</button>
+{% endif %}
 {% endblock %}
 
 {% block page_breadcrumb %}
@@ -193,6 +201,12 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block modals %}
+{% if instalacion.tipo != 'traslado' %}
+{% include 'instalaciones/_eliminar_modal.html' %}
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

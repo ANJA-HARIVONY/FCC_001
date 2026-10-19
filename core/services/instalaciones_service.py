@@ -386,6 +386,27 @@ def reabrir_instalacion(instalacion_id, current_user):
     return instalacion
 
 
+def delete_instalacion(instalacion_id, current_user):
+    """Supprime une instalación tipo nueva et ses salidas liées. Un traslado ne se supprime pas."""
+    from core.app import db, write_audit
+
+    instalacion = _load_instalacion(instalacion_id)
+    if instalacion.tipo == 'traslado':
+        raise MaterialesValidationError('Un traslado no se puede eliminar.')
+    iid = instalacion.id
+    salida_ids = [salida.id for salida in (instalacion.salidas or [])]
+    for salida in list(instalacion.salidas or []):
+        db.session.delete(salida)
+    db.session.delete(instalacion)
+    db.session.commit()
+    write_audit(
+        'DELETE_INSTALACION',
+        id_operateur=current_user.id,
+        detail=f'instalacion_id={iid} salida_ids={salida_ids}',
+    )
+    return iid
+
+
 def parse_traslado_lineas_form(form):
     """Líneas (id_material, cantidad, accion) opcionales ; filas sin material se ignoran."""
     from core.app import TRASLADO_ACCIONES

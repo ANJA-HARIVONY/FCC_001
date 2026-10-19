@@ -30,6 +30,7 @@ from core.services.instalaciones_service import (
     apply_instalacion_list_filters,
     create_instalacion,
     create_traslado,
+    delete_instalacion,
     delete_instalacion_foto,
     reabrir_instalacion,
     resolve_instalacion_foto_file,
@@ -174,6 +175,20 @@ def instalaciones_reabrir(instalacion_id):
         db.session.rollback()
         flash(str(exc), 'error')
     return _redirect_detalle(instalacion_id)
+
+
+@app.route('/instalaciones/<int:instalacion_id>/eliminar', methods=['POST'])
+@admin_required
+def instalaciones_eliminar(instalacion_id):
+    _instalacion_or_404(instalacion_id)
+    try:
+        delete_instalacion(instalacion_id, current_user)
+        flash(gettext('Instalación eliminada.'), 'success')
+    except MaterialesValidationError as exc:
+        db.session.rollback()
+        flash(str(exc), 'error')
+        return _redirect_detalle(instalacion_id)
+    return redirect(url_for('instalaciones_hub'))
 
 
 @app.route('/clients/<int:id>/traslado', methods=['GET', 'POST'])
