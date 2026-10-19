@@ -1,0 +1,13 @@
+{
+  "name": "fcc-001",
+  "private": true,
+  "description": "Monorepo de réécriture FCC_001. Le Flask historique reste à la racine.",
+  "scripts": {
+    "test": "npm test -w @fcc/domain",
+    "typecheck": "npm run typecheck -w @fcc/domain"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
+}

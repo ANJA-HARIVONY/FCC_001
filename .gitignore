@@ -81,7 +81,9 @@ htmlcov/
 
 # Documentation générée
 docs/_build/
-docs/
+
+# Node (réécriture React / Node)
+node_modules/
 
 # Fichiers système
 .DS_Store?
