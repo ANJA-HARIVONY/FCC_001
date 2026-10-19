@@ -11,6 +11,9 @@ export interface SessionRecord {
   idCiudad: number;
   idAgencia: number;
   nom: string;
+  ciudadNombre: string;
+  agenciaNombre: string;
+  avatarUrl: string | null;
   startedAt: number;
   lastActivityAt: number;
 }
@@ -29,6 +32,9 @@ export class MemorySessionStore {
       idCiudad: user.idCiudad,
       idAgencia: user.idAgencia,
       nom: user.nom,
+      ciudadNombre: user.ciudadNombre,
+      agenciaNombre: user.agenciaNombre,
+      avatarUrl: user.avatarUrl,
       startedAt: now,
       lastActivityAt: now,
     };

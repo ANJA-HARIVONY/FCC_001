@@ -66,7 +66,13 @@ export class AuthController {
   }
 
   @Get("auth/me")
-  me(@Req() req: SessionRequest): { ok: true; user: Pick<SessionRecord, "userId" | "nom" | "role" | "idCiudad" | "idAgencia"> } {
+  me(@Req() req: SessionRequest): {
+    ok: true;
+    user: Pick<
+      SessionRecord,
+      "userId" | "nom" | "role" | "idCiudad" | "idAgencia" | "ciudadNombre" | "agenciaNombre" | "avatarUrl"
+    >;
+  } {
     const session = req.sessionUser!;
     return {
       ok: true,
@@ -76,6 +82,9 @@ export class AuthController {
         role: session.role,
         idCiudad: session.idCiudad,
         idAgencia: session.idAgencia,
+        ciudadNombre: session.ciudadNombre,
+        agenciaNombre: session.agenciaNombre,
+        avatarUrl: session.avatarUrl,
       },
     };
   }

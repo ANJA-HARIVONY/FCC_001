@@ -1,16 +1,25 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { api, resetCsrfCache } from "./api/client";
-import { SessionBanner } from "./components/SessionBanner";
+import { SessionTimeoutModal } from "./components/SessionTimeoutModal";
 import { ListPagination } from "./components/ListPagination";
 import { parsePo } from "../scripts/po-to-json.mjs";
 import type { SessionUser } from "./auth/session";
 
-const usuario: SessionUser = { userId: 1, nom: "Ana", role: "usuario", idCiudad: 1, idAgencia: 1 };
+const usuario: SessionUser = {
+  userId: 1,
+  nom: "Ana",
+  role: "usuario",
+  idCiudad: 1,
+  idAgencia: 1,
+  ciudadNombre: "Malabo",
+  agenciaNombre: "Afrimal",
+  avatarUrl: null,
+};
 const admin: SessionUser = { ...usuario, role: "admin" };
 const superadmin: SessionUser = { ...usuario, role: "superadmin" };
 
@@ -23,24 +32,28 @@ function renderApp(user: SessionUser, path = "/") {
 }
 
 describe("navigation", () => {
-  it("masque Materiales y Administración a un usuario", () => {
+  it("masque Materiales y Administración a un usuario et reprend le shell Flask", () => {
     renderApp(usuario);
-    expect(screen.getByRole("link", { name: "Incidencias" })).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Materiales" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Instalaciones" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Operadores" })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Salir" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Navegación principal")).toBeInTheDocument();
+    expect(screen.getByRole("banner")).toHaveTextContent("Registro de Atención al cliente");
+    expect(screen.getByRole("banner")).toHaveTextContent("Afrimal / Malabo");
+    expect(screen.getByRole("contentinfo")).toHaveTextContent("CONNEXIA");
+    expect(screen.getByRole("link", { name: /Incidencias/i })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Materiales/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Instalaciones/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^Usuarios$/i })).not.toBeInTheDocument();
+    expect(screen.queryByText("Operadores")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /Salir/i }).length).toBeGreaterThan(0);
   });
 
   it("montre Materiales à l'admin et Usuarios au superadmin", () => {
     const { unmount } = renderApp(admin);
-    expect(screen.getAllByRole("link", { name: "Materiales" }).length).toBeGreaterThan(0);
-    expect(screen.queryByRole("link", { name: "Usuarios" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /Materiales/i }).length).toBeGreaterThan(0);
+    expect(screen.queryByRole("link", { name: /^Usuarios$/i })).not.toBeInTheDocument();
     unmount();
     renderApp(superadmin);
-    expect(screen.getAllByRole("link", { name: "Usuarios" }).length).toBeGreaterThan(0);
-    expect(screen.getAllByRole("link", { name: "Trazabilidad" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /^Usuarios$/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /Trazabilidad/i }).length).toBeGreaterThan(0);
   });
 
   it("répond 403 si un usuario ouvre Usuarios", () => {
@@ -52,7 +65,7 @@ describe("navigation", () => {
     renderApp(usuario, "/ayuda");
     expect(document.getElementById("aide-toc")).not.toBeNull();
     expect(document.getElementById("aide-toc-mobile")).not.toBeNull();
-    expect(screen.queryByRole("link", { name: "Trazabilidad" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^Trazabilidad$/i })).not.toBeInTheDocument();
   });
 });
 
@@ -63,10 +76,13 @@ describe("liste et session", () => {
     expect(screen.getByLabelText("Por página")).toHaveValue("100");
   });
 
-  it("n'alerte que dans les deux dernières minutes", () => {
-    const { rerender } = render(<SessionBanner remainingMs={60_000} onStay={() => {}} />);
-    expect(screen.getByRole("alert")).toHaveTextContent("Su sesión expirará");
-    rerender(<SessionBanner remainingMs={10 * 60_000} onStay={() => {}} />);
+  it("ouvre la modale de session dans les deux dernières minutes", () => {
+    const { rerender } = render(
+      <SessionTimeoutModal remainingMs={60_000} onStay={() => {}} onLogout={() => {}} />,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Su sesión expirará en 2 minutos");
+    expect(screen.getByRole("button", { name: "Seguir conectado" })).toBeInTheDocument();
+    rerender(<SessionTimeoutModal remainingMs={10 * 60_000} onStay={() => {}} onLogout={() => {}} />);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 

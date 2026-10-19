@@ -24,6 +24,9 @@ function user(partial: Partial<LoginUser> = {}): LoginUser {
     role: "usuario",
     idCiudad: 1,
     idAgencia: 2,
+    ciudadNombre: "Malabo",
+    agenciaNombre: "Afrimal",
+    avatarUrl: null,
     ...partial,
   };
 }

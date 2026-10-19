@@ -9,13 +9,16 @@ export interface SessionUser {
   role: string;
   idCiudad: number;
   idAgencia: number;
+  ciudadNombre: string;
+  agenciaNombre: string;
+  avatarUrl: string | null;
 }
 
 interface SessionValue {
   user: SessionUser | null;
   loading: boolean;
   remainingMs: number;
-  login: (identifiant: string, password: string) => Promise<void>;
+  login: (identifiant: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   stay: () => Promise<void>;
 }

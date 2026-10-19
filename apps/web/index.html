@@ -2,10 +2,24 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FCC_001 — Atención al Cliente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Registro de Atención al cliente</title>
+    <script>
+      (function () {
+        var theme = localStorage.getItem("sidebarTheme") === "light" ? "light" : "dark";
+        document.documentElement.setAttribute("data-sidebar-theme", theme);
+        document.documentElement.setAttribute("data-app-theme", theme);
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/static/img/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicon-32x32.png" />
+    <link rel="shortcut icon" href="/static/img/favicon.svg" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+    <link href="/static/css/style.css" rel="stylesheet" />
+    <link href="/static/css/layout-shell.css" rel="stylesheet" />
   </head>
-  <body>
+  <body class="app-layout-v2 app-theme-connexia fixed-sidebar fixed-header">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

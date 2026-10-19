@@ -6,7 +6,7 @@
 |---|---|---|
 | 0 — Gel du comportement | faite | `docs/parite.md`, `docs/rapports/2026-10-19-phase-0.md` |
 | 1 — Socle | en cours | Prisma et API d'authentification. `docs/rapports/2026-10-19-phase-1.md`. Redis et les modules métier restent à faire. |
-| 2 — Coquille | faite pour la navigation | `apps/web` : login, menus par rôle, pagination, aide, 403/404/500. `docs/rapports/2026-10-19-phase-2.md`. Les écrans métier restent des emplacements. |
+| 2 — Coquille | faite, UI calquée sur Flask | Login ArchitectUI, shell header/sidebar/footer, CSS `style.css` + `layout-shell.css`. `docs/rapports/2026-10-19-phase-2.md`. Les écrans métier restent des emplacements. |
 | 3 à 9 | non commencées | — |
 
 Branche : `feat/reecriture-react-node`.

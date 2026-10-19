@@ -8,6 +8,9 @@ export interface LoginUser {
   role: string;
   idCiudad: number;
   idAgencia: number;
+  ciudadNombre: string;
+  agenciaNombre: string;
+  avatarUrl: string | null;
 }
 
 export interface UserDirectory {

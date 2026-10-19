@@ -1,4 +1,4 @@
-import { Component, type ReactNode } from "react";
+import { Component, useEffect, type ReactNode } from "react";
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { SessionProvider, useSession, type SessionUser } from "./auth/session";
@@ -14,20 +14,20 @@ export function App({ initialUser = null, now }: { initialUser?: SessionUser | n
     <SessionProvider initialUser={initialUser} now={now}>
       <ErrorBoundary>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginRoute />} />
           <Route element={<RequireAuth />}>
             <Route element={<Shell />}>
               <Route element={<RequireRole />}>
-                <Route path="/" element={<PlaceholderPage title="Dashboard" />} />
+                <Route path="/" element={<PlaceholderPage title="Dashboard" icon="fas fa-tachometer-alt" />} />
                 <Route path="/incidencias" element={<IncidenciasPage />} />
-                <Route path="/clientes" element={<PlaceholderPage title="Clientes" />} />
-                <Route path="/informes" element={<PlaceholderPage title="Informes" />} />
-                <Route path="/materiales" element={<PlaceholderPage title="Materiales" />} />
-                <Route path="/instalaciones" element={<PlaceholderPage title="Instalaciones" />} />
-                <Route path="/usuarios" element={<PlaceholderPage title="Usuarios" />} />
-                <Route path="/trazabilidad" element={<PlaceholderPage title="Trazabilidad" />} />
-                <Route path="/base-de-datos" element={<PlaceholderPage title="Base de datos" />} />
-                <Route path="/perfil" element={<PlaceholderPage title="Perfil" />} />
+                <Route path="/clientes" element={<PlaceholderPage title="Clientes" icon="fa fa-user" />} />
+                <Route path="/informes" element={<PlaceholderPage title="Informes" icon="fas fa-chart-bar" />} />
+                <Route path="/materiales" element={<PlaceholderPage title="Materiales" icon="fas fa-toolbox" />} />
+                <Route path="/instalaciones" element={<PlaceholderPage title="Instalaciones" icon="fas fa-building" />} />
+                <Route path="/usuarios" element={<PlaceholderPage title="Usuarios" icon="fas fa-users" />} />
+                <Route path="/trazabilidad" element={<PlaceholderPage title="Trazabilidad" icon="fas fa-clipboard-list" />} />
+                <Route path="/base-de-datos" element={<PlaceholderPage title="Base de datos" icon="fas fa-database" />} />
+                <Route path="/perfil" element={<PlaceholderPage title="Perfil" icon="fas fa-user-cog" />} />
                 <Route path="/ayuda" element={<AyudaRoute />} />
               </Route>
             </Route>
@@ -37,6 +37,16 @@ export function App({ initialUser = null, now }: { initialUser?: SessionUser | n
       </ErrorBoundary>
     </SessionProvider>
   );
+}
+
+function LoginRoute() {
+  useEffect(() => {
+    document.body.className = "login-page";
+    return () => {
+      document.body.className = "app-layout-v2 app-theme-connexia fixed-sidebar fixed-header";
+    };
+  }, []);
+  return <LoginPage />;
 }
 
 function RequireAuth() {

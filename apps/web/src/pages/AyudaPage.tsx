@@ -1,5 +1,7 @@
 import { isAdmin, isSuperadmin } from "@fcc/domain";
 
+import { usePageMeta } from "../layout/Shell";
+
 const SECTIONS = [
   { id: "inicio", title: "Dashboard", level: "all" },
   { id: "incidencias", title: "Incidencias", level: "all" },
@@ -24,37 +26,50 @@ function visible(role: string, level: (typeof SECTIONS)[number]["level"]): boole
 }
 
 export function AyudaPage({ role }: { role: string }) {
+  usePageMeta({
+    title: "Ayuda",
+    icon: <i className="fas fa-question-circle" aria-hidden="true" />,
+    subtitle: "Centro de ayuda",
+  });
   const sections = SECTIONS.filter((section) => visible(role, section.level));
   const toc = (
-    <ul>
+    <ul className="list-unstyled mb-0">
       {sections.map((section) => (
-        <li key={section.id}>
+        <li key={section.id} className="mb-1">
           <a href={`#${section.id}`}>{section.title}</a>
         </li>
       ))}
     </ul>
   );
   return (
-    <div className="row">
-      <nav id="aide-toc" className="col-lg-3 d-none d-lg-block" aria-label="Sumario">
-        {toc}
-      </nav>
-      <div className="col-lg-9">
-        <details id="aide-toc-mobile" className="d-lg-none mb-3">
-          <summary>Contenido</summary>
-          <ul>{sections.map((section) => (
-            <li key={section.id}>
-              <a href={`#${section.id}`}>{section.title}</a>
-            </li>
-          ))}</ul>
-        </details>
-        <h1 className="h4">Ayuda</h1>
-        {sections.map((section) => (
-          <section key={section.id} id={section.id} className="mb-4" data-aide-keywords={section.title}>
-            <h2 className="h5">{section.title}</h2>
-            <p>Pantalla prevista en la nueva aplicación. El detalle operativo sigue el de la aplicación actual.</p>
-          </section>
-        ))}
+    <div className="container-fluid px-0">
+      <div className="row g-3">
+        <nav id="aide-toc" className="col-lg-3 d-none d-lg-block" aria-label="Sumario">
+          <div className="card shadow-sm border-0 content-card">
+            <div className="card-body">{toc}</div>
+          </div>
+        </nav>
+        <div className="col-lg-9">
+          <details id="aide-toc-mobile" className="d-lg-none mb-3 card shadow-sm border-0 content-card">
+            <summary className="card-header">Contenido</summary>
+            <div className="card-body">{toc}</div>
+          </details>
+          {sections.map((section) => (
+            <section
+              key={section.id}
+              id={section.id}
+              className="card shadow-sm border-0 content-card mb-3"
+              data-aide-keywords={section.title}
+            >
+              <div className="card-body">
+                <h2 className="h5">{section.title}</h2>
+                <p className="mb-0 text-muted">
+                  Pantalla prevista en la nueva aplicación. El detalle operativo sigue el de la aplicación actual.
+                </p>
+              </div>
+            </section>
+          ))}
+        </div>
       </div>
     </div>
   );

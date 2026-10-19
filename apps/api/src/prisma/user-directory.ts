@@ -3,39 +3,42 @@ import { Injectable } from "@nestjs/common";
 import type { LoginUser, UserDirectory } from "../auth/login-identifier.ts";
 import { PrismaService } from "./prisma.service.ts";
 
+const OPERATEUR_SELECT = {
+  id: true,
+  nom: true,
+  telephone: true,
+  email: true,
+  mot_de_passe_hash: true,
+  actif: true,
+  role: true,
+  id_ciudad: true,
+  id_agencia: true,
+  avatar_url: true,
+  ciudad: { select: { nombre: true } },
+  agencia: { select: { nombre: true } },
+} as const;
+
 @Injectable()
 export class PrismaUserDirectory implements UserDirectory {
   constructor(private readonly prisma: PrismaService) {}
 
   async findByEmail(email: string): Promise<LoginUser | null> {
-    const row = await this.prisma.operateur.findFirst({ where: { email } });
+    const row = await this.prisma.operateur.findFirst({ where: { email }, select: OPERATEUR_SELECT });
     return row ? toLoginUser(row) : null;
   }
 
   async findByTelephone(telephone: string): Promise<LoginUser | null> {
-    const row = await this.prisma.operateur.findFirst({ where: { telephone } });
+    const row = await this.prisma.operateur.findFirst({ where: { telephone }, select: OPERATEUR_SELECT });
     return row ? toLoginUser(row) : null;
   }
 
   async findByNom(nom: string): Promise<LoginUser[]> {
-    const rows = await this.prisma.operateur.findMany({ where: { nom } });
+    const rows = await this.prisma.operateur.findMany({ where: { nom }, select: OPERATEUR_SELECT });
     return rows.map(toLoginUser);
   }
 
   async listForPhoneCompact(): Promise<LoginUser[]> {
-    const rows = await this.prisma.operateur.findMany({
-      select: {
-        id: true,
-        nom: true,
-        telephone: true,
-        email: true,
-        mot_de_passe_hash: true,
-        actif: true,
-        role: true,
-        id_ciudad: true,
-        id_agencia: true,
-      },
-    });
+    const rows = await this.prisma.operateur.findMany({ select: OPERATEUR_SELECT });
     return rows.map(toLoginUser);
   }
 
@@ -51,7 +54,7 @@ export class PrismaUserDirectory implements UserDirectory {
   }
 }
 
-function toLoginUser(row: {
+type OperateurRow = {
   id: number;
   nom: string;
   telephone: string;
@@ -61,7 +64,12 @@ function toLoginUser(row: {
   role: string;
   id_ciudad: number;
   id_agencia: number;
-}): LoginUser {
+  avatar_url: string | null;
+  ciudad: { nombre: string } | null;
+  agencia: { nombre: string } | null;
+};
+
+function toLoginUser(row: OperateurRow): LoginUser {
   return {
     id: row.id,
     nom: row.nom,
@@ -72,5 +80,8 @@ function toLoginUser(row: {
     role: row.role,
     idCiudad: row.id_ciudad,
     idAgencia: row.id_agencia,
+    ciudadNombre: row.ciudad?.nombre ?? "N/A",
+    agenciaNombre: row.agencia?.nombre ?? "N/A",
+    avatarUrl: row.avatar_url,
   };
 }

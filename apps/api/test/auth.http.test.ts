@@ -29,6 +29,9 @@ const ana: LoginUser = {
   role: "usuario",
   idCiudad: 1,
   idAgencia: 2,
+  ciudadNombre: "Malabo",
+  agenciaNombre: "Afrimal",
+  avatarUrl: null,
 };
 
 function directory(): UserDirectory {
