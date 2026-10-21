@@ -20,7 +20,7 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
   if (method !== "GET" && method !== "HEAD") {
     const token = await csrfToken();
     requestHeaders.set("X-CSRFToken", token);
-    if (init.body && !requestHeaders.has("Content-Type")) {
+    if (init.body && !(init.body instanceof FormData) && !requestHeaders.has("Content-Type")) {
       requestHeaders.set("Content-Type", "application/json");
     }
   }

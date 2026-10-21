@@ -34,8 +34,10 @@ MANIFEST
 *.sqlite3
 instance/
 data/
-tools/
+tools/*
 !tools/export_database_sql.py
+!tools/parite/
+!tools/parite/**
 
 # Fichiers de migration Flask (optionnel - décommentez si vous ne voulez pas versionner)
 # migrations/

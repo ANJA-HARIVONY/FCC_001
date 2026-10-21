@@ -1629,3 +1629,128 @@ msgstr "¿Está seguro de que desea eliminar la salida"
 #~ msgid "Salidas de material"
 #~ msgstr "Salidas de material"
 
+
+# Coquille React — sélecteur de langue
+
+msgid "Registro de Atención al cliente"
+msgstr "Registro de Atención al cliente"
+
+msgid "Alternar menú lateral"
+msgstr "Alternar menú lateral"
+
+msgid "Cambiar tema de la aplicación"
+msgstr "Cambiar tema de la aplicación"
+
+msgid "Notificaciones"
+msgstr "Notificaciones"
+
+msgid "Perfil"
+msgstr "Perfil"
+
+msgid "Ayuda"
+msgstr "Ayuda"
+
+msgid "Salir"
+msgstr "Salir"
+
+msgid "Sin notificaciones"
+msgstr "Sin notificaciones"
+
+msgid "Navegación principal"
+msgstr "Navegación principal"
+
+msgid "Principal"
+msgstr "Principal"
+
+msgid "Administración"
+msgstr "Administración"
+
+msgid "Trazabilidad"
+msgstr "Trazabilidad"
+
+msgid "Base de datos"
+msgstr "Base de datos"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Informes"
+msgstr "Informes"
+
+msgid "Cerrar"
+msgstr "Cerrar"
+
+msgid "Reservados todos los derechos"
+msgstr "Reservados todos los derechos"
+
+msgid "Teléfono"
+msgstr "Teléfono"
+
+msgid "Versión"
+msgstr "Versión"
+
+msgid "Acceso seguro para usuarios autorizados"
+msgstr "Acceso seguro para usuarios autorizados"
+
+msgid "Gestión de incidencias y clientes"
+msgstr "Gestión de incidencias y clientes"
+
+msgid "Informes y seguimiento operativo"
+msgstr "Informes y seguimiento operativo"
+
+msgid "Iniciar sesión"
+msgstr "Iniciar sesión"
+
+msgid "Bienvenido. Ingresa con tu correo o teléfono y contraseña."
+msgstr "Bienvenido. Ingresa con tu correo o teléfono y contraseña."
+
+msgid "Correo o teléfono"
+msgstr "Correo o teléfono"
+
+msgid "Contraseña"
+msgstr "Contraseña"
+
+msgid "Recordarme"
+msgstr "Recordarme"
+
+msgid "Entrar"
+msgstr "Entrar"
+
+msgid "Utiliza tu correo o teléfono registrado."
+msgstr "Utiliza tu correo o teléfono registrado."
+
+msgid "Tu contraseña"
+msgstr "Tu contraseña"
+
+msgid "usuario@correo.com o +240..."
+msgstr "usuario@correo.com o +240..."
+
+msgid "Sesión a punto de expirar"
+msgstr "Sesión a punto de expirar"
+
+msgid "Su sesión expirará en 2 minutos por inactividad."
+msgstr "Su sesión expirará en 2 minutos por inactividad."
+
+msgid "Cerrar sesión"
+msgstr "Cerrar sesión"
+
+msgid "Seguir conectado"
+msgstr "Seguir conectado"
+
+msgid "Centro de ayuda"
+msgstr "Centro de ayuda"
+
+msgid "Sumario"
+msgstr "Sumario"
+
+msgid "Contenido"
+msgstr "Contenido"
+
+msgid "Idioma"
+msgstr "Idioma"
+
+msgid "Pendiente"
+msgstr "Pendiente"
+
+msgid "Usuarios"
+msgstr "Usuarios"

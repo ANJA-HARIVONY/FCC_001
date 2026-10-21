@@ -1,4 +1,5 @@
 import { SESSION_WARNING_MS } from "@fcc/domain";
+import { useTranslation } from "react-i18next";
 
 export function SessionTimeoutModal({
   remainingMs,
@@ -9,6 +10,7 @@ export function SessionTimeoutModal({
   onStay: () => void;
   onLogout: () => void;
 }) {
+  const { t } = useTranslation();
   const open = remainingMs > 0 && remainingMs <= SESSION_WARNING_MS;
   if (!open) {
     return null;
@@ -18,17 +20,17 @@ export function SessionTimeoutModal({
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <div className="modal-header">
-            <h5 className="modal-title">Sesión a punto de expirar</h5>
+            <h5 className="modal-title">{t("Sesión a punto de expirar")}</h5>
           </div>
           <div className="modal-body" role="alert">
-            Su sesión expirará en 2 minutos por inactividad.
+            {t("Su sesión expirará en 2 minutos por inactividad.")}
           </div>
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" id="session-logout-now" onClick={onLogout}>
-              Cerrar sesión
+              {t("Cerrar sesión")}
             </button>
             <button type="button" className="btn btn-primary" id="session-stay-connected" onClick={onStay}>
-              Seguir conectado
+              {t("Seguir conectado")}
             </button>
           </div>
         </div>

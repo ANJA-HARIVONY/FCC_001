@@ -5,9 +5,16 @@
 | Phase | État | Preuve |
 |---|---|---|
 | 0 — Gel du comportement | faite | `docs/parite.md`, `docs/rapports/2026-10-19-phase-0.md` |
-| 1 — Socle | en cours | Prisma et API d'authentification. `docs/rapports/2026-10-19-phase-1.md`. Redis et les modules métier restent à faire. |
-| 2 — Coquille | faite, UI calquée sur Flask | Login ArchitectUI, shell header/sidebar/footer, CSS `style.css` + `layout-shell.css`. `docs/rapports/2026-10-19-phase-2.md`. Les écrans métier restent des emplacements. |
-| 3 à 9 | non commencées | — |
+| 1 — Socle | faite (auth + Prisma ; Redis optionnel) | `docs/rapports/2026-10-19-phase-1.md` |
+| 2 — Coquille | faite, UI calquée sur Flask | `docs/rapports/2026-10-19-phase-2.md` |
+| 3 — Référentiels | faite (CRUD, Excel, RADIUS, fotos, impression, vérification) | `docs/rapports/2026-10-19-phase-3.md` |
+| 4 — Incidencias | faite (CRUD, 10.4, commentaires, Bitrix lecture, Excel) | `docs/rapports/2026-10-19-phase-4.md` |
+| 5 — Materiales | faite (catálogo, salidas, informe, fotos, ficha técnico, Excel) | `docs/rapports/2026-10-19-phase-5.md` |
+| 6 — Instalaciones | faite (hub, nueva, terminar, traslado, GPS, fotos, Copiar) | `docs/rapports/2026-10-19-phase-6.md` |
+| 7 — Informes | faite (hub, texte local, Gemini, Excel d’un informe généré) | `docs/rapports/2026-10-19-phase-7.md` |
+| 8 — Compte, admin, dashboard | faite (perfil, avatar, usuarios, audit, SQL, dashboard, ficha) | `docs/rapports/2026-10-20-phase-8.md` |
+| 9 — Parité et bascule | bascule faite, Flask arrêtée et redémarrable 48 h | `docs/rapports/2026-10-21-phase-9.md` |
+| Bilan | phases 0 à 8 closes, bascule en fenêtre de retour | `docs/rapports/2026-10-21-rapport-general.md` |
 
 Branche : `feat/reecriture-react-node`.
 

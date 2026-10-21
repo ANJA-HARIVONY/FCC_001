@@ -1157,12 +1157,57 @@ body.login-page {
     margin: 0;
     background: #f1f4f6;
     color: #343a40;
+    position: relative;
 }
 
 .login-layout {
     display: flex;
     min-height: 100vh;
     width: 100%;
+}
+
+.login-lang {
+    position: absolute;
+    top: max(0.85rem, env(safe-area-inset-top));
+    right: max(0.85rem, env(safe-area-inset-right));
+    z-index: 5;
+}
+
+.login-lang .lang-select {
+    color-scheme: light;
+}
+
+.lang-select {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 30px;
+    margin: 0;
+    padding: 0 1.55rem 0 0.7rem;
+    border: 1px solid rgba(15, 20, 28, 0.12);
+    border-radius: 999px;
+    background-color: rgba(255, 255, 255, 0.88);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%236b7280' stroke-width='1.6' stroke-linecap='round' d='M1 1.5 6 6.5 11 1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.6rem;
+    color: #4b5563;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.lang-select:hover {
+    border-color: rgba(15, 20, 28, 0.22);
+    color: #1f2937;
+}
+
+.lang-select:focus {
+    outline: none;
+    border-color: rgba(220, 53, 69, 0.45);
+    box-shadow: 0 0 0 0.15rem rgba(220, 53, 69, 0.16);
 }
 
 .login-aside {

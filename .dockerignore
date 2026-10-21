@@ -3,6 +3,8 @@
 # Fichiers et dossiers à exclure lors du build Docker
 # =============================================================================
 
+node_modules
+
 # ==== Environnements virtuels Python ====
 .venv/
 venv/

@@ -1,7 +1,7 @@
-import { LIST_PER_PAGE_CHOICES, clampListPerPage } from "@fcc/domain";
+import { iterPages } from "@fcc/domain";
 
 export function pageCount(total: number, perPage: number): number {
-  if (total <= 0) {
+  if (total <= 0 || perPage <= 0) {
     return 1;
   }
   return Math.ceil(total / perPage);
@@ -19,54 +19,116 @@ export function ListPagination({
   page,
   perPage,
   total,
+  noun,
   onPage,
-  onPerPage,
+  variant = "numbers",
+  align = "center",
+  label = "Paginación",
 }: {
   page: number;
   perPage: number;
   total: number;
+  noun?: string;
   onPage: (page: number) => void;
-  onPerPage: (perPage: number) => void;
+  variant?: "numbers" | "compact";
+  align?: "center" | "end";
+  label?: string;
 }) {
-  const safePerPage = clampListPerPage(perPage);
-  const pages = pageCount(total, safePerPage);
-  const { from, to } = pageRange(page, safePerPage, total);
+  const pages = pageCount(total, perPage);
+  if (pages <= 1) {
+    return null;
+  }
+  const justify = align === "end" ? "justify-content-end" : "justify-content-center";
   return (
-    <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 py-2">
-      <span>
-        Mostrando {from} a {to} de {total}
-      </span>
-      <div className="d-flex align-items-center gap-2">
-        <label className="small mb-0" htmlFor="per-page">
-          Por página
-        </label>
-        <select
-          id="per-page"
-          className="form-select form-select-sm"
-          value={safePerPage}
-          onChange={(event) => onPerPage(clampListPerPage(event.target.value))}
-        >
-          {LIST_PER_PAGE_CHOICES.map((choice) => (
-            <option key={choice} value={choice}>
-              {choice}
-            </option>
-          ))}
-        </select>
-        <button type="button" className="btn btn-outline-secondary btn-sm" disabled={page <= 1} onClick={() => onPage(page - 1)}>
-          Anterior
+    <>
+      <nav aria-label={label}>
+        <ul className={`pagination${variant === "compact" ? " pagination-sm" : ""} ${justify} mb-0`}>
+          <PageStep
+            label="Anterior"
+            icon={variant === "numbers" ? "left" : undefined}
+            disabled={page <= 1}
+            onClick={() => onPage(page - 1)}
+          />
+          {variant === "numbers" ? (
+            iterPages(page, pages).map((token, index) =>
+              token == null ? (
+                <li key={`gap-${index}`} className="page-item disabled">
+                  <span className="page-link">…</span>
+                </li>
+              ) : (
+                <li key={token} className={`page-item${token === page ? " active" : ""}`}>
+                  {token === page ? (
+                    <span className="page-link" aria-current="page">
+                      {token}
+                    </span>
+                  ) : (
+                    <button type="button" className="page-link" onClick={() => onPage(token)}>
+                      {token}
+                    </button>
+                  )}
+                </li>
+              ),
+            )
+          ) : (
+            <li className="page-item disabled">
+              <span className="page-link">
+                {page} / {pages}
+              </span>
+            </li>
+          )}
+          <PageStep
+            label="Siguiente"
+            icon={variant === "numbers" ? "right" : undefined}
+            disabled={page >= pages}
+            onClick={() => onPage(page + 1)}
+          />
+        </ul>
+      </nav>
+      {variant === "numbers" ? (
+        <div className="text-center mt-3">
+          <small className="text-muted">
+            Mostrando {pageRange(page, perPage, total).from} a {pageRange(page, perPage, total).to} de {total}
+            {noun ? ` ${noun}` : ""}
+          </small>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function PageStep({
+  label,
+  icon,
+  disabled,
+  onClick,
+}: {
+  label: string;
+  icon?: "left" | "right";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  const chevron = icon ? <i className={`fas fa-chevron-${icon}`} aria-hidden="true" /> : null;
+  const content =
+    icon === "left" ? (
+      <>
+        {chevron} {label}
+      </>
+    ) : icon === "right" ? (
+      <>
+        {label} {chevron}
+      </>
+    ) : (
+      label
+    );
+  return (
+    <li className={`page-item${disabled ? " disabled" : ""}`}>
+      {disabled ? (
+        <span className="page-link">{content}</span>
+      ) : (
+        <button type="button" className="page-link" onClick={onClick}>
+          {content}
         </button>
-        <span>
-          Página {page} de {pages}
-        </span>
-        <button
-          type="button"
-          className="btn btn-outline-secondary btn-sm"
-          disabled={page >= pages}
-          onClick={() => onPage(page + 1)}
-        >
-          Siguiente
-        </button>
-      </div>
-    </div>
+      )}
+    </li>
   );
 }

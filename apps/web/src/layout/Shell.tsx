@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { Outlet } from "react-router-dom";
 
 import { SessionTimeoutModal } from "../components/SessionTimeoutModal";
+import { PendienteToasts } from "./PendienteToasts";
 import { useSession } from "../auth/session";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
@@ -9,7 +10,7 @@ import { Sidebar } from "./Sidebar";
 
 export interface PageMeta {
   icon?: ReactNode;
-  title?: string;
+  title?: ReactNode;
   subtitle?: string;
   actions?: ReactNode;
 }
@@ -92,6 +93,7 @@ export function Shell() {
         </div>
       </div>
       <div className="sidebar-mobile-overlay" aria-hidden="true" onClick={() => setMobileOpen(false)} />
+      <PendienteToasts />
       <SessionTimeoutModal
         remainingMs={session.remainingMs}
         onStay={() => void session.stay()}

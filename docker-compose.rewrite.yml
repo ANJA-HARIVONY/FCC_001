@@ -1,4 +1,4 @@
-# API de réécriture. MariaDB reste celle du compose Flask (réseau fcc_001_network).
+# API de comparaison, à côté de Flask. La bascule des opérateurs est `docker-compose.bascule.yml`.
 # Ne lance pas de migration. PASSWORD_REHASH reste faux : Flask vérifie encore les hash.
 services:
   api:
@@ -7,6 +7,9 @@ services:
       dockerfile: apps/api/Dockerfile
     ports:
       - "4000:4000"
+    env_file:
+      - path: .env
+        required: false
     environment:
       PORT: "4000"
       SESSION_COOKIE_SECURE: "false"

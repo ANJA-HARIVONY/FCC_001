@@ -1,10 +1,13 @@
 import { FormEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Navigate } from "react-router-dom";
 
 import { ApiError } from "../api/client";
 import { useSession } from "../auth/session";
+import { LanguageSwitch } from "../layout/LanguageSwitch";
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const session = useSession();
   const [identifiant, setIdentifiant] = useState("");
   const [password, setPassword] = useState("");
@@ -27,22 +30,25 @@ export function LoginPage() {
 
   return (
     <div className="login-page">
+      <div className="login-lang">
+        <LanguageSwitch />
+      </div>
       <div className="login-layout">
         <aside className="login-aside" aria-hidden="false">
           <div className="login-aside__inner">
             <div className="login-aside__brand">
               <img src="/static/img/logo.png" alt="CONNEXIA" className="login-aside__logo" />
-              <p className="login-aside__tagline">Registro de Atención al cliente</p>
+              <p className="login-aside__tagline">{t("Registro de Atención al cliente")}</p>
             </div>
             <ul className="login-aside__points">
               <li>
-                <i className="fas fa-shield-alt" aria-hidden="true" /> Acceso seguro para usuarios autorizados
+                <i className="fas fa-shield-alt" aria-hidden="true" /> {t("Acceso seguro para usuarios autorizados")}
               </li>
               <li>
-                <i className="fas fa-headset" aria-hidden="true" /> Gestión de incidencias y clientes
+                <i className="fas fa-headset" aria-hidden="true" /> {t("Gestión de incidencias y clientes")}
               </li>
               <li>
-                <i className="fas fa-chart-line" aria-hidden="true" /> Informes y seguimiento operativo
+                <i className="fas fa-chart-line" aria-hidden="true" /> {t("Informes y seguimiento operativo")}
               </li>
             </ul>
             <p className="login-aside__copy">&copy; 2026 CONNEXIA</p>
@@ -56,22 +62,22 @@ export function LoginPage() {
             </div>
 
             <div className="app-login-box__header mb-4">
-              <h1 className="app-login-box__title">Iniciar sesión</h1>
-              <p className="app-login-box__subtitle mb-0">Bienvenido. Ingresa con tu correo o teléfono y contraseña.</p>
+              <h1 className="app-login-box__title">{t("Iniciar sesión")}</h1>
+              <p className="app-login-box__subtitle mb-0">{t("Bienvenido. Ingresa con tu correo o teléfono y contraseña.")}</p>
             </div>
 
             {error ? (
               <div className="alert alert-danger alert-dismissible fade show small" role="alert">
                 <i className="fas fa-circle-exclamation me-1" aria-hidden="true" />
                 {error}
-                <button type="button" className="btn-close" aria-label="Cerrar" onClick={() => setError(null)} />
+                <button type="button" className="btn-close" aria-label={t("Cerrar")} onClick={() => setError(null)} />
               </div>
             ) : null}
 
             <form onSubmit={(event) => void onSubmit(event)} noValidate className="app-login-box__form">
               <div className="mb-3">
                 <label htmlFor="identifiant" className="form-label">
-                  Correo o teléfono
+                  {t("Correo o teléfono")}
                 </label>
                 <div className="input-group login-input-group">
                   <span className="input-group-text" aria-hidden="true">
@@ -84,20 +90,20 @@ export function LoginPage() {
                     name="identifiant"
                     required
                     autoComplete="username"
-                    placeholder="usuario@correo.com o +240..."
+                    placeholder={t("usuario@correo.com o +240...")}
                     aria-describedby="identifiant-help"
                     value={identifiant}
                     onChange={(event) => setIdentifiant(event.target.value)}
                   />
                 </div>
                 <div id="identifiant-help" className="form-text">
-                  Utiliza tu correo o teléfono registrado.
+                  {t("Utiliza tu correo o teléfono registrado.")}
                 </div>
               </div>
 
               <div className="mb-3">
                 <label htmlFor="password" className="form-label">
-                  Contraseña
+                  {t("Contraseña")}
                 </label>
                 <div className="input-group login-input-group">
                   <span className="input-group-text" aria-hidden="true">
@@ -110,7 +116,7 @@ export function LoginPage() {
                     name="password"
                     required
                     autoComplete="current-password"
-                    placeholder="Tu contraseña"
+                    placeholder={t("Tu contraseña")}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                   />
@@ -127,13 +133,13 @@ export function LoginPage() {
                   onChange={(event) => setRemember(event.target.checked)}
                 />
                 <label className="form-check-label" htmlFor="remember">
-                  Recordarme
+                  {t("Recordarme")}
                 </label>
               </div>
 
               <button type="submit" className="btn btn-danger w-100 btn-lg login-submit-btn">
                 <i className="fas fa-sign-in-alt me-2" aria-hidden="true" />
-                Entrar
+                {t("Entrar")}
               </button>
             </form>
 

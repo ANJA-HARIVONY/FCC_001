@@ -21,6 +21,7 @@ interface SessionValue {
   login: (identifiant: string, password: string, remember?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   stay: () => Promise<void>;
+  patchAvatar: (avatarUrl: string) => void;
 }
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -98,6 +99,9 @@ export function SessionProvider({
         const at = Date.now();
         setLastActivity(at);
         setClock(at);
+      },
+      patchAvatar(avatarUrl: string) {
+        setUser((current) => (current ? { ...current, avatarUrl } : current));
       },
     };
   }, [clock, lastActivity, loading, user]);

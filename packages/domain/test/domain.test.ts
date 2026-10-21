@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 
 import {
   clampListPerPage,
+  iterPages,
   canAccessClient,
   canDeleteIncident,
   canModifyIncident,
@@ -136,6 +137,14 @@ describe("pagination et menus", () => {
     assert.equal(clampListPerPage("100"), 100);
     assert.equal(clampListPerPage("75"), 50);
     assert.equal(clampListPerPage(null), 50);
+  });
+
+  it("iter_pages reprend la fenêtre Flask", () => {
+    assert.deepEqual(iterPages(1, 1), [1]);
+    assert.deepEqual(iterPages(1, 109), [1, 2, null, 109]);
+    assert.deepEqual(iterPages(5, 109), [1, null, 4, 5, 6, null, 109]);
+    assert.deepEqual(iterPages(108, 109), [1, null, 107, 108, 109]);
+    assert.deepEqual(iterPages(2, 3), [1, 2, 3]);
   });
 
   it("la sidebar suit le rôle et n'affiche pas Operadores", () => {

@@ -8,6 +8,14 @@ const SECRET_KEYS = new Set([
   "cookie",
   "database_url",
   "databaseurl",
+  "gemini_api_key",
+  "radius_api_pass",
+  "apipass",
+  "bitrix24_api",
+  "zabbix_api_password",
+  "zabbix_api_key",
+  "odoo_api_password",
+  "odoo_api_key",
 ]);
 
 /** Retire mots de passe, cookies et URI de connexion avant journalisation. */
@@ -22,8 +30,17 @@ export function redact(value: unknown): unknown {
     }
     return out;
   }
-  if (typeof value === "string" && /mysql:\/\/[^@\s]+@/i.test(value)) {
-    return value.replace(/mysql:\/\/[^@\s]+@/i, "mysql://[redacted]@");
+  if (typeof value === "string") {
+    return redactSecrets(value);
   }
   return value;
+}
+
+/** Retire jetons, mots de passe d'URL et webhooks avant d'afficher une erreur. */
+export function redactSecrets(text: string): string {
+  return text
+    .replace(/mysql:\/\/[^@\s]+@/gi, "mysql://[redacted]@")
+    .replace(/([?&](?:key|apipass|apiuser|password|token)=)[^&\s]+/gi, "$1[redacted]")
+    .replace(/Bearer\s+\S+/gi, "Bearer [redacted]")
+    .replace(/(\/rest\/\d+\/)[^/\s?]+/gi, "$1[redacted]");
 }

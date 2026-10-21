@@ -1,0 +1,91 @@
+# Bascule React / Node. À utiliser avec le compose principal :
+#   docker compose -f docker-compose.yml -f docker-compose.bascule.yml up -d --build api web
+#
+# Flask (service app) ne démarre pas : profil legacy. Le conteneur fcc_001_app
+# reste sur disque. Ne pas activer le profil with-nginx : ce Nginx-là vise encore Flask.
+# Retour arrière, dans les 48 h, base inchangée :
+#   docker compose -f docker-compose.yml -f docker-compose.bascule.yml stop web api
+#   docker update --restart=unless-stopped fcc_001_app
+#   docker start fcc_001_app
+#
+# PASSWORD_REHASH reste faux : un login Node ne réécrit pas le hash, Flask peut revérifier.
+
+services:
+  app:
+    profiles:
+      - legacy
+    restart: "no"
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: fcc_001_api:latest
+    container_name: fcc_001_api
+    restart: unless-stopped
+    user: "1000:1000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PORT: "4000"
+      TZ: Africa/Malabo
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-fcc_001_db}
+      DB_USER: ${DB_USER:-fcc_user}
+      DB_PASSWORD: ${DB_PASSWORD:-fcc_password}
+      PASSWORD_REHASH: "false"
+      SESSION_COOKIE_SECURE: "false"
+      WEB_ORIGIN: http://localhost:${APP_PORT:-8089},http://127.0.0.1:${APP_PORT:-8089}
+    volumes:
+      - app_uploads:/repo/presentation/uploads
+      - app_instance:/repo/instance
+      - app_avatars:/repo/presentation/static/avatars
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - fcc_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: fcc_001_web:latest
+    container_name: fcc_001_web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8089}:80"
+    volumes:
+      - app_uploads:/data/uploads
+      - app_instance:/data/instance
+      - app_avatars:/data/avatars
+    networks:
+      - fcc_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  app_avatars:
+    external: true
+    name: fcc_001_app_avatars

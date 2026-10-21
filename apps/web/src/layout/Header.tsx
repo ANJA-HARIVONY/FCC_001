@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink } from "react-router-dom";
 
+import { api } from "../api/client";
 import type { SessionUser } from "../auth/session";
+import { LanguageSwitch } from "./LanguageSwitch";
 
 export function Header({
   user,
@@ -12,10 +15,14 @@ export function Header({
   onToggleSidebar: () => void;
   onLogout: () => void;
 }) {
+  const { t } = useTranslation();
   const [theme, setTheme] = useState<"dark" | "light">(() =>
     localStorage.getItem("sidebarTheme") === "light" ? "light" : "dark",
   );
   const avatar = user.avatarUrl || "/static/img/default_avatar.png";
+  const [notes, setNotes] = useState<{ id: number; message: string; id_incident: number; lue: boolean }[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [openNotes, setOpenNotes] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-sidebar-theme", theme);
@@ -23,13 +30,24 @@ export function Header({
     localStorage.setItem("sidebarTheme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    void api<{ unread: number; items: { id: number; message: string; id_incident: number; lue: boolean }[] }>(
+      "/api/notificaciones",
+    )
+      .then((payload) => {
+        setNotes(payload.items);
+        setUnread(payload.unread);
+      })
+      .catch(() => undefined);
+  }, []);
+
   return (
     <header className="app-header header-shadow" role="banner">
       <div className="app-header__logo">
         <Link className="app-header__brand" to="/">
           <img src="/static/img/logo.png" alt="CONNEXIA" className="app-header__logo-img" />
           <span className="app-header__brand-copy">
-            <span className="app-header__title">Registro de Atención al cliente</span>
+            <span className="app-header__title">{t("Registro de Atención al cliente")}</span>
             <span className="app-header__meta">
               {user.agenciaNombre} / {user.ciudadNombre}
             </span>
@@ -43,7 +61,7 @@ export function Header({
             type="button"
             className="btn btn-link app-header__toggle p-0"
             id="sidebar-toggle"
-            aria-label="Alternar menú lateral"
+            aria-label={t("Alternar menú lateral")}
             aria-controls="app-sidebar"
             onClick={onToggleSidebar}
           >
@@ -54,12 +72,14 @@ export function Header({
             </span>
           </button>
 
+          <LanguageSwitch />
+
           <button
             type="button"
             className="btn btn-light btn-sm app-header__theme-btn"
             id="sidebar-theme-toggle"
-            aria-label="Cambiar tema de la aplicación"
-            title="Cambiar tema de la aplicación"
+            aria-label={t("Cambiar tema de la aplicación")}
+            title={t("Cambiar tema de la aplicación")}
             onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
           >
             <i className="fas fa-sun theme-icon-light" aria-hidden="true" />
@@ -70,11 +90,22 @@ export function Header({
             <button
               className="btn btn-light btn-sm notification-bell-btn position-relative app-header__icon-btn"
               type="button"
-              aria-label="Notificaciones"
-              disabled
+              aria-label={t("Notificaciones")}
+              onClick={() => setOpenNotes((open) => !open)}
             >
               <i className="fas fa-bell" />
+              {unread > 0 ? <span className="badge bg-danger ms-1">{unread}</span> : null}
             </button>
+            {openNotes ? (
+              <div className="dropdown-menu show dropdown-menu-end p-2" style={{ minWidth: 240 }}>
+                {notes.length === 0 ? <span className="small text-muted">{t("Sin notificaciones")}</span> : null}
+                {notes.map((note) => (
+                  <Link key={note.id} className="dropdown-item small" to={`/incidencias/${note.id_incident}`}>
+                    {note.message}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="dropdown app-header__user">
@@ -97,13 +128,13 @@ export function Header({
               <li>
                 <NavLink className={({ isActive }) => `dropdown-item${isActive ? " active" : ""}`} to="/perfil">
                   <i className="fas fa-user-cog me-2" />
-                  Perfil
+                  {t("Perfil")}
                 </NavLink>
               </li>
               <li>
                 <NavLink className={({ isActive }) => `dropdown-item${isActive ? " active" : ""}`} to="/ayuda">
                   <i className="fas fa-question-circle me-2" />
-                  Ayuda
+                  {t("Ayuda")}
                 </NavLink>
               </li>
               <li>
@@ -119,7 +150,7 @@ export function Header({
                   }}
                 >
                   <i className="fas fa-sign-out-alt me-2" />
-                  Salir
+                  {t("Salir")}
                 </a>
               </li>
             </ul>

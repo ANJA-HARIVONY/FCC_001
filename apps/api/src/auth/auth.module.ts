@@ -7,14 +7,14 @@ import { PrismaService } from "../prisma/prisma.service.ts";
 import { PrismaUserDirectory } from "../prisma/user-directory.ts";
 import { AuthController } from "./auth.controller.ts";
 import { AUTH_OPTIONS, AUDIT_WRITER, AuthService, CLOCK, systemClock, USER_DIRECTORY, authOptionsFromEnv } from "./auth.service.ts";
-import { MemorySessionStore } from "./session-store.ts";
+import { MemorySessionStore, defaultSessionFile } from "./session-store.ts";
 
 @Module({
   imports: [PrismaModule],
   controllers: [AuthController],
   providers: [
     AuthService,
-    MemorySessionStore,
+    { provide: MemorySessionStore, useFactory: () => new MemorySessionStore(defaultSessionFile()) },
     PrismaUserDirectory,
     { provide: USER_DIRECTORY, useExisting: PrismaUserDirectory },
     {
@@ -25,6 +25,6 @@ import { MemorySessionStore } from "./session-store.ts";
     { provide: CLOCK, useValue: systemClock },
     { provide: AUTH_OPTIONS, useFactory: () => authOptionsFromEnv() },
   ],
-  exports: [AuthService, MemorySessionStore, CLOCK],
+  exports: [AuthService, MemorySessionStore, CLOCK, AUDIT_WRITER],
 })
 export class AuthModule {}

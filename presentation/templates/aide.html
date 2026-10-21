@@ -290,7 +290,7 @@
                 </section>
 
                 <!-- INCIDENCIAS -->
-                <section id="incidencias" class="aide-section" data-aide-keywords="incidencias crear comentar estado pendiente solucionada bitrix exportar ticket">
+                <section id="incidencias" class="aide-section" data-aide-keywords="incidencias crear comentar estado pendiente solucionada bitrix exportar ticket aviso 30 minutos">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-exclamation-triangle"></i></span>
@@ -308,6 +308,7 @@
                                 <li><i class="fas fa-file-excel"></i><span><strong>Exportar Excel:</strong> en la misma lista, pulse <em>Exportar Excel</em> para descargar un archivo .xlsx con solo las filas visibles de la página actual, sin resumen ni KPI.</span></li>
                                 <li><i class="fas fa-file-export"></i><span><strong>Ficha en PDF:</strong> desde la ficha de una incidencia, puede imprimir o exportar el detalle del ticket.</span></li>
                                 <li><i class="fas fa-history"></i><span><strong>Historial:</strong> cada cambio de estado queda con fecha, hora y autor. Quien puede consultar la incidencia puede modificarla; solo el creador o un administrador puede eliminarla.</span></li>
+                                <li><i class="fas fa-bell"></i><span><strong>Pendiente de más de 30 minutos:</strong> aparece un aviso en la parte inferior. El aviso se muestra una vez y puede volver al cabo de una hora. Pulse el aviso para abrir la incidencia.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -315,7 +316,7 @@
 
                 {% if current_user.is_authenticated and current_user.is_admin() %}
                 <!-- MATERIALES (admin) -->
-                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar ordenar nombre modelo">
+                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar ordenar nombre modelo informe">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-toolbox"></i></span>
@@ -368,7 +369,7 @@
                 {% endif %}
 
                 <!-- INFORMES -->
-                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion excel imprimir filtros estado general evolucion actividad analisis personalizado nota dia">
+                <section id="informes" class="aide-section" data-aide-keywords="informes consulta exportacion excel imprimir filtros estado general evolucion actividad analisis personalizado nota dia gemini">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-chart-bar"></i></span>
@@ -379,7 +380,7 @@
                         </div>
                         <div class="aide-section-body">
                             <ul class="aide-list">
-                                <li><i class="fas fa-filter"></i><span><strong>Generar:</strong> menú <em>Informes</em> → elija el tipo (Estado General, Evolución de Registros, Actividad por Usuario o Análisis Personalizado), el período y la agencia. Las notas del día incluidas son las de su ciudad y su agencia; el superadmin ve las de la agencia elegida, o todas si no elige agencia.</span></li>
+                                <li><i class="fas fa-filter"></i><span><strong>Generar:</strong> menú <em>Informes</em> → elija el tipo (Estado General, Evolución de Registros, Actividad por Usuario o Análisis Personalizado), el período y la agencia. Las notas del día incluidas son las de su ciudad y su agencia; el superadmin ve las de la agencia elegida, o todas si no elige agencia. Si Gemini está configurado, redacta el texto en español; si no, el informe se genera en local.</span></li>
                                 <li><i class="fas fa-print"></i><span><strong>Imprimir:</strong> desde el detalle del informe, use el botón <em>Imprimir</em> para una versión en papel.</span></li>
                                 <li><i class="fas fa-file-excel"></i><span><strong>Exportación Excel:</strong> desde el detalle de un informe generado, pulse <em>Exportar Excel</em> para descargar los datos en formato .xlsx.</span></li>
                             </ul>
@@ -408,7 +409,7 @@
                 </section>
 
                 <!-- PERFIL -->
-                <section id="perfil" class="aide-section" data-aide-keywords="perfil avatar foto contraseña sesion inactividad ver foto">
+                <section id="perfil" class="aide-section" data-aide-keywords="perfil avatar foto contraseña sesion inactividad ver foto idioma">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-user-circle"></i></span>
@@ -422,6 +423,7 @@
                                 <li><i class="fas fa-camera"></i><span><strong>Avatar:</strong> en <em>Perfil</em> (barra lateral o menú de usuario) suba una foto JPG, PNG o WEBP. Pulse la foto para verla en grande.</span></li>
                                 <li><i class="fas fa-key"></i><span><strong>Cambiar contraseña:</strong> misma página, sección <em>Cambiar contraseña</em>. El nombre y el teléfono de la cuenta los gestiona un administrador en <em>Usuarios</em>.</span></li>
                                 <li><i class="fas fa-clock"></i><span><strong>Sesión:</strong> si permanece inactivo, aparece el aviso <em>Sesión a punto de expirar</em>. Puede pulsar <em>Seguir conectado</em> o <em>Cerrar sesión</em>.</span></li>
+                                <li><i class="fas fa-language"></i><span><strong>Idioma:</strong> en la cabecera y arriba a la derecha del inicio de sesión, elija ES, FR o EN. La elección se conserva al volver a entrar. Los estados Pendiente, Solucionadas y Bitrix no cambian de nombre.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -650,7 +652,7 @@
                                     <i class="fas fa-users-cog"></i>
                                     <div>
                                         <strong>Usuarios</strong>
-                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones, limitados a su agencia y su ciudad. El SuperAdmin ve todos los movimientos y accede además a Usuarios, Trazabilidad y Base de datos. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
+                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones, limitados a su agencia y su ciudad. El SuperAdmin ve todos los movimientos y accede además a Usuarios, Trazabilidad y Base de datos. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado (mes en curso, umbral 30 min, solo Bitrix o Solucionadas por encima del umbral; Excel de todas las filas filtradas) o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -664,7 +666,7 @@
                                     <i class="fas fa-database"></i>
                                     <div>
                                         <strong>Base de datos</strong>
-                                        <p>Consulta y mantenimiento de la base de datos de la aplicación.</p>
+                                        <p>Comprueba la conexión y el recuento de tablas. <em>Descargar archivo .sql</em> genera un archivo <code>backup_YYYYMMDD_HHMMSS.sql</code> compatible con HeidiSQL.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">

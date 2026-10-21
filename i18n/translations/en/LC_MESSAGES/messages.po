@@ -1628,3 +1628,128 @@ msgstr "Are you sure you want to delete checkout"
 #~ msgid "Salidas de material"
 #~ msgstr "Material outputs"
 
+
+# Coquille React — sélecteur de langue
+
+msgid "Registro de Atención al cliente"
+msgstr "Customer service register"
+
+msgid "Alternar menú lateral"
+msgstr "Toggle side menu"
+
+msgid "Cambiar tema de la aplicación"
+msgstr "Change the application theme"
+
+msgid "Notificaciones"
+msgstr "Notifications"
+
+msgid "Perfil"
+msgstr "Profile"
+
+msgid "Ayuda"
+msgstr "Help"
+
+msgid "Salir"
+msgstr "Sign out"
+
+msgid "Sin notificaciones"
+msgstr "No notifications"
+
+msgid "Navegación principal"
+msgstr "Main navigation"
+
+msgid "Principal"
+msgstr "Main"
+
+msgid "Administración"
+msgstr "Administration"
+
+msgid "Trazabilidad"
+msgstr "Audit trail"
+
+msgid "Base de datos"
+msgstr "Database"
+
+msgid "Dashboard"
+msgstr "Dashboard"
+
+msgid "Informes"
+msgstr "Reports"
+
+msgid "Cerrar"
+msgstr "Close"
+
+msgid "Reservados todos los derechos"
+msgstr "All rights reserved"
+
+msgid "Teléfono"
+msgstr "Phone"
+
+msgid "Versión"
+msgstr "Version"
+
+msgid "Acceso seguro para usuarios autorizados"
+msgstr "Secure access for authorized users"
+
+msgid "Gestión de incidencias y clientes"
+msgstr "Incident and customer management"
+
+msgid "Informes y seguimiento operativo"
+msgstr "Reports and operational follow-up"
+
+msgid "Iniciar sesión"
+msgstr "Sign in"
+
+msgid "Bienvenido. Ingresa con tu correo o teléfono y contraseña."
+msgstr "Welcome. Enter your email or phone and password."
+
+msgid "Correo o teléfono"
+msgstr "Email or phone"
+
+msgid "Contraseña"
+msgstr "Password"
+
+msgid "Recordarme"
+msgstr "Remember me"
+
+msgid "Entrar"
+msgstr "Enter"
+
+msgid "Utiliza tu correo o teléfono registrado."
+msgstr "Use your registered email or phone."
+
+msgid "Tu contraseña"
+msgstr "Your password"
+
+msgid "usuario@correo.com o +240..."
+msgstr "user@email.com or +240..."
+
+msgid "Sesión a punto de expirar"
+msgstr "Session about to expire"
+
+msgid "Su sesión expirará en 2 minutos por inactividad."
+msgstr "Your session will expire in 2 minutes of inactivity."
+
+msgid "Cerrar sesión"
+msgstr "Sign out"
+
+msgid "Seguir conectado"
+msgstr "Stay signed in"
+
+msgid "Centro de ayuda"
+msgstr "Help center"
+
+msgid "Sumario"
+msgstr "Summary"
+
+msgid "Contenido"
+msgstr "Contents"
+
+msgid "Idioma"
+msgstr "Language"
+
+msgid "Pendiente"
+msgstr "Pendiente"
+
+msgid "Usuarios"
+msgstr "Usuarios"

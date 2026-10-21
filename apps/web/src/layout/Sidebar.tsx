@@ -1,4 +1,5 @@
 import { navForRole, type NavItem } from "@fcc/domain";
+import { useTranslation } from "react-i18next";
 import { NavLink } from "react-router-dom";
 
 import { PATH_BY_ITEM } from "../routes";
@@ -27,9 +28,10 @@ const GROUPS: Group[] = [
 ];
 
 export function Sidebar({ role, onLogout }: { role: string; onLogout: () => void }) {
+  const { t } = useTranslation();
   const allowed = new Set(navForRole(role));
   return (
-    <aside className="app-sidebar sidebar-shadow" id="app-sidebar" aria-label="Navegación principal">
+    <aside className="app-sidebar sidebar-shadow" id="app-sidebar" aria-label={t("Navegación principal")}>
       <div className="scrollbar-sidebar">
         <div className="app-sidebar__inner">
           <ul className="vertical-nav-menu">
@@ -39,7 +41,7 @@ export function Sidebar({ role, onLogout }: { role: string; onLogout: () => void
                 return null;
               }
               return (
-                <NavGroup key={group.label} label={group.label} items={items} />
+                <NavGroup key={group.label} label={t(group.label)} items={items} />
               );
             })}
             {allowed.has("Salir") ? (
@@ -53,7 +55,7 @@ export function Sidebar({ role, onLogout }: { role: string; onLogout: () => void
                   }}
                 >
                   <i className="nav-menu-icon fas fa-sign-out-alt" aria-hidden="true" />
-                  <span className="nav-menu-label">Salir</span>
+                  <span className="nav-menu-label">{t("Salir")}</span>
                 </a>
               </li>
             ) : null}
@@ -65,6 +67,7 @@ export function Sidebar({ role, onLogout }: { role: string; onLogout: () => void
 }
 
 function NavGroup({ label, items }: { label: string; items: Exclude<NavItem, "Salir">[] }) {
+  const { t } = useTranslation();
   return (
     <>
       <li className="app-sidebar__heading">{label}</li>
@@ -76,7 +79,7 @@ function NavGroup({ label, items }: { label: string; items: Exclude<NavItem, "Sa
             className={({ isActive }) => (isActive ? "mm-active active" : "")}
           >
             <i className={`nav-menu-icon ${ICONS[item]}`} aria-hidden="true" />
-            <span className="nav-menu-label">{item}</span>
+            <span className="nav-menu-label">{t(item)}</span>
           </NavLink>
         </li>
       ))}

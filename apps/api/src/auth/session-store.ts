@@ -1,4 +1,7 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { SESSION_ABSOLUTE_MS, SESSION_IDLE_MS } from "@fcc/domain";
 
@@ -20,9 +23,48 @@ export interface SessionRecord {
 
 export type SessionCheck = "ok" | "missing" | "idle" | "absolute";
 
-/** Store en mémoire du processus. Pas de table SQL : la base actuelle ne reçoit aucun ALTER. */
+/**
+ * Fichier sous `instance/` (gitignoré). Quatre niveaux au-dessus de `src/auth` ou `dist/auth`.
+ * `SESSION_STORE=memory` garde le comportement des tests : rien sur disque.
+ */
+export function defaultSessionFile(): string | undefined {
+  if (process.env.SESSION_STORE === "memory") {
+    return undefined;
+  }
+  const override = process.env.SESSION_FILE?.trim();
+  if (override) {
+    return override;
+  }
+  const here = dirname(fileURLToPath(import.meta.url));
+  return join(here, "..", "..", "..", "..", "instance", "api-sessions.json");
+}
+
+/** Store du processus, recopié dans un fichier pour survivre à un redémarrage. Pas de table SQL. */
 export class MemorySessionStore {
   private readonly sessions = new Map<string, SessionRecord>();
+  private readonly filePath: string | undefined;
+
+  constructor(filePath?: string) {
+    this.filePath = filePath;
+    if (!filePath) {
+      return;
+    }
+    try {
+      const parsed = JSON.parse(readFileSync(filePath, "utf8")) as SessionRecord[];
+      const now = Date.now();
+      for (const session of parsed) {
+        if (!session?.id || now - session.startedAt >= SESSION_ABSOLUTE_MS) {
+          continue;
+        }
+        if (now - session.lastActivityAt >= SESSION_IDLE_MS) {
+          continue;
+        }
+        this.sessions.set(session.id, session);
+      }
+    } catch {
+      // Fichier absent ou illisible : le store démarre vide.
+    }
+  }
 
   create(user: LoginUser, now: number): SessionRecord {
     const record: SessionRecord = {
@@ -39,6 +81,7 @@ export class MemorySessionStore {
       lastActivityAt: now,
     };
     this.sessions.set(record.id, record);
+    this.persist();
     return record;
   }
 
@@ -63,6 +106,7 @@ export class MemorySessionStore {
     const session = this.sessions.get(id);
     if (session) {
       session.lastActivityAt = now;
+      this.persist();
     }
   }
 
@@ -72,7 +116,33 @@ export class MemorySessionStore {
     }
     const session = this.sessions.get(id) ?? null;
     this.sessions.delete(id);
+    this.persist();
     return session;
+  }
+
+  setAvatar(userId: number, avatarUrl: string): void {
+    let changed = false;
+    for (const session of this.sessions.values()) {
+      if (session.userId === userId) {
+        session.avatarUrl = avatarUrl;
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.persist();
+    }
+  }
+
+  private persist(): void {
+    if (!this.filePath) {
+      return;
+    }
+    try {
+      mkdirSync(dirname(this.filePath), { recursive: true, mode: 0o700 });
+      writeFileSync(this.filePath, JSON.stringify([...this.sessions.values()]), { mode: 0o600 });
+    } catch {
+      // Une erreur de fichier ne doit pas faire échouer la requête métier.
+    }
   }
 }
 

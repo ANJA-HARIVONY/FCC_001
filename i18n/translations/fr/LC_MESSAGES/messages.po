@@ -1633,3 +1633,128 @@ msgstr "Voulez-vous vraiment supprimer la sortie"
 #~ msgid "Salidas de material"
 #~ msgstr "Sorties de matériel"
 
+
+# Coquille React — sélecteur de langue
+
+msgid "Registro de Atención al cliente"
+msgstr "Registre du service client"
+
+msgid "Alternar menú lateral"
+msgstr "Afficher ou masquer le menu"
+
+msgid "Cambiar tema de la aplicación"
+msgstr "Changer le thème de l'application"
+
+msgid "Notificaciones"
+msgstr "Notifications"
+
+msgid "Perfil"
+msgstr "Profil"
+
+msgid "Ayuda"
+msgstr "Aide"
+
+msgid "Salir"
+msgstr "Quitter"
+
+msgid "Sin notificaciones"
+msgstr "Aucune notification"
+
+msgid "Navegación principal"
+msgstr "Navigation principale"
+
+msgid "Principal"
+msgstr "Principal"
+
+msgid "Administración"
+msgstr "Administration"
+
+msgid "Trazabilidad"
+msgstr "Traçabilité"
+
+msgid "Base de datos"
+msgstr "Base de données"
+
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+msgid "Informes"
+msgstr "Rapports"
+
+msgid "Cerrar"
+msgstr "Fermer"
+
+msgid "Reservados todos los derechos"
+msgstr "Tous droits réservés"
+
+msgid "Teléfono"
+msgstr "Téléphone"
+
+msgid "Versión"
+msgstr "Version"
+
+msgid "Acceso seguro para usuarios autorizados"
+msgstr "Accès sécurisé pour les utilisateurs autorisés"
+
+msgid "Gestión de incidencias y clientes"
+msgstr "Suivi des incidents et des clients"
+
+msgid "Informes y seguimiento operativo"
+msgstr "Rapports et suivi opérationnel"
+
+msgid "Iniciar sesión"
+msgstr "Connexion"
+
+msgid "Bienvenido. Ingresa con tu correo o teléfono y contraseña."
+msgstr "Bienvenue. Entrez votre e-mail ou téléphone et votre mot de passe."
+
+msgid "Correo o teléfono"
+msgstr "E-mail ou téléphone"
+
+msgid "Contraseña"
+msgstr "Mot de passe"
+
+msgid "Recordarme"
+msgstr "Se souvenir de moi"
+
+msgid "Entrar"
+msgstr "Entrer"
+
+msgid "Utiliza tu correo o teléfono registrado."
+msgstr "Utilisez votre e-mail ou téléphone enregistré."
+
+msgid "Tu contraseña"
+msgstr "Votre mot de passe"
+
+msgid "usuario@correo.com o +240..."
+msgstr "utilisateur@email.com ou +240..."
+
+msgid "Sesión a punto de expirar"
+msgstr "Session bientôt expirée"
+
+msgid "Su sesión expirará en 2 minutos por inactividad."
+msgstr "Votre session expirera dans 2 minutes d'inactivité."
+
+msgid "Cerrar sesión"
+msgstr "Fermer la session"
+
+msgid "Seguir conectado"
+msgstr "Rester connecté"
+
+msgid "Centro de ayuda"
+msgstr "Centre d'aide"
+
+msgid "Sumario"
+msgstr "Sommaire"
+
+msgid "Contenido"
+msgstr "Contenu"
+
+msgid "Idioma"
+msgstr "Langue"
+
+msgid "Pendiente"
+msgstr "Pendiente"
+
+msgid "Usuarios"
+msgstr "Usuarios"
