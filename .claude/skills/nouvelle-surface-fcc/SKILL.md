@@ -18,7 +18,8 @@ Pas de Blueprints. Pas d’app factory. Lire d’abord routes + service + templa
 | Domaine déjà dans `core/routes/` | Étendre ce module |
 | Nouveau domaine | `core/routes/<domaine>_routes.py` puis `from core.routes import <domaine>_routes` dans `core/app.py` (après les modèles, avec les autres imports routes) |
 | Logique réutilisable | `core/services/` |
-| CRUD clients / incidents / usuarios existant | `core/app.py` (déjà là) — ne pas y ajouter materiales / etats / AC / apreciaciones |
+| CRUD clients / incidents | `core/app.py` jusqu'à leur extraction — ne pas y ajouter un domaine déjà sorti |
+| Usuarios, trazabilidad, base de datos | `core/routes/usuarios_routes.py`, `audit_routes.py`, `database_routes.py` |
 | UI | `presentation/templates/…` extends `base.html` |
 | JS spécifique | `presentation/static/js/` ; étendre un fichier existant plutôt que dupliquer |
 
