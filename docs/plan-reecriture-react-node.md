@@ -14,7 +14,8 @@
 | 7 — Informes | faite (hub, texte local, Gemini, Excel d’un informe généré) | `docs/rapports/2026-10-19-phase-7.md` |
 | 8 — Compte, admin, dashboard | faite (perfil, avatar, usuarios, audit, SQL, dashboard, ficha) | `docs/rapports/2026-10-20-phase-8.md` |
 | 9 — Parité et bascule | bascule faite, Flask arrêtée et redémarrable 48 h | `docs/rapports/2026-10-21-phase-9.md` |
-| Bilan | phases 0 à 8 closes, bascule en fenêtre de retour | `docs/rapports/2026-10-21-rapport-general.md` |
+| Bilan | phases 0 à 8 closes, bascule faite le 21 octobre 2026 | `docs/rapports/2026-10-21-rapport-general.md` |
+| Clôture | ouverte le 24 octobre 2026 | `docs/plan-cloture-reecriture.md` |
 
 Branche : `feat/reecriture-react-node`.
 
