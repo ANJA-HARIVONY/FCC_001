@@ -142,7 +142,7 @@ export class InstalacionesService {
       include: listInclude,
       orderBy: [{ id: "desc" }],
     });
-    return { items: rows.map(serializeList), fecha: fecha.toISOString().slice(0, 10) };
+    return { items: rows.map(serializeList), fecha: calendarDate(fecha) };
   }
 
   async get(id: number, user: SessionRecord) {
@@ -459,12 +459,18 @@ export class InstalacionesService {
       this.prisma.operateur.findMany({
         where: tecnicoWhere,
         orderBy: { nom: "asc" },
-        select: { id: true, nom: true },
+        select: {
+          id: true,
+          nom: true,
+          telephone: true,
+          agencia: { select: { nombre: true } },
+          ciudad: { select: { nombre: true } },
+        },
       }),
       this.prisma.client.findMany({
         where: clientWhere,
         orderBy: { nom: "asc" },
-        select: { id: true, nom: true, telephone: true, ville: true },
+        select: { id: true, nom: true, telephone: true, ville: true, adresse: true, categoria: true },
       }),
       this.prisma.material.findMany({
         where: { activo: true },
@@ -473,7 +479,13 @@ export class InstalacionesService {
       }),
     ]);
     return {
-      tecnicos,
+      tecnicos: tecnicos.map((row) => ({
+        id: row.id,
+        nom: row.nom,
+        telephone: row.telephone,
+        agencia: row.agencia.nombre,
+        ciudad: row.ciudad.nombre,
+      })),
       clients,
       materiales,
       estados: INSTALACION_STATES.map((value) => ({ value, label: ESTADO_LABELS[value] ?? value })),
@@ -604,10 +616,31 @@ const listInclude = {
 } as const;
 
 const detailInclude = {
-  ...listInclude,
-  client_sitio_instalacion_id_sitioToclient_sitio: true,
-  client_sitio_instalacion_id_sitio_origenToclient_sitio: true,
-  instalacion_traslado_linea: { include: { material: true } },
+  client: true,
+  operateur_instalacion_id_tecnicoTooperateur: { select: { id: true, nom: true, id_agencia: true } },
+  operateur_instalacion_id_operateur_registroTooperateur: { select: { id: true, nom: true } },
+  operateur_instalacion_id_operateur_modificacionTooperateur: { select: { id: true, nom: true } },
+  operateur_instalacion_id_operateur_terminadaTooperateur: { select: { id: true, nom: true } },
+  material_salida: {
+    orderBy: { id: "asc" as const },
+    include: {
+      operateur_material_salida_id_tecnicoTooperateur: { select: { id: true, nom: true } },
+      material_salida_linea: {
+        orderBy: { id: "asc" as const },
+        include: { material: { select: { nombre: true, modelo: true } } },
+      },
+    },
+  },
+  client_sitio_instalacion_id_sitioToclient_sitio: {
+    select: { id: true, adresse: true, ville: true, activo: true, latitud: true, longitud: true },
+  },
+  client_sitio_instalacion_id_sitio_origenToclient_sitio: {
+    select: { id: true, adresse: true, ville: true },
+  },
+  instalacion_traslado_linea: {
+    orderBy: { id: "asc" as const },
+    include: { material: { select: { nombre: true, modelo: true } } },
+  },
 } as const;
 
 function actorFrom(user: SessionRecord): Actor {
@@ -689,7 +722,7 @@ function serializeList(row: {
 }) {
   return {
     id: row.id,
-    fecha: row.fecha.toISOString().slice(0, 10),
+    fecha: calendarDate(row.fecha),
     tipo: row.tipo,
     tipo_label: TIPO_LABELS[row.tipo] ?? row.tipo,
     estado: row.estado,
@@ -705,6 +738,22 @@ function serializeList(row: {
   };
 }
 
+function personOrNull(row: { id: number; nom: string } | null): { id: number; nom: string } | null {
+  return row ? { id: row.id, nom: row.nom } : null;
+}
+
+function mapsUrl(latitud: unknown, longitud: unknown): string | null {
+  if (latitud == null || longitud == null) {
+    return null;
+  }
+  const lat = Number(latitud);
+  const lng = Number(longitud);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return null;
+  }
+  return `https://www.google.com/maps?q=${lat},${lng}`;
+}
+
 function serializeDetail(row: {
   id: number;
   fecha: Date;
@@ -713,12 +762,20 @@ function serializeDetail(row: {
   observaciones: string | null;
   id_sitio: number | null;
   id_sitio_origen: number | null;
+  fecha_registro: Date;
+  fecha_modificacion: Date | null;
   terminada_le: Date | null;
   client: { id: number; nom: string; telephone: string; adresse: string; ville: string };
   operateur_instalacion_id_tecnicoTooperateur: { id: number; nom: string };
+  operateur_instalacion_id_operateur_registroTooperateur: { id: number; nom: string };
+  operateur_instalacion_id_operateur_modificacionTooperateur: { id: number; nom: string } | null;
+  operateur_instalacion_id_operateur_terminadaTooperateur: { id: number; nom: string } | null;
   material_salida: {
     id: number;
+    fecha: Date;
+    operateur_material_salida_id_tecnicoTooperateur: { id: number; nom: string };
     material_salida_linea: {
+      id: number;
       cantidad: number;
       id_material: number;
       material: { nombre: string; modelo: string | null } | null;
@@ -735,19 +792,49 @@ function serializeDetail(row: {
     id: number;
     adresse: string;
     ville: string;
+    activo: boolean;
+    latitud: unknown;
+    longitud: unknown;
+  } | null;
+  client_sitio_instalacion_id_sitio_origenToclient_sitio: {
+    id: number;
+    adresse: string;
+    ville: string;
   } | null;
 }) {
+  const sitio = row.client_sitio_instalacion_id_sitioToclient_sitio;
+  const origen = row.client_sitio_instalacion_id_sitio_origenToclient_sitio;
   return {
     ...serializeList(row),
     observaciones: row.observaciones,
     id_sitio: row.id_sitio,
     id_sitio_origen: row.id_sitio_origen,
+    fecha_registro: row.fecha_registro.toISOString(),
+    fecha_modificacion: row.fecha_modificacion?.toISOString() ?? null,
     terminada_le: row.terminada_le?.toISOString() ?? null,
+    registrado_por: personOrNull(row.operateur_instalacion_id_operateur_registroTooperateur),
+    modificado_por: personOrNull(row.operateur_instalacion_id_operateur_modificacionTooperateur),
+    terminada_por: personOrNull(row.operateur_instalacion_id_operateur_terminadaTooperateur),
     client: row.client,
-    sitio: row.client_sitio_instalacion_id_sitioToclient_sitio,
+    sitio: sitio
+      ? {
+          id: sitio.id,
+          adresse: sitio.adresse,
+          ville: sitio.ville,
+          activo: sitio.activo,
+          google_maps_url: mapsUrl(sitio.latitud, sitio.longitud),
+        }
+      : null,
+    sitio_origen: origen ? { id: origen.id, adresse: origen.adresse, ville: origen.ville } : null,
     salidas: row.material_salida.map((salida) => ({
       id: salida.id,
+      fecha: calendarDate(salida.fecha),
+      tecnico: {
+        id: salida.operateur_material_salida_id_tecnicoTooperateur.id,
+        nom: salida.operateur_material_salida_id_tecnicoTooperateur.nom,
+      },
       lineas: salida.material_salida_linea.map((linea) => ({
+        id: linea.id,
         id_material: linea.id_material,
         cantidad: linea.cantidad,
         material: linea.material,
@@ -844,12 +931,17 @@ function parseGps(latRaw: unknown, lngRaw: unknown): { lat: number; lng: number 
   return { lat, lng };
 }
 
+function calendarDate(value: Date): string {
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${value.getUTCFullYear()}-${pad(value.getUTCMonth() + 1)}-${pad(value.getUTCDate())}`;
+}
+
 function parseFechaRequired(raw: string): Date {
   const value = (raw ?? "").trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new HttpException({ ok: false, error: "La fecha es obligatoria." }, HttpStatus.BAD_REQUEST);
   }
-  const date = new Date(`${value}T00:00:00`);
+  const date = new Date(`${value}T00:00:00.000Z`);
   if (Number.isNaN(date.getTime())) {
     throw new HttpException({ ok: false, error: "Formato de fecha inválido." }, HttpStatus.BAD_REQUEST);
   }
@@ -861,13 +953,13 @@ function parseDateOnly(raw?: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     return null;
   }
-  const date = new Date(`${value}T00:00:00`);
+  const date = new Date(`${value}T00:00:00.000Z`);
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
 function startOfToday(): Date {
   const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
 }
 
 function parseOptionalInt(raw?: string): number | null {

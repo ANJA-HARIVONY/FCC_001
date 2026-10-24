@@ -89,6 +89,7 @@ const OP_CHARTS = new Set(["doughnut", "bar"]);
 const COOKIE = "dashboard_filters_v1";
 const COOKIE_AGE = 30 * 24 * 60 * 60;
 const CHART_COLORS = ["#dc3545", "#6c757d", "#28a745", "#ffc107", "#17a2b8", "#6f42c1"];
+const SKELETON_ROWS = [1, 2, 3, 4, 5];
 const SUGERENCIAS = ["Día normal", "Caída de sector", "Problema con Gitge", "Mucho viento", "Problema de luz - Getesa"];
 
 interface SavedFilters {
@@ -424,19 +425,19 @@ export function DashboardPage() {
   const loadingClass = loading ? "is-loading" : "";
 
   return (
-    <div className="container-fluid px-0">
+    <div className="container-fluid px-0" aria-busy={loading}>
       {error ? <div className="alert alert-danger">{error}</div> : null}
       {copyMsg ? <div className="alert alert-success py-2">{copyMsg}</div> : null}
       <div className="row row-cols-1 row-cols-sm-2 row-cols-lg-4 mb-4 g-3">
-        <Kpi label="Total de Registrados" value={data?.total ?? 0} tone="registered" icon="fa-ticket" to={incidentHref()} loading={loadingClass} hint="Ver todas las incidencias del período" />
-        <Kpi label={<>{t("Solucionadas")} <small className="fst-italic">(remotamente)</small></>} value={data?.solucionadas ?? 0} tone="resolved" icon="fa-check-circle" to={incidentHref({ status: "Solucionadas" })} loading={loadingClass} hint="Ver incidencias solucionadas del período" />
-        <Kpi label={t("Pendientes")} value={data?.pendiente ?? 0} tone="pending" icon="fa-clock" to={incidentHref({ status: "Pendiente" })} loading={loadingClass} hint="Ver incidencias pendientes del período" />
-        <Kpi label={<>Bitrix <small className="fst-italic">(localmente)</small></>} value={data?.bitrix ?? 0} tone="bitrix" icon="fa-cog" to={incidentHref({ status: "Bitrix" })} loading={loadingClass} hint="Ver incidencias Bitrix del período" />
+        <Kpi label="Total de Registrados" value={data?.total ?? 0} tone="registered" icon="fa-ticket" to={incidentHref()} loading={loadingClass} delay="delay-1" hint="Ver todas las incidencias del período" />
+        <Kpi label={<>{t("Solucionadas")} <small className="fst-italic">(remotamente)</small></>} value={data?.solucionadas ?? 0} tone="resolved" icon="fa-check-circle" to={incidentHref({ status: "Solucionadas" })} loading={loadingClass} delay="delay-2" hint="Ver incidencias solucionadas del período" />
+        <Kpi label={t("Pendientes")} value={data?.pendiente ?? 0} tone="pending" icon="fa-clock" to={incidentHref({ status: "Pendiente" })} loading={loadingClass} delay="delay-3" hint="Ver incidencias pendientes del período" />
+        <Kpi label={<>Bitrix <small className="fst-italic">(localmente)</small></>} value={data?.bitrix ?? 0} tone="bitrix" icon="fa-cog" to={incidentHref({ status: "Bitrix" })} loading={loadingClass} delay="delay-4" hint="Ver incidencias Bitrix del período" />
       </div>
 
       <div className="row mb-4">
         <div className="col-lg-8 mb-3">
-          <div className={`chart-container h-100 d-flex flex-column ${loadingClass}`}>
+          <div className="chart-container h-100 d-flex flex-column">
             <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 flex-shrink-0">
               <h5 className="mb-0">
                 <i className="fas fa-chart-line text-danger me-2" />
@@ -456,11 +457,11 @@ export function DashboardPage() {
                 </div>
               </div>
             </div>
-            <EvolutionChart points={serie} view={view} canEdit={admin} onPickDate={openNota} />
+            {loading ? <ChartSkeleton /> : <EvolutionChart points={serie} view={view} canEdit={admin} onPickDate={openNota} />}
           </div>
         </div>
         <div className="col-lg-4 mb-3">
-          <div className={`chart-container h-100 d-flex flex-column ${loadingClass}`}>
+          <div className="chart-container h-100 d-flex flex-column">
             <div className="d-flex flex-column gap-2 flex-shrink-0">
               <h5 className="mb-0">
                 <i id="operateur-chart-icon" className={`fas ${opChart === "bar" ? "fa-chart-bar" : "fa-chart-pie"} text-danger me-2`} />
@@ -475,7 +476,7 @@ export function DashboardPage() {
                 </ChartToggle>
               </div>
             </div>
-            <OperatorChart rows={data?.por_operador ?? []} type={opChart} onPick={(id) => { window.location.href = incidentHref({ operateur: String(id) }); }} />
+            {loading ? <ChartSkeleton pie /> : <OperatorChart rows={data?.por_operador ?? []} type={opChart} onPick={(id) => { window.location.href = incidentHref({ operateur: String(id) }); }} />}
           </div>
         </div>
       </div>
@@ -496,7 +497,9 @@ export function DashboardPage() {
               ) : null}
             </div>
             <div className="card-body p-0">
-              {!loading && data?.instalaciones_dia?.length ? (
+              {loading ? (
+                <LoadingLines />
+              ) : data?.instalaciones_dia?.length ? (
                 <>
                   <div className="table-responsive d-none d-lg-block">
                     <table className="table table-hover mb-0 align-middle">
@@ -597,7 +600,7 @@ export function DashboardPage() {
                     ))}
                   </div>
                 </>
-              ) : !loading ? (
+              ) : (
                 <div className="text-center py-5">
                   <i className="fas fa-building fa-3x text-muted mb-3" aria-hidden="true" />
                   <h5 className="text-muted">No hay instalaciones registradas hoy</h5>
@@ -608,7 +611,7 @@ export function DashboardPage() {
                     </Link>
                   ) : null}
                 </div>
-              ) : null}
+              )}
             </div>
           </div>
         </div>
@@ -634,7 +637,18 @@ export function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody id="clients-recurrents-tbody">
-                    {(data?.clientes ?? []).map((client, index) => (
+                    {loading
+                      ? SKELETON_ROWS.map((row) => (
+                          <tr key={row} aria-hidden="true">
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                          </tr>
+                        ))
+                      : null}
+                    {!loading ? (data?.clientes ?? []).map((client, index) => (
                       <tr key={client.id}>
                         <td><strong># {index + 1}</strong></td>
                         <td className="col-categoria-icon text-center"><Corporativo categoria={client.categoria} /></td>
@@ -652,12 +666,12 @@ export function DashboardPage() {
                         </td>
                         <td>{client.intitule}</td>
                       </tr>
-                    ))}
+                    )) : null}
                   </tbody>
                 </table>
               </div>
               <div className="mobile-list d-lg-none" id="clients-recurrents-cards">
-                {(data?.clientes ?? []).length ? (data?.clientes ?? []).map((client, index) => (
+                {loading ? <LoadingLines /> : (data?.clientes ?? []).length ? (data?.clientes ?? []).map((client, index) => (
                   <article className="mobile-list-card" key={client.id}>
                     <div className="mobile-list-card__head">
                       <div className="mobile-list-card__meta">
@@ -736,22 +750,72 @@ export function DashboardPage() {
   );
 }
 
-function Kpi({ label, value, tone, icon, to, loading, hint }: { label: ReactNode; value: number; tone: string; icon: string; to: string; loading: string; hint: string }) {
+function Kpi({ label, value, tone, icon, to, loading, delay, hint }: { label: ReactNode; value: number; tone: string; icon: string; to: string; loading: string; delay: string; hint: string }) {
+  const busy = Boolean(loading);
   return (
     <div className="col">
       <Link className="stat-card-link h-100" to={to} aria-label={hint}>
-        <div className={`card stat-card stat-card--${tone} h-100 ${loading}`}>
+        <div className={`card stat-card stat-card--${tone} h-100 stagger-in ${delay} ${loading}`}>
           <div className="card-body">
             <div className="stat-card-inner">
               <div className={`stat-card-icon stat-card-icon--${tone}`} aria-hidden="true"><i className={`fas ${icon}`} /></div>
               <div className="stat-card-copy">
                 <div className="stat-label">{label}</div>
-                <div className="stat-number stat-card-value">{value}</div>
+                {busy ? <div className="skeleton skeleton-number" aria-hidden="true" /> : null}
+                <div className={`stat-number stat-card-value${busy ? " d-none" : ""}`}>
+                  <CountUp value={busy ? null : value} />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </Link>
+    </div>
+  );
+}
+
+function CountUp({ value }: { value: number | null }) {
+  const [display, setDisplay] = useState(0);
+  const displayRef = useRef(0);
+  const frameRef = useRef(0);
+
+  useEffect(() => {
+    if (value == null || !Number.isFinite(value)) return;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) {
+      displayRef.current = value;
+      setDisplay(value);
+      return;
+    }
+    const from = displayRef.current;
+    const start = performance.now();
+    const duration = 500;
+    const tick = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      const current = Math.round(from + (value - from) * progress);
+      displayRef.current = current;
+      setDisplay(current);
+      if (progress < 1) frameRef.current = requestAnimationFrame(tick);
+    };
+    frameRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [value]);
+
+  return <>{display}</>;
+}
+
+function ChartSkeleton({ pie = false }: { pie?: boolean }) {
+  return (
+    <div className={`chart-canvas-wrap flex-grow-1${pie ? " chart-canvas-wrap--pie" : ""}`} aria-hidden="true">
+      <div className="skeleton skeleton-chart" />
+    </div>
+  );
+}
+
+function LoadingLines() {
+  return (
+    <div className="p-3" aria-hidden="true">
+      {SKELETON_ROWS.slice(0, 3).map((row) => <div className="skeleton skeleton-line" key={row} />)}
     </div>
   );
 }
@@ -940,6 +1004,7 @@ function OperatorChart({ rows, type, onPick }: { rows: OperadorRow[]; type: stri
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: { duration: 800 },
           layout: { padding: 4 },
           onHover: (event, elements) => {
             const target = event.native?.target as HTMLCanvasElement | undefined;

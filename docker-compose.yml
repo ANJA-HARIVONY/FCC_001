@@ -6,6 +6,11 @@
 # Test local (Ubuntu / poste dev) : définir FLASK_ENV=development dans .env
 # Avec Nginx: docker compose --profile with-nginx up -d
 # =============================================================================
+# Le projet Docker reste fcc_001 : les conteneurs et volumes existent déjà
+# sous ce nom (créés depuis l'autre copie du dépôt). Sans ça, Compose croit
+# devoir créer un second fcc_001_mariadb et échoue sur le nom.
+
+name: fcc_001
 
 services:
   # ===========================================================================

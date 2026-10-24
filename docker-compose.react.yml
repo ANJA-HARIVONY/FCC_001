@@ -1,0 +1,142 @@
+# Pile React / Node indépendante de Flask.
+# Propre MariaDB, propres volumes. Aucun branchement sur fcc_001_db ni sur
+# fcc_001_app_uploads / fcc_001_app_instance / fcc_001_app_avatars.
+#
+#   docker compose -f docker-compose.react.yml up -d --build
+#
+# L'application répond sur http://127.0.0.1:8090
+# MariaDB est sur le port hôte 3308. phpMyAdmin : http://127.0.0.1:8082
+# La restauration du dump se fait dans ce conteneur seulement.
+#
+# L'API charge le .env racine (Bitrix, RADIUS, Gemini, et le reste).
+# DB_HOST, DB_PORT et DB_NAME de ce fichier sont écrasés : le conteneur
+# parle au service mariadb, base fcc_react, pas à la base Flask.
+# Le compte MariaDB est DB_USER / DB_PASSWORD du .env.
+
+name: fcc_react
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: fcc_001_react_mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-react_root}
+      MYSQL_DATABASE: ${REACT_DB_NAME:-fcc_react}
+      MYSQL_USER: ${DB_USER:-fcc_react}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-react_password}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    volumes:
+      - react_mariadb:/var/lib/mysql
+      - ./docker/react/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./docker/react/seed-admin.sql:/docker-entrypoint-initdb.d/02-seed-admin.sql:ro
+    ports:
+      - "${REACT_DB_PORT:-3308}:3306"
+    networks:
+      - react_network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: fcc_001_react_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${REACT_PHPMYADMIN_PORT:-8082}:80"
+    networks:
+      - react_network
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    image: fcc_react_api:latest
+    container_name: fcc_001_react_api
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "4000"
+      TZ: Africa/Malabo
+      DB_HOST: mariadb
+      DB_PORT: "3306"
+      DB_NAME: ${REACT_DB_NAME:-fcc_react}
+      DB_USER: ${DB_USER:-fcc_react}
+      DB_PASSWORD: ${DB_PASSWORD:-react_password}
+      PASSWORD_REHASH: "false"
+      SESSION_COOKIE_SECURE: "false"
+      WEB_ORIGIN: http://localhost:${REACT_APP_PORT:-8090},http://127.0.0.1:${REACT_APP_PORT:-8090}
+    volumes:
+      - react_uploads:/repo/presentation/uploads
+      - react_instance:/repo/instance
+      - react_avatars:/repo/presentation/static/avatars
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - react_network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 25s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: fcc_react_web:latest
+    container_name: fcc_001_react_web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${REACT_APP_PORT:-8090}:80"
+    volumes:
+      - react_uploads:/data/uploads
+      - react_instance:/data/instance
+      - react_avatars:/data/avatars
+    networks:
+      - react_network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  react_mariadb:
+    name: fcc_react_mariadb
+  react_uploads:
+    name: fcc_react_uploads
+  react_instance:
+    name: fcc_react_instance
+  react_avatars:
+    name: fcc_react_avatars
+
+networks:
+  react_network:
+    name: fcc_react_network
