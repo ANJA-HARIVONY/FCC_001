@@ -29,12 +29,63 @@ Réutiliser les classes et partials existants. Ne pas inventer une palette, un s
 ## Listes
 
 Desktop ≥992px : `table-responsive d-none d-lg-block` + `table table-hover mb-0`.  
-Mobile : `d-lg-none` + `{% include '_mobile_list_card_incident.html' %}` ou `_mobile_list_card_client.html` (ou `_mobile_list_card_salida.html`).  
+Mobile : `d-lg-none` + `_mobile_list_card_incident.html`, `_mobile_list_card_client.html`, `_mobile_list_card_salida.html` ou `_mobile_list_card_instalacion.html`.  
 Vide : `text-center py-5` + icône `fa-3x text-muted` + CTA.
 
-Filtres (clients, incidencias, instalaciones, salidas) : carte `card shadow-sm border-0 content-card`, header «Filtros de búsqueda», formulaire GET (`form-control-sm` / `form-select-sm`). `per_page` **50 / 100 / 200 / 500** (défaut 50, `clamp_list_per_page`). Boutons Recordar filtros + Buscar + Reiniciar ; Imprimir / Excel seulement s’ils existent déjà sur la liste (clients, incidencias, salidas). Pas de nouvel export Excel ailleurs sans demande.
+Filtres des listes paginées (incidencias, clientes, instalaciones, salidas) : carte `card shadow-sm border-0 content-card`, header «Filtros de búsqueda», badge «Filtros activos» dès qu’un critère est posé, formulaire GET (`form-control-sm` / `form-select-sm`). `per_page` **50 / 100 / 200 / 500** (défaut 50, `clamp_list_per_page`). Case cochée «Recordar filtros» (cookie de la liste) + boutons Buscar + Reiniciar. Imprimir / Excel seulement s’ils existent déjà (clientes, incidencias, salidas). Pas de nouvel export Excel ailleurs sans demande. Tri : reprendre `sort`, `order` et tous les filtres dans chaque `url_for` (en-tête, pagination, Excel).
 
-Pagination : `iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2)`, Anterior / Siguiente, «Mostrando X a Y de Z». Reprendre les filtres dans chaque `url_for`. Header liste : total + «Página Y de Z».
+Pagination : `iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2)`, Anterior / Siguiente, «Mostrando X a Y de Z». Header liste : total + «Página Y de Z».
+
+Hors de cette carte : catálogo (`tipo` + tri `nombre` / `modelo`, pas de cookie) et Trazabilidad (`date_from`, `date_to`, `user_id`, bouton Filtrar, champs `form-control`, pas de cookie). Ne pas les aligner sur la carte «Filtros de búsqueda».
+
+### Registros de las Incidencias (`/incidents`, `incidents.html`)
+
+Cookie `incidents_filters_v1`. GET : `search`, `status`, `bitrix_status` (affiché et actif seulement si `status=Bitrix`), `operateur`, `ciudad`, `agencia`, `date_from`, `date_to`, `per_page`, `sort`, `order`. Ciudad / Agencia : le superadmin a l’option vide («Todas») ; les autres restent sur leur paire. Imprimir + Excel page courante. Mobile : `_mobile_list_card_incident.html`.
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `ID` | `Incident.id` | `<strong>#id</strong>` |
+| (icône) | `client.categoria` | `_cliente_corporativo_icon.html`, en-tête vide |
+| `Cliente` | `incident.client.nom` | tri `client` ; lien fiche incident + adresse |
+| `Asunto` | `incident.intitule` | tri `asunto` ; `text-truncate` max 200px |
+| `Estado` | `Incident.status` | `badge-resolut` Solucionadas ; `badge-attente` Pendiente ; Bitrix → `_bitrix_status.html` (`icon_only`) |
+| `Técnico` | `incident.bitrix_responsible` | **seulement** si le filtre `status` vaut `Bitrix` ; tri `tecnico` ; `—` si absent |
+| `Usuario` | `incident.operateur.nom` | tri `operador` ; avatar 28px |
+| `Fecha/Hora` | `incident.date_heure` | tri `fecha` ; `%d/%m/%Y %H:%M` |
+| `Acciones` | — | `btn-group` : Modificar, Copiar (`copierIncident`), Eliminar (créateur ou admin) |
+
+### Lista de clientes (`/clients`, `clients.html`)
+
+Cookie `clients_filters_v1`. GET : `search` (nombre, teléfono, dirección, IP), `ville` (barrio), `ciudad`, `categoria`, `per_page`, `sort`, `order`. Imprimir + Excel page courante. Mobile : `_mobile_list_card_client.html`.
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `ID` | `Client.id` | tri `id` ; `<strong>#id</strong>` |
+| `Categoría` | `Client.categoria` | icône corporativo |
+| `Nombre` | `Client.nom` | tri `nombre` ; lien `fiche_client` |
+| `Teléfono` | `Client.telephone` | lien `wa.me` |
+| `Dirección` | `Client.adresse` | tri `direccion` |
+| `Barrio` | `Client.ville` | — |
+| `Ciudad` | `client.ciudad_row.nombre` | `N/A` si absent |
+| `IP Router` | `Client.ip_router` | — |
+| `IP Antea` | `Client.ip_antea` | — |
+| `Incidencias` | `client.incidents` | tri `incidents` ; badge compteur |
+| `Acciones` | — | `btn-group` : Ver ficha, Editar, Copiar, Eliminar |
+
+### Lista de usuarios (`/usuarios`, `usuarios.html`)
+
+Superadmin. Cookie `usuarios_filters_v1`. GET : `search`, `role`, `categoria`, `actif`, `ciudad`, `agencia`. Pas de `per_page`, pas d’Imprimir ni d’Excel. Liste complète filtrée (compteur dans l’en-tête).
+
+| Colonne UI | Source | Règle |
+|---|---|---|
+| `Nombre` | `Operateur.nom` | avatar 28px |
+| `Teléfono` | `Operateur.telephone` | — |
+| `Correo` | `Operateur.email` | `—` si vide |
+| `Ciudad / Agencia` | `ciudad.nombre` / `agencia.nombre` | — |
+| `Rol` | `Operateur.role` | `ROLE_LABELS` |
+| `Categoría` | `Operateur.categoria` | `categoria_operateur_label` |
+| `Activo` | `Operateur.actif` | Sí / No ; ligne `table-secondary` si inactif |
+| `Acciones` | — | Editar ; Ficha si `tecnico` ou `atencion_cliente` ; Desactivar / Activar sauf soi-même |
 
 ### Lista de instalaciones (`/instalaciones`, `instalaciones/hub.html`)
 
@@ -67,7 +118,7 @@ Toutes les salidas (les 3 `tipo_salida`). Desktop = table ci-dessous. Mobile = `
 | `Materiales` | `s.lineas` | `nombre(modelo) x cantidad`, séparés par virgule |
 | `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` ; `Eliminar` (admin, modale de confirmation) → `materiales_salida_supprimer` |
 
-Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Boutons : Recordar filtros + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
+Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Case «Recordar filtros» + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : `clamp_list_per_page` 50/100/200/500, `iter_pages`, Anterior / Siguiente, «Mostrando X a Y de Z». CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
 
 États incidencia (classes dédiées, pas `bg-success` générique) :
 
