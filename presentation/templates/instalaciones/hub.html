@@ -92,17 +92,11 @@
                                 </label>
                                 <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ date_to }}">
                             </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="per_page" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-list me-1" aria-hidden="true"></i>{{ _('Por página') }}
-                                </label>
-                                <select class="form-select form-select-sm" id="per_page" name="per_page">
-                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
-                                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
-                                </select>
-                            </div>
+                            {% if not instalaciones %}
+                            {% with form_id='formFiltrosInstalaciones', per_page_hidden=true %}
+                            {% include '_list_per_page_select.html' %}
+                            {% endwith %}
+                            {% endif %}
                             <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-center">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox" id="remember-filters-toggle-instalaciones" checked>
@@ -252,9 +246,10 @@
                             {% endwith %}
                         {% endfor %}
                     </div>
-                    {% if pagination.pages > 1 %}
                     <div class="card-footer">
-                        <nav aria-label="{{ _('Paginación de las instalaciones') }}">
+                        <div class="list-pagination-bar">
+                            {% if pagination.pages > 1 %}
+                            <nav class="list-pagination-bar__nav" aria-label="{{ _('Paginación de las instalaciones') }}">
                             <ul class="pagination justify-content-center mb-0">
                                 {% if pagination.has_prev %}
                                     <li class="page-item">
@@ -300,7 +295,13 @@
                                     </li>
                                 {% endif %}
                             </ul>
-                        </nav>
+                            </nav>
+                            {% endif %}
+                            {% with form_id='formFiltrosInstalaciones' %}
+                            {% include '_list_per_page_select.html' %}
+                            {% endwith %}
+                        </div>
+                        {% if pagination.total %}
                         <div class="text-center mt-3">
                             <small class="text-muted">
                                 {{ _('Mostrando') }} {{ (pagination.page - 1) * pagination.per_page + 1 }} {{ _('a') }}
@@ -308,8 +309,8 @@
                                 {{ _('de') }} {{ pagination.total }} {{ _('instalaciones') }}
                             </small>
                         </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                     {% else %}
                     <div class="text-center py-5">
                         <i class="fas fa-building fa-3x text-muted mb-3" aria-hidden="true"></i>

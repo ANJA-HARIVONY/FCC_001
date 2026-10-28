@@ -73,17 +73,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="per_page" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-list me-1"></i>Por página
-                                </label>
-                                <select class="form-select form-select-sm" id="per_page" name="per_page">
-                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
-                                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
-                                </select>
-                            </div>
+                            {% if not clients.items %}
+                            {% with form_id='formFiltrosClients', per_page_hidden=true %}
+                            {% include '_list_per_page_select.html' %}
+                            {% endwith %}
+                            {% endif %}
                             <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-center">
                                 <div class="form-check mb-0">
                                     <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
@@ -168,16 +162,6 @@
                                         </a>
                                     </th>
                                     <th class="text-white">Teléfono</th>
-                                    <th>
-                                        <a href="{{ url_for('clients', sort='direccion', order='asc' if sort_by|default('') == 'direccion' and sort_order|default('') == 'desc' else 'desc', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter, categoria=categoria_filter) }}" class="text-white text-decoration-none">
-                                            Dirección
-                                            {% if sort_by|default('') == 'direccion' %}
-                                                <i class="fas fa-sort-{{ 'up' if sort_order|default('') == 'asc' else 'down' }}"></i>
-                                            {% else %}
-                                                <i class="fas fa-sort"></i>
-                                            {% endif %}
-                                        </a>
-                                    </th>
                                     <th class="text-white">Barrio</th>
                                     <th class="text-white">Ciudad</th>
                                     <th class="text-white">IP Router</th>
@@ -212,11 +196,11 @@
                                     <td class="col-categoria-icon text-center">
                                         {% include '_cliente_corporativo_icon.html' %}
                                     </td>
-                                    <td>
+                                    <td class="client-nombre">
                                         <i class="fas fa-user-tie me-1" aria-hidden="true"></i><a href="{{ url_for('fiche_client', id=client.id, next=request.url) }}" class="text-decoration-none text-dark">{{ client.nom }}</a>
+                                        <br><small class="small text-muted fst-italic" style="font-size: 0.65rem;"><i class="fas fa-map-marker-alt me-1" aria-hidden="true"></i>{{ client.adresse }}</small>
                                     </td>
                                     <td>📞 <a href="https://wa.me/+240{{ client.telephone }}" target="_blank" class="text-decoration-none">{{ client.telephone }}</a></td>
-                                    <td><i class="fas fa-map-marker-alt me-1 text-muted" aria-hidden="true"></i>{{ client.adresse }}</td>
                                     <td><i class="fas fa-map-marker-alt me-1 text-muted" aria-hidden="true"></i>{{ client.ville }}</td>
                                     <td>🌆 {{ client.ciudad_row.nombre if client.ciudad_row else "N/A" }}</td>
                                     <td><code><a href="http://{{ client.ip_router }}" target="_blank">{{ client.ip_router }}</a></code></td>
@@ -266,10 +250,10 @@
                         {% endfor %}
                     </div>
                     
-                    <!-- Pagination -->
-                    {% if clients.pages > 1 %}
                     <div class="card-footer">
-                        <nav aria-label="Paginación de clientes">
+                        <div class="list-pagination-bar">
+                            {% if clients.pages > 1 %}
+                            <nav class="list-pagination-bar__nav" aria-label="Paginación de clientes">
                             <ul class="pagination justify-content-center mb-0">
                                 <!-- Bouton Précédent -->
                                 {% if clients.has_prev %}
@@ -318,9 +302,13 @@
                                     </li>
                                 {% endif %}
                             </ul>
-                        </nav>
-                        
-                        <!-- Informations de pagination -->
+                            </nav>
+                            {% endif %}
+                            {% with form_id='formFiltrosClients' %}
+                            {% include '_list_per_page_select.html' %}
+                            {% endwith %}
+                        </div>
+                        {% if clients.total %}
                         <div class="text-center mt-3">
                             <small class="text-muted">
                                 Mostrando {{ (clients.page - 1) * clients.per_page + 1 }} a 
@@ -328,8 +316,8 @@
                                 de {{ clients.total }} clientes
                             </small>
                         </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                     
                     {% else %}
                     <div class="text-center py-5">

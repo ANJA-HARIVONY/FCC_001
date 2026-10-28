@@ -119,18 +119,11 @@
                                 </label>
                                 <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ date_to }}">
                             </div>
-                            <!-- Por página -->
-                            <div class="col-4 col-md-2 col-lg-1">
-                                <label for="per_page" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-list me-1"></i>Por pág.
-                                </label>
-                                <select class="form-select form-select-sm" id="per_page" name="per_page">
-                                    <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
-                                    <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
-                                    <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
-                                    <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
-                                </select>
-                            </div>
+                            {% if not incidents.items %}
+                            {% with form_id='formFiltros', per_page_hidden=true %}
+                            {% include '_list_per_page_select.html' %}
+                            {% endwith %}
+                            {% endif %}
                             <!-- Boutons -->
                             <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
                                 <!--<a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
@@ -373,10 +366,10 @@
                         {% endfor %}
                     </div>
                     
-                    <!-- Pagination -->
-                    {% if incidents.pages > 1 %}
                     <div class="card-footer">
-                        <nav aria-label="Paginación de las incidencias">
+                        <div class="list-pagination-bar">
+                            {% if incidents.pages > 1 %}
+                            <nav class="list-pagination-bar__nav" aria-label="Paginación de las incidencias">
                             <ul class="pagination justify-content-center mb-0">
                                 <!-- Bouton Précédent -->
                                 {% if incidents.has_prev %}
@@ -425,9 +418,13 @@
                                     </li>
                                 {% endif %}
                             </ul>
-                        </nav>
-                        
-                        <!-- Informations de pagination -->
+                            </nav>
+                            {% endif %}
+                            {% with form_id='formFiltros' %}
+                            {% include '_list_per_page_select.html' %}
+                            {% endwith %}
+                        </div>
+                        {% if incidents.total %}
                         <div class="text-center mt-3">
                             <small class="text-muted">
                                 Mostrando {{ (incidents.page - 1) * incidents.per_page + 1 }} a 
@@ -435,8 +432,8 @@
                                 de {{ incidents.total }} incidencias
                             </small>
                         </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                     
                     {% else %}
                     <div class="text-center py-5">

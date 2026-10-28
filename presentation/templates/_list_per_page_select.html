@@ -1,0 +1,12 @@
+{# Sélecteur «Por página» du pied de liste.
+   Variables : form_id (id du formulaire GET), per_page (int).
+   per_page_hidden : masque le contrôle (liste vide, le script des filtres en a besoin). #}
+<div class="d-flex align-items-center gap-2 list-pagination-bar__size{% if per_page_hidden|default(false) %} d-none{% endif %}">
+    <label for="per_page" class="small text-muted mb-0 text-nowrap">{{ _('Por página') }}</label>
+    <select form="{{ form_id }}" class="form-select form-select-sm w-auto" id="per_page" name="per_page" aria-label="{{ _('Por página') }}">
+        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+        <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+        <option value="200" {% if per_page == 200 %}selected{% endif %}>200</option>
+        <option value="500" {% if per_page == 500 %}selected{% endif %}>500</option>
+    </select>
+</div>
