@@ -56,87 +56,108 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" id="formFiltrosSalidas">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-search me-1"></i>Buscar
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="search" name="search"
-                                       value="{{ search_query }}" placeholder="Cliente, teléfono, técnico, material…"
-                                       autocomplete="off">
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="tipo_salida" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-tag me-1"></i>Tipo de salida
-                                </label>
-                                <select class="form-select form-select-sm" id="tipo_salida" name="tipo_salida">
-                                    <option value="">Todos</option>
-                                    {% for t in salida_tipos %}
-                                    <option value="{{ t }}" {% if filters.get('tipo_salida') == t %}selected{% endif %}>{{ salida_tipo_labels[t] }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="tecnico" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-user-cog me-1"></i>Técnico
-                                </label>
-                                <select class="form-select form-select-sm" id="tecnico" name="tecnico">
-                                    <option value="">Todos</option>
-                                    {% for t in tecnicos %}
-                                    <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="material" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-box me-1"></i>Material
-                                </label>
-                                <select class="form-select form-select-sm" id="material" name="material">
-                                    <option value="">Todos</option>
-                                    {% for m in materiales_filter %}
-                                    <option value="{{ m.id }}" {% if filters.get('material') and filters.get('material')|int == m.id %}selected{% endif %}>{{ m.label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="date_from" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-calendar-alt me-1"></i>Desde
-                                </label>
-                                <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ filters.get('date_from', '') }}">
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="date_to" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-calendar-alt me-1"></i>Hasta
-                                </label>
-                                <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ filters.get('date_to', '') }}">
-                            </div>
-                            {% if not salidas %}
-                            {% with form_id='formFiltrosSalidas', per_page_hidden=true %}
-                            {% include '_list_per_page_select.html' %}
-                            {% endwith %}
-                            {% endif %}
-                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
-                                <div class="form-check ms-2">
-                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle-salidas" checked>
-                                    <label class="form-check-label small text-muted" for="remember-filters-toggle-salidas">
-                                        Recordar filtros
-                                    </label>
+                        <div class="bnb-search" data-bnb-search>
+                            <div class="bnb-search__bar" role="search">
+                                <div class="bnb-search__segment bnb-search__segment--field">
+                                    <label class="bnb-search__label" for="search">Buscar</label>
+                                    <input type="text" class="bnb-search__inline" id="search" name="search"
+                                           value="{{ search_query }}" placeholder="Cliente, teléfono, técnico, material…"
+                                           autocomplete="off">
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-search"></i> Buscar
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todos">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-tipo-salida">
+                                        <span class="bnb-search__label">Tipo</span>
+                                        <span class="bnb-search__value">Todos</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-tipo-salida" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="tipo_salida" role="listbox" aria-label="Tipo de salida"></div>
+                                        <select class="bnb-search__native" id="tipo_salida" name="tipo_salida" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todos</option>
+                                            {% for t in salida_tipos %}
+                                            <option value="{{ t }}" {% if filters.get('tipo_salida') == t %}selected{% endif %}>{{ salida_tipo_labels[t] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todos">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-tecnico">
+                                        <span class="bnb-search__label">Técnico</span>
+                                        <span class="bnb-search__value">Todos</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-tecnico" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="tecnico" role="listbox" aria-label="Técnico"></div>
+                                        <select class="bnb-search__native" id="tecnico" name="tecnico" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todos</option>
+                                            {% for t in tecnicos %}
+                                            <option value="{{ t.id }}" {% if filters.get('tecnico') and filters.get('tecnico')|int == t.id %}selected{% endif %}>{{ t.nom }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todos">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-material">
+                                        <span class="bnb-search__label">Material</span>
+                                        <span class="bnb-search__value">Todos</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-material" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="material" role="listbox" aria-label="Material"></div>
+                                        <select class="bnb-search__native" id="material" name="material" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todos</option>
+                                            {% for m in materiales_filter %}
+                                            <option value="{{ m.id }}" {% if filters.get('material') and filters.get('material')|int == m.id %}selected{% endif %}>{{ m.label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Agregar">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="dialog" aria-controls="bnb-panel-date-from">
+                                        <span class="bnb-search__label">Desde</span>
+                                        <span class="bnb-search__value">Agregar</span>
+                                    </button>
+                                    <div class="bnb-search__panel bnb-search__panel--date" id="bnb-panel-date-from" hidden>
+                                        <label class="bnb-search__panel-label" for="date_from">Desde</label>
+                                        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ filters.get('date_from', '') }}">
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Agregar">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="dialog" aria-controls="bnb-panel-date-to">
+                                        <span class="bnb-search__label">Hasta</span>
+                                        <span class="bnb-search__value">Agregar</span>
+                                    </button>
+                                    <div class="bnb-search__panel bnb-search__panel--date" id="bnb-panel-date-to" hidden>
+                                        <label class="bnb-search__panel-label" for="date_to">Hasta</label>
+                                        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filters.get('date_to', '') }}">
+                                    </div>
+                                </div>
+                                <button type="submit" class="bnb-search__go" aria-label="Buscar">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                    <span class="bnb-search__go-label">Buscar</span>
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-salidas">
-                                    <i class="fas fa-undo-alt"></i> Reiniciar
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <a href="{{ url_for('materiales_salidas_export_xlsx', page=pagination.page, **filter_kwargs) }}"
-                                   class="btn btn-outline-success btn-sm"
-                                   title="Exportar Excel (página actual)">
-                                    <i class="fas fa-file-excel"></i>
-                                </a>
                             </div>
+                        </div>
+                        {% if not salidas %}
+                        {% with form_id='formFiltrosSalidas', per_page_hidden=true %}
+                        {% include '_list_per_page_select.html' %}
+                        {% endwith %}
+                        {% endif %}
+                        <div class="bnb-search__tools">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle-salidas" checked>
+                                <label class="form-check-label small text-muted" for="remember-filters-toggle-salidas">
+                                    Recordar filtros
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-salidas">
+                                <i class="fas fa-undo-alt"></i> Reiniciar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <a href="{{ url_for('materiales_salidas_export_xlsx', page=pagination.page, **filter_kwargs) }}"
+                               class="btn btn-outline-success btn-sm"
+                               title="Exportar Excel (página actual)">
+                                <i class="fas fa-file-excel"></i>
+                            </a>
                         </div>
                     </form>
                     <div id="filters-feedback-salidas" class="small text-success mt-2 d-none">

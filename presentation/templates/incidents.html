@@ -30,126 +30,139 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" id="formFiltros">
-                        <div class="row g-3 align-items-end">
-                            <!-- Buscar -->
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-search me-1"></i>Buscar
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="search" name="search" 
-                                       value="{{ search_query }}" placeholder="Asunto, observaciones, cliente...">
-                            </div>
-                            <!-- Status -->
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="status" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-flag me-1"></i>Estado
-                                </label>
-                                <select class="form-select form-select-sm" id="status" name="status">
-                                    <option value="">Todos 🎯​</option>
-                                    <option value="Solucionadas" {% if status_filter == 'Solucionadas' %}selected{% endif %}>Solucionadas ✅​</option>
-                                    <option value="Pendiente" {% if status_filter == 'Pendiente' %}selected{% endif %}>Pendiente ⏳​</option>
-                                    <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix 🔗​</option>
-                                </select>
-                            </div>
-                            <!-- Estado de la tarea Bitrix (visible si Estado = Bitrix) -->
-                            <div class="col-6 col-md-4 col-lg-2" id="bitrix-status-filter-wrap"{% if status_filter != 'Bitrix' %} hidden{% endif %}>
-                                <label for="bitrix_status" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-tasks me-1"></i>{{ _('Tarea Bitrix') }}
-                                </label>
-                                <select class="form-select form-select-sm" id="bitrix_status" name="bitrix_status"
-                                        {% if status_filter != 'Bitrix' %}disabled{% endif %}>
-                                    <option value="">{{ _('Todas') }}</option>
-                                    {% for code, meta in bitrix_status_choices|default([]) %}
-                                    <option value="{{ code }}" {% if bitrix_status_filter == code %}selected{% endif %}>{{ meta[1] }} {{ meta[0] }}</option>
-                                    {% endfor %}
-                                    <option value="_none" {% if bitrix_status_filter == '_none' %}selected{% endif %}>{{ _('Sin consultar') }}</option>
-                                </select>
-                            </div>
-                            <!-- Usuario -->
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="operateur" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-user-cog me-1"></i>Usuario
-                                </label>
-                                <select class="form-select form-select-sm" id="operateur" name="operateur">
-                                    <option value="">Todos</option>
-                                    {% for op in operateurs|default([]) %}
-                                    <option value="{{ op.id }}" {% if operateur_filter and op.id|string == operateur_filter|string %}selected{% endif %}>{{ op.nom }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <!-- Ciudad -->
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-city me-1"></i>Ciudad
-                                </label>
-                                <select class="form-select form-select-sm" id="ciudad" name="ciudad">
-                                    {% if current_user.is_superadmin() %}
-                                    <option value="">Todas las ciudades</option>
-                                    {% endif %}
-                                    {% for c in ciudades|default([]) %}
-                                    <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <!-- Agencia -->
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="agencia" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-building me-1"></i>Agencia
-                                </label>
-                                <select class="form-select form-select-sm" id="agencia" name="agencia">
-                                    {% if current_user.is_superadmin() %}
-                                    <option value="">Todas las agencias</option>
-                                    {% endif %}
-                                    {% for a in agencias|default([]) %}
-                                    <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <!-- Fecha desde -->
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="date_from" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-calendar-alt me-1"></i>Desde
-                                </label>
-                                <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ date_from }}">
-                            </div>
-                            <!-- Fecha hasta -->
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="date_to" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-calendar-alt me-1"></i>Hasta
-                                </label>
-                                <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ date_to }}">
-                            </div>
-                            {% if not incidents.items %}
-                            {% with form_id='formFiltros', per_page_hidden=true %}
-                            {% include '_list_per_page_select.html' %}
-                            {% endwith %}
-                            {% endif %}
-                            <!-- Boutons -->
-                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-end">
-                                <!--<a href="{{ url_for('incidents') }}" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fas fa-times"></i> Limpiar
-                                </a>-->
-                                <div class="form-check ms-2">
-                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
-                                    <label class="form-check-label small text-muted" for="remember-filters-toggle">
-                                        Recordar filtros
-                                    </label>
+                        <div class="bnb-search" data-bnb-search>
+                            <div class="bnb-search__bar" role="search">
+                                <div class="bnb-search__segment bnb-search__segment--field">
+                                    <label class="bnb-search__label" for="search">Buscar</label>
+                                    <input type="text" class="bnb-search__inline" id="search" name="search"
+                                           value="{{ search_query }}" placeholder="Asunto, observaciones, cliente…"
+                                           autocomplete="off">
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-search"></i> Buscar
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todos">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-status">
+                                        <span class="bnb-search__label">Estado</span>
+                                        <span class="bnb-search__value">Todos</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-status" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="status" role="listbox" aria-label="Estado"></div>
+                                        <select class="bnb-search__native" id="status" name="status" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todos 🎯​</option>
+                                            <option value="Solucionadas" {% if status_filter == 'Solucionadas' %}selected{% endif %}>Solucionadas ✅​</option>
+                                            <option value="Pendiente" {% if status_filter == 'Pendiente' %}selected{% endif %}>Pendiente ⏳​</option>
+                                            <option value="Bitrix" {% if status_filter == 'Bitrix' %}selected{% endif %}>Bitrix 🔗​</option>
+                                        </select>
+                                        <div class="bnb-search__sub" id="bitrix-status-filter-wrap"{% if status_filter != 'Bitrix' %} hidden{% endif %}>
+                                            <p class="bnb-search__panel-label">{{ _('Tarea Bitrix') }}</p>
+                                            <div class="bnb-search__choices" data-bnb-for="bitrix_status" role="listbox" aria-label="{{ _('Tarea Bitrix') }}"></div>
+                                            <select class="bnb-search__native" id="bitrix_status" name="bitrix_status" tabindex="-1" aria-hidden="true"
+                                                    {% if status_filter != 'Bitrix' %}disabled{% endif %}>
+                                                <option value="">{{ _('Todas') }}</option>
+                                                {% for code, meta in bitrix_status_choices|default([]) %}
+                                                <option value="{{ code }}" {% if bitrix_status_filter == code %}selected{% endif %}>{{ meta[1] }} {{ meta[0] }}</option>
+                                                {% endfor %}
+                                                <option value="_none" {% if bitrix_status_filter == '_none' %}selected{% endif %}>{{ _('Sin consultar') }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todos">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-operateur">
+                                        <span class="bnb-search__label">Usuario</span>
+                                        <span class="bnb-search__value">Todos</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-operateur" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="operateur" role="listbox" aria-label="Usuario"></div>
+                                        <select class="bnb-search__native" id="operateur" name="operateur" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todos</option>
+                                            {% for op in operateurs|default([]) %}
+                                            <option value="{{ op.id }}" {% if operateur_filter and op.id|string == operateur_filter|string %}selected{% endif %}>{{ op.nom }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todas las ciudades">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-ciudad">
+                                        <span class="bnb-search__label">Ciudad</span>
+                                        <span class="bnb-search__value">Todas las ciudades</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-ciudad" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="ciudad" role="listbox" aria-label="Ciudad"></div>
+                                        <select class="bnb-search__native" id="ciudad" name="ciudad" tabindex="-1" aria-hidden="true">
+                                            {% if current_user.is_superadmin() %}
+                                            <option value="">Todas las ciudades</option>
+                                            {% endif %}
+                                            {% for c in ciudades|default([]) %}
+                                            <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todas las agencias">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-agencia">
+                                        <span class="bnb-search__label">Agencia</span>
+                                        <span class="bnb-search__value">Todas las agencias</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-agencia" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="agencia" role="listbox" aria-label="Agencia"></div>
+                                        <select class="bnb-search__native" id="agencia" name="agencia" tabindex="-1" aria-hidden="true">
+                                            {% if current_user.is_superadmin() %}
+                                            <option value="">Todas las agencias</option>
+                                            {% endif %}
+                                            {% for a in agencias|default([]) %}
+                                            <option value="{{ a.id }}" {% if agencia_filter and a.id|string == agencia_filter|string %}selected{% endif %}>{{ a.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Agregar">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="dialog" aria-controls="bnb-panel-date-from">
+                                        <span class="bnb-search__label">Desde</span>
+                                        <span class="bnb-search__value">Agregar</span>
+                                    </button>
+                                    <div class="bnb-search__panel bnb-search__panel--date" id="bnb-panel-date-from" hidden>
+                                        <label class="bnb-search__panel-label" for="date_from">Desde</label>
+                                        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Agregar">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="dialog" aria-controls="bnb-panel-date-to">
+                                        <span class="bnb-search__label">Hasta</span>
+                                        <span class="bnb-search__value">Agregar</span>
+                                    </button>
+                                    <div class="bnb-search__panel bnb-search__panel--date" id="bnb-panel-date-to" hidden>
+                                        <label class="bnb-search__panel-label" for="date_to">Hasta</label>
+                                        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                                    </div>
+                                </div>
+                                <button type="submit" class="bnb-search__go" aria-label="Buscar">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                    <span class="bnb-search__go-label">Buscar</span>
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn">
-                                    <i class="fas fa-undo-alt"></i> Reiniciar
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <a href="{{ url_for('api_incidents_export_xlsx', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}"
-                                   class="btn btn-outline-success btn-sm"
-                                   title="Exportar Excel (página actual)">
-                                    <i class="fas fa-file-excel"></i>
-                                </a>
                             </div>
+                        </div>
+                        {% if not incidents.items %}
+                        {% with form_id='formFiltros', per_page_hidden=true %}
+                        {% include '_list_per_page_select.html' %}
+                        {% endwith %}
+                        {% endif %}
+                        <div class="bnb-search__tools">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle" checked>
+                                <label class="form-check-label small text-muted" for="remember-filters-toggle">
+                                    Recordar filtros
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn">
+                                <i class="fas fa-undo-alt"></i> Reiniciar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <a href="{{ url_for('api_incidents_export_xlsx', page=incidents.page, per_page=per_page, status=status_filter, bitrix_status=bitrix_status_filter, search=search_query, operateur=operateur_filter, ciudad=ciudad_filter, agencia=agencia_filter, date_from=date_from, date_to=date_to, sort=sort_by, order=sort_order) }}"
+                               class="btn btn-outline-success btn-sm"
+                               title="Exportar Excel (página actual)">
+                                <i class="fas fa-file-excel"></i>
+                            </a>
                         </div>
                     </form>
                     <div id="filters-feedback" class="small text-success mt-2 d-none">

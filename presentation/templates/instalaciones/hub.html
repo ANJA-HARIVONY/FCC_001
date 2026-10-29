@@ -37,80 +37,101 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" id="formFiltrosInstalaciones">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-search me-1" aria-hidden="true"></i>{{ _('Buscar') }}
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="search" name="search"
-                                       value="{{ search_query }}"
-                                       placeholder="{{ _('Cliente, teléfono, técnico, material…') }}"
-                                       autocomplete="off">
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="tecnico" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-user-cog me-1" aria-hidden="true"></i>{{ _('Técnico') }}
-                                </label>
-                                <select class="form-select form-select-sm" id="tecnico" name="tecnico">
-                                    <option value="">{{ _('Todos') }}</option>
-                                    {% for op in tecnicos|default([]) %}
-                                    <option value="{{ op.id }}" {% if tecnico_filter and op.id|string == tecnico_filter|string %}selected{% endif %}>{{ op.nom }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="estado" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-flag me-1" aria-hidden="true"></i>{{ _('Estado') }}
-                                </label>
-                                <select class="form-select form-select-sm" id="estado" name="estado">
-                                    <option value="">{{ _('Todos') }}</option>
-                                    {% for e in instalacion_estados %}
-                                    <option value="{{ e }}" {% if estado_filter == e %}selected{% endif %}>{{ INSTALACION_ESTADO_LABELS[e] }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="tipo" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-tag me-1" aria-hidden="true"></i>{{ _('Tipo') }}
-                                </label>
-                                <select class="form-select form-select-sm" id="tipo" name="tipo">
-                                    <option value="">{{ _('Todos') }}</option>
-                                    {% for t in instalacion_tipos %}
-                                    <option value="{{ t }}" {% if tipo_filter == t %}selected{% endif %}>{{ INSTALACION_TIPO_LABELS[t] }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="date_from" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i>{{ _('Desde') }}
-                                </label>
-                                <input type="date" class="form-control form-control-sm" id="date_from" name="date_from" value="{{ date_from }}">
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="date_to" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-calendar-alt me-1" aria-hidden="true"></i>{{ _('Hasta') }}
-                                </label>
-                                <input type="date" class="form-control form-control-sm" id="date_to" name="date_to" value="{{ date_to }}">
-                            </div>
-                            {% if not instalaciones %}
-                            {% with form_id='formFiltrosInstalaciones', per_page_hidden=true %}
-                            {% include '_list_per_page_select.html' %}
-                            {% endwith %}
-                            {% endif %}
-                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-center">
-                                <div class="form-check mb-0">
-                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle-instalaciones" checked>
-                                    <label class="form-check-label small text-muted" for="remember-filters-toggle-instalaciones">
-                                        {{ _('Recordar filtros') }}
-                                    </label>
+                        <div class="bnb-search" data-bnb-search>
+                            <div class="bnb-search__bar" role="search">
+                                <div class="bnb-search__segment bnb-search__segment--field">
+                                    <label class="bnb-search__label" for="search">{{ _('Buscar') }}</label>
+                                    <input type="text" class="bnb-search__inline" id="search" name="search"
+                                           value="{{ search_query }}"
+                                           placeholder="{{ _('Cliente, teléfono, técnico, material…') }}"
+                                           autocomplete="off">
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-search me-1" aria-hidden="true"></i>{{ _('Buscar') }}
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-instalaciones">
-                                    <i class="fas fa-undo-alt me-1" aria-hidden="true"></i>{{ _('Reiniciar') }}
+                                <div class="bnb-search__segment" data-bnb-placeholder="{{ _('Todos') }}">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-tecnico">
+                                        <span class="bnb-search__label">{{ _('Técnico') }}</span>
+                                        <span class="bnb-search__value">{{ _('Todos') }}</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-tecnico" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="tecnico" role="listbox" aria-label="{{ _('Técnico') }}"></div>
+                                        <select class="bnb-search__native" id="tecnico" name="tecnico" tabindex="-1" aria-hidden="true">
+                                            <option value="">{{ _('Todos') }}</option>
+                                            {% for op in tecnicos|default([]) %}
+                                            <option value="{{ op.id }}" {% if tecnico_filter and op.id|string == tecnico_filter|string %}selected{% endif %}>{{ op.nom }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="{{ _('Todos') }}">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-estado">
+                                        <span class="bnb-search__label">{{ _('Estado') }}</span>
+                                        <span class="bnb-search__value">{{ _('Todos') }}</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-estado" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="estado" role="listbox" aria-label="{{ _('Estado') }}"></div>
+                                        <select class="bnb-search__native" id="estado" name="estado" tabindex="-1" aria-hidden="true">
+                                            <option value="">{{ _('Todos') }}</option>
+                                            {% for e in instalacion_estados %}
+                                            <option value="{{ e }}" {% if estado_filter == e %}selected{% endif %}>{{ INSTALACION_ESTADO_LABELS[e] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="{{ _('Todos') }}">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-tipo">
+                                        <span class="bnb-search__label">{{ _('Tipo') }}</span>
+                                        <span class="bnb-search__value">{{ _('Todos') }}</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-tipo" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="tipo" role="listbox" aria-label="{{ _('Tipo') }}"></div>
+                                        <select class="bnb-search__native" id="tipo" name="tipo" tabindex="-1" aria-hidden="true">
+                                            <option value="">{{ _('Todos') }}</option>
+                                            {% for t in instalacion_tipos %}
+                                            <option value="{{ t }}" {% if tipo_filter == t %}selected{% endif %}>{{ INSTALACION_TIPO_LABELS[t] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="—">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="dialog" aria-controls="bnb-panel-date-from">
+                                        <span class="bnb-search__label">{{ _('Desde') }}</span>
+                                        <span class="bnb-search__value">—</span>
+                                    </button>
+                                    <div class="bnb-search__panel bnb-search__panel--date" id="bnb-panel-date-from" hidden>
+                                        <label class="bnb-search__panel-label" for="date_from">{{ _('Desde') }}</label>
+                                        <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="—">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="dialog" aria-controls="bnb-panel-date-to">
+                                        <span class="bnb-search__label">{{ _('Hasta') }}</span>
+                                        <span class="bnb-search__value">—</span>
+                                    </button>
+                                    <div class="bnb-search__panel bnb-search__panel--date" id="bnb-panel-date-to" hidden>
+                                        <label class="bnb-search__panel-label" for="date_to">{{ _('Hasta') }}</label>
+                                        <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                                    </div>
+                                </div>
+                                <button type="submit" class="bnb-search__go" aria-label="{{ _('Buscar') }}">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                    <span class="bnb-search__go-label">{{ _('Buscar') }}</span>
                                 </button>
                             </div>
+                        </div>
+                        {% if not instalaciones %}
+                        {% with form_id='formFiltrosInstalaciones', per_page_hidden=true %}
+                        {% include '_list_per_page_select.html' %}
+                        {% endwith %}
+                        {% endif %}
+                        <div class="bnb-search__tools">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle-instalaciones" checked>
+                                <label class="form-check-label small text-muted" for="remember-filters-toggle-instalaciones">
+                                    {{ _('Recordar filtros') }}
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-instalaciones">
+                                <i class="fas fa-undo-alt me-1" aria-hidden="true"></i>{{ _('Reiniciar') }}
+                            </button>
                         </div>
                     </form>
                     <div id="filters-feedback-instalaciones" class="small text-success mt-2 d-none">

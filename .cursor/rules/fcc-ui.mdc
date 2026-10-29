@@ -33,7 +33,7 @@ Desktop ≥992px : `table-responsive d-none d-lg-block` + `table table-hover mb-
 Mobile : `d-lg-none` + `_mobile_list_card_incident.html`, `_mobile_list_card_client.html`, `_mobile_list_card_salida.html` ou `_mobile_list_card_instalacion.html`.  
 Vide : `text-center py-5` + icône `fa-3x text-muted` + CTA.
 
-Filtres des listes paginées (incidencias, clientes, instalaciones, salidas) : carte `card shadow-sm border-0 content-card`, header «Filtros de búsqueda», badge «Filtros activos» dès qu’un critère est posé, formulaire GET (`form-control-sm` / `form-select-sm`). Pas de sélecteur `per_page` dans cette carte. Case cochée «Recordar filtros» (cookie de la liste, y compris `per_page`) + boutons Buscar + Reiniciar. Imprimir / Excel seulement s’ils existent déjà (clientes, incidencias, salidas). Pas de nouvel export Excel ailleurs sans demande. Tri : reprendre `sort`, `order` et tous les filtres dans chaque `url_for` (en-tête, pagination, Excel).
+Filtres des listes (incidencias, clientes, instalaciones, salidas, usuarios) : carte `card shadow-sm border-0 content-card`, header «Filtros de búsqueda», badge «Filtros activos» dès qu’un critère est posé. Barre `bnb-search` (`presentation/static/css/bnb-search.css`, `presentation/static/js/bnb-search.js`, liés dans `base.html`). Segment texte **Buscar** ; les autres critères s’ouvrent dans un panneau (listes, dates ; Tarea Bitrix dans le panneau Estado). Arrondi `var(--ui-radius-sm)` (12 px), comme les cartes : pas de capsule, pas de bouton rond. La recherche part à **Entrée** dans Buscar ou au clic du bouton, pas pendant la saisie. Pas de contour au focus du champ Buscar. Mêmes `id` et noms GET. Pas de sélecteur `per_page` dans cette carte. Case cochée «Recordar filtros» (cookie de la liste, y compris `per_page`) + Reiniciar sous la barre. Imprimir / Excel seulement s’ils existent déjà (clientes, incidencias, salidas). Pas de nouvel export Excel ailleurs sans demande. Tri : reprendre `sort`, `order` et tous les filtres dans chaque `url_for` (en-tête, pagination, Excel).
 
 Pagination : pied de la carte liste dès qu’il y a des lignes. Grille `.list-pagination-bar` : numéros au centre (`iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2)`, Anterior / Siguiente) seulement s’il y a plusieurs pages ; «Por página» (`_list_per_page_select.html`, 50 / 100 / 200 / 500, défaut 50, `clamp_list_per_page`) à droite, y compris sur une seule page. Mobile (<992px) : le sélecteur passe sous les numéros, aligné à droite. «Mostrando X a Y de Z» centré sous cette ligne. Le `<select id="per_page">` est hors du formulaire et lié par `form="…"`. Un changement recharge la liste en page 1. Liste vide : le même select reste dans le formulaire, masqué, pour le cookie. Header liste : total + «Página Y de Z».
 
@@ -57,7 +57,7 @@ Cookie `incidents_filters_v1`. GET : `search`, `status`, `bitrix_status` (affich
 
 ### Lista de clientes (`/clients`, `clients.html`)
 
-Cookie `clients_filters_v1`. GET : `search` (nombre, teléfono, dirección, IP), `ville` (barrio), `ciudad`, `categoria`, `per_page`, `sort`, `order`. Imprimir + Excel page courante. Mobile : `_mobile_list_card_client.html`.
+Cookie `clients_filters_v1`. Barre : Buscar, Ciudad, Categoría. Pas de segment Barrio (la colonne Barrio reste). GET de la barre : `search` (nombre, teléfono, dirección, IP), `ciudad`, `categoria`, `per_page`, `sort`, `order`. Recherche à Entrée ou au bouton, pas à la frappe. Imprimir + Excel page courante. Mobile : `_mobile_list_card_client.html`.
 
 | Colonne UI | Source | Règle |
 |---|---|---|
@@ -118,7 +118,7 @@ Toutes les salidas (les 3 `tipo_salida`). Desktop = table ci-dessous. Mobile = `
 | `Materiales` | `s.lineas` | `nombre(modelo) x cantidad`, séparés par virgule |
 | `Acciones` | — | `Ver` → `materiales_salida_detalle` ; `Modificar` → `materiales_salida_modificar` ; Copiar → `materiales-copy.js` ; `Eliminar` (admin, modale de confirmation) → `materiales_salida_supprimer` |
 
-Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. Case «Recordar filtros» + Buscar + Reiniciar + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : même pied que les autres listes (`Por página` à droite, voir plus haut). CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
+Filtres : même carte que Incidencias (`shadow-sm border-0 content-card`, header «Filtros de búsqueda»). GET : `search`, `tipo_salida`, `tecnico`, `material`, `date_from`, `date_to`, `per_page`. «Recordar filtros» + Reiniciar sous la barre (Buscar est le bouton de la barre) + Imprimir (`printReport`) + Excel page courante (`materiales_salidas_export_xlsx`). Cookie `salidas_filters_v1`. Pagination : même pied que les autres listes (`Por página` à droite, voir plus haut). CTA : `Nueva salida` → modale `tipoSalidaModal` (`uso_interno` / `incidencia` seulement ; le matériel d'instalación passe par `Nueva instalación`) puis `materiales_salida_nueva?tipo=`.
 
 États incidencia (classes dédiées, pas `bg-success` générique) :
 
@@ -142,8 +142,8 @@ Même famille que la sidebar (`_sidebar.html` : `nav-menu-icon` + Font Awesome).
 ## Formulaires
 
 - Carte centrée `col-lg-8` + `card-header` titre icône.
-- CSRF : `{{ csrf_token() }}`. Champs `form-control` / `form-select` ; filtres en `*-sm`.
-- Labels filtres : `form-label small text-dark text-uppercase fw-semibold`.
+- CSRF : `{{ csrf_token() }}`. Champs `form-control` / `form-select`. Les filtres des listes sont la barre `bnb-search`, pas une grille `form-control-sm`.
+- Labels des champs de formulaire, hors barre de recherche : `form-label small text-dark text-uppercase fw-semibold`.
 - Obligatoire : ` <span class="text-danger">*</span>`.
 - Flash : `success` | `error` | `info` (error → `alert-danger`). Textes **espagnol**.
 

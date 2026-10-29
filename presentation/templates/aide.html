@@ -263,7 +263,7 @@
                 </section>
 
                 <!-- CLIENTES -->
-                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion particular corporativo radius gps fotos traslado sitio">
+                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion particular corporativo radius gps fotos traslado sitio busqueda filtros barra">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-users"></i></span>
@@ -279,7 +279,7 @@
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde el listado, con confirmación.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Categoría:</strong> Particular (por defecto) o Corporativo. El icono de corporativo aparece en los listados.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Ficha:</strong> contacto, agencia, ciudad, historial de incidencias e información RADIUS (solo lectura, si el cliente tiene Username RADIUS).</span></li>
-                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> por nombre, ID, agencia, ciudad u operador. En el listado, la dirección aparece debajo del nombre y la columna INC muestra el número de incidencias. La lista es compartida entre agencias. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.</span></li>
+                                <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> barra con Buscar, Ciudad y Categoría. Escriba en Buscar y confirme con Intro o el botón rojo, o pulse Ciudad o Categoría y confirme igual. Puede recordar o reiniciar los filtros. En el listado, la dirección aparece debajo del nombre y la columna INC muestra el número de incidencias. La lista es compartida entre agencias. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.</span></li>
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
                                 <li><i class="fas fa-map-marker-alt"></i><span><strong>GPS y fotos:</strong> en la ficha, guarde las coordenadas y hasta 10 fotos (JPG, PNG o WEBP, 5 MB como máximo cada una).</span></li>
                                 <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> un cambio de domicilio no se hace con <em>Modificar</em>. Use el botón <em>Traslado</em> de la ficha. La dirección anterior queda en <em>Direcciones anteriores</em>.</span></li>
@@ -290,7 +290,7 @@
                 </section>
 
                 <!-- INCIDENCIAS -->
-                <section id="incidencias" class="aide-section" data-aide-keywords="incidencias crear comentar estado pendiente solucionada bitrix exportar ticket">
+                <section id="incidencias" class="aide-section" data-aide-keywords="incidencias crear comentar estado pendiente solucionada bitrix exportar ticket busqueda filtros barra">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-exclamation-triangle"></i></span>
@@ -304,6 +304,7 @@
                                 <li><i class="fas fa-plus-circle"></i><span><strong>Nueva incidencia:</strong> menú <em>Incidencias</em> → <em>Nueva incidencia</em> → seleccionar cliente, operador y describir el problema.</span></li>
                                 <li><i class="fas fa-comment-dots"></i><span><strong>Comentarios:</strong> añade comentarios desde la ficha; el equipo recibe una notificación.</span></li>
                                 <li><i class="fas fa-tag"></i><span><strong>Estados disponibles:</strong> <span class="badge badge-attente">Pendiente</span> <span class="badge badge-resolut">Solucionadas</span> <span class="badge badge-bitrix">Bitrix</span>. El estado Bitrix pide una referencia de hasta 10 cifras.</span></li>
+                                <li><i class="fas fa-search"></i><span><strong>Búsqueda:</strong> barra con Buscar, Estado (y Tarea Bitrix si el estado es Bitrix), Usuario, Ciudad, Agencia, Desde y Hasta. Pulse un criterio, elija el valor en el panel y confirme con el botón rojo. Puede recordar o reiniciar los filtros.</span></li>
                                 <li><i class="fas fa-list"></i><span><strong>Paginación:</strong> al pie del listado, a la derecha de los números de página, elija 50, 100, 200 o 500 filas.</span></li>
                                 <li><i class="fas fa-print"></i><span><strong>Imprimir listado:</strong> en la lista de incidencias, use el botón <em>Imprimir</em> para obtener un documento en español con filtros y tabla de la página actual (guardable como PDF desde el navegador).</span></li>
                                 <li><i class="fas fa-file-excel"></i><span><strong>Exportar Excel:</strong> en la misma lista, pulse <em>Exportar Excel</em> para descargar un archivo .xlsx con solo las filas visibles de la página actual, sin resumen ni KPI.</span></li>
@@ -316,7 +317,7 @@
 
                 {% if current_user.is_authenticated and current_user.is_admin() %}
                 <!-- MATERIALES (admin) -->
-                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar ordenar nombre modelo">
+                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar ordenar nombre modelo busqueda filtros barra">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-toolbox"></i></span>
@@ -332,7 +333,7 @@
                                 <li><i class="fas fa-list"></i><span><strong>Catálogo:</strong> menú <em>Materiales</em> → <em>Gestionar</em>. Tipos: Herramientas y Materiales de cliente. Pulse <em>Nombre</em> o <em>Modelo</em> para ordenar la lista (de nuevo invierte el orden).</span></li>
                                 <li><i class="fas fa-plus-circle"></i><span><strong>Nueva salida:</strong> desde el hub o la lista <em>Salidas de material</em>. La ventana solo ofrece <em>Uso interno</em> (sin cliente) o <em>Incidencia</em> (cliente obligatorio).</span></li>
                                 <li><i class="fas fa-building"></i><span><strong>Instalación:</strong> el material de una instalación no se crea desde esa ventana. Se indica en <em>Nueva instalación</em> o con <em>Añadir material</em> en la ficha de la instalación.</span></li>
-                                <li><i class="fas fa-clipboard-list"></i><span><strong>Lista de salidas:</strong> fecha, tipo, técnico, cliente y materiales. Acciones: Ver, Modificar, Copiar y, solo para admin, <em>Eliminar</em> (con confirmación). Filtros por búsqueda, tipo, técnico, material y fechas. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas. Imprimir y Excel exportan la página actual.</span></li>
+                                <li><i class="fas fa-clipboard-list"></i><span><strong>Lista de salidas:</strong> fecha, tipo, técnico, cliente y materiales. Acciones: Ver, Modificar, Copiar y, solo para admin, <em>Eliminar</em> (con confirmación). La búsqueda es una barra: pulse Buscar, Tipo, Técnico, Material, Desde o Hasta, elija en el panel y confirme con el botón rojo. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas. Imprimir y Excel exportan la página actual.</span></li>
                                 <li><i class="fas fa-chart-bar"></i><span><strong>Informe de salidas:</strong> elija fechas, tipo de salida, técnico y material, luego <em>Generar</em>. Puede exportar el resultado en Excel.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Ficha del técnico:</strong> desde <em>Usuarios</em>, en una cuenta de categoría Técnico, el botón <em>Ficha</em> muestra el material asignado.</span></li>
                             </ul>
@@ -341,7 +342,7 @@
                 </section>
 
                 <!-- INSTALACIONES (admin) -->
-                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir copiar informacion ficha eliminar">
+                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir copiar informacion ficha eliminar busqueda filtros barra">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-building"></i></span>
@@ -361,7 +362,7 @@
                                 <li><i class="fas fa-dolly"></i><span><strong>Más material:</strong> <em>Añadir material</em> en la ficha abre una salida de tipo Instalación, con el cliente ya fijado.</span></li>
                                 <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> en la ficha del cliente, botón <em>Traslado</em>. Indique la nueva dirección, el técnico y, si aplica, el material <em>Reutilizado</em> o <em>Retirado</em>. El material nuevo se añade después en la ficha de esa instalación.</span></li>
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde la lista, con confirmación. Solo para instalaciones <span class="badge bg-primary">Nueva</span>: las salidas de material vinculadas se eliminan también. Un traslado no se puede eliminar.</span></li>
-                                <li><i class="fas fa-filter"></i><span><strong>Lista:</strong> ID, fecha, tipo (<span class="badge bg-primary">Nueva</span> o <span class="badge bg-info text-dark">Traslado</span>), técnico, cliente, materiales, estado y acciones Ver, Modificar, Copiar y Eliminar. Filtros por búsqueda, técnico, estado, tipo y fechas. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas.</span></li>
+                                <li><i class="fas fa-filter"></i><span><strong>Lista:</strong> ID, fecha, tipo (<span class="badge bg-primary">Nueva</span> o <span class="badge bg-info text-dark">Traslado</span>), técnico, cliente, materiales, estado y acciones Ver, Modificar, Copiar y Eliminar. La búsqueda es una barra: pulse cada criterio (búsqueda, técnico, estado, tipo, fechas), elija en el panel y confirme con el botón rojo. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas.</span></li>
                             </ul>
                         </div>
                     </div>
@@ -651,7 +652,7 @@
                                     <i class="fas fa-users-cog"></i>
                                     <div>
                                         <strong>Usuarios</strong>
-                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones, limitados a su agencia y su ciudad. El SuperAdmin ve todos los movimientos y accede además a Usuarios, Trazabilidad y Base de datos. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
+                                        <p>Cuentas con rol SuperAdmin, Admin o Usuario, y categoría Atención al cliente o Técnico. El Admin accede a Materiales e Instalaciones, limitados a su agencia y su ciudad. El SuperAdmin ve todos los movimientos y accede además a Usuarios, Trazabilidad y Base de datos. La lista se filtra con una barra: pulse Buscar, Rol, Categoría, Estado, Ciudad o Agencia, elija en el panel y confirme con el botón rojo. En el listado, <em>Ficha</em> abre los retrasos de cambio de estado o el material asignado al técnico. Un usuario no puede desactivar su propia cuenta.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">

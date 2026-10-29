@@ -28,78 +28,75 @@
                 </div>
                 <div class="card-body">
                     <form method="GET" id="formFiltrosClients">
-                        <div class="row g-3 align-items-end">
-                            <div class="col-12 col-md-6 col-lg-3">
-                                <label for="search" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-search me-1"></i>Buscar
-                                    <span id="search-live-spinner" class="spinner-border spinner-border-sm text-primary ms-1 d-none" role="status" aria-hidden="true"></span>
-                                </label>
-                                <input type="text" class="form-control form-control-sm" id="search" name="search"
-                                       value="{{ search_query }}" placeholder="Buscar en nombre, teléfono, dirección, IP..."
-                                       autocomplete="off">
-                            </div>
-                            <div class="col-6 col-md-3 col-lg-2">
-                                <label for="ville" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-map-marker-alt me-1"></i>Filtrar por barrio
-                                </label>
-                                <select class="form-select form-select-sm" id="ville" name="ville">
-                                    <option value="">Todos los barrios</option>
-                                    {% for ville in villes_list %}
-                                    <option value="{{ ville }}" {% if ville_filter == ville %}selected{% endif %}>{{ ville }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-3 col-lg-2">
-                                <label for="ciudad" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-city me-1"></i>Ciudad
-                                </label>
-                                <select class="form-select form-select-sm" id="ciudad" name="ciudad">
-                                    <option value="">Todas las ciudades</option>
-                                    {% for c in ciudades|default([]) %}
-                                    <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-6 col-md-4 col-lg-2">
-                                <label for="categoria" class="form-label small text-dark text-uppercase fw-semibold">
-                                    <i class="fas fa-tags me-1"></i>Categoría
-                                </label>
-                                <select class="form-select form-select-sm" id="categoria" name="categoria">
-                                    <option value="">Todas las categorías</option>
-                                    {% for cat in categorias_cliente|default([]) %}
-                                    <option value="{{ cat }}" {% if categoria_filter == cat %}selected{% endif %}>
-                                        {{ categoria_cliente_labels.get(cat, cat) }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% if not clients.items %}
-                            {% with form_id='formFiltrosClients', per_page_hidden=true %}
-                            {% include '_list_per_page_select.html' %}
-                            {% endwith %}
-                            {% endif %}
-                            <div class="col-12 d-flex gap-2 flex-wrap justify-content-center align-items-center">
-                                <div class="form-check mb-0">
-                                    <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
-                                    <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
-                                        Recordar filtros
-                                    </label>
+                        <div class="bnb-search" data-bnb-search>
+                            <div class="bnb-search__bar" role="search">
+                                <div class="bnb-search__segment bnb-search__segment--field">
+                                    <label class="bnb-search__label" for="search">Buscar</label>
+                                    <input type="text" class="bnb-search__inline" id="search" name="search"
+                                           value="{{ search_query }}" placeholder="Nombre, teléfono, dirección, IP…"
+                                           autocomplete="off">
                                 </div>
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-search me-1"></i>Buscar
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todas las ciudades">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-ciudad">
+                                        <span class="bnb-search__label">Ciudad</span>
+                                        <span class="bnb-search__value">Todas las ciudades</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-ciudad" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="ciudad" role="listbox" aria-label="Ciudad"></div>
+                                        <select class="bnb-search__native" id="ciudad" name="ciudad" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todas las ciudades</option>
+                                            {% for c in ciudades|default([]) %}
+                                            <option value="{{ c.id }}" {% if ciudad_filter and c.id|string == ciudad_filter|string %}selected{% endif %}>{{ c.nombre }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="bnb-search__segment" data-bnb-placeholder="Todas las categorías">
+                                    <button type="button" class="bnb-search__trigger" aria-expanded="false" aria-haspopup="listbox" aria-controls="bnb-panel-categoria">
+                                        <span class="bnb-search__label">Categoría</span>
+                                        <span class="bnb-search__value">Todas las categorías</span>
+                                    </button>
+                                    <div class="bnb-search__panel" id="bnb-panel-categoria" hidden>
+                                        <div class="bnb-search__choices" data-bnb-for="categoria" role="listbox" aria-label="Categoría"></div>
+                                        <select class="bnb-search__native" id="categoria" name="categoria" tabindex="-1" aria-hidden="true">
+                                            <option value="">Todas las categorías</option>
+                                            {% for cat in categorias_cliente|default([]) %}
+                                            <option value="{{ cat }}" {% if categoria_filter == cat %}selected{% endif %}>
+                                                {{ categoria_cliente_labels.get(cat, cat) }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="bnb-search__go" aria-label="Buscar">
+                                    <i class="fas fa-search" aria-hidden="true"></i>
+                                    <span class="bnb-search__go-label">Buscar</span>
                                 </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-clients">
-                                    <i class="fas fa-undo-alt me-1"></i>Reiniciar
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
-                                    <i class="fas fa-print"></i>
-                                </button>
-                                <a href="{{ url_for('api_clients_export_xlsx', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter, categoria=categoria_filter, sort=sort_by, order=sort_order) }}"
-                                   class="btn btn-outline-success btn-sm"
-                                   title="Exportar Excel (página actual)">
-                                    <i class="fas fa-file-excel"></i>
-                                </a>
                             </div>
+                        </div>
+                        {% if not clients.items %}
+                        {% with form_id='formFiltrosClients', per_page_hidden=true %}
+                        {% include '_list_per_page_select.html' %}
+                        {% endwith %}
+                        {% endif %}
+                        <div class="bnb-search__tools">
+                            <div class="form-check mb-0">
+                                <input class="form-check-input" type="checkbox" id="remember-filters-toggle-clients" checked>
+                                <label class="form-check-label small text-muted" for="remember-filters-toggle-clients">
+                                    Recordar filtros
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="reset-filters-btn-clients">
+                                <i class="fas fa-undo-alt me-1"></i>Reiniciar
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printReport()" title="Imprimir listado">
+                                <i class="fas fa-print"></i>
+                            </button>
+                            <a href="{{ url_for('api_clients_export_xlsx', page=clients.page, per_page=per_page, search=search_query, ville=ville_filter, ciudad=ciudad_filter, categoria=categoria_filter, sort=sort_by, order=sort_order) }}"
+                               class="btn btn-outline-success btn-sm"
+                               title="Exportar Excel (página actual)">
+                                <i class="fas fa-file-excel"></i>
+                            </a>
                         </div>
                     </form>
                     <div id="filters-feedback-clients" class="small text-success mt-2 d-none">
@@ -509,7 +506,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function getCurrentFilters() {
         return {
             search: document.getElementById('search').value || '',
-            ville: document.getElementById('ville').value || '',
             ciudad: document.getElementById('ciudad').value || '',
             categoria: document.getElementById('categoria').value || '',
             per_page: document.getElementById('per_page').value || '50'
@@ -551,7 +547,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function applyFilters(filters) {
         document.getElementById('search').value = filters.search || '';
-        document.getElementById('ville').value = filters.ville || '';
         document.getElementById('ciudad').value = filters.ciudad || '';
         document.getElementById('categoria').value = filters.categoria || '';
         document.getElementById('per_page').value = filters.per_page || '50';
@@ -596,126 +591,18 @@ document.addEventListener('DOMContentLoaded', function() {
         saveFilters();
     });
 
-    // Recherche live : mise a jour de la liste pendant la saisie (debounce)
     const searchInput = document.getElementById('search');
-    const searchSpinner = document.getElementById('search-live-spinner');
-    const liveSearchDebounceMs = 400;
-    let liveSearchTimer = null;
-    let liveSearchAbort = null;
-    let lastLiveSearchValue = searchInput ? searchInput.value : '';
-
-    function updateFiltrosActivosBadge() {
-        const badge = document.getElementById('filtrosActivos');
-        if (!badge) {
-            return;
-        }
-        const hasFilters = ['search', 'ville', 'ciudad', 'categoria'].some(function(id) {
-            const el = document.getElementById(id);
-            return el && (el.value || '').trim() !== '';
-        });
-        badge.classList.toggle('d-none', !hasFilters);
-    }
-
-    function setLiveSearchLoading(isLoading) {
-        if (searchSpinner) {
-            searchSpinner.classList.toggle('d-none', !isLoading);
-        }
-        if (searchInput) {
-            searchInput.setAttribute('aria-busy', isLoading ? 'true' : 'false');
-        }
-    }
-
-    function buildClientsQueryParams(options) {
-        const params = new URLSearchParams();
-        const filters = getCurrentFilters();
-        Object.keys(filters).forEach(function(key) {
-            if (filters[key]) {
-                params.set(key, filters[key]);
-            }
-        });
-        const urlParams = new URLSearchParams(window.location.search);
-        const sort = urlParams.get('sort');
-        const order = urlParams.get('order');
-        if (sort) {
-            params.set('sort', sort);
-        }
-        if (order) {
-            params.set('order', order);
-        }
-        if (options && options.page) {
-            params.set('page', String(options.page));
-        }
-        return params;
-    }
-
-    async function runLiveSearch() {
-        if (!searchInput || !form) {
-            return;
-        }
-        const currentValue = searchInput.value;
-        if (currentValue === lastLiveSearchValue) {
-            return;
-        }
-        lastLiveSearchValue = currentValue;
-
-        saveFilters();
-        updateFiltrosActivosBadge();
-        setLiveSearchLoading(true);
-
-        if (liveSearchAbort) {
-            liveSearchAbort.abort();
-        }
-        liveSearchAbort = new AbortController();
-
-        const params = buildClientsQueryParams({ page: 1 });
-        const url = '{{ url_for("clients") }}' + (params.toString() ? ('?' + params.toString()) : '');
-        const cursorPos = searchInput.selectionStart;
-
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' },
-                signal: liveSearchAbort.signal,
-                credentials: 'same-origin'
-            });
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
-            }
-            const html = await response.text();
-            const doc = new DOMParser().parseFromString(html, 'text/html');
-            const newResults = doc.getElementById('clients-results');
-            const currentResults = document.getElementById('clients-results');
-            if (newResults && currentResults) {
-                currentResults.replaceWith(newResults);
-            }
-            history.replaceState(null, '', url);
-            updateFiltrosActivosBadge();
-            setLiveSearchLoading(false);
-        } catch (error) {
-            if (error && error.name === 'AbortError') {
+    if (searchInput) {
+        searchInput.addEventListener('keydown', function(event) {
+            if (event.key !== 'Enter') {
                 return;
             }
-            console.error('Error en busqueda live de clientes:', error);
-            setLiveSearchLoading(false);
-            form.submit();
-            return;
-        }
-
-        searchInput.focus();
-        try {
-            const pos = typeof cursorPos === 'number' ? cursorPos : searchInput.value.length;
-            searchInput.setSelectionRange(pos, pos);
-        } catch (e) {
-            // ignore
-        }
-    }
-
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            if (liveSearchTimer) {
-                clearTimeout(liveSearchTimer);
+            event.preventDefault();
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.submit();
             }
-            liveSearchTimer = setTimeout(runLiveSearch, liveSearchDebounceMs);
         });
     }
 });
