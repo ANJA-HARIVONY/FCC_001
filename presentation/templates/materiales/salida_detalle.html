@@ -3,7 +3,7 @@
 
 {% block page_icon %}<i class="fas fa-dolly" aria-hidden="true"></i>{% endblock %}
 {% block page_title %}Salida #{{ salida.id }}{% endblock %}
-{% block page_subtitle %}Detalle de la asignación{% endblock %}
+{% block page_subtitle %}Nota de entrega{% endblock %}
 {% block page_actions %}
 <a href="{{ url_for('materiales_salidas') }}" class="btn btn-secondary btn-sm">Volver</a>
 <button type="button" class="btn btn-outline-success btn-sm"
@@ -14,6 +14,9 @@
         onclick="copierSalida(this)"
         title="Copiar información">
     <i class="fas fa-copy me-1"></i>Copiar
+</button>
+<button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+    <i class="fas fa-print me-1"></i>Imprimir
 </button>
 <a href="{{ url_for('materiales_salida_modificar', salida_id=salida.id) }}" class="btn btn-primary btn-sm">Modificar</a>
 {% endblock %}
@@ -29,90 +32,156 @@
 {% endblock %}
 
 {% block content %}
+{% set total_cantidad = salida.lineas|sum(attribute='cantidad') %}
 <div class="container-fluid px-0">
-    <div class="row g-4">
-        <div class="col-lg-5">
-            <div class="card content-card">
-                <div class="card-header"><h5 class="mb-0">Información general</h5></div>
-                <div class="card-body">
-                    <p><strong>Fecha:</strong> {{ salida.fecha.strftime('%d/%m/%Y') }}</p>
-                    <p><strong>Tipo de salida:</strong>
-                        <span class="badge bg-secondary">{{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}</span>
-                    </p>
-                    {% if salida.instalacion %}
-                    <p><strong>{{ _('Instalación') }}:</strong>
-                        <a href="{{ url_for('instalaciones_detalle', instalacion_id=salida.instalacion.id) }}">#{{ salida.instalacion.id }}</a>
-                    </p>
-                    {% endif %}
-                    <p><strong>Técnico:</strong> {{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
-                    <p><strong>Cliente:</strong>
-                        {% if salida.client %}
-                        {{ salida.client.nom }}
-                        {% elif salida.tipo_salida == 'uso_interno' %}
-                        <span class="text-muted">Uso interno</span>
-                        {% else %}
-                        Uso general
-                        {% endif %}
-                    </p>
-                    {% if salida.observaciones %}
-                    <p><strong>Observaciones:</strong></p>
-                    <p class="text-muted mb-0" style="white-space: pre-wrap;">{{ salida.observaciones }}</p>
-                    {% endif %}
-                    <p class="{% if salida.observaciones %}mt-3{% endif %}"><strong>Estado:</strong>
-                        {% if salida.estado == 'modificada' %}
-                        <span class="badge bg-warning text-dark">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
-                        {% else %}
-                        <span class="badge bg-success">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
-                        {% endif %}
-                    </p>
-                    <hr>
-                    <p class="small mb-1"><strong>Registrado:</strong> {{ salida.fecha_registro.strftime('%d/%m/%Y %H:%M') if salida.fecha_registro else '—' }}
-                        {% if salida.registrado_por %}por {{ salida.registrado_por.nom }}{% endif %}</p>
-                    {% if salida.fecha_modificacion %}
-                    <p class="small mb-0"><strong>Última modificación:</strong> {{ salida.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}
-                        {% if salida.modificado_por %}por {{ salida.modificado_por.nom }}{% endif %}</p>
-                    {% endif %}
+    <article class="salida-bl" aria-label="Nota de entrega">
+        <header class="salida-bl__mast">
+            <div class="salida-bl__brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="salida-bl__logo">
+                <div>
+                    <p class="salida-bl__brand-name">CONNEXIA</p>
+                    <p class="salida-bl__brand-line">Atención al cliente</p>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-7">
-            <div class="card content-card">
-                <div class="card-header"><h5 class="mb-0">Líneas de material</h5></div>
-                <div class="card-body p-0">
-                    {% if salida.lineas %}
-                    <div class="table-responsive d-none d-lg-block d-print-block">
-                    <table class="table mb-0">
-                        <thead><tr><th>Material</th><th>Modelo</th><th class="text-end">Cantidad</th></tr></thead>
-                        <tbody>
-                            {% for linea in salida.lineas %}
-                            <tr>
-                                <td>{{ linea.material.nombre if linea.material else '—' }}</td>
-                                <td>{{ linea.material.modelo if linea.material else '—' }}</td>
-                                <td class="text-end">{{ linea.cantidad }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                    </div>
-                    <div class="mobile-list d-lg-none d-print-none" id="salida-lineas-mobile">
-                        {% for linea in salida.lineas %}
-                            {% include '_mobile_list_card_salida_linea.html' %}
-                        {% endfor %}
-                    </div>
+            <!--<div class="salida-bl__doc">
+                <p class="salida-bl__doc-num">N.º {{ salida.id }}</p>
+                <p class="salida-bl__doc-date">{{ salida.fecha.strftime('%d/%m/%Y') }}</p>
+            </div>-->
+        </header>
+
+        <div class="salida-bl__meta">
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">Tipo de salida</span>
+                <span class="salida-bl__v">{{ salida_tipo_labels.get(salida.tipo_salida, salida.tipo_salida) }}</span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">Estado</span>
+                <span class="salida-bl__v">
+                    {% if salida.estado == 'modificada' %}
+                    <span class="badge bg-warning text-dark">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
                     {% else %}
-                    <div class="text-center py-5 px-3">
-                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No hay líneas de material.</h5>
-                    </div>
+                    <span class="badge bg-success">{{ estado_labels.get(salida.estado, salida.estado) }}</span>
                     {% endif %}
-                </div>
+                </span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Instalación') }}</span>
+                <span class="salida-bl__v">
+                    {% if salida.instalacion %}
+                    <a class="salida-bl__link" href="{{ url_for('instalaciones_detalle', instalacion_id=salida.instalacion.id) }}">#{{ salida.instalacion.id }}</a>
+                    {% else %}
+                    —
+                    {% endif %}
+                </span>
             </div>
         </div>
-    </div>
+
+        <div class="salida-bl__parties">
+            <section class="salida-bl__party">
+                <h3 class="salida-bl__party-title">CLIENTE</h3>
+                {% if salida.client %}
+                <p class="salida-bl__party-name">
+                    <a class="salida-bl__link" href="{{ url_for('fiche_client', id=salida.client.id) }}">{{ salida.client.nom }}</a>
+                </p>
+                <p class="salida-bl__party-line">{{ salida.client.adresse }}</p>
+                <p class="salida-bl__party-line">{{ salida.client.ville }}{% if salida.client.ciudad_row %} · {{ salida.client.ciudad_row.nombre }}{% endif %}</p>
+                <p class="salida-bl__party-line">Tel. {{ salida.client.telephone }}</p>
+                {% elif salida.tipo_salida == 'uso_interno' %}
+                <p class="salida-bl__party-name">Uso interno</p>
+                <p class="salida-bl__party-line">Sin cliente</p>
+                {% else %}
+                <p class="salida-bl__party-name">Uso general</p>
+                {% endif %}
+            </section>
+            <section class="salida-bl__party">
+                <h3 class="salida-bl__party-title">TECNICO</h3>
+                <p class="salida-bl__party-name">{{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
+                {% if salida.tecnico and salida.tecnico.telephone %}
+                <p class="salida-bl__party-line">Tel. {{ salida.tecnico.telephone }}</p>
+                {% endif %}
+                {% if salida.tecnico %}
+                <p class="salida-bl__party-line">{{ salida.tecnico.ciudad.nombre if salida.tecnico.ciudad else '—' }} / {{ salida.tecnico.agencia.nombre if salida.tecnico.agencia else '—' }}</p>
+                {% endif %}
+            </section>
+        </div>
+
+        <div class="salida-bl__lines">
+            <table class="salida-bl__grid">
+                <thead>
+                    <tr>
+                        <th class="salida-bl__col-n">N.º</th>
+                        <th>Material</th>
+                        <th>Modelo</th>
+                        <th class="salida-bl__col-qty">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if salida.lineas %}
+                    {% for linea in salida.lineas %}
+                    <tr>
+                        <td class="salida-bl__col-n">{{ loop.index }}</td>
+                        <td>{{ linea.material.nombre if linea.material else '—' }}</td>
+                        <td>{{ linea.material.modelo if linea.material and linea.material.modelo else '—' }}</td>
+                        <td class="salida-bl__col-qty">{{ linea.cantidad }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="salida-bl__empty">No hay líneas de material.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+                {% if salida.lineas %}
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="salida-bl__total-label">Total</td>
+                        <td class="salida-bl__col-qty">{{ total_cantidad }}</td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+
+        <section class="salida-bl__notes">
+            <h3 class="salida-bl__party-title">Observaciones</h3>
+            {% if salida.observaciones %}
+            <p class="salida-bl__notes-text">{{ salida.observaciones }}</p>
+            {% else %}
+            <p class="salida-bl__notes-text salida-bl__notes-text--empty">—</p>
+            {% endif %}
+        </section>
+
+        <!--<div class="salida-bl__signs">
+            <section class="salida-bl__sign">
+                <h3 class="salida-bl__party-title">Entregado por</h3>
+                <p class="salida-bl__party-line">{{ salida.tecnico.nom if salida.tecnico else '—' }}</p>
+                <p class="salida-bl__sign-line">Firma</p>
+            </section>
+            <section class="salida-bl__sign">
+                <h3 class="salida-bl__party-title">Recibido por</h3>
+                <p class="salida-bl__party-line">
+                    {% if salida.client %}
+                    {{ salida.client.nom }}
+                    {% elif salida.tipo_salida == 'uso_interno' %}
+                    Uso interno
+                    {% else %}
+                    Uso general
+                    {% endif %}
+                </p>
+                <p class="salida-bl__sign-line">Firma</p>
+            </section>
+        </div>-->
+
+        <footer class="salida-bl__foot">
+            <span>Registrado: {{ salida.fecha_registro.strftime('%d/%m/%Y %H:%M') if salida.fecha_registro else '—' }}{% if salida.registrado_por %} por {{ salida.registrado_por.nom }}{% endif %}</span>
+            {% if salida.fecha_modificacion %}
+            <span>Última modificación: {{ salida.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}{% if salida.modificado_por %} por {{ salida.modificado_por.nom }}{% endif %}</span>
+            {% endif %}
+        </footer>
+    </article>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
 <script src="{{ url_for('static', filename='js/materiales-copy.js') }}"></script>
 {% endblock %}

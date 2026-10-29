@@ -1298,6 +1298,14 @@ msgstr "Le matériel d'une installation s'enregistre depuis"
 msgid "¿Está seguro de que desea eliminar la salida"
 msgstr "Voulez-vous vraiment supprimer la sortie"
 
+#: presentation/templates/instalaciones/detalle.html
+msgid "Imprimir"
+msgstr "Imprimer"
+
+#: presentation/templates/instalaciones/detalle.html
+msgid "Modelo"
+msgstr "Modèle"
+
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "Client ajouté avec succès!"
 

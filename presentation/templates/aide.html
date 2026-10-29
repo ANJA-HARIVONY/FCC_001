@@ -263,7 +263,7 @@
                 </section>
 
                 <!-- CLIENTES -->
-                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion particular corporativo radius gps fotos traslado sitio busqueda filtros barra">
+                <section id="clientes" class="aide-section" data-aide-keywords="clientes crear modificar eliminar ficha contacto direccion particular corporativo radius gps fotos traslado sitio busqueda filtros barra a4 imprimir">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-users"></i></span>
@@ -278,7 +278,7 @@
                                 <li><i class="fas fa-edit"></i><span><strong>Modificar:</strong> abrir la ficha del cliente y pulsar <em>Modificar</em>. Corregir la dirección actualiza el sitio activo.</span></li>
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde el listado, con confirmación.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Categoría:</strong> Particular (por defecto) o Corporativo. El icono de corporativo aparece en los listados.</span></li>
-                                <li><i class="fas fa-id-card"></i><span><strong>Ficha:</strong> contacto, agencia, ciudad, historial de incidencias e información RADIUS (solo lectura, si el cliente tiene Username RADIUS).</span></li>
+                                <li><i class="fas fa-id-card"></i><span><strong>Ficha:</strong> se abre como una hoja A4 vertical: contacto, ciudad, historial de incidencias, materiales e información RADIUS (solo lectura, si el cliente tiene Username RADIUS). <em>Imprimir</em> saca esa hoja.</span></li>
                                 <li><i class="fas fa-search"></i><span><strong>Búsqueda y filtros:</strong> barra con Buscar, Ciudad y Categoría. Escriba en Buscar y confirme con Intro o el botón rojo, o pulse Ciudad o Categoría y confirme igual. Puede recordar o reiniciar los filtros. En el listado, la dirección aparece debajo del nombre y la columna INC muestra el número de incidencias. La lista es compartida entre agencias. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas. <em>Imprimir</em> y <em>Exportar Excel</em> cubren solo la página actual.</span></li>
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
                                 <li><i class="fas fa-map-marker-alt"></i><span><strong>GPS y fotos:</strong> en la ficha, guarde las coordenadas y hasta 10 fotos (JPG, PNG o WEBP, 5 MB como máximo cada una).</span></li>
@@ -317,7 +317,7 @@
 
                 {% if current_user.is_authenticated and current_user.is_admin() %}
                 <!-- MATERIALES (admin) -->
-                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar ordenar nombre modelo busqueda filtros barra">
+                <section id="materiales" class="aide-section" data-aide-keywords="materiales catalogo salida uso interno incidencia instalacion tecnico herramientas eliminar ordenar nombre modelo busqueda filtros barra nota entrega imprimir firma">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-toolbox"></i></span>
@@ -334,6 +334,7 @@
                                 <li><i class="fas fa-plus-circle"></i><span><strong>Nueva salida:</strong> desde el hub o la lista <em>Salidas de material</em>. La ventana solo ofrece <em>Uso interno</em> (sin cliente) o <em>Incidencia</em> (cliente obligatorio).</span></li>
                                 <li><i class="fas fa-building"></i><span><strong>Instalación:</strong> el material de una instalación no se crea desde esa ventana. Se indica en <em>Nueva instalación</em> o con <em>Añadir material</em> en la ficha de la instalación.</span></li>
                                 <li><i class="fas fa-clipboard-list"></i><span><strong>Lista de salidas:</strong> fecha, tipo, técnico, cliente y materiales. Acciones: Ver, Modificar, Copiar y, solo para admin, <em>Eliminar</em> (con confirmación). La búsqueda es una barra: pulse Buscar, Tipo, Técnico, Material, Desde o Hasta, elija en el panel y confirme con el botón rojo. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas. Imprimir y Excel exportan la página actual.</span></li>
+                                <li><i class="fas fa-file-invoice"></i><span><strong>Nota de entrega:</strong> <em>Ver</em> abre la salida como una nota de entrega: destinatario, técnico, líneas de material y espacio de firma. <em>Imprimir</em> saca esa hoja en A4 vertical.</span></li>
                                 <li><i class="fas fa-chart-bar"></i><span><strong>Informe de salidas:</strong> elija fechas, tipo de salida, técnico y material, luego <em>Generar</em>. Puede exportar el resultado en Excel.</span></li>
                                 <li><i class="fas fa-id-card"></i><span><strong>Ficha del técnico:</strong> desde <em>Usuarios</em>, en una cuenta de categoría Técnico, el botón <em>Ficha</em> muestra el material asignado.</span></li>
                             </ul>
@@ -342,7 +343,7 @@
                 </section>
 
                 <!-- INSTALACIONES (admin) -->
-                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir copiar informacion ficha eliminar busqueda filtros barra">
+                <section id="instalaciones" class="aide-section" data-aide-keywords="instalaciones nueva traslado en curso terminada tecnico cliente sitio material entregado reabrir copiar informacion ficha eliminar busqueda filtros barra nota entrega imprimir">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-building"></i></span>
@@ -359,7 +360,8 @@
                                 <li><i class="fas fa-lock"></i><span><strong>Edición:</strong> cliente, sitio y tipo no se cambian al modificar. Puede ajustar fecha, técnico y observaciones.</span></li>
                                 <li><i class="fas fa-copy"></i><span><strong>Copiar información:</strong> en la ficha, entre <em>Volver</em> y <em>Modificar</em>, copia el cliente, los materiales y el técnico, igual que en la lista.</span></li>
                                 <li><i class="fas fa-check-circle"></i><span><strong>Terminar:</strong> en la ficha, <em>Terminar</em> pasa el estado a <span class="badge bg-success">Terminada</span>. Solo un administrador puede <em>Reabrir</em>.</span></li>
-                                <li><i class="fas fa-dolly"></i><span><strong>Más material:</strong> <em>Añadir material</em> en la ficha abre una salida de tipo Instalación, con el cliente ya fijado.</span></li>
+                                <li><i class="fas fa-file-invoice"></i><span><strong>Ficha:</strong> <em>Ver</em> abre la instalación en la misma hoja que una salida: cliente, técnico, material entregado y observaciones. <em>Imprimir</em> saca esa hoja en A4 vertical. En un traslado, el material reutilizado o retirado aparece en la misma hoja.</span></li>
+                                <li><i class="fas fa-dolly"></i><span><strong>Más material:</strong> <em>Añadir material</em>, junto al material entregado, abre una salida de tipo Instalación, con el cliente ya fijado. Cada salida vinculada se abre con <em>Ver</em>.</span></li>
                                 <li><i class="fas fa-truck-moving"></i><span><strong>Traslado:</strong> en la ficha del cliente, botón <em>Traslado</em>. Indique la nueva dirección, el técnico y, si aplica, el material <em>Reutilizado</em> o <em>Retirado</em>. El material nuevo se añade después en la ficha de esa instalación.</span></li>
                                 <li><i class="fas fa-trash"></i><span><strong>Eliminar:</strong> desde la ficha o desde la lista, con confirmación. Solo para instalaciones <span class="badge bg-primary">Nueva</span>: las salidas de material vinculadas se eliminan también. Un traslado no se puede eliminar.</span></li>
                                 <li><i class="fas fa-filter"></i><span><strong>Lista:</strong> ID, fecha, tipo (<span class="badge bg-primary">Nueva</span> o <span class="badge bg-info text-dark">Traslado</span>), técnico, cliente, materiales, estado y acciones Ver, Modificar, Copiar y Eliminar. La búsqueda es una barra: pulse cada criterio (búsqueda, técnico, estado, tipo, fechas), elija en el panel y confirme con el botón rojo. Al pie, a la derecha de la paginación, se elige 50, 100, 200 o 500 filas.</span></li>

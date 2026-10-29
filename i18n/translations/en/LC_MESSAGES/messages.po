@@ -1293,6 +1293,14 @@ msgstr "Installation material is recorded from"
 msgid "¿Está seguro de que desea eliminar la salida"
 msgstr "Are you sure you want to delete checkout"
 
+#: presentation/templates/instalaciones/detalle.html
+msgid "Imprimir"
+msgstr "Print"
+
+#: presentation/templates/instalaciones/detalle.html
+msgid "Modelo"
+msgstr "Model"
+
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "Client added successfully!"
 

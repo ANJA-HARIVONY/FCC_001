@@ -12,8 +12,11 @@
 <a href="{{ url_for('modifier_client', id=client.id, next=return_url) }}" class="btn btn-warning btn-sm">
     <i class="fas fa-edit me-1"></i>{{ _('Modificar') }}
 </a>
+<button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+    <i class="fas fa-print me-1"></i>{{ _('Imprimir') }}
+</button>
 <a href="{{ url_for('imprimer_fiche_client', id=client.id) }}" class="btn btn-primary btn-sm" target="_blank">
-    <i class="fas fa-print me-1"></i>{{ _('Imprimir PDF') }}
+    <i class="fas fa-file-pdf me-1"></i>{{ _('Imprimir PDF') }}
 </a>
 {% endblock %}
 
@@ -28,163 +31,90 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <div class="row">
-        <!-- Informations du client -->
-        <div class="col-lg-6">
-            <div class="card shadow mb-4 content-card">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-info-circle"></i> {{ _('Información del cliente') }}
-                    </h6>
+    <article class="salida-bl salida-bl--app" aria-label="{{ _('Ficha del Cliente') }}">
+        <header class="salida-bl__mast">
+            <div class="salida-bl__brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="salida-bl__logo">
+                <div>
+                    <p class="salida-bl__brand-name">CONNEXIA</p>
+                    <p class="salida-bl__brand-line">Atención al cliente</p>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Nombre') }}:</strong></div>
-                        <div class="col-sm-8">{{ client.nom }}</div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Teléfono') }}:</strong></div>
-                        <div class="col-sm-8">{{ client.telephone }}</div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Dirección') }}:</strong></div>
-                        <div class="col-sm-8">{{ client.adresse }}</div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Barrio') }}:</strong></div>
-                        <div class="col-sm-8">{{ client.ville }}</div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>Ciudad:</strong></div>
-                        <div class="col-sm-8">{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}</div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>Categoría:</strong></div>
-                        <div class="col-sm-8">
-                            {% if client.categoria == 'corporativo' %}
-                            {% include '_cliente_corporativo_icon.html' %}
-                            {% endif %}
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('IP Router') }}:</strong></div>
-                        <div class="col-sm-8"><code><a href="http://{{ client.ip_router }}" target="_blank">{{ client.ip_router }}</a></code></div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('IP Antena') }}:</strong></div>
-                        <div class="col-sm-8"><code><a href="http://{{ client.ip_antea }}" target="_blank">{{ client.ip_antea }}</a></code></div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>Cuenta PPPoE:</strong></div>
-                        <div class="col-sm-8">
-                            {% if client.username_radius %}
-                            <code>{{ client.username_radius }}</code>
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Creado por') }}:</strong></div>
-                        <div class="col-sm-8">
-                            {% if client.cree_par %}
-                            <i class="fas fa-user text-primary"></i> {{ client.cree_par.nom }}
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
-                        <div class="col-sm-4"><strong>{{ _('Modificado por') }}:</strong></div>
-                        <div class="col-sm-8">
-                            {% if client.modifie_par %}
-                            <i class="fas fa-user-edit text-muted"></i> {{ client.modifie_par.nom }}
-                            {% if client.modifie_le %}
-                            <span class="text-muted ms-1">{{ client.modifie_le.strftime('%d/%m/%Y %H:%M') }}</span>
-                            {% endif %}
-                            {% else %}
-                            <span class="text-muted">—</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+            </div>
+        </header>
+
+        <div class="salida-bl__meta">
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">Ciudad</span>
+                <span class="salida-bl__v">{{ client.ciudad_row.nombre if client.ciudad_row else 'N/A' }}</span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">Categoría</span>
+                <span class="salida-bl__v">
+                    {% if client.categoria == 'corporativo' %}
+                    {% include '_cliente_corporativo_icon.html' %} Corporativo
+                    {% else %}
+                    Particular
+                    {% endif %}
+                </span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Cuenta PPPoE') }}</span>
+                <span class="salida-bl__v">{% if client.username_radius %}<code>{{ client.username_radius }}</code>{% else %}—{% endif %}</span>
             </div>
         </div>
 
-        <!-- Statistiques des incidents -->
-        <div class="col-lg-6">
-            <div class="card shadow mb-4 content-card">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-chart-pie"></i> {{ _('Estadisticas de las Incidencias') }}
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% set total_incidents = incidents|length %}
-                    {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Solucionadas')|list|length %}
-                    {% set incidents_attente = incidents|selectattr('status', 'equalto', 'Pendiente')|list|length %}
-                    {% set incidents_bitrix = incidents|selectattr('status', 'equalto', 'Bitrix')|list|length %}
-                    
-                    <div class="row text-center">
-                        <div class="col-6 mb-3">
-                            <div class="card border-left-primary">
-                                <div class="card-body py-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">{{ _('Total') }}</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_incidents }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <div class="card border-left-success">
-                                <div class="card-body py-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">{{ _('Solucionadas') }}</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidents_resolus }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <div class="card border-left-warning">
-                                <div class="card-body py-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">{{ _('Pendientes') }}</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidents_attente }}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <div class="card border-left-info">
-                                <div class="card-body py-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">{{ _('Bitrix') }}</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ incidents_bitrix }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div class="salida-bl__parties">
+            <section class="salida-bl__party">
+                <h3 class="salida-bl__party-title">CLIENTE</h3>
+                <p class="salida-bl__party-name">{{ client.nom }}</p>
+                <p class="salida-bl__party-line">{{ client.adresse }}</p>
+                <p class="salida-bl__party-line">{{ client.ville }}{% if client.ciudad_row %} · {{ client.ciudad_row.nombre }}{% endif %}</p>
+                <p class="salida-bl__party-line">Tel. {{ client.telephone }}</p>
+            </section>
+            <section class="salida-bl__party">
+                <h3 class="salida-bl__party-title">CONEXIÓN</h3>
+                <p class="salida-bl__party-line"><strong>{{ _('IP Router') }}:</strong> {% if client.ip_router %}<a class="salida-bl__link" href="http://{{ client.ip_router }}" target="_blank" rel="noopener">{{ client.ip_router }}</a>{% else %}—{% endif %}</p>
+                <p class="salida-bl__party-line"><strong>{{ _('IP Antena') }}:</strong> {% if client.ip_antea %}<a class="salida-bl__link" href="http://{{ client.ip_antea }}" target="_blank" rel="noopener">{{ client.ip_antea }}</a>{% else %}—{% endif %}</p>
+            </section>
+        </div>
+
+        {% set total_incidents = incidents|length %}
+        {% set incidents_resolus = incidents|selectattr('status', 'equalto', 'Solucionadas')|list|length %}
+        {% set incidents_attente = incidents|selectattr('status', 'equalto', 'Pendiente')|list|length %}
+        {% set incidents_bitrix = incidents|selectattr('status', 'equalto', 'Bitrix')|list|length %}
+        <div class="salida-bl__section-label">
+            <h3 class="salida-bl__party-title">{{ _('Estadisticas de las Incidencias') }}</h3>
+        </div>
+        <div class="salida-bl__meta salida-bl__meta--4">
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Total') }}</span>
+                <span class="salida-bl__v">{{ total_incidents }}</span>
             </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Solucionadas') }}</span>
+                <span class="salida-bl__v">{{ incidents_resolus }}</span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Pendientes') }}</span>
+                <span class="salida-bl__v">{{ incidents_attente }}</span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Bitrix') }}</span>
+                <span class="salida-bl__v">{{ incidents_bitrix }}</span>
+            </div>
+        </div>
 
             {% if radius_enabled %}
-            <div class="card shadow mb-4 content-card" id="radius-info-card">
-                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-wifi"></i> Información RADIUS
-                    </h6>
+            <div id="radius-info-card">
+                <div class="salida-bl__section-label">
+                    <h3 class="salida-bl__party-title">Información RADIUS</h3>
                     <a href="{{ url_for('fiche_client', id=client.id, radius_refresh=1, next=return_url) }}"
-                       class="btn btn-sm btn-light"
+                       class="btn btn-sm btn-outline-secondary salida-bl__screen"
                        title="Actualizar datos RADIUS">
                         <i class="fas fa-sync-alt"></i> Actualizar
                     </a>
                 </div>
-                <div class="card-body">
+                <div class="salida-bl__block">
                     {% set ri = radius_info or {} %}
                     {% set st = ri.get('status') %}
 
@@ -296,133 +226,65 @@
                 </div>
             </div>
             {% endif %}
-        </div>
-    </div>
 
-    <!-- Liste des incidents -->
-    <div class="card shadow mb-4 content-card">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-exclamation-triangle"></i> {{ _('Historial de las Incidencias') }}
-            </h6>
+        <div class="salida-bl__section-label">
+            <h3 class="salida-bl__party-title">{{ _('Historial de las Incidencias') }}</h3>
         </div>
-        <div class="card-body p-0">
-            {% if incidents %}
-                <div class="table-responsive d-none d-lg-block d-print-block p-3">
-                    <table class="table table-bordered mb-0" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>{{ _('Fecha/Hora') }}</th>
-                                <th>{{ _('Asunto') }}</th>
-                                <th>{{ _('Estado') }}</th>
-                                <th>{{ _('Operador') }}</th>
-                                <th>{{ _('Observaciones') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for incident in incidents %}
-                            <tr>
-                                <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
-                                <td>{{ incident.intitule }}</td>
-                                <td>
-                                    {% if incident.status == 'Solucionadas' %}
-                                        <span class="badge bg-success">{{ _('Solucionadas') }}</span>
-                                    {% elif incident.status == 'Pendiente' %}
-                                        <span class="badge bg-warning">{{ _('Pendientes') }}</span>
-                                    {% elif incident.status == 'Bitrix' %}
-                                        <span class="badge bg-info">{{ _('Bitrix') }}</span>
-                                        <span class="text-muted ms-1 small">
-                                            <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" class="text-decoration-none text-primary" alt="Abrir en nuevo tab">{{ incident.ref_bitrix }} <i class="fas fa-external-link-alt" title="Abrir en nuevo tab"></i></a>
-                                        </span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ incident.operateur.nom }}</td>
-                                <td>
-                                    {% if incident.observations %}
-                                        <div class="text-xs" style="max-width: 200px;" title="{{ incident.observations }}">
-                                            {{ incident.observations }}
-                                        </div>
-                                    {% else %}
-                                        <em class="text-muted">{{ _('Ninguna observación') }}</em>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mobile-list d-lg-none d-print-none" id="historial-incidencias-mobile">
+        <div class="salida-bl__lines">
+            <table class="salida-bl__grid">
+                <thead>
+                    <tr>
+                        <th>{{ _('Fecha/Hora') }}</th>
+                        <th>{{ _('Asunto') }}</th>
+                        <th>{{ _('Estado') }}</th>
+                        <th>{{ _('Operador') }}</th>
+                        <th>{{ _('Observaciones') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if incidents %}
                     {% for incident in incidents %}
-                    <article class="mobile-list-card">
-                        <div class="mobile-list-card__head">
-                            <div class="mobile-list-card__meta">
-                                {% if incident.status == 'Solucionadas' %}
-                                    <span class="badge badge-resolut">{{ _('Solucionadas') }} ✅</span>
-                                {% elif incident.status == 'Pendiente' %}
-                                    <span class="badge badge-attente">{{ _('Pendientes') }} ⏳</span>
-                                {% elif incident.status == 'Bitrix' %}
-                                    <span class="badge badge-bitrix">{{ _('Bitrix') }} 🔗</span>
-                                    {% if incident.ref_bitrix %}
-                                    <a href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/"
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       class="badge bg-light text-dark text-decoration-none">
-                                        {{ incident.ref_bitrix }} <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                        </div>
-                        <a class="mobile-list-card__title" href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}">
-                            {{ incident.intitule }}
-                        </a>
-                        <div class="mobile-list-card__badges">
-                            <span class="badge rounded-pill mobile-list-card__chip">
-                                <i class="fas fa-clock me-1"></i>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}
-                            </span>
-                            <span class="badge rounded-pill mobile-list-card__chip mobile-list-card__chip--user">
-                                <img src="{{ incident.operateur.avatar_url or url_for('static', filename='img/default_avatar.png') }}"
-                                     alt=""
-                                     class="rounded-circle"
-                                     width="18"
-                                     height="18"
-                                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/default_avatar.png') }}';">
-                                {{ incident.operateur.nom }}
-                            </span>
-                            {% if incident.observations %}
-                            <span class="badge rounded-pill mobile-list-card__chip" title="{{ incident.observations }}">
-                                <i class="fas fa-comment me-1"></i>{{ incident.observations }}
-                            </span>
+                    <tr>
+                        <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td><a class="salida-bl__link" href="{{ url_for('fiche_incident', id=incident.id, next=request.url) }}">{{ incident.intitule }}</a></td>
+                        <td>
+                            {% if incident.status == 'Solucionadas' %}
+                            <span class="badge bg-success">{{ _('Solucionadas') }}</span>
+                            {% elif incident.status == 'Pendiente' %}
+                            <span class="badge bg-warning text-dark">{{ _('Pendientes') }}</span>
+                            {% elif incident.status == 'Bitrix' %}
+                            <span class="badge bg-info text-dark">{{ _('Bitrix') }}</span>
+                            {% if incident.ref_bitrix %}
+                            <a class="salida-bl__link" href="https://conexxia.bitrix24.es/company/personal/user/7/tasks/task/view/{{ incident.ref_bitrix }}/" target="_blank" rel="noopener">{{ incident.ref_bitrix }}</a>
                             {% endif %}
-                        </div>
-                    </article>
+                            {% endif %}
+                        </td>
+                        <td>{{ incident.operateur.nom if incident.operateur else '—' }}</td>
+                        <td>{% if incident.observations %}{{ incident.observations }}{% else %}—{% endif %}</td>
+                    </tr>
                     {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-4 px-3">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <p class="text-muted">{{ _('No hay incidencias registradas para este cliente.') }}</p>
-                </div>
-            {% endif %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="salida-bl__empty">{{ _('No hay incidencias registradas para este cliente.') }}</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
-    </div>
 
     {% set fotos = instalacion_fotos or [] %}
-    <div class="card shadow mb-4 content-card" id="instalacionSection"
+    <div id="instalacionSection"
          data-max-fotos="{{ max_fotos }}"
          data-fotos-actuales="{{ fotos|length }}">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-map-marker-alt"></i> {{ _('Instalación') }}
-                <span class="text-muted fw-normal small ms-2">{{ client.adresse }}</span>
-            </h6>
+        <div class="salida-bl__section-label">
+            <h3 class="salida-bl__party-title">{{ _('Instalación') }}</h3>
             {% if current_user.is_admin() %}
-            <a href="{{ url_for('client_traslado', id=client.id) }}" class="btn btn-outline-primary btn-sm">
+            <a href="{{ url_for('client_traslado', id=client.id) }}" class="btn btn-outline-primary btn-sm salida-bl__screen">
                 <i class="fas fa-truck-moving me-1" aria-hidden="true"></i>{{ _('Traslado') }}
             </a>
             {% endif %}
         </div>
-        <div class="card-body">
+        <div class="salida-bl__block">
             <div class="alert alert-danger py-2 small d-none" id="instalacionAlert" role="alert"></div>
             <div class="row g-3">
                 <div class="col-lg-6">
@@ -455,7 +317,7 @@
                     {% endif %}
                     {% if current_user.is_admin() %}
                     <form method="POST" action="{{ url_for('client_gps_actualizar', id=client.id) }}"
-                          id="clientGpsForm">
+                          id="clientGpsForm" class="salida-bl__screen">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label" for="gps_pair">{{ _('Pegar coordenadas') }}</label>
@@ -505,7 +367,7 @@
                                          class="w-100" style="height: 110px; object-fit: cover;">
                                 </a>
                                 {% if current_user.is_admin() %}
-                                <div class="p-1 text-end">
+                                <div class="p-1 text-end salida-bl__screen">
                                     <button type="button" class="btn btn-outline-danger btn-sm js-delete-foto"
                                             data-bs-toggle="modal" data-bs-target="#eliminarFotoModal"
                                             data-action="{{ url_for('client_foto_eliminar', id=client.id, foto_id=foto.id) }}">
@@ -523,7 +385,7 @@
                     {% endif %}
                     {% if current_user.is_admin() %}
                     <form method="POST" action="{{ url_for('client_fotos_agregar', id=client.id) }}"
-                          enctype="multipart/form-data" id="clientFotosForm">
+                          enctype="multipart/form-data" id="clientFotosForm" class="salida-bl__screen">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="mb-3">
                             <label class="form-label" for="fotos">{{ _('Añadir fotos') }}</label>
@@ -574,103 +436,92 @@
     </div>
 
     {% if current_user.is_admin() %}
-    <div class="card shadow mb-4 content-card">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-building"></i> {{ _('Instalaciones') }}
-            </h6>
-            <a href="{{ url_for('instalaciones_nueva', client=client.id) }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Nueva instalación') }}
-            </a>
-        </div>
-        <div class="card-body{% if instalaciones_cliente %} p-0{% endif %}">
-            {% if instalaciones_cliente %}
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>{{ _('Fecha') }}</th>
-                            <th>{{ _('Tipo') }}</th>
-                            <th>{{ _('Dirección') }}</th>
-                            <th>{{ _('Técnico') }}</th>
-                            <th>{{ _('Estado') }}</th>
-                            <th class="text-end">{{ _('Acciones') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for s in instalaciones_cliente %}
-                        <tr>
-                            <td><strong>#{{ s.id }}</strong></td>
-                            <td>{{ s.fecha.strftime('%d/%m/%Y') }}</td>
-                            <td>{% include 'instalaciones/_tipo_badge.html' %}</td>
-                            <td class="small">{{ s.sitio.adresse if s.sitio else '—' }}</td>
-                            <td>{{ s.tecnico.nom if s.tecnico else '—' }}</td>
-                            <td>{% include 'instalaciones/_estado_badge.html' %}</td>
-                            <td class="text-end">
-                                <a href="{{ url_for('instalaciones_detalle', instalacion_id=s.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Ver') }}">
-                                    <i class="fas fa-eye" aria-hidden="true"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <p class="text-muted mb-0">{{ _('No hay instalaciones registradas para este cliente.') }}</p>
-            {% endif %}
-        </div>
+    <div class="salida-bl__section-label">
+        <h3 class="salida-bl__party-title">{{ _('Instalaciones') }}</h3>
+        <a href="{{ url_for('instalaciones_nueva', client=client.id) }}" class="btn btn-primary btn-sm salida-bl__screen">
+            <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Nueva instalación') }}
+        </a>
+    </div>
+    <div class="salida-bl__lines">
+        <table class="salida-bl__grid">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>{{ _('Fecha') }}</th>
+                    <th>{{ _('Tipo') }}</th>
+                    <th>{{ _('Dirección') }}</th>
+                    <th>{{ _('Técnico') }}</th>
+                    <th>{{ _('Estado') }}</th>
+                    <th class="salida-bl__screen">{{ _('Ver') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if instalaciones_cliente %}
+                {% for s in instalaciones_cliente %}
+                <tr>
+                    <td>#{{ s.id }}</td>
+                    <td>{{ s.fecha.strftime('%d/%m/%Y') }}</td>
+                    <td>{% include 'instalaciones/_tipo_badge.html' %}</td>
+                    <td>{{ s.sitio.adresse if s.sitio else '—' }}</td>
+                    <td>{{ s.tecnico.nom if s.tecnico else '—' }}</td>
+                    <td>{% include 'instalaciones/_estado_badge.html' %}</td>
+                    <td class="salida-bl__screen">
+                        <a class="salida-bl__link" href="{{ url_for('instalaciones_detalle', instalacion_id=s.id) }}">{{ _('Ver') }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" class="salida-bl__empty">{{ _('No hay instalaciones registradas para este cliente.') }}</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
     {% endif %}
 
-    <!-- Materiales instalados -->
-    <div class="card shadow mb-4 content-card">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">
-                <i class="fas fa-toolbox"></i> Materiales instalados
-            </h6>
-        </div>
-        <div class="card-body">
-            {% if material_rows %}
-                <div class="table-responsive d-none d-lg-block d-print-block">
-                    <table class="table table-bordered mb-0" width="100%" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th>Material</th>
-                                <th>Tipo</th>
-                                <th class="text-end">Cantidad</th>
-                                <th>Técnico</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for row in material_rows %}
-                            {% set salida = row.salida %}
-                            <tr>
-                                <td>{{ salida.fecha.strftime('%d/%m/%Y') if salida else '—' }}</td>
-                                <td>{{ row.material.nombre if row.material else '—' }}</td>
-                                <td>{{ MATERIAL_TIPO_LABELS.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td>
-                                <td class="text-end">{{ row.cantidad }}</td>
-                                <td>{{ salida.tecnico.nom if salida and salida.tecnico else '—' }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mobile-list d-lg-none d-print-none px-0" id="ficha-materiales-mobile">
-                    {% for row in material_rows %}
-                        {% set variant = 'cliente' %}
-                        {% include '_mobile_list_card_material_asignado.html' %}
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="text-center py-4">
-                    <p class="text-muted mb-0">No hay materiales registrados para este cliente.</p>
-                </div>
-            {% endif %}
-        </div>
+    <div class="salida-bl__section-label">
+        <h3 class="salida-bl__party-title">Materiales instalados</h3>
     </div>
+    <div class="salida-bl__lines">
+        <table class="salida-bl__grid">
+            <thead>
+                <tr>
+                    <th>{{ _('Fecha') }}</th>
+                    <th>{{ _('Material') }}</th>
+                    <th>{{ _('Tipo') }}</th>
+                    <th class="salida-bl__col-qty">{{ _('Cantidad') }}</th>
+                    <th>{{ _('Técnico') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if material_rows %}
+                {% for row in material_rows %}
+                {% set salida = row.salida %}
+                <tr>
+                    <td>{{ salida.fecha.strftime('%d/%m/%Y') if salida else '—' }}</td>
+                    <td>{{ row.material.nombre if row.material else '—' }}</td>
+                    <td>{{ MATERIAL_TIPO_LABELS.get(row.material.tipo, row.material.tipo) if row.material else '—' }}</td>
+                    <td class="salida-bl__col-qty">{{ row.cantidad }}</td>
+                    <td>{{ salida.tecnico.nom if salida and salida.tecnico else '—' }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="5" class="salida-bl__empty">No hay materiales registrados para este cliente.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+        <footer class="salida-bl__foot">
+            <span>{{ _('Creado por') }}: {% if client.cree_par %}{{ client.cree_par.nom }}{% else %}—{% endif %}</span>
+            {% if client.modifie_par or client.modifie_le %}
+            <span>{{ _('Modificado por') }}: {% if client.modifie_par %}{{ client.modifie_par.nom }}{% endif %}{% if client.modifie_le %} {{ client.modifie_le.strftime('%d/%m/%Y %H:%M') }}{% endif %}</span>
+            {% endif %}
+        </footer>
+    </article>
 </div>
 {% endblock %}
 
