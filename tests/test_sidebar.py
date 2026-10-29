@@ -206,6 +206,33 @@ class SidebarRenderTests(unittest.TestCase):
                 html = html.get_data(as_text=True)
             self.assertIn('Cliente ajeno', html)
 
+    def test_lista_clientes_columna_inc(self):
+        client = Client(
+            nom='Cliente columna inc',
+            telephone='240000094',
+            adresse='Calle INC',
+            ville='Centro',
+            id_ciudad=self.usuario.id_ciudad,
+        )
+        db.session.add(client)
+        db.session.commit()
+
+        with self.app.test_request_context('/clients'):
+            login_user(self.usuario)
+            html = self.app.view_functions['clients']()
+            if hasattr(html, 'get_data'):
+                html = html.get_data(as_text=True)
+
+        table = html.split('clients-table', 1)[1].split('</table>', 1)[0]
+        self.assertRegex(table, r'title="Incidencias">\s*INC\s*<')
+        self.assertIn('class="col-inc text-center"', table)
+        self.assertNotRegex(table, r'>\s*Incidencias\s*<')
+        css_path = os.path.join(_ROOT, 'presentation', 'static', 'css', 'style.css')
+        with open(css_path, encoding='utf-8') as handle:
+            css = handle.read()
+        self.assertIn('.clients-table th.col-inc', css)
+        self.assertIn('max-width: 4.25rem', css)
+
     def test_admin_no_ve_incidencia_de_otra_agencia(self):
         from core.app import Incident, apply_incident_visibility
 

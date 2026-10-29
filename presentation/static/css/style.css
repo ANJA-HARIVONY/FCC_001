@@ -492,7 +492,26 @@ a.stat-card-link:focus-visible .stat-card {
     white-space: nowrap;
 }
 
+.clients-table thead th:not(.col-cliente):not(.col-inc),
+.clients-table tbody td:not(.client-nombre):not(.col-inc) {
+    width: 1%;
+}
+
+.clients-table th.col-inc,
+.clients-table td.col-inc {
+    width: 4.25rem;
+    min-width: 3.5rem;
+    max-width: 4.25rem;
+    text-align: center;
+    padding-left: 0.35rem;
+    padding-right: 0.35rem;
+}
+
+.clients-table th.col-cliente,
 .clients-table td.client-nombre {
+    width: 18rem;
+    min-width: 16rem;
+    max-width: 22rem;
     white-space: normal;
 }
 

@@ -61,14 +61,14 @@ Cookie `clients_filters_v1`. GET : `search` (nombre, teléfono, dirección, IP),
 | Colonne UI | Source | Règle |
 |---|---|---|
 | `ID` | `Client.id` | tri `id` ; `<strong>#id</strong>` |
-| `Categoría` | `Client.categoria` | icône corporativo |
-| `Nombre` | `Client.nom` | tri `nombre` ; lien `fiche_client` ; `Client.adresse` en petit italique sous le nom (comme Cliente en Incidencias) |
+| (icône) | `Client.categoria` | `_cliente_corporativo_icon.html`, en-tête vide |
+| `Nombre` | `Client.nom` | tri `nombre` ; lien `fiche_client` ; `Client.adresse` en petit italique sous le nom, colonne ~18rem (comme Cliente en Incidencias) |
 | `Teléfono` | `Client.telephone` | lien `wa.me` |
 | `Barrio` | `Client.ville` | — |
 | `Ciudad` | `client.ciudad_row.nombre` | `N/A` si absent |
 | `IP Router` | `Client.ip_router` | — |
 | `IP Antea` | `Client.ip_antea` | — |
-| `Incidencias` | `client.incidents` | tri `incidents` ; badge compteur |
+| `INC` | `client.incidents` | en-tête court, infobulle Incidencias ; tri `incidents` ; badge compteur ; colonne étroite |
 | `Acciones` | — | `btn-group` : Ver ficha, Editar, Copiar, Eliminar |
 
 ### Lista de usuarios (`/usuarios`, `usuarios.html`)
