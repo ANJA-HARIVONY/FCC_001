@@ -15,6 +15,9 @@
         title="{{ _('Copiar información') }}">
     <i class="fas fa-copy me-1" aria-hidden="true"></i>{{ _('Copiar información') }}
 </button>
+<button type="button" class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+    <i class="fas fa-print me-1" aria-hidden="true"></i>{{ _('Imprimir') }}
+</button>
 <a href="{{ url_for('instalaciones_modificar', instalacion_id=instalacion.id) }}" class="btn btn-outline-primary btn-sm">
     <i class="fas fa-edit me-1" aria-hidden="true"></i>{{ _('Modificar') }}
 </a>
@@ -56,150 +59,191 @@
 
 {% block content %}
 {% set s = instalacion %}
+{% set lineas_material = instalacion.lineas_material %}
+{% set total_cantidad = lineas_material|sum(attribute='cantidad') %}
 <div class="container-fluid px-0">
-    <div class="row g-4">
-        <div class="col-lg-5">
-            <div class="card shadow-sm border-0 content-card">
-                <div class="card-header"><h5 class="mb-0">{{ _('Información general') }}</h5></div>
-                <div class="card-body">
-                    <p><strong>{{ _('Tipo') }}:</strong> {% include 'instalaciones/_tipo_badge.html' %}</p>
-                    <p><strong>{{ _('Estado') }}:</strong> {% include 'instalaciones/_estado_badge.html' %}</p>
-                    <p><strong>{{ _('Fecha') }}:</strong> {{ instalacion.fecha.strftime('%d/%m/%Y') }}</p>
-                    <p><strong>{{ _('Técnico') }}:</strong> {{ instalacion.tecnico.nom if instalacion.tecnico else '—' }}</p>
-                    <p><strong>{{ _('Cliente') }}:</strong>
-                        {% if instalacion.client %}
-                        <a href="{{ url_for('fiche_client', id=instalacion.client.id) }}">{{ instalacion.client.nom }}</a>
-                        {% else %}—{% endif %}
-                    </p>
-                    <p><strong>{{ _('Dirección') }}:</strong>
-                        {% if instalacion.sitio %}
-                        {{ instalacion.sitio.adresse }} — {{ instalacion.sitio.ville }}
-                        {% if not instalacion.sitio.activo %}<span class="badge bg-secondary ms-1">{{ _('Dirección anterior') }}</span>{% endif %}
-                        {% if instalacion.sitio.google_maps_url %}
-                        <a href="{{ instalacion.sitio.google_maps_url }}" target="_blank" rel="noopener" class="ms-1">
-                            <i class="fas fa-external-link-alt" aria-hidden="true"></i> {{ _('Ver en Google Maps') }}
-                        </a>
-                        {% endif %}
-                        {% else %}—{% endif %}
-                    </p>
-                    {% if instalacion.tipo == 'traslado' and instalacion.sitio_origen %}
-                    <p><strong>{{ _('Dirección de origen') }}:</strong>
-                        {{ instalacion.sitio_origen.adresse }} — {{ instalacion.sitio_origen.ville }}
-                    </p>
-                    {% endif %}
-                    {% if instalacion.observaciones %}
-                    <p class="mb-1"><strong>{{ _('Observaciones') }}:</strong></p>
-                    <p class="text-muted" style="white-space: pre-wrap;">{{ instalacion.observaciones }}</p>
-                    {% endif %}
-                    <hr>
-                    <p class="small mb-1"><strong>{{ _('Registrada') }}:</strong>
-                        {{ instalacion.fecha_registro.strftime('%d/%m/%Y %H:%M') if instalacion.fecha_registro else '—' }}
-                        {% if instalacion.registrado_por %}— {{ instalacion.registrado_por.nom }}{% endif %}
-                    </p>
-                    {% if instalacion.fecha_modificacion %}
-                    <p class="small mb-1"><strong>{{ _('Última modificación') }}:</strong>
-                        {{ instalacion.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}
-                        {% if instalacion.modificado_por %}— {{ instalacion.modificado_por.nom }}{% endif %}
-                    </p>
-                    {% endif %}
-                    {% if instalacion.terminada_le %}
-                    <p class="small mb-0"><strong>{{ _('Terminada el') }}:</strong>
-                        {{ instalacion.terminada_le.strftime('%d/%m/%Y %H:%M') }}
-                        {% if instalacion.terminada_por %}— {{ instalacion.terminada_por.nom }}{% endif %}
-                    </p>
-                    {% endif %}
+    <article class="salida-bl" aria-label="{{ _('Instalación') }}">
+        <header class="salida-bl__mast">
+            <div class="salida-bl__brand">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="CONNEXIA" class="salida-bl__logo">
+                <div>
+                    <p class="salida-bl__brand-name">CONNEXIA</p>
+                    <p class="salida-bl__brand-line">Atención al cliente</p>
                 </div>
+            </div>
+        </header>
+
+        <div class="salida-bl__meta">
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Tipo') }}</span>
+                <span class="salida-bl__v">{% include 'instalaciones/_tipo_badge.html' %}</span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Estado') }}</span>
+                <span class="salida-bl__v">{% include 'instalaciones/_estado_badge.html' %}</span>
+            </div>
+            <div class="salida-bl__cell">
+                <span class="salida-bl__k">{{ _('Fecha') }}</span>
+                <span class="salida-bl__v">{{ instalacion.fecha.strftime('%d/%m/%Y') }}</span>
             </div>
         </div>
 
-        <div class="col-lg-7">
-            <div class="card shadow-sm border-0 content-card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <h5 class="mb-0"><i class="fas fa-dolly me-2" aria-hidden="true"></i>{{ _('Material entregado') }}</h5>
-                    <a href="{{ url_for('materiales_salida_nueva', tipo='instalacion', instalacion=instalacion.id) }}" class="btn btn-primary btn-sm">
-                        <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Añadir material') }}
+        <div class="salida-bl__parties">
+            <section class="salida-bl__party">
+                <h3 class="salida-bl__party-title">CLIENTE</h3>
+                {% if instalacion.client %}
+                <p class="salida-bl__party-name">
+                    <a class="salida-bl__link" href="{{ url_for('fiche_client', id=instalacion.client.id) }}">{{ instalacion.client.nom }}</a>
+                </p>
+                {% else %}
+                <p class="salida-bl__party-name">—</p>
+                {% endif %}
+                {% if instalacion.sitio %}
+                <p class="salida-bl__party-line">{{ instalacion.sitio.adresse }}</p>
+                <p class="salida-bl__party-line">
+                    {{ instalacion.sitio.ville }}{% if instalacion.client and instalacion.client.ciudad_row %} · {{ instalacion.client.ciudad_row.nombre }}{% endif %}
+                    {% if not instalacion.sitio.activo %}
+                    <span class="badge bg-secondary">{{ _('Dirección anterior') }}</span>
+                    {% endif %}
+                </p>
+                {% if instalacion.sitio.google_maps_url %}
+                <p class="salida-bl__party-line salida-bl__screen">
+                    <a class="salida-bl__link" href="{{ instalacion.sitio.google_maps_url }}" target="_blank" rel="noopener">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i> {{ _('Ver en Google Maps') }}
                     </a>
-                </div>
-                <div class="card-body p-0">
-                    {% if instalacion.salidas %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0 align-middle">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>{{ _('Fecha') }}</th>
-                                    <th>{{ _('Técnico') }}</th>
-                                    <th>{{ _('Materiales') }}</th>
-                                    <th class="text-end">{{ _('Acciones') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for salida in instalacion.salidas %}
-                                <tr>
-                                    <td><strong>#{{ salida.id }}</strong></td>
-                                    <td>{{ salida.fecha.strftime('%d/%m/%Y') }}</td>
-                                    <td>{{ salida.tecnico.nom if salida.tecnico else '—' }}</td>
-                                    <td class="small">
-                                        {% for linea in salida.lineas %}
-                                        {{ linea.material.nombre if linea.material else '?' }} x{{ linea.cantidad }}{% if not loop.last %}, {% endif %}
-                                        {% else %}—{% endfor %}
-                                    </td>
-                                    <td class="text-end">
-                                        <a href="{{ url_for('materiales_salida_detalle', salida_id=salida.id) }}" class="btn btn-sm btn-outline-secondary" title="{{ _('Ver') }}">
-                                            <i class="fas fa-eye" aria-hidden="true"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5 px-3">
-                        <i class="fas fa-box-open fa-3x text-muted mb-3" aria-hidden="true"></i>
-                        <h5 class="text-muted">{{ _('No hay salidas de material para esta instalación.') }}</h5>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+                </p>
+                {% endif %}
+                {% else %}
+                <p class="salida-bl__party-line">—</p>
+                {% endif %}
+                {% if instalacion.client and instalacion.client.telephone %}
+                <p class="salida-bl__party-line">Tel. {{ instalacion.client.telephone }}</p>
+                {% endif %}
+                {% if instalacion.tipo == 'traslado' and instalacion.sitio_origen %}
+                <p class="salida-bl__party-line"><strong>{{ _('Dirección de origen') }}:</strong> {{ instalacion.sitio_origen.adresse }} — {{ instalacion.sitio_origen.ville }}</p>
+                {% endif %}
+            </section>
+            <section class="salida-bl__party">
+                <h3 class="salida-bl__party-title">TECNICO</h3>
+                <p class="salida-bl__party-name">{{ instalacion.tecnico.nom if instalacion.tecnico else '—' }}</p>
+                {% if instalacion.tecnico and instalacion.tecnico.telephone %}
+                <p class="salida-bl__party-line">Tel. {{ instalacion.tecnico.telephone }}</p>
+                {% endif %}
+                {% if instalacion.tecnico %}
+                <p class="salida-bl__party-line">{{ instalacion.tecnico.ciudad.nombre if instalacion.tecnico.ciudad else '—' }} / {{ instalacion.tecnico.agencia.nombre if instalacion.tecnico.agencia else '—' }}</p>
+                {% endif %}
+            </section>
+        </div>
 
-            {% if instalacion.tipo == 'traslado' %}
-            <div class="card shadow-sm border-0 content-card">
-                <div class="card-header"><h5 class="mb-0"><i class="fas fa-truck-moving me-2" aria-hidden="true"></i>{{ _('Material existente del traslado') }}</h5></div>
-                <div class="card-body p-0">
-                    {% if instalacion.lineas_traslado %}
-                    <div class="table-responsive">
-                        <table class="table mb-0">
-                            <thead>
-                                <tr>
-                                    <th>{{ _('Material') }}</th>
-                                    <th class="text-end">{{ _('Cantidad') }}</th>
-                                    <th>{{ _('Acción') }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for linea in instalacion.lineas_traslado %}
-                                <tr>
-                                    <td>{{ linea.material.nombre if linea.material else '—' }}{% if linea.material and linea.material.modelo %} ({{ linea.material.modelo }}){% endif %}</td>
-                                    <td class="text-end">{{ linea.cantidad }}</td>
-                                    <td>
-                                        <span class="badge {{ 'bg-success' if linea.accion == 'reutilizado' else 'bg-secondary' }}">
-                                            {{ TRASLADO_ACCION_LABELS.get(linea.accion, linea.accion) }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+        <div class="salida-bl__section-label">
+            <h3 class="salida-bl__party-title">{{ _('Material entregado') }}</h3>
+            <a href="{{ url_for('materiales_salida_nueva', tipo='instalacion', instalacion=instalacion.id) }}" class="btn btn-primary btn-sm salida-bl__screen">
+                <i class="fas fa-plus me-1" aria-hidden="true"></i>{{ _('Añadir material') }}
+            </a>
+        </div>
+        <div class="salida-bl__lines">
+            <table class="salida-bl__grid">
+                <thead>
+                    <tr>
+                        <th class="salida-bl__col-n">N.º</th>
+                        <th>{{ _('Material') }}</th>
+                        <th>{{ _('Modelo') }}</th>
+                        <th class="salida-bl__col-qty">{{ _('Cantidad') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if lineas_material %}
+                    {% for linea in lineas_material %}
+                    <tr>
+                        <td class="salida-bl__col-n">{{ loop.index }}</td>
+                        <td>{{ linea.material.nombre if linea.material else '—' }}</td>
+                        <td>{{ linea.material.modelo if linea.material and linea.material.modelo else '—' }}</td>
+                        <td class="salida-bl__col-qty">{{ linea.cantidad }}</td>
+                    </tr>
+                    {% endfor %}
                     {% else %}
-                    <p class="text-muted text-center py-4 mb-0">{{ _('No se indicó material reutilizado ni retirado.') }}</p>
+                    <tr>
+                        <td colspan="4" class="salida-bl__empty">{{ _('No hay salidas de material para esta instalación.') }}</td>
+                    </tr>
                     {% endif %}
-                </div>
-            </div>
+                </tbody>
+                {% if lineas_material %}
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="salida-bl__total-label">{{ _('Total') }}</td>
+                        <td class="salida-bl__col-qty">{{ total_cantidad }}</td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+            {% if instalacion.salidas %}
+            <p class="salida-bl__salida-links salida-bl__screen">
+                {% for salida in instalacion.salidas %}
+                <a class="salida-bl__link" href="{{ url_for('materiales_salida_detalle', salida_id=salida.id) }}">{{ _('Ver') }} #{{ salida.id }}</a>{% if not loop.last %} · {% endif %}
+                {% endfor %}
+            </p>
             {% endif %}
         </div>
-    </div>
+
+        {% if instalacion.tipo == 'traslado' %}
+        <div class="salida-bl__section-label">
+            <h3 class="salida-bl__party-title">{{ _('Material existente del traslado') }}</h3>
+        </div>
+        <div class="salida-bl__lines">
+            <table class="salida-bl__grid">
+                <thead>
+                    <tr>
+                        <th class="salida-bl__col-n">N.º</th>
+                        <th>{{ _('Material') }}</th>
+                        <th>{{ _('Modelo') }}</th>
+                        <th class="salida-bl__col-qty">{{ _('Cantidad') }}</th>
+                        <th>{{ _('Acción') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if instalacion.lineas_traslado %}
+                    {% for linea in instalacion.lineas_traslado %}
+                    <tr>
+                        <td class="salida-bl__col-n">{{ loop.index }}</td>
+                        <td>{{ linea.material.nombre if linea.material else '—' }}</td>
+                        <td>{{ linea.material.modelo if linea.material and linea.material.modelo else '—' }}</td>
+                        <td class="salida-bl__col-qty">{{ linea.cantidad }}</td>
+                        <td>
+                            <span class="badge {{ 'bg-success' if linea.accion == 'reutilizado' else 'bg-secondary' }}">
+                                {{ TRASLADO_ACCION_LABELS.get(linea.accion, linea.accion) }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="salida-bl__empty">{{ _('No se indicó material reutilizado ni retirado.') }}</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <section class="salida-bl__notes">
+            <h3 class="salida-bl__party-title">{{ _('Observaciones') }}</h3>
+            {% if instalacion.observaciones %}
+            <p class="salida-bl__notes-text">{{ instalacion.observaciones }}</p>
+            {% else %}
+            <p class="salida-bl__notes-text salida-bl__notes-text--empty">—</p>
+            {% endif %}
+        </section>
+
+        <footer class="salida-bl__foot">
+            <span>{{ _('Registrada') }}: {{ instalacion.fecha_registro.strftime('%d/%m/%Y %H:%M') if instalacion.fecha_registro else '—' }}{% if instalacion.registrado_por %} — {{ instalacion.registrado_por.nom }}{% endif %}</span>
+            {% if instalacion.fecha_modificacion %}
+            <span>{{ _('Última modificación') }}: {{ instalacion.fecha_modificacion.strftime('%d/%m/%Y %H:%M') }}{% if instalacion.modificado_por %} — {{ instalacion.modificado_por.nom }}{% endif %}</span>
+            {% endif %}
+            {% if instalacion.terminada_le %}
+            <span>{{ _('Terminada el') }}: {{ instalacion.terminada_le.strftime('%d/%m/%Y %H:%M') }}{% if instalacion.terminada_por %} — {{ instalacion.terminada_por.nom }}{% endif %}</span>
+            {% endif %}
+        </footer>
+    </article>
 </div>
 {% endblock %}
 
@@ -210,6 +254,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/print-report.js') }}"></script>
 <script src="{{ url_for('static', filename='js/instalaciones-copy.js') }}"></script>
 {% endblock %}

@@ -1293,6 +1293,14 @@ msgstr "El material de una instalación se registra desde"
 msgid "¿Está seguro de que desea eliminar la salida"
 msgstr "¿Está seguro de que desea eliminar la salida"
 
+#: presentation/templates/instalaciones/detalle.html
+msgid "Imprimir"
+msgstr "Imprimir"
+
+#: presentation/templates/instalaciones/detalle.html
+msgid "Modelo"
+msgstr "Modelo"
+
 #~ msgid "Client ajouté avec succès!"
 #~ msgstr "¡Cliente agregado con éxito!"
 
