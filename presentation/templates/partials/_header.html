@@ -20,7 +20,7 @@
         {% if current_user.is_authenticated %}
         {% set av = current_user.avatar_url if current_user.avatar_url else url_for('static', filename='img/default_avatar.png') %}
 
-        <div class="app-header-right">
+        <div class="app-header-right{% if mensaje_info_texto %} app-header-right--info{% endif %}">
             <button type="button"
                     class="btn btn-link app-header__toggle p-0"
                     id="sidebar-toggle"
@@ -33,6 +33,18 @@
                     </span>
                 </span>
             </button>
+
+            {% if mensaje_info_texto %}
+            {% set info_seconds = 16 + (mensaje_info_texto|length // 7) %}
+            <div class="app-header__info" role="region" aria-label="{{ _('Información del día') }}">
+                <!--<span class="app-header__info-label">{{ _('Información:') }}</span>-->
+                <div class="app-header__info-viewport" title="{{ mensaje_info_texto }}">
+                    <div class="app-header__info-track" style="animation-duration: {{ info_seconds }}s">
+                        <span class="app-header__info-text">{{ mensaje_info_texto }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             <button type="button"
                     class="btn btn-light btn-sm app-header__theme-btn"
@@ -79,6 +91,13 @@
                             <i class="fas fa-user-cog me-2"></i>Perfil
                         </a>
                     </li>
+                    {% if current_user.is_admin() %}
+                    <li>
+                        <button type="button" class="dropdown-item" id="btn-mensaje-info">
+                            <i class="fas fa-bullhorn me-2" aria-hidden="true"></i>{{ _('Mensaje') }}
+                        </button>
+                    </li>
+                    {% endif %}
                     <li>
                         <a class="dropdown-item{% if ep == 'aide' %} active{% endif %}"
                            href="{{ url_for('aide') }}"

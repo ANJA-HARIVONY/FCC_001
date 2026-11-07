@@ -180,6 +180,67 @@ body.app-layout-v2 .app-header__meta {
     transition: color 0.2s ease;
 }
 
+/* Bandeau « Info: » — message défilant au centre de la cabecera */
+body.app-layout-v2 .app-header__info {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0.75rem;
+    overflow: hidden;
+    color: var(--primary-red, #dc3545);
+    font-style: italic;
+    font-size: 0.92rem;
+    line-height: 1.2;
+}
+
+body.app-layout-v2 .app-header__info-label {
+    flex-shrink: 0;
+    font-weight: 600;
+}
+
+body.app-layout-v2 .app-header__info-viewport {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+body.app-layout-v2 .app-header__info-track {
+    display: inline-block;
+    padding-left: 100%;
+    white-space: nowrap;
+    animation: fcc-info-marquee 16s linear infinite;
+}
+
+body.app-layout-v2 .app-header__info:hover .app-header__info-track {
+    animation-play-state: paused;
+}
+
+body.app-layout-v2 .app-header__info-text {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+@keyframes fcc-info-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.app-layout-v2 .app-header__info-track {
+        animation: none;
+        padding-left: 0;
+        max-width: 100%;
+    }
+
+    body.app-layout-v2 .app-header__info-text {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
 body.app-layout-v2 .app-header__toggle {
     color: #495057;
     text-decoration: none;
@@ -218,6 +279,10 @@ body.app-layout-v2 .app-header-right {
 
 body.app-layout-v2 .app-header-right .app-header__toggle {
     margin-right: auto;
+}
+
+body.app-layout-v2 .app-header-right--info .app-header__toggle {
+    margin-right: 0;
 }
 
 body.app-layout-v2 .app-header__toggle:hover,
@@ -443,6 +508,10 @@ html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__title {
 
 html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__meta {
     color: rgba(255, 255, 255, 0.72);
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__info {
+    color: #ff8b96;
 }
 
 html[data-sidebar-theme="dark"] body.app-layout-v2 .app-sidebar {
@@ -2382,6 +2451,16 @@ body.app-layout-v2 .app-flash-stack {
         gap: var(--header-action-gap);
         margin-left: 0;
         padding: 0;
+    }
+
+    body.app-layout-v2 .app-header-right--info {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    body.app-layout-v2 .app-header__info {
+        margin: 0 0.4rem;
+        font-size: 0.78rem;
     }
 
     body.app-layout-v2 .app-header-right .app-header__toggle {

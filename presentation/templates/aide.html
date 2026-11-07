@@ -189,7 +189,7 @@
                 </section>
 
                 <!-- NAVEGACION -->
-                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes instalaciones materiales informes perfil ayuda administracion usuarios trazabilidad notificaciones tema ruta titulo logo volver">
+                <section id="navegacion" class="aide-section" data-aide-keywords="navegacion menu sidebar lateral header hamburguesa dashboard incidencias clientes instalaciones materiales informes perfil ayuda administracion usuarios trazabilidad notificaciones tema ruta titulo logo volver mensaje info informacion del dia cabecera activo">
                     <div class="aide-section-card">
                         <div class="aide-section-head">
                             <span class="aide-section-icon"><i class="fas fa-compass"></i></span>
@@ -211,7 +211,7 @@
                                     <i class="fas fa-window-maximize"></i>
                                     <div>
                                         <strong>Cabecera (arriba)</strong>
-                                        <p>Botón menú (móvil / replegar), cambio de tema claro/oscuro, campana de notificaciones y menú de usuario. El logotipo vuelve al Dashboard.</p>
+                                        <p>Botón menú (móvil / replegar), cambio de tema claro/oscuro, campana de notificaciones y menú de usuario. El logotipo vuelve al Dashboard. Si hay un mensaje activo, se desplaza en el centro, junto a <em>Info:</em>.</p>
                                     </div>
                                 </div>
                                 <div class="aide-feature">
@@ -226,6 +226,13 @@
                                     <div>
                                         <strong>Campana de notificaciones</strong>
                                         <p>Acceso rápido a las novedades sin leer desde la cabecera.</p>
+                                    </div>
+                                </div>
+                                <div class="aide-feature">
+                                    <i class="fas fa-bullhorn"></i>
+                                    <div>
+                                        <strong>Información del día</strong>
+                                        <p>El mensaje activo se desplaza en el centro de la cabecera, en todas las pantallas.{% if current_user.is_authenticated and current_user.is_admin() %} Para publicarlo: icono de usuario → <em>Mensaje</em>. Escriba el texto y marque <em>Mensaje activo</em>. Si lo desactiva, deja de mostrarse. Solo Admin y SuperAdmin pueden enviarlo.{% endif %}</p>
                                     </div>
                                 </div>
                             </div>
@@ -577,6 +584,19 @@
                                 </div>
 
                                 {% if current_user.is_authenticated and current_user.is_admin() %}
+                                <div class="accordion-item aide-faq-item" data-aide-keywords="mensaje info cabecera informacion del dia activo publicar">
+                                    <h3 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-mensaje-info">
+                                            <i class="fas fa-circle-question me-2"></i>¿Cómo publico un mensaje en la cabecera?
+                                        </button>
+                                    </h3>
+                                    <div id="faq-mensaje-info" class="accordion-collapse collapse" data-bs-parent="#aide-faq-accordion">
+                                        <div class="accordion-body">
+                                            Pulse el icono de usuario (arriba a la derecha) y elija <strong>Mensaje</strong>. Escriba el texto (máximo 400 caracteres) y active <em>Mensaje activo</em>. Al guardar, el mensaje se desplaza en el centro de la cabecera, junto a <em>Info:</em>, para todos los usuarios. Desactive la opción para ocultarlo. Solo Admin y SuperAdmin pueden enviarlo.
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="accordion-item aide-faq-item" data-aide-keywords="nueva instalacion material entregado en curso">
                                     <h3 class="accordion-header">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-9">

@@ -1,0 +1,38 @@
+<div class="modal fade" id="modalMensajeInfo" tabindex="-1" aria-labelledby="modalMensajeInfoLabel" aria-hidden="true"
+     data-err-load="{{ _('No se pudo cargar el mensaje.') }}"
+     data-err-save="{{ _('No se pudo guardar el mensaje.') }}"
+     data-err-empty="{{ _('Escriba un mensaje para activarlo.') }}"
+     data-err-long="{{ _('El mensaje no puede superar %(n)s caracteres.', n=MENSAJE_INFO_TEXTO_MAX) }}">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalMensajeInfoLabel">
+                    <i class="fas fa-bullhorn me-2" aria-hidden="true"></i>{{ _('Mensaje') }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Cerrar') }}"></button>
+            </div>
+            <div class="modal-body">
+                <div id="mensaje-info-feedback" class="alert d-none mb-3" role="alert"></div>
+                <div class="mb-3">
+                    <label for="mensaje-info-texto" class="form-label small text-dark text-uppercase fw-semibold">{{ _('Mensaje') }}</label>
+                    <textarea class="form-control" id="mensaje-info-texto" rows="3" maxlength="{{ MENSAJE_INFO_TEXTO_MAX }}" autocomplete="off" placeholder="{{ _('Ej. Corte de fibra en la zona norte hasta las 18:00') }}"></textarea>
+                    <div class="form-text d-flex justify-content-between gap-2">
+                        <span>{{ _('Se muestra en la cabecera, junto a Info:, y se desplaza.') }}</span>
+                        <span id="mensaje-info-count">0 / {{ MENSAJE_INFO_TEXTO_MAX }}</span>
+                    </div>
+                </div>
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="mensaje-info-activo">
+                    <label class="form-check-label" for="mensaje-info-activo">{{ _('Mensaje activo') }}</label>
+                    <div class="form-text">{{ _('Si está activo, todos los usuarios lo ven. Si no, deja de mostrarse.') }}</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancelar') }}</button>
+                <button type="button" class="btn btn-danger" id="btn-guardar-mensaje-info">
+                    <i class="fas fa-save me-1" aria-hidden="true"></i>{{ _('Guardar') }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

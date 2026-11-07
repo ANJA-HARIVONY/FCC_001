@@ -971,6 +971,48 @@ class ApreciacionDia(db.Model):
         return f'<ApreciacionDia {self.fecha} ciudad={self.id_ciudad} agencia={self.id_agencia}>'
 
 
+MENSAJE_INFO_TEXTO_MAX = 400
+
+
+class MensajeInfo(db.Model):
+    """Anuncio único de la cabecera. Lo ven todos los usuarios si está activo."""
+    __tablename__ = 'mensaje_info'
+
+    id = db.Column(db.Integer, primary_key=True)
+    texto = db.Column(db.String(MENSAJE_INFO_TEXTO_MAX), nullable=False, default='')
+    activo = db.Column(db.Boolean, nullable=False, default=False)
+    id_operateur = db.Column(
+        db.Integer,
+        db.ForeignKey('operateur.id', ondelete='SET NULL'),
+        nullable=True,
+    )
+    modificado_en = db.Column(db.DateTime, nullable=False, default=datetime.now)
+
+    operateur = db.relationship('Operateur')
+
+    def __repr__(self):
+        return f'<MensajeInfo activo={self.activo}>'
+
+
+def normalize_mensaje_info_texto(value):
+    return ' '.join(str(value or '').split())
+
+
+def mensaje_info_row():
+    return db.session.query(MensajeInfo).order_by(MensajeInfo.id.asc()).first()
+
+
+def mensaje_info_visible_texto():
+    try:
+        row = mensaje_info_row()
+    except Exception:
+        db.session.rollback()
+        return ''
+    if row is None or not row.activo:
+        return ''
+    return normalize_mensaje_info_texto(row.texto)
+
+
 def apply_apreciacion_visibility(query, ciudad_id=None, agencia_id=None):
     """Superadmin voit tout (filtre dashboard si présent).
 
@@ -1098,6 +1140,19 @@ def ensure_apreciacion_dia_scope_columns():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar el perímetro de apreciacion_dia')
+
+
+def ensure_mensaje_info_table():
+    """Crea la tabla del mensaje de cabecera si la aplicacion arranca sin migracion."""
+    if getattr(ensure_mensaje_info_table, '_done', False):
+        return
+    try:
+        if not inspect(db.engine).has_table(MensajeInfo.__tablename__):
+            MensajeInfo.__table__.create(db.engine)
+        ensure_mensaje_info_table._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear la tabla mensaje_info')
 
 
 def ensure_client_categoria_column():
@@ -1881,6 +1936,7 @@ from core.routes import materiales_routes
 from core.routes import instalaciones_routes
 from core.routes import atencion_cliente_routes
 from core.routes import apreciaciones_routes
+from core.routes import mensaje_routes
 
 # Configurar filtros personalizados para templates
 from core.utils import setup_template_filters
@@ -2016,6 +2072,7 @@ def require_authentication():
     ensure_incident_estado_historial_table()
     ensure_apreciacion_dia_table()
     ensure_apreciacion_dia_scope_columns()
+    ensure_mensaje_info_table()
     ensure_legacy_admins_promoted_to_superadmin()
     if not request.endpoint or request.endpoint == 'static':
         return
