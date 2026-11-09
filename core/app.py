@@ -3697,13 +3697,18 @@ def api_incidents_pendientes():
         # Calcular la fecha límite (30 minutos atrás)
         limite_tiempo = datetime.now() - timedelta(minutes=30)
         
-        # Buscar incidencias pendientes de más de 30 minutos
+        # Pendientes de más de 30 minutos, dentro de la visibilidad 10.4.
+        # Un usuario solo recibe las que él creó. Admin y superadmin no cambian.
         incidents_pendientes = apply_incident_visibility(db.session.query(Incident, Client, Operateur))\
             .join(Client, Incident.id_client == Client.id)\
             .join(Operateur, Incident.id_operateur == Operateur.id)\
             .filter(Incident.status == 'Pendiente')\
-            .filter(Incident.date_heure <= limite_tiempo)\
-            .all()
+            .filter(Incident.date_heure <= limite_tiempo)
+        if not current_user.is_admin():
+            incidents_pendientes = incidents_pendientes.filter(
+                Incident.id_operateur == current_user.id
+            )
+        incidents_pendientes = incidents_pendientes.all()
         
         # Formatear los datos para la respuesta
         notifications = []
