@@ -796,6 +796,44 @@ a.stat-card-link:focus-visible .stat-card {
     border-color: rgba(0, 0, 0, 0.05);
 }
 
+/* Ficha cliente — historial : Observaciones occupe la largeur restante. */
+.ficha-historial-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.ficha-historial-table .ficha-historial-col-meta {
+    width: 12%;
+}
+
+.ficha-historial-table .ficha-historial-col-asunto {
+    width: 16%;
+}
+
+.ficha-historial-table .ficha-historial-col-obs {
+    width: 48%;
+}
+
+.ficha-historial-table th,
+.ficha-historial-table td {
+    vertical-align: top;
+}
+
+.ficha-historial-table .ficha-historial-asunto,
+.ficha-historial-table .ficha-historial-obs {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.ficha-historial-obs__text {
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 /* Graphiques - alignes sur les cartes du centre d'aide */
 .chart-container {
     background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);

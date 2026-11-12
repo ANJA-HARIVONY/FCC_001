@@ -309,22 +309,29 @@
         <div class="card-body p-0">
             {% if incidents %}
                 <div class="table-responsive d-none d-lg-block d-print-block p-3">
-                    <table class="table table-bordered mb-0" width="100%" cellspacing="0">
+                    <table class="table table-bordered mb-0 ficha-historial-table" width="100%" cellspacing="0">
+                        <colgroup>
+                            <col class="ficha-historial-col-meta">
+                            <col class="ficha-historial-col-asunto">
+                            <col class="ficha-historial-col-meta">
+                            <col class="ficha-historial-col-meta">
+                            <col class="ficha-historial-col-obs">
+                        </colgroup>
                         <thead>
                             <tr>
-                                <th>{{ _('Fecha/Hora') }}</th>
-                                <th>{{ _('Asunto') }}</th>
-                                <th>{{ _('Estado') }}</th>
-                                <th>{{ _('Operador') }}</th>
-                                <th>{{ _('Observaciones') }}</th>
+                                <th class="ficha-historial-meta">{{ _('Fecha/Hora') }}</th>
+                                <th class="ficha-historial-asunto">{{ _('Asunto') }}</th>
+                                <th class="ficha-historial-meta">{{ _('Estado') }}</th>
+                                <th class="ficha-historial-meta">{{ _('Operador') }}</th>
+                                <th class="ficha-historial-obs">{{ _('Observaciones') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for incident in incidents %}
                             <tr>
-                                <td>{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
-                                <td>{{ incident.intitule }}</td>
-                                <td>
+                                <td class="ficha-historial-meta">{{ incident.date_heure.strftime('%d/%m/%Y %H:%M') }}</td>
+                                <td class="ficha-historial-asunto">{{ incident.intitule }}</td>
+                                <td class="ficha-historial-meta">
                                     {% if incident.status == 'Solucionadas' %}
                                         <span class="badge bg-success">{{ _('Solucionadas') }}</span>
                                     {% elif incident.status == 'Pendiente' %}
@@ -336,12 +343,10 @@
                                         </span>
                                     {% endif %}
                                 </td>
-                                <td>{{ incident.operateur.nom }}</td>
-                                <td>
+                                <td class="ficha-historial-meta">{{ incident.operateur.nom }}</td>
+                                <td class="ficha-historial-obs">
                                     {% if incident.observations %}
-                                        <div class="text-xs" style="max-width: 200px;" title="{{ incident.observations }}">
-                                            {{ incident.observations }}
-                                        </div>
+                                        <div class="ficha-historial-obs__text">{{ incident.observations }}</div>
                                     {% else %}
                                         <em class="text-muted">{{ _('Ninguna observación') }}</em>
                                     {% endif %}
