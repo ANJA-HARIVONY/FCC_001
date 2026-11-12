@@ -195,6 +195,10 @@ body.app-layout-v2 .app-header__info {
     line-height: 1.2;
 }
 
+body.app-layout-v2 .app-header__info--informacion {
+    color: #198754;
+}
+
 body.app-layout-v2 .app-header__info-label {
     flex-shrink: 0;
     font-weight: 600;
@@ -510,8 +514,13 @@ html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__meta {
     color: rgba(255, 255, 255, 0.72);
 }
 
-html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__info {
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__info,
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__info--problema {
     color: #ff8b96;
+}
+
+html[data-sidebar-theme="dark"] body.app-layout-v2 .app-header__info--informacion {
+    color: #7ddea0;
 }
 
 html[data-sidebar-theme="dark"] body.app-layout-v2 .app-sidebar {

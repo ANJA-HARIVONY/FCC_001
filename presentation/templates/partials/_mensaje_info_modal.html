@@ -14,10 +14,17 @@
             <div class="modal-body">
                 <div id="mensaje-info-feedback" class="alert d-none mb-3" role="alert"></div>
                 <div class="mb-3">
+                    <label for="mensaje-info-tipo" class="form-label small text-dark text-uppercase fw-semibold">{{ _('Tipo de mensaje') }}</label>
+                    <select class="form-select" id="mensaje-info-tipo">
+                        <option value="problema">{{ _('Mensaje de problema') }}</option>
+                        <option value="informacion">{{ _('Mensaje de información') }}</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="mensaje-info-texto" class="form-label small text-dark text-uppercase fw-semibold">{{ _('Mensaje') }}</label>
                     <textarea class="form-control" id="mensaje-info-texto" rows="3" maxlength="{{ MENSAJE_INFO_TEXTO_MAX }}" autocomplete="off" placeholder="{{ _('Ej. Corte de fibra en la zona norte hasta las 18:00') }}"></textarea>
                     <div class="form-text d-flex justify-content-between gap-2">
-                        <span>{{ _('Se muestra en la cabecera, junto a Info:, y se desplaza.') }}</span>
+                        <span>{{ _('El mensaje de problema se muestra en rojo y el de información en verde. Se desplaza en la cabecera.') }}</span>
                         <span id="mensaje-info-count">0 / {{ MENSAJE_INFO_TEXTO_MAX }}</span>
                     </div>
                 </div>

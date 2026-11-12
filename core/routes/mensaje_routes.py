@@ -10,13 +10,15 @@ from flask_login import current_user, login_required
 
 from core.app import (
     MENSAJE_INFO_TEXTO_MAX,
+    MENSAJE_INFO_TIPO_DEFAULT,
     MensajeInfo,
     admin_required,
     app,
     db,
     mensaje_info_row,
-    mensaje_info_visible_texto,
+    mensaje_info_visible,
     normalize_mensaje_info_texto,
+    normalize_mensaje_info_tipo,
     write_audit,
 )
 
@@ -37,22 +39,26 @@ def _payload(row, for_admin):
             'ok': True,
             'texto': row.texto if row else '',
             'activo': bool(row.activo) if row else False,
+            'tipo': normalize_mensaje_info_tipo(row.tipo) if row else MENSAJE_INFO_TIPO_DEFAULT,
         }
-    texto = mensaje_info_visible_texto()
-    return {'ok': True, 'texto': texto, 'activo': bool(texto)}
+    texto, tipo = mensaje_info_visible()
+    return {'ok': True, 'texto': texto, 'activo': bool(texto), 'tipo': tipo}
 
 
 @app.context_processor
 def inject_mensaje_info():
     texto = ''
+    tipo = MENSAJE_INFO_TIPO_DEFAULT
     try:
         if current_user.is_authenticated:
-            texto = mensaje_info_visible_texto()
+            texto, tipo = mensaje_info_visible()
     except Exception:
         db.session.rollback()
         texto = ''
+        tipo = MENSAJE_INFO_TIPO_DEFAULT
     return {
         'mensaje_info_texto': texto,
+        'mensaje_info_tipo': tipo,
         'MENSAJE_INFO_TEXTO_MAX': MENSAJE_INFO_TEXTO_MAX,
     }
 
@@ -71,6 +77,7 @@ def api_put_mensaje_info():
     payload = request.get_json(silent=True) or {}
     texto = normalize_mensaje_info_texto(payload.get('texto'))
     activo = _as_bool(payload.get('activo'))
+    tipo = normalize_mensaje_info_tipo(payload.get('tipo'))
     if len(texto) > MENSAJE_INFO_TEXTO_MAX:
         return jsonify({
             'ok': False,
@@ -90,6 +97,7 @@ def api_put_mensaje_info():
     if row is None:
         row = MensajeInfo(
             texto=texto,
+            tipo=tipo,
             activo=activo,
             id_operateur=current_user.id,
             modificado_en=now,
@@ -97,6 +105,7 @@ def api_put_mensaje_info():
         db.session.add(row)
     else:
         row.texto = texto
+        row.tipo = tipo
         row.activo = activo
         row.id_operateur = current_user.id
         row.modificado_en = now
@@ -114,6 +123,11 @@ def api_put_mensaje_info():
     write_audit(
         'MENSAJE_INFO',
         id_operateur=current_user.id,
-        detail=f'{estado}: {row.texto[:120]}',
+        detail=f'{estado} {row.tipo}: {row.texto[:120]}',
     )
-    return jsonify({'ok': True, 'texto': row.texto, 'activo': bool(row.activo)})
+    return jsonify({
+        'ok': True,
+        'texto': row.texto,
+        'activo': bool(row.activo),
+        'tipo': row.tipo,
+    })

@@ -36,8 +36,7 @@
 
             {% if mensaje_info_texto %}
             {% set info_seconds = 16 + (mensaje_info_texto|length // 7) %}
-            <div class="app-header__info" role="region" aria-label="{{ _('Información del día') }}">
-                <!--<span class="app-header__info-label">{{ _('Información:') }}</span>-->
+            <div class="app-header__info app-header__info--{{ mensaje_info_tipo }}" role="region" aria-label="{% if mensaje_info_tipo == 'informacion' %}{{ _('Mensaje de información') }}{% else %}{{ _('Mensaje de problema') }}{% endif %}">
                 <div class="app-header__info-viewport" title="{{ mensaje_info_texto }}">
                     <div class="app-header__info-track" style="animation-duration: {{ info_seconds }}s">
                         <span class="app-header__info-text">{{ mensaje_info_texto }}</span>

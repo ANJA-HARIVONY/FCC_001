@@ -11,6 +11,7 @@
 
     var modal = new bootstrap.Modal(modalEl);
     var texto = document.getElementById('mensaje-info-texto');
+    var tipo = document.getElementById('mensaje-info-tipo');
     var activo = document.getElementById('mensaje-info-activo');
     var feedback = document.getElementById('mensaje-info-feedback');
     var saveBtn = document.getElementById('btn-guardar-mensaje-info');
@@ -58,6 +59,9 @@
                     return;
                 }
                 texto.value = result.data.texto || '';
+                if (tipo) {
+                    tipo.value = result.data.tipo === 'informacion' ? 'informacion' : 'problema';
+                }
                 activo.checked = !!result.data.activo;
                 updateCount();
             })
@@ -91,7 +95,11 @@
         fetch('/api/mensaje-info', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ texto: texto.value, activo: activo.checked }),
+            body: JSON.stringify({
+                texto: texto.value,
+                activo: activo.checked,
+                tipo: tipo && tipo.value === 'informacion' ? 'informacion' : 'problema',
+            }),
         })
             .then(function (response) {
                 return response.json().then(function (data) {

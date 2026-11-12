@@ -87,11 +87,11 @@ class MensajeInfoTests(unittest.TestCase):
             return status, response.get_json()
         return result.status_code, result.get_json()
 
-    def _put(self, user, texto, activo):
+    def _put(self, user, texto, activo, tipo='problema'):
         with self.app.test_request_context(
             '/api/mensaje-info',
             method='PUT',
-            json={'texto': texto, 'activo': activo},
+            json={'texto': texto, 'activo': activo, 'tipo': tipo},
         ):
             login_user(user)
             return self._json(self.app.view_functions['api_put_mensaje_info']())
@@ -125,7 +125,8 @@ class MensajeInfoTests(unittest.TestCase):
         html_usuario = self._header(self.usuario)
         self.assertIn('app-header__info-text', html_usuario)
         self.assertIn('Corte de fibra hasta las 18:00', html_usuario)
-        self.assertIn('Info:', html_usuario)
+        self.assertIn('app-header__info--problema', html_usuario)
+        self.assertIn('Mensaje de problema', html_usuario)
         self.assertNotIn('btn-mensaje-info', html_usuario)
 
         html_admin = self._header(self.admin)
@@ -135,6 +136,10 @@ class MensajeInfoTests(unittest.TestCase):
             modal = render_template('partials/_mensaje_info_modal.html')
         self.assertIn('id="modalMensajeInfo"', modal)
         self.assertIn('mensaje-info-activo', modal)
+        self.assertIn('id="mensaje-info-tipo"', modal)
+        self.assertIn('value="problema"', modal)
+        self.assertIn('value="informacion"', modal)
+        self.assertIn('Mensaje de información', modal)
 
         status, data = self._put(self.superadmin, 'Mantenimiento esta noche', True)
         self.assertEqual(status, 200)
@@ -155,6 +160,7 @@ class MensajeInfoTests(unittest.TestCase):
         status, data = self._get(self.admin)
         self.assertEqual(data['texto'], 'Borrador interno')
         self.assertFalse(data['activo'])
+        self.assertEqual(data['tipo'], 'problema')
 
     def test_activo_vacio_y_texto_demasiado_largo(self):
         status, data = self._put(self.admin, '   ', True)
@@ -186,3 +192,27 @@ class MensajeInfoTests(unittest.TestCase):
         status, data = self._put(self.admin, 'Hola\n\nmundo', True)
         self.assertEqual(status, 200)
         self.assertEqual(data['texto'], 'Hola mundo')
+
+    def test_tipo_elige_el_color_y_un_valor_desconocido_queda_en_problema(self):
+        status, data = self._put(self.admin, 'Oficina cerrada el viernes', True, 'informacion')
+        self.assertEqual(status, 200)
+        self.assertEqual(data['tipo'], 'informacion')
+        html = self._header(self.usuario)
+        self.assertIn('app-header__info--informacion', html)
+        self.assertIn('Mensaje de información', html)
+        self.assertNotIn('app-header__info--problema', html)
+
+        status, data = self._put(self.admin, 'Aviso interno', False, 'informacion')
+        self.assertEqual(status, 200)
+        self.assertEqual(data['tipo'], 'informacion')
+        status, data = self._get(self.admin)
+        self.assertEqual(data['tipo'], 'informacion')
+        self.assertFalse(data['activo'])
+        status, data = self._get(self.usuario)
+        self.assertEqual(data['texto'], '')
+        self.assertEqual(data['tipo'], 'problema')
+
+        status, data = self._put(self.admin, 'Corte de fibra', True, 'otro')
+        self.assertEqual(status, 200)
+        self.assertEqual(data['tipo'], 'problema')
+        self.assertEqual(MensajeInfo.query.one().tipo, 'problema')

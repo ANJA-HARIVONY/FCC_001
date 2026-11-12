@@ -972,6 +972,8 @@ class ApreciacionDia(db.Model):
 
 
 MENSAJE_INFO_TEXTO_MAX = 400
+MENSAJE_INFO_TIPOS = ('problema', 'informacion')
+MENSAJE_INFO_TIPO_DEFAULT = 'problema'
 
 
 class MensajeInfo(db.Model):
@@ -980,6 +982,7 @@ class MensajeInfo(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     texto = db.Column(db.String(MENSAJE_INFO_TEXTO_MAX), nullable=False, default='')
+    tipo = db.Column(db.String(20), nullable=False, default=MENSAJE_INFO_TIPO_DEFAULT)
     activo = db.Column(db.Boolean, nullable=False, default=False)
     id_operateur = db.Column(
         db.Integer,
@@ -998,19 +1001,31 @@ def normalize_mensaje_info_texto(value):
     return ' '.join(str(value or '').split())
 
 
+def normalize_mensaje_info_tipo(value, default=MENSAJE_INFO_TIPO_DEFAULT):
+    if value in MENSAJE_INFO_TIPOS:
+        return value
+    return default
+
+
 def mensaje_info_row():
     return db.session.query(MensajeInfo).order_by(MensajeInfo.id.asc()).first()
 
 
-def mensaje_info_visible_texto():
+def mensaje_info_visible():
+    """Texte et type du message actif. Vide et « problema » s'il n'y a rien à montrer."""
     try:
         row = mensaje_info_row()
     except Exception:
         db.session.rollback()
-        return ''
+        return '', MENSAJE_INFO_TIPO_DEFAULT
     if row is None or not row.activo:
-        return ''
-    return normalize_mensaje_info_texto(row.texto)
+        return '', MENSAJE_INFO_TIPO_DEFAULT
+    return normalize_mensaje_info_texto(row.texto), normalize_mensaje_info_tipo(row.tipo)
+
+
+def mensaje_info_visible_texto():
+    texto, _tipo = mensaje_info_visible()
+    return texto
 
 
 def apply_apreciacion_visibility(query, ciudad_id=None, agencia_id=None):
@@ -1153,6 +1168,27 @@ def ensure_mensaje_info_table():
     except Exception:
         db.session.rollback()
         app.logger.exception('No se pudo verificar/crear la tabla mensaje_info')
+
+
+def ensure_mensaje_info_tipo_column():
+    """Añade el tipo del mensaje de cabecera (problema / informacion)."""
+    if getattr(ensure_mensaje_info_tipo_column, '_done', False):
+        return
+    try:
+        inspector = inspect(db.engine)
+        if not inspector.has_table(MensajeInfo.__tablename__):
+            ensure_mensaje_info_tipo_column._done = True
+            return
+        columns = {col['name'] for col in inspector.get_columns(MensajeInfo.__tablename__)}
+        if 'tipo' not in columns:
+            with db.engine.begin() as conn:
+                conn.execute(text(
+                    "ALTER TABLE mensaje_info ADD COLUMN tipo VARCHAR(20) NOT NULL DEFAULT 'problema'"
+                ))
+        ensure_mensaje_info_tipo_column._done = True
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('No se pudo verificar/crear la columna tipo en mensaje_info')
 
 
 def ensure_client_categoria_column():
@@ -2073,6 +2109,7 @@ def require_authentication():
     ensure_apreciacion_dia_table()
     ensure_apreciacion_dia_scope_columns()
     ensure_mensaje_info_table()
+    ensure_mensaje_info_tipo_column()
     ensure_legacy_admins_promoted_to_superadmin()
     if not request.endpoint or request.endpoint == 'static':
         return
